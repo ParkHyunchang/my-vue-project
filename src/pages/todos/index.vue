@@ -69,12 +69,15 @@ export default {
         const getTodos = async (page = currentPage.value) => {
             currentPage.value = page;
             try {
-                const res = await axios.get(
-                    `todos?_sort=id&_order=desc&subject_like=${searchText.value}&_page=${page}&_limit=${limit}`
-                );
-                //numberOfTodos.value를 항상 숫자로
-                numberOfTodos.value = Number(res.headers['x-total-count'] || 0);
-                todos.value = res.data;
+                // 1. 전체 데이터(검색어 적용) 받아오기
+                const allRes = await axios.get(`todos?q=${searchText.value}`);
+                const allTodos = allRes.data;
+                numberOfTodos.value = allTodos.length;
+
+                // 2. 프론트엔드에서 직접 페이징
+                const start = (page - 1) * limit;
+                const end = start + limit;
+                todos.value = allTodos.slice(start, end);
             } catch (err) {
                 console.log(err);
                 error.value = 'Something went wrong.';
