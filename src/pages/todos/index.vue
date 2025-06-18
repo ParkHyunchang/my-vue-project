@@ -54,7 +54,9 @@ export default {
         const currentPage = ref(1);
         const searchText = ref('');
         const numberOfPages = computed(() => {
-            return Math.ceil(numberOfTodos.value / limit);
+            //numberOfPages가 NaN, 0, 음수가 되지 않도록 방어 코드
+            const n = Math.ceil(Number(numberOfTodos.value) / limit);
+            return isNaN(n) || n < 1 ? 1 : n;
         });
 
         const {
@@ -70,7 +72,8 @@ export default {
                 const res = await axios.get(
                     `todos?_sort=id&_order=desc&subject_like=${searchText.value}&_page=${page}&_limit=${limit}`
                 );
-                numberOfTodos.value = res.headers['x-total-count'];
+                //numberOfTodos.value를 항상 숫자로
+                numberOfTodos.value = Number(res.headers['x-total-count'] || 0);
                 todos.value = res.data;
             } catch (err) {
                 console.log(err);

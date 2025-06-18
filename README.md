@@ -48,8 +48,14 @@ npm install vuex@next --save
 ```
 
 ### 실행 명령어
-```
-npm run serve
-json-server --watch db.json
-```
+
+1. 프론트엔드(Vue) 개발 서버 실행
+    ```bash
+    npm run serve
+    ```
+
+2. json-server(가짜 DB) 실행 (포트 3200)
+    ```bash
+    json-server --watch db.json --port 3200
+    ```
 
