@@ -1,4 +1,4 @@
-# my-vue-project
+# vue_project
 
 ## Project setup
 ```
@@ -20,19 +20,36 @@ npm run build
 npm run lint
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
-
-### github
+### git commit
 ```
-git remote add origin https://github.com/ParkHyunchang/my-vue-project.git
-git add .
-git commit -m "init: first vue project"
+git init
+git add README.md
+git commit -m "first commit"
 git branch -M main
+git remote add origin https://github.com/ParkHyunchang/vue_todoList.git
 git push -u origin main
 
 
 git add .
-git commit -m "작업 내용"
-git push
+git commit -m "😤 뷰 첫 커밋 완료"
+git push -u origin main
 ```
+
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).
+
+### 설치 패키지
+```
+npm install -g json-server
+npm install axios
+npm install vue-router
+npm install lodash
+npm install vuex@next --save
+```
+
+### 실행 명령어
+```
+npm run serve
+json-server --watch db.json
+```
+
