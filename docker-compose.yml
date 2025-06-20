@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  vue_app:
+    container_name: vue_personal_project
+    image: vue_personal_project:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3100:80"
+    restart: unless-stopped

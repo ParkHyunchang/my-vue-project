@@ -134,53 +134,24 @@ http://시놀로지아이피:3100
 실행 완료 후 접속 확인:
 ```
 
-
 ### nas 업데이트 판 배포
-
-1. 로컬에서 업데이트 소스 빌드
+docker-compose.yml 만들어서 아래 명령어로 해결
 ```bash
+# 1. 최신 빌드 -> Vue 앱을 정적 파일로 컴파일 (dist/ 생성)
 npm run build
-```
 
-2. 도커이미지 다시 빌드
-```bash
-docker build -t vue_personal_project:latest .
-```
+# 2. 컨테이너 재시작 포함 빌드 -> dist 폴더를 포함해 Docker 이미지 생성 + 컨테이너 실행
+docker-compose up -d --build
 
-3. 새 tar 파일로 저장
-```bash
+# 3. tar 파일로 저장하여 tar 파일 nas 로 전송
 docker save vue_personal_project:latest -o vue_personal_project.tar
-```
 
-
-4. nas에 새 tar 파일 전송
-```bash
-방법 1: FileZilla FTP (평문)
-
-방법 2: WinSCP
-
-방법 3: CLI (scp)
-```
-
-5. NAS에서 기존 컨테이너 중지 및 삭제 (필수는 아님)
-
-6. NAS에서 이미지 다시 로드
-```bash
+# 4. NAS 경로로 이동하여 tar 파일 로드
 cd /volume1/docker
 docker load -i vue_personal_project.tar
-```
 
-7. 컨테이너 삭제 후 재생성 (이게 일반적이고 안전함)
-```bash
-cd /volume1/docker
+# 5. 이전 컨테이너 제거 후 컨테이너 실행 (포트 지정 포함)
 docker stop vue_personal_project
 docker rm vue_personal_project
 docker run -d --name vue_personal_project -p 3100:80 vue_personal_project:latest
-```
-
-7-1. DSM Docker GUI에서 컨테이너 새로 생성
-```bash
-또는 CLI로 직접 실행도 가능
-
-docker run -d --name vue_personal_project_v2 -p 3100:80 vue_personal_project:latest
 ```
