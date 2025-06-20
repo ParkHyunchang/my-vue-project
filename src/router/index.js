@@ -3,6 +3,8 @@ import Home from '../pages/index.vue';
 import Todos from '../pages/todos/index.vue';
 import Todo from '../pages/todos/_id.vue';
 import TodoCreate from '../pages/todos/create/index.vue';
+import Count from '../pages/count.vue';
+import Projects from '../pages/projects.vue';
 
 const router = createRouter({
     history: createWebHistory(),
@@ -26,6 +28,16 @@ const router = createRouter({
             path: '/todos/:id',
             name: 'Todo',
             component: Todo
+        },
+        {
+            path: '/count',
+            name: 'Count',
+            component: Count
+        },
+        {
+            path: '/projects',
+            name: 'Projects',
+            component: Projects
         }
     ]
 });

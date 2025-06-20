@@ -10,6 +10,11 @@
                     Todos
                 </router-link>
             </li>
+            <li class="nav-item">
+                <router-link class="nav-link" :to="{ name: 'Count' }">
+                    Count
+                </router-link>
+            </li>
         </ul>
     </nav>
 </template>
