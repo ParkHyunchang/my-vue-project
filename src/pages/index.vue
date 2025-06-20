@@ -2,6 +2,8 @@
   <div>Home Page</div>
   <div>{{ count }}</div>
   <button @click="count++">Add</button>
+
+  <div>업데이트 테스트</div>
 </template>
 
 <script>
