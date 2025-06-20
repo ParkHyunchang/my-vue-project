@@ -2,10 +2,18 @@
 node_modules
 /dist
 
-
 # local env files
+.env
 .env.local
 .env.*.local
+
+# 인증서/비밀키 등 민감 파일
+*.pem
+*.key
+*.crt
+
+# tar 파일 (Docker 저장 이미지)
+*.tar
 
 # Log files
 npm-debug.log*
