@@ -32,10 +32,10 @@
             <div class="intro__text">
               <div class="text">
                 <div>여행 좋아하는</div>
-                <div>개발지</div>
+                <div>개발자</div>
               </div>
               <div class="img">
-                <img src="/assets/img/내사진2.jpg" alt="인시드니" />
+                <img src="../assets/img/내사진2.jpg" alt="인시드니" />
               </div>
             </div>
             <div class="intro__lines bottom" aria-hidden="true">
