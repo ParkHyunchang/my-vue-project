@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../pages/index.vue';
+import History from '../pages/history.vue';
 import Todos from '../pages/todos/index.vue';
 import Todo from '../pages/todos/_id.vue';
 import TodoCreate from '../pages/todos/create/index.vue';
@@ -13,6 +14,11 @@ const router = createRouter({
             path: '/',
             name: 'Home',
             component: Home
+        },
+        {
+            path: '/history',
+            name: 'History',
+            component: History
         },
         {
             path: '/todos',
