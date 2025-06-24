@@ -268,6 +268,7 @@ export default {
 <style src="@/assets/css/style.css"></style>
 
 <style>
+/* 데스크탑(기존 스타일) */
 .main-side-menu {
   position: fixed;
   top: 0;
@@ -281,7 +282,6 @@ export default {
   align-items: stretch;
   box-shadow: 2px 0 8px rgba(0,0,0,0.03);
 }
-
 .main-side-menu ul {
   list-style: none;
   padding: 0;
@@ -290,11 +290,9 @@ export default {
   flex-direction: column;
   gap: 10px;
 }
-
 .main-side-menu li {
   margin: 0;
 }
-
 .main-side-menu a {
   display: block;
   padding: 18px 24px;
@@ -304,13 +302,57 @@ export default {
   border-radius: 8px;
   transition: background 0.2s;
 }
-
 .main-side-menu a:hover,
 .main-side-menu a:focus {
   background: #d6cec7;
 }
-
 .main-content {
   padding-left: 160px;
+}
+
+.skill__title {
+  margin-bottom: 2rem;
+  word-break: keep-all;
+}
+.skill__desc > div {
+  margin-top: 1.5rem;
+}
+.skill__desc > div:first-child {
+  margin-top: 0;
+}
+
+/* 모바일(800px 이하)에서만 본문 100%, 사이드 메뉴 숨김, 인트로 개선 */
+@media (max-width: 800px) {
+  .main-side-menu {
+    display: none;
+  }
+  .main-content {
+    padding-left: 0;
+    width: 100%;
+  }
+  .intro__title {
+    font-size: 2rem;
+    text-align: center;
+    margin-top: 2rem;
+    word-break: keep-all;
+  }
+  .intro__inner {
+    align-items: center;
+    padding: 1rem;
+  }
+  .intro__text .img {
+    width: 60vw;
+    height: 60vw;
+    max-width: 300px;
+    max-height: 300px;
+    margin: 0 auto;
+  }
+  .skill__title {
+    font-size: 1.5rem;
+    margin-bottom: 1.2rem;
+  }
+  .skill__desc > div {
+    margin-top: 1rem;
+  }
 }
 </style>

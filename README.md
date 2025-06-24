@@ -141,15 +141,31 @@ npm run build
 # 2. 컨테이너 재시작 포함 빌드 -> dist 폴더를 포함해 Docker 이미지 생성 + 컨테이너 실행
 docker-compose up -d --build
    
-# 3. tar 파일로 저장하여 tar 파일 nas 로 전송
+# 3. tar 파일 생성
 docker save vue_personal_project:latest -o vue_personal_project.tar
+
+# 4. 생성한 tar 파일 nas 로 전송
    
-# 4. NAS 경로로 이동하여 tar 파일 로드
+# 5. NAS 경로로 이동하여 tar 파일 로드
 cd /volume1/docker
 docker load -i vue_personal_project.tar
    
-# 5. 이전 컨테이너 제거 후 컨테이너 실행 (포트 지정 포함)
+# 6. 이전 컨테이너 제거 후 컨테이너 실행 (포트 지정 포함)
 docker stop vue_personal_project
 docker rm vue_personal_project
 docker run -d --name vue_personal_project -p 3100:80 vue_personal_project:latest
+```
+
+
+### nas 업데이트 간략화화
+
+
+```bash
+# 1. 빌드 및 tar 파일 생성 쉘 실행 (단 도커데스크탑 실행하고 이거 실행해야 에러안남!)
+./build-and-package.ps1
+
+# 2. 생성된 tar 파일 서버로 전송 (서버경로 : cd /volume1/docker)
+
+# 3. 서버에서 배포 쉘 실행 (서버경로 : cd /volume1/docker)
+./vue_personal_project_deploy.sh
 ```

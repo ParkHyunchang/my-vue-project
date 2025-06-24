@@ -1,22 +1,22 @@
-.slkll__inner {
+.skill__inner {
     padding: 16px;
     display: flex;
     justify-content: space-between;
 }
 .skill__title {
-    /* position: sticky; */
-    position: static;
+    position: sticky;
     top: 70px;
     left: 0;
-    width: 45%;
+    width: 70%;
     height: 5vw;
-    font-size: 2.5rem;
+    font-size: 4vw;
     font-weight: 900;
     line-height: 1.6;
     font-family: var(--mainKor-font);
     text-transform: uppercase;
     color: var(--black100);
     border-bottom: 0.4vw solid var(--black100);
+    margin-bottom: 100px;
 }
 .skill__title em {
     font-size: 1.25rem;
@@ -27,11 +27,10 @@
     width: 50%;
 }
 .skill__desc span {
-    font-size: 3vw;
-    line-height: 1;
+    font-size: 2.2rem;
     font-weight: 900;
-    line-height: 1.3;
     font-family: var(--mainNum-font);
+    white-space: nowrap;
 }
 .skill__desc h3 {
     font-size: 1.5rem;
@@ -44,15 +43,24 @@
     font-size: 1.1rem;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 800px){
+    .skill__inner {
+        flex-direction: column;
+    }
     .skill__title {
-        font-size: 2rem;
         width: 100%;
+        margin-bottom: 10vw;
+        font-size: 30px;
+        height: auto;
+        top: 68px;
+        z-index: 1000;
+        background-color: var(--mainBg-color);
     }
     .skill__desc {
         width: 100%;
     }
-    .slkll__inner {
-        flex-direction: column;
+    .skill__desc span {
+        font-size: 26px;
+        white-space: normal;
     }
 }
