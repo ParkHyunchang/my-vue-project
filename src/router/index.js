@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHashHistory } from 'vue-router';
 import Home from '../pages/index.vue';
 import History from '../pages/history.vue';
 import Todos from '../pages/todos/index.vue';
@@ -8,7 +8,7 @@ import Count from '../pages/count.vue';
 import Projects from '../pages/projects.vue';
 
 const router = createRouter({
-    history: createWebHistory(),
+    history: createWebHashHistory(),
     routes: [
         {
             path: '/',
