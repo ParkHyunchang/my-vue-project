@@ -10,24 +10,26 @@
         <input class="form-control" type="text" v-model="searchText" placeholder="Search" @keyup.enter="searchTodo">
         <hr />
 
-        <div v-if="!todos.length">
+        <div v-if="loading">Loading...</div>
+        <div v-else-if="!todos.length">
             There is nothing to display
         </div>
-        <TodoList :todos="todos" @toggle-todo="toggleTodo" @delete-todo="deleteTodo" />
+        <TodoSimpleForm @todo-added="fetchTodos" />
+        <TodoList :todos="todos" @todo-updated="fetchTodos" />
         <hr />
         <nav aria-label="Page navigation example">
             <ul class="pagination">
                 <li v-if="currentPage !== 1" class="page-item">
-                    <a style="cursor: pointer" class="page-link" @click="getTodos(currentPage - 1)">
+                    <a style="cursor: pointer" class="page-link" @click="changePage(currentPage - 1)">
                         Previous
                     </a>
                 </li>
                 <li v-for="page in numberOfPages" :key="page" class="page-item"
                     :class="currentPage === page ? 'active' : ''">
-                    <a style="cursor: pointer" class="page-link" @click="getTodos(page)">{{ page }}</a>
+                    <a style="cursor: pointer" class="page-link" @click="changePage(page)">{{ page }}</a>
                 </li>
                 <li v-if="numberOfPages !== currentPage" class="page-item">
-                    <a style="cursor: pointer" class="page-link" @click="getTodos(currentPage + 1)">Next</a>
+                    <a style="cursor: pointer" class="page-link" @click="changePage(currentPage + 1)">Next</a>
                 </li>
             </ul>
         </nav>
@@ -35,8 +37,9 @@
 </template>
 
 <script>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import TodoList from '@/components/TodoList.vue';
+import TodoSimpleForm from '@/components/TodoSimpleForm.vue';
 import axios from '@/axios';
 import { useToast } from '@/composables/toast';
 import { useRouter } from 'vue-router';
@@ -44,17 +47,18 @@ import { useRouter } from 'vue-router';
 export default {
     components: {
         TodoList,
+        TodoSimpleForm,
     },
     setup() {
         const router = useRouter();
         const todos = ref([]);
         const error = ref('');
         const numberOfTodos = ref(0);
-        let limit = 5;
+        const limit = 5;
         const currentPage = ref(1);
         const searchText = ref('');
+        const loading = ref(false);
         const numberOfPages = computed(() => {
-            //numberOfPages가 NaN, 0, 음수가 되지 않도록 방어 코드
             const n = Math.ceil(Number(numberOfTodos.value) / limit);
             return isNaN(n) || n < 1 ? 1 : n;
         });
@@ -66,73 +70,35 @@ export default {
             triggerToast
         } = useToast();
 
-        const getTodos = async (page = currentPage.value) => {
+        // 서버에서 페이징/검색 적용해서 가져오기
+        const fetchTodos = async (page = currentPage.value) => {
+            loading.value = true;
             currentPage.value = page;
             try {
-                // 1. 전체 데이터(검색어 적용) 받아오기
-                const allRes = await axios.get(`todos?q=${searchText.value}`);
-                const allTodos = allRes.data;
-                numberOfTodos.value = allTodos.length;
-
-                // 2. 프론트엔드에서 직접 페이징
-                const start = (page - 1) * limit;
-                const end = start + limit;
-                todos.value = allTodos.slice(start, end);
+                // Spring Boot 백엔드에 맞는 쿼리 파라미터 사용
+                const params = {
+                    page: page - 1, // Spring Data JPA는 0-base
+                    size: limit,
+                };
+                if (searchText.value) params.q = searchText.value;
+                const res = await axios.get('todos', { params });
+                todos.value = res.data;
+                // X-Total-Count 헤더에서 전체 개수 추출
+                const total = res.headers['x-total-count'];
+                numberOfTodos.value = total ? parseInt(total) : todos.value.length;
             } catch (err) {
                 console.log(err);
                 error.value = 'Something went wrong.';
                 triggerToast('Something went wrong', 'danger')
+            } finally {
+                loading.value = false;
             }
         };
 
-        getTodos();
+        onMounted(() => fetchTodos(1));
 
-        const addTodo = async (todo) => {
-            // 데이터베이스 투두를 저장
-            error.value = '';
-            try {
-                await axios.post('todos', {
-                    subject: todo.subject,
-                    completed: todo.completed,
-                });
-
-                getTodos(1);
-            } catch (err) {
-                console.log(err);
-                error.value = 'Something went wrong.';
-                triggerToast('Something went wrong', 'danger')
-            }
-        };
-
-        const deleteTodo = async (id) => {
-            error.value = '';
-
-            try {
-                await axios.delete('todos/' + id);
-
-                getTodos(1);
-            } catch (err) {
-                console.log(err);
-                error.value = 'Something went wrong.';
-                triggerToast('Something went wrong', 'danger')
-            }
-        };
-
-        const toggleTodo = async (index, checked) => {
-            error.value = '';
-            const id = todos.value[index].id;
-            try {
-                await axios.patch('todos/' + id, {
-                    completed: checked
-                });
-
-                todos.value[index].completed = checked
-            } catch (err) {
-                console.log(err);
-                error.value = 'Something went wrong.';
-                triggerToast('Something went wrong', 'danger')
-            }
-
+        const changePage = (page) => {
+            fetchTodos(page);
         };
 
         const moveToCreatePage = () => {
@@ -144,31 +110,30 @@ export default {
         let timeout = null;
         const searchTodo = () => {
             clearTimeout(timeout);
-            getTodos(1);
+            fetchTodos(1);
         };
 
         watch(searchText, () => {
             clearTimeout(timeout);
             timeout = setTimeout(() => {
-                getTodos(1);
-            }, 2000);
+                fetchTodos(1);
+            }, 500);
         });
 
         return {
             searchTodo,
             todos,
-            addTodo,
-            deleteTodo,
-            toggleTodo,
             searchText,
             error,
             numberOfPages,
             currentPage,
-            getTodos,
+            fetchTodos,
             toastMessage,
             toastAlertType,
             showToast,
             moveToCreatePage,
+            changePage,
+            loading,
         };
     }
 }

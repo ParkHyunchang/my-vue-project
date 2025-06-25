@@ -5,7 +5,7 @@
     <form v-else @submit.prevent="onSave">
         <div class="row">
             <div class="col-6">
-                <Input label="Subject" v-model:subject="todo.subject" :error="subjectError" />
+                <Input label="Title" v-model:title="todo.title" :error="titleError" />
             </div>
             <div v-if="editing" class="col-6">
                 <div class="form-group">
@@ -62,12 +62,12 @@ export default {
         const route = useRoute();
         const router = useRouter();
         const todo = ref({
-            subject: '',
+            title: '',
             completed: false,
             body: ''
         });
 
-        const subjectError = ref('');
+        const titleError = ref('');
         const originalTodo = ref(null);
         const loading = ref(false);
         const {
@@ -83,10 +83,8 @@ export default {
             loading.value = true;
             try {
                 const res = await axios.get(`todos/${todoId}`);
-
                 todo.value = { ...res.data };
                 originalTodo.value = { ...res.data };
-
                 loading.value = false;
             } catch (error) {
                 loading.value = false;
@@ -114,16 +112,16 @@ export default {
         }
 
         const onSave = async () => {
-            subjectError.value = '';
-            if (!todo.value.subject) {
-                subjectError.value = 'Subject is required';
+            titleError.value = '';
+            if (!todo.value.title) {
+                titleError.value = 'Title is required';
                 return;
             }
 
             try {
                 let res;
                 const data = {
-                    subject: todo.value.subject,
+                    title: todo.value.title,
                     completed: todo.value.completed,
                     body: todo.value.body,
                 };
@@ -132,7 +130,7 @@ export default {
                     originalTodo.value = { ...res.data };
                 } else {
                     res = await axios.post('todos', data);
-                    todo.value.subject = '';
+                    todo.value.title = '';
                     todo.value.body = '';
                 }
 
@@ -160,7 +158,7 @@ export default {
             showToast,
             toastMessage,
             toastAlertType,
-            subjectError,
+            titleError,
         };
     }
 }

@@ -25,35 +25,40 @@
 </template>
 
 <script>
-    import { ref, getCurrentInstance } from 'vue';
+import { ref } from 'vue';
+import axios from '@/axios';
 
-    export default {
-        emits: ['add-todo'],
-        setup() {
-            const { emit } = getCurrentInstance();
-            const todo = ref('');
-            const hasError = ref(false);
-            const onSubmit = () => {
-                if (todo.value === '') {
-                    hasError.value = true;
-                } else {
-                    emit('add-todo', {
-                        id: Date.now(),
-                        subject: todo.value,
+export default {
+    emits: ['todo-added'],
+    setup(props, { emit }) {
+        const todo = ref('');
+        const hasError = ref(false);
+        const onSubmit = async () => {
+            if (todo.value === '') {
+                hasError.value = true;
+            } else {
+                try {
+                    await axios.post('todos', {
+                        title: todo.value,
                         completed: false,
+                        body: ''
                     });
+                    emit('todo-added');
                     hasError.value = false;
                     todo.value = '';
+                } catch (e) {
+                    hasError.value = true;
                 }
-            };
+            }
+        };
 
-            return {
-                todo,
-                hasError,
-                onSubmit,
-            };
-        }
+        return {
+            todo,
+            hasError,
+            onSubmit,
+        };
     }
+}
 </script>
 
 <style></style>

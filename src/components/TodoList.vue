@@ -1,12 +1,11 @@
 <template>
     <List :items="todos">
-        <template #default="{ item, index }">
+        <template #default="{ item }">
             <div class="card-body p-2 d-flex align-items-center" style="cursor: pointer" @click="moveToPage(item.id)">
                 <div class="flex-grow-1">
-                    <input class="ml-2 mr-2" type="checkbox" :checked="item.completed" @change="toggleTodo(index, $event)"
-                        @click.stop>
+                    <input class="ml-2 mr-2" type="checkbox" :checked="item.completed" @change="toggleTodo(item)" @click.stop>
                     <span :class="{ todo: item.completed }">
-                        {{ item.subject }}
+                        {{ item.title }}
                     </span>
                 </div>
                 <div>
@@ -28,6 +27,7 @@ import { useRouter } from 'vue-router';
 import Modal from '@/components/DeleteModal.vue';
 import { ref, getCurrentInstance } from 'vue';
 import List from '@/components/List.vue';
+import axios from '@/axios';
 
 export default {
     components: {
@@ -40,14 +40,22 @@ export default {
             required: true
         }
     },
-    emits: ['toggle-todo', 'delete-todo'],
-    setup() {
-        const { emit } = getCurrentInstance();
+    emits: ['todo-updated'],
+    setup(props, { emit }) {
         const router = useRouter();
         const showModal = ref(false);
         const todoDeleteId = ref(null);
-        const toggleTodo = (index, event) => {
-            emit('toggle-todo', index, event.target.checked);
+
+        const toggleTodo = async (item) => {
+            try {
+                await axios.put(`todos/${item.id}`, {
+                    ...item,
+                    completed: !item.completed
+                });
+                emit('todo-updated');
+            } catch (e) {
+                // 에러 처리 필요시 추가
+            }
         };
 
         const openModal = (id) => {
@@ -60,22 +68,24 @@ export default {
             showModal.value = false;
         };
 
-        const deleteTodo = () => {
-            emit('delete-todo', todoDeleteId.value);
-
+        const deleteTodo = async () => {
+            try {
+                await axios.delete(`todos/${todoDeleteId.value}`);
+                emit('todo-updated');
+            } catch (e) {
+                // 에러 처리 필요시 추가
+            }
             showModal.value = false;
             todoDeleteId.value = null;
         };
 
         const moveToPage = (todoId) => {
-            // router.push('/todos/' + todoId);
             router.push({
                 name: 'Todo',
                 params: {
                     id: todoId
                 }
             });
-
         };
 
         return {
