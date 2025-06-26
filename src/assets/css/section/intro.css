@@ -5,7 +5,7 @@
     width: 100%;
     height: 100%;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: flex-end;
     flex-direction: column;
     padding: 16px;
@@ -16,8 +16,11 @@
     line-height: 1;
     font-weight: 800;
     white-space: nowrap;
-    text-indent: -0.5vw;
+    margin: 0 auto;
+    text-align: center;
+    text-indent: 0;
     letter-spacing: -0.3vw;
+    transform: translateX(-20%); /* 사진과 동일선상에서 시작하기에 가운데 정렬느낌이 아니라서 왼쪽으로 20% 이동 */
 }
 .intro__text {
     width: 100%;

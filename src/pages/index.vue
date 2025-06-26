@@ -25,13 +25,12 @@
       <main id="main" role="main">
         <section id="intro">
           <div class="intro__inner">
-            <h1 class="intro__title">hyunchang's portfolio</h1>
+            <h1 class="intro__title">hyunchang's home</h1>
             <div class="intro__lines" aria-hidden="true">
               <span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span>
             </div>
             <div class="intro__text">
               <div class="text">
-                <div>여행 좋아하는</div>
                 <div>개발자</div>
               </div>
               <div class="img">

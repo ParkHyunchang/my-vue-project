@@ -1,6 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import Home from '../pages/index.vue';
-import History from '../pages/history.vue';
+import Portfolio from '../pages/portfolio.vue';
 import Todos from '../pages/todos/index.vue';
 import Todo from '../pages/todos/_id.vue';
 import TodoCreate from '../pages/todos/create/index.vue';
@@ -16,9 +16,9 @@ const router = createRouter({
             component: Home
         },
         {
-            path: '/history',
-            name: 'History',
-            component: History
+            path: '/portfolio',
+            name: 'Portfolio',
+            component: Portfolio
         },
         {
             path: '/todos',

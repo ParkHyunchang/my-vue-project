@@ -40,7 +40,6 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 
 ### 설치 패키지
 ```bash
-npm install -g json-server
 npm install axios
 npm install vue-router
 npm install lodash
@@ -49,21 +48,16 @@ npm install vuex@next --save
 
 ### 개발시 실행 명령어
 
-1. 개발 서버 빌드
+1. 백엔드 서버 실행 (Spring Boot)
 ```bash
-npm run serve
+# my-vue-project-backend 디렉토리에서
+./mvnw spring-boot:run
 ```
    
 2. 프론트엔드(Vue) 개발 서버 실행
 ```bash
 npm run serve
 ```
-
-3. json-server(가짜 DB) 실행 (포트 3200)
-```bash
-json-server --watch db.json --port 3200
-```
-
 
 ### 로컬 실행
    
