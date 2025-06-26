@@ -9,7 +9,7 @@
     left: 0;
     width: 70%;
     height: 5vw;
-    font-size: 4vw;
+    font-size: clamp(1.2rem, 4vw, 2.5rem);
     font-weight: 900;
     line-height: 1.6;
     font-family: var(--mainKor-font);
@@ -50,7 +50,7 @@
     .skill__title {
         width: 100%;
         margin-bottom: 10vw;
-        font-size: 30px;
+        font-size: clamp(1.1rem, 6vw, 2rem);
         height: auto;
         top: 68px;
         z-index: 1000;

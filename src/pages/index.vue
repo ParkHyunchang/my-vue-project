@@ -308,6 +308,9 @@ export default {
 .main-content {
   padding-left: 160px;
 }
+.intro__title {
+  font-size: clamp(2rem, 7vw, 6rem);
+}
 
 .skill__title {
   margin-bottom: 2rem;
@@ -334,10 +337,16 @@ export default {
     text-align: center;
     margin-top: 2rem;
     word-break: keep-all;
+    margin: 0 auto;
+    display: block;
+    white-space: normal !important; /* 줄바꿈 허용 */
+    width: 100%;
+    transform: none !important; /* 데스크탑 설정한 왼쪽이동 제거하여 원래 위치로 돌아가기 */
   }
   .intro__inner {
     align-items: center;
     padding: 1rem;
+    width: 100%;
   }
   .intro__text .img {
     width: 60vw;

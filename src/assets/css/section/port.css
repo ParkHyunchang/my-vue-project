@@ -9,7 +9,7 @@
 .port__title {
     width: 100%;
     height: 5vw;
-    font-size: 4vw;
+    font-size: clamp(1.2rem, 4vw, 2.5rem);
     font-weight: 900;
     line-height: 1.6;
     font-family: var(--mainKor-font);
@@ -87,7 +87,7 @@
     filter: saturate(100%)
 }
 .port__item .title {
-    font-size: 3rem;
+    font-size: clamp(1.1rem, 3vw, 2rem);
     text-align: center;
     padding: 0.8rem 0;
     font-weight: 700;
@@ -113,16 +113,18 @@
     .port__title {
         width: 100%;
         margin-bottom: 16px;
-        font-size: 30px;
+        font-size: clamp(1.1rem, 6vw, 2rem);
         height: auto;
         top: 68px;
         z-index: 1000;
         background-color: var(--mainBg-color);
-
     }
     .port__item {
         width: 400px;
         padding: 40px 30px;
         height: auto;
+    }
+    .port__item .title {
+        font-size: clamp(1rem, 5vw, 1.5rem);
     }
 }

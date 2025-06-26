@@ -11,16 +11,16 @@
     padding: 16px;
 }
 .intro__title {
-    font-size: 7vw;
+    font-size: clamp(2rem, 7vw, 6rem);
     text-transform: uppercase;
     line-height: 1;
     font-weight: 800;
-    white-space: nowrap;
+    white-space: normal;
     margin: 0 auto;
     text-align: center;
     text-indent: 0;
-    letter-spacing: -0.3vw;
-    transform: translateX(-20%); /* 사진과 동일선상에서 시작하기에 가운데 정렬느낌이 아니라서 왼쪽으로 20% 이동 */
+    letter-spacing: 0;
+    width: 100%;
 }
 .intro__text {
     width: 100%;
@@ -50,8 +50,8 @@
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 30vh;
-    height: 30vh;
+    width: clamp(120px, 30vw, 320px);
+    height: clamp(120px, 30vw, 320px);
     border-radius: 50%;
     overflow: hidden;
     filter: grayscale(100%);
@@ -121,15 +121,61 @@
     height: 1px;
 }
 
+@media (max-width: 1200px) {
+    .intro__title {
+        transform: none !important;
+        white-space: normal !important;
+        width: 100%;
+        text-align: center;
+        margin: 0 auto;
+        letter-spacing: 0;
+        text-indent: 0;
+    }
+}
+
 @media (max-width: 800px){
     .intro__inner {
         justify-content: center;
+        width: 100%;
     }
     .intro_lines.bottom .line {
         display: block;
     }
+    .intro__text {
+        width: 100%;
+        max-width: 350px;
+        height: auto;
+        min-height: 120px;
+        margin: 0 auto;
+        padding: 1.5rem 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
     .intro__text .text {
         font-size: 24px;
+    }
+    .intro__title {
+        font-size: clamp(1.2rem, 7vw, 2.5rem); /* 모바일에서 반응형으로 폰트 크기 조절 */
+        text-align: center;
+        margin-top: 2rem;
+        word-break: keep-all;
+        margin: 0 auto;
+        display: block;
+        white-space: normal !important;
+        width: 100%;
+        transform: none !important;
+    }
+    .intro__text .img {
+        width: clamp(80px, 50vw, 200px);
+        height: clamp(80px, 50vw, 200px);
+        margin: 0 auto;
+        position: static;
+        transform: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 }
 @media (max-width: 320px){
