@@ -44,6 +44,7 @@ npm install axios
 npm install vue-router
 npm install lodash
 npm install vuex@next --save
+npm install @studio-freight/lenis
 ```
 
 ### 개발시 실행 명령어

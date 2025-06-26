@@ -13,11 +13,11 @@
     <!-- 메인화면 전용 왼쪽 메뉴 -->
     <aside class="main-side-menu">
       <ul>
-        <li><a href="#intro">Intro</a></li>
-        <li><a href="#skill">Skill</a></li>
-        <li><a href="#site">Site</a></li>
-        <li><a href="#port">Portfolio</a></li>
-        <li><a href="#contact">Contact</a></li>
+        <li><a href="javascript:void(0)" data-scroll="#intro">Intro</a></li>
+        <li><a href="javascript:void(0)" data-scroll="#skill">Skill</a></li>
+        <li><a href="javascript:void(0)" data-scroll="#site">Site</a></li>
+        <li><a href="javascript:void(0)" data-scroll="#port">Portfolio</a></li>
+        <li><a href="javascript:void(0)" data-scroll="#contact">Contact</a></li>
       </ul>
     </aside>
 
@@ -144,8 +144,8 @@
             </div>
           </div>
         </section>
-        <section id="port">
-          <div class="port__inner">
+        <section id="port" class="port-section" style="position: relative; height: 100vh;">
+          <div class="port__wrap-sticky" style="position: sticky; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden;">
             <div class="port__title">portfolio <em>포폴 작업물</em></div>
             <div class="port__wrap">
               <article class="port__item p1">
@@ -259,8 +259,13 @@
 </template>
 
 <script>
+import { port } from '@/assets/js/port.js';
+
 export default {
   name: 'HomePage',
+  mounted() {
+    port();
+  }
 };
 </script>
 

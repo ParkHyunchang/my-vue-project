@@ -7,7 +7,8 @@
     padding: 16px;
 }
 .port__title {
-    width: 100%;
+    width: 400px;
+    flex-shrink: 0;
     height: 5vw;
     font-size: clamp(1.2rem, 4vw, 2.5rem);
     font-weight: 900;
@@ -15,6 +16,7 @@
     font-family: var(--mainKor-font);
     text-transform: uppercase;
     color: var(--black100);
+    margin-top: 50px;
     border-bottom: 0.4vw solid var(--black100);
     margin-bottom: 16px;
     text-indent: -0.26vw;
@@ -26,8 +28,16 @@
 }
 .port__wrap {
     display: flex;
-    flex-wrap: wrap;
-    width: 7000px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    width: auto;
+    min-width: fit-content;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    height: auto;
+    align-items: flex-start;
 }
 .port__item {
     width: 500px;
