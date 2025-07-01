@@ -368,4 +368,22 @@ export default {
     margin-top: 1rem;
   }
 }
+/* 모바일 다크모드 설정 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --mainBg-color: #23201c;
+    --subBg100: #3a332a;
+    --subBg200: #4a4238;
+    --subBg300: #686056;
+    --subBg400: #7a726a;
+    --subBg500: #8a827a;
+
+    --white: #f5f0ea;
+    --black: #23201c;
+    --black100: #e0e0e0;
+    --black200: #b0b0b0;
+    --black300: #888888;
+    --black400: #444444;
+  }
+}
 </style>

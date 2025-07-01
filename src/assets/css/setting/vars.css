@@ -44,3 +44,21 @@ body {
     color: var(--black100);
     background-color: var(--mainBg-color);
 }
+
+/* 모바일 다크모드 설정 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --mainBg-color: #23201c;   /* 기존보다 밝은 다크 배경 */
+    --subBg100: #3a332a;
+    --subBg200: #4a4238;
+    --subBg300: #686056;
+    --subBg400: #7a726a;
+    --subBg500: #8a827a;
+
+    --white: #f5f0ea;          /* 완전 흰색 대신 아이보리 */
+    --black100: #e0e0e0;       /* 텍스트 색상도 밝게 */
+    --black200: #b0b0b0;
+    --black300: #888888;
+    --black400: #444444;
+  }
+}

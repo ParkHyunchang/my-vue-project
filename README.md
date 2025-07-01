@@ -70,6 +70,11 @@ docker build -t vue_personal_project .
 ```bash
 docker images
 ```   
+2.5 3실행안되면 기존에 있던 포트 삭제하고 재 실행
+```bash
+docker ps -a
+docker stop containerID containerID; docker rm containerID containerID
+```
 3. 로컬에서 실행 테스트
 ```bash
 docker run -d -p 3100:80 vue_personal_project
