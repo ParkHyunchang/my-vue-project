@@ -11,27 +11,29 @@
                 <div class="form-group">
                     <label>Status</label>
                     <div>
-                        <button class="btn" type="button" :class="todo.completed ? 'btn-success' : 'btn-danger'"
+                        <button class="btn" type="button" :class="todo.done ? 'btn-success' : 'btn-danger'"
                             @click="toggleTodoStatus">
-                            {{ todo.completed ? 'Completed' : 'Incomplete' }}
+                            {{ todo.done ? 'Completed' : 'Incomplete' }}
                         </button>
                     </div>
                 </div>
             </div>
             <div class="col-12">
                 <div class="form-group">
-                    <label>Body</label>
-                    <textarea v-model="todo.body" class="form-control" cols="30" rows="10"></textarea>
+                    <label>Description</label>
+                    <textarea v-model="todo.description" class="form-control" cols="30" rows="10"></textarea>
                 </div>
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary" :disabled="!todoUpdated">
-            {{ editing ? 'Update' : 'Create' }}
-        </button>
-        <button class="btn btn-outline-dark ml-2" @click="moveToTodoListPage">
-            Cancel
-        </button>
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary">
+                {{ editing ? 'Update' : 'Create' }}
+            </button>
+            <button type="button" class="btn btn-outline-dark ml-2" @click="moveToTodoListPage">
+                Cancel
+            </button>
+        </div>
     </form>
     <transition name="fade">
         <Toast v-if="showToast" :message="toastMessage" :type="toastAlertType" />
@@ -63,8 +65,8 @@ export default {
         const router = useRouter();
         const todo = ref({
             title: '',
-            completed: false,
-            body: ''
+            done: false,
+            description: ''
         });
 
         const titleError = ref('');
@@ -77,7 +79,7 @@ export default {
             triggerToast
         } = useToast();
 
-        const todoId = route.params.id
+        const todoId = route.params.id;
 
         const getTodo = async () => {
             loading.value = true;
@@ -94,17 +96,17 @@ export default {
         };
 
         const todoUpdated = computed(() => {
-            return !_.isEqual(todo.value, originalTodo.value)
+            return !_.isEqual(todo.value, originalTodo.value);
         });
 
         const toggleTodoStatus = () => {
-            todo.value.completed = !todo.value.completed;
+            todo.value.done = !todo.value.done;
         };
 
         const moveToTodoListPage = () => {
             router.push({
                 name: 'Todos'
-            })
+            });
         };
 
         if (props.editing) {
@@ -113,38 +115,30 @@ export default {
 
         const onSave = async () => {
             titleError.value = '';
-            if (!todo.value.title) {
+            if (!todo.value.title.trim()) {
                 titleError.value = 'Title is required';
                 return;
             }
 
             try {
-                let res;
                 const data = {
-                    title: todo.value.title,
-                    completed: todo.value.completed,
-                    body: todo.value.body,
+                    title: todo.value.title.trim(),
+                    done: todo.value.done,
+                    description: todo.value.description.trim()
                 };
+
                 if (props.editing) {
-                    res = await axios.put(`todos/${todoId}`, data);
-                    originalTodo.value = { ...res.data };
+                    await axios.put(`todos/${todoId}`, data);
+                    triggerToast('Successfully Updated!');
+                    moveToTodoListPage();
                 } else {
-                    res = await axios.post('todos', data);
-                    todo.value.title = '';
-                    todo.value.body = '';
-                }
-
-                const message = 'Successfully ' + (props.editing ? 'Updated!' : 'Created!');
-                triggerToast(message);
-
-                if (!props.editing) {
-                    router.push({
-                        name: 'Todos'
-                    })
+                    await axios.post('todos', data);
+                    triggerToast('Successfully Created!');
+                    moveToTodoListPage();
                 }
             } catch (error) {
                 console.log(error);
-                triggerToast('Something went wrong', 'danger')
+                triggerToast('Something went wrong', 'danger');
             }
         };
 
@@ -158,7 +152,7 @@ export default {
             showToast,
             toastMessage,
             toastAlertType,
-            titleError,
+            titleError
         };
     }
 }
@@ -180,5 +174,13 @@ export default {
 .fade-leave-from {
     opacity: 1;
     transform: translateY(0px);
+}
+
+.mt-3 {
+    margin-top: 1rem;
+}
+
+.ml-2 {
+    margin-left: 0.5rem;
 }
 </style>

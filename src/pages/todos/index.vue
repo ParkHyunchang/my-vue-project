@@ -14,32 +14,32 @@
         <div v-else-if="!todos.length">
             There is nothing to display
         </div>
-        <TodoSimpleForm @todo-added="fetchTodos" />
-        <TodoList :todos="todos" @todo-updated="fetchTodos" />
-        <hr />
-        <nav aria-label="Page navigation example">
-            <ul class="pagination">
-                <li v-if="currentPage !== 1" class="page-item">
-                    <a style="cursor: pointer" class="page-link" @click="changePage(currentPage - 1)">
-                        Previous
-                    </a>
-                </li>
-                <li v-for="page in numberOfPages" :key="page" class="page-item"
-                    :class="currentPage === page ? 'active' : ''">
-                    <a style="cursor: pointer" class="page-link" @click="changePage(page)">{{ page }}</a>
-                </li>
-                <li v-if="numberOfPages !== currentPage" class="page-item">
-                    <a style="cursor: pointer" class="page-link" @click="changePage(currentPage + 1)">Next</a>
-                </li>
-            </ul>
-        </nav>
+        <template v-else>
+            <TodoList :todos="todos" @todo-updated="fetchTodos" />
+            <hr />
+            <nav v-if="numberOfPages > 1" aria-label="Page navigation">
+                <ul class="pagination">
+                    <li v-if="currentPage !== 1" class="page-item">
+                        <a style="cursor: pointer" class="page-link" @click="changePage(currentPage - 1)">
+                            Previous
+                        </a>
+                    </li>
+                    <li v-for="page in numberOfPages" :key="page" class="page-item"
+                        :class="currentPage === page ? 'active' : ''">
+                        <a style="cursor: pointer" class="page-link" @click="changePage(page)">{{ page }}</a>
+                    </li>
+                    <li v-if="numberOfPages !== currentPage" class="page-item">
+                        <a style="cursor: pointer" class="page-link" @click="changePage(currentPage + 1)">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </template>
     </div>
 </template>
 
 <script>
 import { ref, computed, watch, onMounted } from 'vue';
 import TodoList from '@/components/TodoList.vue';
-import TodoSimpleForm from '@/components/TodoSimpleForm.vue';
 import axios from '@/axios';
 import { useToast } from '@/composables/toast';
 import { useRouter } from 'vue-router';
@@ -47,7 +47,6 @@ import { useRouter } from 'vue-router';
 export default {
     components: {
         TodoList,
-        TodoSimpleForm,
     },
     setup() {
         const router = useRouter();
@@ -60,7 +59,7 @@ export default {
         const loading = ref(false);
         const numberOfPages = computed(() => {
             const n = Math.ceil(Number(numberOfTodos.value) / limit);
-            return isNaN(n) || n < 1 ? 1 : n;
+            return n || 1;  // 최소 1페이지
         });
 
         const {
@@ -75,17 +74,23 @@ export default {
             loading.value = true;
             currentPage.value = page;
             try {
-                // Spring Boot 백엔드에 맞는 쿼리 파라미터 사용
                 const params = {
-                    page: page - 1, // Spring Data JPA는 0-base
+                    page: page - 1,
                     size: limit,
                 };
                 if (searchText.value) params.q = searchText.value;
                 const res = await axios.get('todos', { params });
-                todos.value = res.data;
-                // X-Total-Count 헤더에서 전체 개수 추출
-                const total = res.headers['x-total-count'];
-                numberOfTodos.value = total ? parseInt(total) : todos.value.length;
+                
+                // 백엔드에서 반환된 페이지 정보 처리
+                if (res.data && Array.isArray(res.data)) {
+                    todos.value = res.data;
+                    // 전체 개수는 헤더에서 가져옴
+                    const total = res.headers['x-total-count'];
+                    numberOfTodos.value = total ? parseInt(total) : 0;
+                } else {
+                    todos.value = [];
+                    numberOfTodos.value = 0;
+                }
             } catch (err) {
                 console.log(err);
                 error.value = 'Something went wrong.';
@@ -98,7 +103,9 @@ export default {
         onMounted(() => fetchTodos(1));
 
         const changePage = (page) => {
-            fetchTodos(page);
+            if (page >= 1 && page <= numberOfPages.value) {
+                fetchTodos(page);
+            }
         };
 
         const moveToCreatePage = () => {

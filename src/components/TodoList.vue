@@ -3,8 +3,8 @@
         <template #default="{ item }">
             <div class="card-body p-2 d-flex align-items-center" style="cursor: pointer" @click="moveToPage(item.id)">
                 <div class="flex-grow-1">
-                    <input class="ml-2 mr-2" type="checkbox" :checked="item.completed" @change="toggleTodo(item)" @click.stop>
-                    <span :class="{ todo: item.completed }">
+                    <input class="ml-2 mr-2" type="checkbox" :checked="item.done" @change="toggleTodo(item)" @click.stop>
+                    <span :class="{ todo: item.done }">
                         {{ item.title }}
                     </span>
                 </div>
@@ -25,7 +25,7 @@
 <script>
 import { useRouter } from 'vue-router';
 import Modal from '@/components/DeleteModal.vue';
-import { ref, getCurrentInstance } from 'vue';
+import { ref } from 'vue';
 import List from '@/components/List.vue';
 import axios from '@/axios';
 
@@ -50,7 +50,7 @@ export default {
             try {
                 await axios.put(`todos/${item.id}`, {
                     ...item,
-                    completed: !item.completed
+                    done: item.done === null ? true : !item.done
                 });
                 emit('todo-updated');
             } catch (e) {
@@ -100,4 +100,9 @@ export default {
 }
 </script>
   
-<style></style>
+<style scoped>
+.todo {
+    color: gray;
+    text-decoration: line-through;
+}
+</style>

@@ -24,24 +24,58 @@ export default {
 <style scoped>
 .toast-box {
     position: fixed;
-    top: 10px;
-    right: 10px;
+    top: 80px; /* navbar 높이에 맞춰 조정 */
+    right: 20px;
+    z-index: 9999; /* 높은 z-index 값 설정 */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.alert {
+    min-width: 200px;
+    padding: 15px 20px;
+    border-radius: 4px;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    animation: slideIn 0.3s ease-out;
+}
+
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
 }
 
 .slide-enter-active,
 .slide-leave-active {
-    transition: all 0.5s ease;
+    transition: all 0.3s ease;
 }
 
-.slide-enter-from,
+.slide-enter-from {
+    opacity: 0;
+    transform: translateX(100%);
+}
+
 .slide-leave-to {
     opacity: 0;
-    transform: translateY(-30px);
+    transform: translateX(100%);
 }
 
-.slide-enter-to,
-.slide-leave-from {
-    opacity: 1;
-    transform: translateY(0px);
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 </style>

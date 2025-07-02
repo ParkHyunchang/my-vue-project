@@ -1,7 +1,7 @@
 <template>
     <div class="form-group">
         <label>{{ label }}</label>
-        <input :value="subject" @input="onInput" type="text" class="form-control">
+        <input :value="title" @input="onInput" type="text" class="form-control">
         <div v-if="error" class="text-red">
             {{ error }}
         </div>
@@ -9,7 +9,6 @@
 </template>
 
 <script>
-import { getCurrentInstance } from 'vue';
 export default {
     props: {
         label: {
@@ -18,17 +17,17 @@ export default {
         },
         error: {
             type: String,
-            required: true
+            default: ''
         },
-        subject: {
+        title: {
             type: String,
             required: true
         }
     },
-    setup() {
-        const { emit }  = getCurrentInstance();
+    emits: ['update:title'],
+    setup(props, { emit }) {
         const onInput = (e) => {
-            emit('update:subject', e.target.value);
+            emit('update:title', e.target.value);
         };
 
         return {
