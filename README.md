@@ -137,9 +137,19 @@ docker-compose.yml 만들어서 아래 명령어로 해결
 ```bash
 # 1. 최신 빌드 -> Vue 앱을 정적 파일로 컴파일 (dist/ 생성)
 npm run build
-   
+
+  
 # 2. 컨테이너 재시작 포함 빌드 -> dist 폴더를 포함해 Docker 이미지 생성 + 컨테이너 실행
 docker-compose up -d --build
+
+# 아래  2개는 로컬 실행시 컨테이너 실행하고 있다는 에러 나면 실행
+# 컨테이너 중지
+# docker stop vue_personal_project
+# 컨테이너 삭제
+# docker rm vue_personal_project
+
+# 프론트엔드 서비스만 재빌드
+# docker-compose up -d --build vue_app
    
 # 3. tar 파일 생성
 docker save vue_personal_project:latest -o vue_personal_project.tar
@@ -161,6 +171,11 @@ docker run -d --name vue_personal_project -p 3100:80 vue_personal_project:latest
 
 
 ```bash
+# // api 엔드포인트 백엔드 서버 로컬인지 서버인지 연동설정 확인하고 진행해
+# export default axios.create({
+# // 배포 서버 사용
+# //baseURL: 'http://125.141.20.218:3200/my-vue-project'
+
 # 1. 빌드 및 tar 파일 생성 쉘 실행 (단 도커데스크탑 실행하고 이거 실행해야 에러안남!)
 ./build-and-package.ps1
 
