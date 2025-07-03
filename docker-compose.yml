@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   vue_app:
@@ -9,17 +9,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3100:80"
-    restart: unless-stopped
-    networks:
-      - app-network
-
-  backend:
-    container_name: vue_personal_project-backend
-    build: 
-      context: ../my-vue-project-backend
-      dockerfile: Dockerfile
-    ports:
-      - "3200:3200"
     restart: unless-stopped
     networks:
       - app-network
