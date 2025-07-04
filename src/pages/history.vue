@@ -414,23 +414,29 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 50px;
+}
+
+.page-header h2 {
+  font-size: 2.5rem;
 }
 
 .timeline-filter {
   display: flex;
-  gap: 10px;
-  margin-bottom: 30px;
+  gap: 15px;
+  margin-bottom: 50px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .filter-btn {
-  padding: 8px 16px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 20px;
+  border-radius: 25px;
   background: #f0f0f0;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-size: 1rem;
 }
 
 .filter-btn.active {
@@ -440,7 +446,9 @@ export default {
 
 .timeline {
   position: relative;
-  padding: 20px 0;
+  padding: 40px 0;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
 .timeline::before {
@@ -455,8 +463,8 @@ export default {
 
 .timeline-item {
   position: relative;
-  margin-bottom: 30px;
-  width: calc(50% - 30px);
+  margin-bottom: 80px;
+  width: calc(50% - 50px);
   margin-left: auto;
 }
 
@@ -468,72 +476,140 @@ export default {
 .timeline-date {
   position: absolute;
   top: 0;
-  left: -150px;
-  padding: 5px 10px;
+  left: -180px;
+  padding: 8px 16px;
   background: #f8f9fa;
-  border-radius: 4px;
-  font-size: 14px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 .timeline-item:nth-child(even) .timeline-date {
   left: auto;
-  right: -150px;
+  right: -180px;
 }
 
 .timeline-content {
   background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .timeline-icon {
   position: absolute;
-  left: -45px;
+  left: -70px;
   top: 50%;
   transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   background: #007bff;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
+  font-size: 1.2rem;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
 }
 
 .timeline-item:nth-child(even) .timeline-icon {
   left: auto;
-  right: -45px;
+  right: -70px;
 }
 
 .timeline-body h3 {
-  margin: 0 0 10px;
-  color: #333;
+  margin: 0 0 15px;
+  font-size: 1.4rem;
+}
+
+.timeline-body p {
+  margin: 0;
+  color: #666;
+  font-size: 1.1rem;
+  line-height: 1.6;
 }
 
 .timeline-image {
-  margin: 15px 0;
+  margin: 20px 0;
 }
 
 .timeline-image img {
   max-width: 100%;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 .timeline-footer {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #666;
+  margin-top: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .location {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+  color: #666;
+  font-size: 1rem;
+}
+
+.location i {
+  margin-right: 8px;
+}
+
+/* 모바일 스타일 */
+@media (max-width: 768px) {
+  .page-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .filter-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
+  .timeline::before {
+    left: 20px;
+  }
+
+  .timeline-item,
+  .timeline-item:nth-child(even) {
+    width: calc(100% - 40px);
+    margin-left: 40px;
+    margin-right: 0;
+  }
+
+  .timeline-date,
+  .timeline-item:nth-child(even) .timeline-date {
+    position: relative;
+    left: 0;
+    right: 0;
+    margin-bottom: 10px;
+    display: inline-block;
+  }
+
+  .timeline-icon,
+  .timeline-item:nth-child(even) .timeline-icon {
+    left: -40px;
+    right: auto;
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+  }
+
+  .timeline-content {
+    padding: 15px;
+  }
+
+  .timeline-body h3 {
+    font-size: 1rem;
+  }
+
+  .timeline-body p {
+    font-size: 0.9rem;
+  }
+
+  .location {
+    font-size: 0.8rem;
+  }
 }
 
 .event-form {
@@ -546,42 +622,6 @@ export default {
   margin-left: 10px;
   padding: 2px 8px;
   float: right;
-}
-
-@media (max-width: 768px) {
-  .timeline::before {
-    left: 30px;
-  }
-
-  .timeline-item {
-    width: calc(100% - 60px);
-    margin-left: 60px;
-  }
-
-  .timeline-item:nth-child(even) {
-    margin-left: 60px;
-    margin-right: 0;
-  }
-
-  .timeline-date {
-    left: -90px;
-    width: 80px;
-    text-align: right;
-  }
-
-  .timeline-item:nth-child(even) .timeline-date {
-    left: -90px;
-    right: auto;
-  }
-
-  .timeline-icon {
-    left: -55px;
-  }
-
-  .timeline-item:nth-child(even) .timeline-icon {
-    left: -55px;
-    right: auto;
-  }
 }
 
 .modal-footer-buttons {
