@@ -245,6 +245,10 @@
                   <a href="https://hyunchang88.tistory.com/">tistory</a>
                   <em>티스토리에 들어오시면 좋은 정보 볼 수 있습니다.</em>
                 </li>
+                <li>
+                  <a href="https://blog.naver.com/minister_of_develop/">naverBlog</a>
+                  <em>네이버블로그에 들어오시면 좋은 정보 볼 수 있습니다.</em>
+                </li>
               </ul>
             </div>
           </div>

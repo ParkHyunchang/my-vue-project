@@ -2,7 +2,7 @@
   <header id="header" role="banner">
     <div class="header__inner">
       <div class="header__logo">
-        <router-link to="/">HYUNCHANG'S<br /><em>PORTFOLIO</em></router-link>
+        <router-link to="/">HYUNCHANG'S<br /><em>HOME</em></router-link>
       </div>
       <nav :class="['header__nav', { show: isOpen }]" role="navigation" aria-label="메인 메뉴">
         <ul>
