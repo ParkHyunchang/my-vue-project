@@ -44,7 +44,7 @@
         </section>
         <section id="skill">
           <div class="skill__inner">
-            <h2 class="skill__title">Challenge <em>나의 도전</em></h2>
+            <h2 class="skill__title">Challenge <em>나의 경력</em></h2>
             <div class="skill__desc">
               <div>
                 <span>2017.09 ~ 2021.09</span>
@@ -75,8 +75,42 @@
         </section>
         <section id="site">
           <div class="site__inner">
-            <h2 class="site__title">Site coding <em>나의 작업물</em></h2>
+            <h2 class="site__title">Site coding <em>현재 사이트 코드 형상관리</em></h2>
             <div class="site__wrap">
+              <article class="site__item s1">
+                <span class="num">1.</span>
+                <div class="text">
+                  <div>Make</div><div>site with</div><div>vue.js</div>
+                </div>
+                <h3 class="title">vue.js를 이용한 프론트엔드</h3>
+                <div class="btn">
+                  <a href="https://github.com/ParkHyunchang/my-vue-project">code</a><br>
+                  <a href="http://125.141.20.218:3100/#/">view</a>
+                </div>
+                <div class="info">
+                  <span>site coding</span>
+                  <span>production period : three days</span>
+                  <span>use stack : vue.js, axios, vue-router, lodash, lenis</span>
+                </div>
+              </article>
+              <article class="site__item s2">
+                <span class="num">2.</span>
+                <div class="text">
+                  <div>Make</div><div>site with</div><div>springboot</div>
+                </div>
+                <h3 class="title">springboot를 이용한 백엔드</h3>
+                <div class="btn">
+                  <a href="https://github.com/ParkHyunchang/my-vue-project_backend">code</a><br>
+                  <a href="http://125.141.20.218:3100/#/">view</a>
+                </div>
+                <div class="info">
+                  <span>site coding</span>
+                  <span>production period : two days</span>
+                  <span>use stack : Spring Boot 3.2.0, MySQL 8.0, Spring Data JPA, Java21, docker </span>
+                </div>
+              </article>
+
+              <!-- 
               <article class="site__item s1">
                 <span class="num">1.</span>
                 <div class="text">
@@ -141,6 +175,7 @@
                   <span>use stack : next.js, CSS Variable, Vite</span>
                 </div>
               </article>
+               -->
             </div>
           </div>
         </section>
@@ -181,6 +216,7 @@
                 <p class="desc">Postgresql</p>
                 <p class="desc">Oracle DB</p>
               </article>
+<!-- 
               <article class="port__item p6">
                 <span class="num">06.</span>
                 <h3 class="title">추가예정</h3>
@@ -206,6 +242,7 @@
                 <h3 class="title">추가예정</h3>
                 <p class="desc">추가예정</p>
               </article>
+               -->
             </div>
           </div>
         </section>
@@ -254,7 +291,7 @@
           </div>
           <div class="footer__right">
             © 2023 hyunchang<br />
-            이 사이트는 뷰3를 이용하여 제작하였습니다.
+            이 사이트는 뷰3, springboot를 이용하여 제작하였습니다.
           </div>
         </div>
       </footer>
