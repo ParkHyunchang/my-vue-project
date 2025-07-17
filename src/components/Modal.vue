@@ -1,5 +1,5 @@
 <template>
-    <div class="modal-wrapper">
+    <div class="modal-wrapper" @click.self="onClose">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -22,13 +22,49 @@
 </template>
   
 <script>
-import { getCurrentInstance } from 'vue';
+import { getCurrentInstance, onMounted, onUnmounted } from 'vue';
 export default {
     setup() {
         const { emit } = getCurrentInstance();
+        
         const onClose = () => {
             emit('close');
         }
+
+        // 모달이 열릴 때 body 스크롤 방지
+        const disableScroll = () => {
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.body.style.top = `-${window.scrollY}px`;
+        }
+
+        // 모달이 닫힐 때 body 스크롤 복원
+        const enableScroll = () => {
+            const scrollY = document.body.style.top;
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+            document.body.style.top = '';
+            window.scrollTo(0, parseInt(scrollY || '0') * -1);
+        }
+
+        // ESC 키로 모달 닫기
+        const handleKeydown = (event) => {
+            if (event.key === 'Escape') {
+                onClose();
+            }
+        }
+
+        onMounted(() => {
+            disableScroll();
+            document.addEventListener('keydown', handleKeydown);
+        });
+
+        onUnmounted(() => {
+            enableScroll();
+            document.removeEventListener('keydown', handleKeydown);
+        });
 
         return {
             onClose,
@@ -40,7 +76,7 @@ export default {
 <style scoped>
 .modal-wrapper {
     position: fixed;
-    z-index: 9999;  /* 높은 z-index 값으로 수정 */
+    z-index: 99999;  /* 매우 높은 z-index 값 */
     top: 0;
     left: 0;
     width: 100%;
@@ -49,6 +85,7 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
+    backdrop-filter: blur(2px); /* 배경 블러 효과 */
 }
 
 .modal-dialog {
@@ -91,6 +128,9 @@ export default {
 
 .modal-body {
     padding: 1rem;
+    max-height: 70vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* iOS 스크롤 부드럽게 */
 }
 
 .modal-footer {
@@ -99,5 +139,58 @@ export default {
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
+}
+
+/* 모바일 반응형 스타일 */
+@media (max-width: 768px) {
+    .modal-wrapper {
+        padding: 0;
+        align-items: stretch;
+        height: 100dvh;
+        min-height: 100dvh;
+        display: flex;
+    }
+    .modal-dialog {
+        width: 100vw;
+        margin: 0;
+        height: 100dvh;
+        min-height: 100dvh;
+        max-height: 100dvh;
+        display: flex;
+        align-items: stretch;
+    }
+    .modal-content {
+        border-radius: 0;
+        height: 100dvh;
+        min-height: 0;
+        max-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+    }
+    .modal-header {
+        padding: 0.75rem;
+        flex-shrink: 0;
+    }
+    .modal-title {
+        font-size: 1.1rem;
+    }
+    .modal-body {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        max-height: none;
+        min-height: 0;
+        -webkit-overflow-scrolling: touch;
+    }
+    .modal-footer {
+        padding: 0.75rem;
+        flex-direction: column;
+        gap: 0.75rem;
+        flex-shrink: 0;
+    }
+    .modal-footer > div {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+    }
 }
 </style>

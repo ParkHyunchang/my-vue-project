@@ -217,7 +217,7 @@ docker rm vue_personal_project
 docker run -d --name vue_personal_project -p 3100:80 vue_personal_project:latest
 ```
 
-### nas 업데이트 간략화화
+### nas 업데이트 간략화
 
 ```bash
 # // api 엔드포인트 백엔드 서버 로컬인지 서버인지 연동설정 확인하고 진행해

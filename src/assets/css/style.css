@@ -5,6 +5,9 @@
 @import url(setting/vars.css);
 @import url(setting/reset.css);
 
+/* components */
+@import url(components.css);
+
 /* section */
 @import url(section/header.css);
 @import url(section/intro.css);

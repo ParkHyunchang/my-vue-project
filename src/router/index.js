@@ -4,7 +4,7 @@ import Portfolio from '../pages/portfolio.vue';
 import Todos from '../pages/todos/index.vue';
 import Todo from '../pages/todos/_id.vue';
 import TodoCreate from '../pages/todos/create/index.vue';
-import Count from '../pages/count.vue';
+import Expense from '../pages/expense.vue';
 import Projects from '../pages/projects.vue';
 import History from '../pages/history.vue';
 
@@ -47,9 +47,9 @@ const router = createRouter({
             component: Todo
         },
         {
-            path: '/count',
-            name: 'Count',
-            component: Count
+            path: '/expense',
+            name: 'Expense',
+            component: Expense
         }
     ]
 });
