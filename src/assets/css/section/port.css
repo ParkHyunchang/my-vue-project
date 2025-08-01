@@ -1,30 +1,40 @@
 #port {
     width: 100%;
-    margin-top: 30vh;
+    margin-top: 0;
     overflow: hidden;
 }
 .port__inner {
     padding: 16px;
 }
 .port__title {
-    width: 400px;
-    flex-shrink: 0;
-    height: 5vw;
+    width: 100%;
+    text-align: center;
+    height: auto;
     font-size: clamp(1.2rem, 4vw, 2.5rem);
     font-weight: 900;
     line-height: 1.6;
     font-family: var(--mainKor-font);
     text-transform: uppercase;
     color: var(--black100);
-    margin-top: 50px;
-    border-bottom: 0.4vw solid var(--black100);
-    margin-bottom: 16px;
-    text-indent: -0.26vw;
+    margin-top: 2rem;
+    margin-bottom: 3rem;
+    text-indent: 0;
+    position: relative;
 }
 .port__title em {
     font-size: 1.25rem;
     font-weight: 400;
     line-height: 2;
+}
+.port__title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: #667eea;
 }
 .port__wrap {
     display: flex;
@@ -42,39 +52,40 @@
 .port__item {
     width: 500px;
     height: 70vh;
-    background-color: var(--subBg100);
+    background-color: #667eea;
     padding: 2.5rem;
     margin-right: 20px;
+    color: white;
 }
 .port__item.p1 {
-    background-color: var(--subBg100);
+    background-color: #667eea;
 }
 .port__item.p2 {
-    background-color: var(--subBg200);
+    background-color: #28a745;
 }
 .port__item.p3 {
-    background-color: var(--subBg300);
+    background-color: #6f42c1;
 }
 .port__item.p4 {
-    background-color: var(--subBg400);
+    background-color: #fd7e14;
 }
 .port__item.p5 {
-    background-color: var(--subBg500);
+    background-color: #20c997;
 }
 .port__item.p6 {
-    background-color: var(--subBg100);
+    background-color: #e83e8c;
 }
 .port__item.p7 {
-    background-color: var(--subBg200);
+    background-color: #6f42c1;
 }
 .port__item.p8 {
-    background-color: var(--subBg300);
+    background-color: #fd7e14;
 }
 .port__item.p9 {
-    background-color: var(--subBg400);
+    background-color: #20c997;
 }
 .port__item.p10 {
-    background-color: var(--subBg500);
+    background-color: #e83e8c;
 }
 .port__item .num {
     font-size: 2rem;
@@ -98,31 +109,148 @@
 }
 .port__item .title {
     font-size: clamp(1.1rem, 3vw, 2rem);
-    text-align: center;
-    padding: 0.8rem 0;
-    font-weight: 700;
-    color: var(--black100);
-    border-bottom: 2px solid var(--black100);
+    font-family: var(--mainKor-font);
     margin-bottom: 1rem;
 }
 .port__item .desc {
-    font-size: 1.5rem;
-    padding: 1.5rem 0;
-    text-align: center;
-    font-weight: 500;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
 }
 .port__item .site {
-    border: 1px solid var(--black100);
-    display: block;
+    text-decoration: underline;
+    text-underline-position: under;
+}
+
+/* 새로운 섹션 기반 디자인 스타일 */
+.port-section {
+    width: 100%;
+    margin-top: 0;
+    overflow: hidden;
+}
+.port-section .port__inner {
+    padding: 16px;
+}
+.port-section .port__title {
+    width: 100%;
     text-align: center;
-    padding: 0.625rem 1.5rem;
-    margin-top: 1.5rem;
+    height: auto;
+    font-size: clamp(1.2rem, 4vw, 2.5rem);
+    font-weight: 900;
+    line-height: 1.6;
+    font-family: var(--mainKor-font);
+    text-transform: uppercase;
+    color: var(--black100);
+    margin-top: 2rem;
+    margin-bottom: 3rem;
+    text-indent: 0;
+    position: relative;
+}
+.port-section .port__title em {
+    font-size: 1.25rem;
+    font-weight: 400;
+    line-height: 2;
+}
+.port-section .port__title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: #667eea;
+}
+.port-section .port__wrap {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    width: auto;
+    min-width: fit-content;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    height: auto;
+    align-items: flex-start;
+}
+.port-section .port__item {
+    width: 500px;
+    height: 70vh;
+    background-color: #667eea;
+    padding: 2.5rem;
+    margin-right: 20px;
+    color: white;
+}
+.port-section .port__item.p1 {
+    background-color: #667eea;
+}
+.port-section .port__item.p2 {
+    background-color: #28a745;
+}
+.port-section .port__item.p3 {
+    background-color: #6f42c1;
+}
+.port-section .port__item.p4 {
+    background-color: #fd7e14;
+}
+.port-section .port__item.p5 {
+    background-color: #20c997;
+}
+.port-section .port__item.p6 {
+    background-color: #e83e8c;
+}
+.port-section .port__item.p7 {
+    background-color: #6f42c1;
+}
+.port-section .port__item.p8 {
+    background-color: #fd7e14;
+}
+.port-section .port__item.p9 {
+    background-color: #20c997;
+}
+.port-section .port__item.p10 {
+    background-color: #e83e8c;
+}
+.port-section .port__item .num {
+    font-size: 2rem;
+    font-family: var(--mainNum-font);
+}
+.port-section .port__item .img {
+    display: block;
+    margin-top: -20px;
+    transition: margin-top 0.3s;
+}
+.port-section .port__item:hover .img {
+    margin-top: 0;
+}
+.port-section .port__item .img img {
+    border-radius: 5px;
+    filter: saturate(0%);
+    transition: all 0.3s;
+}
+.port-section .port__item .img:hover img {
+    filter: saturate(100%)
+}
+.port-section .port__item .title {
+    font-size: clamp(1.1rem, 3vw, 2rem);
+    font-family: var(--mainKor-font);
+    margin-bottom: 1rem;
+}
+.port-section .port__item .desc {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+.port-section .port__item .site {
+    text-decoration: underline;
+    text-underline-position: under;
 }
 
 @media (max-width: 800px){
     .port__title {
         width: 100%;
-        margin-bottom: 16px;
+        margin-bottom: 10vw;
         font-size: clamp(1.1rem, 6vw, 2rem);
         height: auto;
         top: 68px;
@@ -130,11 +258,30 @@
         background-color: var(--mainBg-color);
     }
     .port__item {
-        width: 400px;
-        padding: 40px 30px;
-        height: auto;
+        width: 300px;
+        height: 50vh;
+        padding: 1.5rem;
     }
     .port__item .title {
-        font-size: clamp(1rem, 5vw, 1.5rem);
+        font-size: clamp(1rem, 4vw, 1.5rem);
+    }
+    
+    /* 새로운 섹션 기반 디자인 모바일 스타일 */
+    .port-section .port__title {
+        width: 100%;
+        margin-bottom: 10vw;
+        font-size: clamp(1.1rem, 6vw, 2rem);
+        height: auto;
+        top: 68px;
+        z-index: 1000;
+        background-color: #f8f9fa;
+    }
+    .port-section .port__item {
+        width: 300px;
+        height: 50vh;
+        padding: 1.5rem;
+    }
+    .port-section .port__item .title {
+        font-size: clamp(1rem, 4vw, 1.5rem);
     }
 }

@@ -10,292 +10,313 @@
       <a href="#footer">푸터 영역 바로가기</a>
     </div>
 
-    <!-- 메인화면 전용 왼쪽 메뉴 -->
-    <aside class="main-side-menu">
-      <ul>
-        <li><a href="javascript:void(0)" data-scroll="#intro">Intro</a></li>
-        <li><a href="javascript:void(0)" data-scroll="#skill">Skill</a></li>
-        <li><a href="javascript:void(0)" data-scroll="#site">Site</a></li>
-        <li><a href="javascript:void(0)" data-scroll="#port">Portfolio</a></li>
-        <li><a href="javascript:void(0)" data-scroll="#contact">Contact</a></li>
-      </ul>
-    </aside>
-
-    <div class="main-content">
-      <main id="main" role="main">
-        <section id="intro">
-          <div class="intro__inner">
-            <h1 class="intro__title">hyunchang's home</h1>
-            <div class="intro__lines" aria-hidden="true">
-              <span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span>
-            </div>
-            <div class="intro__text">
-              <div class="text">
-                <div>개발자</div>
-              </div>
-              <div class="img">
-                <img src="../assets/img/내사진2.jpg" alt="인시드니" />
-              </div>
-            </div>
-            <div class="intro__lines bottom" aria-hidden="true">
-              <span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span>
-            </div>
-          </div>
-        </section>
-        <section id="skill">
-          <div class="skill__inner">
-            <h2 class="skill__title">Challenge <em>나의 경력</em></h2>
-            <div class="skill__desc">
-              <div>
-                <span>2017.09 ~ 2021.09</span>
-                <h3>(주)나일소프트</h3>
-                <p>웹 취약점점검 솔루션 개발 및 유지보수</p>
-                <p>JAVA 웹 개발</p>
-                <p>clireport 보고서 개발</p>
-              </div>
-              <div>
-                <span>2021.09 ~ 2021.11</span>
-                <h3>(주)아이나비모빌리티</h3>
-                <p>서버개발</p>
-              </div>
-              <div>
-                <span>2021.11 ~ 2024.10</span>
-                <h3>(주)NHN다이퀘스트</h3>
-                <p>AI 콜봇 개발 및 유지보수</p>
-                <p>엔진 및 딥러닝 패치</p>
-                <p>딥러닝 CI/CD 구축 (docker, 젠킨스, 깃)</p>
-              </div>
-              <div>
-                <span>2025.04 ~ 재직중</span>
-                <h3>(주)포니링크</h3>
-                <p>LLM 개발운영 - 대규모 언어 모델 프로젝트</p>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section id="site">
-          <div class="site__inner">
-            <h2 class="site__title">Site coding <em>현재 사이트 코드 형상관리</em></h2>
-            <div class="site__wrap">
-              <article class="site__item s1">
-                <span class="num">1.</span>
-                <div class="text">
-                  <div>Make</div><div>site with</div><div>vue.js</div>
-                </div>
-                <h3 class="title">vue.js를 이용한 프론트엔드</h3>
-                <div class="btn">
-                  <a href="https://github.com/ParkHyunchang/my-vue-project">code</a><br>
-                  <a href="http://125.141.20.218:3100/#/">view</a>
-                </div>
-                <div class="info">
-                  <span>site coding</span>
-                  <span>production period : three days</span>
-                  <span>use stack : vue.js, axios, vue-router, lodash, lenis</span>
-                </div>
-              </article>
-              <article class="site__item s2">
-                <span class="num">2.</span>
-                <div class="text">
-                  <div>Make</div><div>site with</div><div>springboot</div>
-                </div>
-                <h3 class="title">springboot를 이용한 백엔드</h3>
-                <div class="btn">
-                  <a href="https://github.com/ParkHyunchang/my-vue-project_backend">code</a><br>
-                  <a href="http://125.141.20.218:3100/#/">view</a>
-                </div>
-                <div class="info">
-                  <span>site coding</span>
-                  <span>production period : two days</span>
-                  <span>use stack : Spring Boot 3.2.0, MySQL 8.0, Spring Data JPA, Java21, docker </span>
-                </div>
-              </article>
-
-              <!-- 
-              <article class="site__item s1">
-                <span class="num">1.</span>
-                <div class="text">
-                  <div>Make</div><div>site compliant with</div><div>webstandard</div>
-                </div>
-                <h3 class="title">웹 표준을 준수한 사이트 제작</h3>
-                <div class="btn">
-                  <a href="https://github.com/ParkHyunchang/port2023-vite">code</a>
-                  <a href="https://hyunchang-vite.netlify.app/">view</a>
-                </div>
-                <div class="info">
-                  <span>site coding</span>
-                  <span>production period : two days</span>
-                  <span>use stack : html5/css3, CSS Variable, Vite</span>
-                </div>
-              </article>
-              <article class="site__item s2">
-                <span class="num">2.</span>
-                <div class="text">
-                  <div>Make</div><div>site compliant with</div><div>react.js</div>
-                </div>
-                <h3 class="title">리액트를 이용한 사이트 제작</h3>
-                <div class="btn">
-                  <a href="https://github.com/ParkHyunchang/port2023-react">code</a>
-                  <a href="https://sydney-withsuhyun-react.netlify.app/">view</a>
-                </div>
-                <div class="info">
-                  <span>site coding</span>
-                  <span>production period : two days</span>
-                  <span>use stack : HTML5/CSS3, CSS Variable, Vite</span>
-                </div>
-              </article>
-              <article class="site__item s3">
-                <span class="num">3.</span>
-                <div class="text">
-                  <div>Make</div><div>site compliant with</div><div>vue.js</div>
-                </div>
-                <h3 class="title">뷰를 이용한 사이트 제작</h3>
-                <div class="btn">
-                  <a href="https://github.com/ParkHyunchang/port2023-vue">code</a>
-                  <a href="https://suhyun100-vue.netlify.app/">view</a>
-                </div>
-                <div class="info">
-                  <span>site coding</span>
-                  <span>production period : two days</span>
-                  <span>use stack : vue.js, CSS Variable, vite</span>
-                </div>
-              </article>
-              <article class="site__item s4">
-                <span class="num">4.</span>
-                <div class="text">
-                  <div>Make</div><div>site compliant with</div><div>next.js</div>
-                </div>
-                <h3>넥스트를 이용한 사이트 제작</h3>
-                <div class="btn">
-                  <a href="https://github.com/ParkHyunchang/port2023-next">code</a>
-                  <a href="https://osaka-with-suhyun-next.netlify.app/">view</a>
-                </div>
-                <div class="info">
-                  <span>site coding</span>
-                  <span>production period : two days</span>
-                  <span>use stack : next.js, CSS Variable, Vite</span>
-                </div>
-              </article>
-               -->
-            </div>
-          </div>
-        </section>
-        <section id="port" class="port-section" style="position: relative; height: 100vh;">
-          <div class="port__wrap-sticky" style="position: sticky; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden;">
-            <div class="port__title">portfolio <em>포폴 작업물</em></div>
-            <div class="port__wrap">
-              <article class="port__item p1">
-                <span class="num">01.</span>
-                <h3 class="title">HTML / CSS</h3>
-                <p class="desc">HTML/CSS를 활용한 반응형 웹</p>
-                <p class="desc">CSS 애니메이션</p>
-                <p class="desc">Sass(scss)</p>
-              </article>
-              <article class="port__item p2">
-                <span class="num">02.</span>
-                <h3 class="title">JavaScript</h3>
-                <p class="desc">JQuery</p>
-                <p class="desc">JSON/AJAX</p>
-                <p class="desc">외부 API</p>
-              </article>
-              <article class="port__item p3">
-                <span class="num">03.</span>
-                <h3 class="title">JAVA</h3>
-                <p class="desc">JSP/Servlet</p>
-                <p class="desc">JDBC</p>
-                <p class="desc">Tomcat</p>
-              </article>
-              <article class="port__item p4">
-                <span class="num">04.</span>
-                <h3 class="title">React</h3>
-                <p class="desc">Context API</p>
-                <p class="desc">외부 API</p>
-              </article>
-              <article class="port__item p5">
-                <span class="num">05.</span>
-                <h3 class="title">DB</h3>
-                <p class="desc">Postgresql</p>
-                <p class="desc">Oracle DB</p>
-              </article>
-<!-- 
-              <article class="port__item p6">
-                <span class="num">06.</span>
-                <h3 class="title">추가예정</h3>
-                <p class="desc">추가예정</p>
-              </article>
-              <article class="port__item p7">
-                <span class="num">07.</span>
-                <h3 class="title">추가예정</h3>
-                <p class="desc">추가예정</p>
-              </article>
-              <article class="port__item p8">
-                <span class="num">08.</span>
-                <h3 class="title">추가예정</h3>
-                <p class="desc">추가예정</p>
-              </article>
-              <article class="port__item p9">
-                <span class="num">09.</span>
-                <h3 class="title">추가예정</h3>
-                <p class="desc">추가예정</p>
-              </article>
-              <article class="port__item p10">
-                <span class="num">10.</span>
-                <h3 class="title">추가예정</h3>
-                <p class="desc">추가예정</p>
-              </article>
-               -->
-            </div>
-          </div>
-        </section>
-        <section id="contact">
-          <div class="contact__inner">
-            <h2 class="contact__title">Contact</h2>
-            <div class="contact__lines" aria-hidden="true">
-              <span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span>
-            </div>
-            <div class="contact__text">
-              <div class="text">
-                <div>
-                  <a href="https://open.kakao.com/" target="_blank">KAKAO : hyunchang</a>
-                </div>
-                <div>
-                  <a href="mailto:hyunchang1234@hanmail.net" target="_blank">mail : hyunchang1234@hanmail.net</a>
-                </div>
-              </div>
-            </div>
-            <div class="contact__lines bottom" aria-hidden="true">
-              <span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span><span class="line"></span>
-            </div>
-          </div>
-        </section>
-      </main>
-      <footer id="footer" role="contentinfo">
-        <div class="footer__inner">
-          <div class="footer__text">
-            <span>hyunchang</span>
-            <span>© webs</span>
-          </div>
-          <div class="footer__info">
-            <div class="center">
-              <h3>social</h3>
-              <ul>
-                <li>
-                  <a href="https://hyunchang88.tistory.com/">tistory</a>
-                  <em>티스토리에 들어오시면 좋은 정보 볼 수 있습니다.</em>
-                </li>
-                <li>
-                  <a href="https://blog.naver.com/minister_of_develop/">naverBlog</a>
-                  <em>네이버블로그에 들어오시면 좋은 정보 볼 수 있습니다.</em>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div class="footer__right">
-            © 2023 hyunchang<br />
-            이 사이트는 뷰3, springboot를 이용하여 제작하였습니다.
+    <main id="main" role="main">
+      <!-- Hero Section -->
+      <section id="intro" class="hero-section">
+        <div class="hero__inner">
+          <h1 class="hero__title">안녕하세요, <span class="highlight">현창</span>입니다</h1>
+          <p class="hero__subtitle">사용자 경험을 중시하는 프론트엔드 개발자</p>
+          <div class="hero__buttons">
+            <a href="#port" class="btn btn-primary">프로젝트 보기</a>
+            <a href="#contact" class="btn btn-secondary">연락하기</a>
           </div>
         </div>
-      </footer>
-    </div>
+      </section>
+      
+      <!-- About Section -->
+      <section id="about" class="about-section">
+        <div class="about__inner">
+          <h2 class="about__title">About Me</h2>
+          <div class="about__content">
+            <div class="about__philosophy">
+              <h3>개발자로서의 철학</h3>
+              <p>사용자 중심의 웹 개발을 지향합니다. 새로운 기술을 배우고 적용하는 것을 즐기며, 팀과의 협업을 통해 더 나은 결과물을 만들어내는 것을 목표로 합니다.</p>
+              <p>지속적인 학습과 개선을 통해 사용자에게 최고의 경험을 제공하는 개발자가 되고자 합니다.</p>
+            </div>
+            <div class="about__skills">
+              <h3>기술 스택</h3>
+              <div class="skills__list">
+                <span class="skill__tag">JavaScript</span>
+                <span class="skill__tag">HTML5</span>
+                <span class="skill__tag">CSS3</span>
+                <span class="skill__tag">Tailwind CSS</span>
+                <span class="skill__tag">Vue.js</span>
+                <span class="skill__tag">Node.js</span>
+                <span class="skill__tag">Git</span>
+                <span class="skill__tag">Oracle DB</span>
+                <span class="skill__tag">MySQL</span>
+                <span class="skill__tag">Postgresql</span>
+                <span class="skill__tag">Spring Framework</span>
+                <span class="skill__tag">Spring Boot</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Challenge Section -->
+      <section id="skill" class="challenge-section">
+        <div class="challenge__inner">
+          <h2 class="challenge__title">Challenge <em>나의 경력</em></h2>
+          <div class="challenge__desc">
+            <div class="challenge__item">
+              <span class="challenge__period">2017.09 ~ 2021.09</span>
+              <h3 class="challenge__company">(주)나일소프트</h3>
+              <p class="challenge__work">웹 취약점점검 솔루션 개발 및 유지보수</p>
+              <p class="challenge__work">JAVA 웹 개발</p>
+              <p class="challenge__work">clireport 보고서 개발</p>
+            </div>
+            <div class="challenge__item">
+              <span class="challenge__period">2021.09 ~ 2021.11</span>
+              <h3 class="challenge__company">(주)아이나비모빌리티</h3>
+              <p class="challenge__work">서버개발</p>
+            </div>
+            <div class="challenge__item">
+              <span class="challenge__period">2021.11 ~ 2024.10</span>
+              <h3 class="challenge__company">(주)NHN다이퀘스트</h3>
+              <p class="challenge__work">AI 콜봇 개발 및 유지보수</p>
+              <p class="challenge__work">엔진 및 딥러닝 패치</p>
+              <p class="challenge__work">딥러닝 CI/CD 구축 (docker, 젠킨스, 깃)</p>
+            </div>
+            <div class="challenge__item">
+              <span class="challenge__period">2025.04 ~ 재직중</span>
+              <h3 class="challenge__company">(주)포니링크</h3>
+              <p class="challenge__work">LLM 개발운영 - 대규모 언어 모델 프로젝트</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Projects Section -->
+      <section id="projects" class="projects-section">
+        <div class="projects__inner">
+          <h2 class="projects__title">Projects</h2>
+          <div class="projects__wrap">
+            <article class="project__item">
+              <div class="project__icon graduation">
+                <i class="icon">🎓</i>
+              </div>
+              <h3 class="project__title">웹 취약점점검 솔루션 개발</h3>
+              <p class="project__desc">나일소프트</p>
+              <div class="project__tech">
+                <span class="tech__tag">도로교통공단</span>
+                <span class="tech__tag">아산병원</span>
+                <span class="tech__tag">KB국민은행</span>
+              </div>
+              <div class="project__period">2017.09 ~ 2021.09</div>
+            </article>
+            
+            <article class="project__item">
+              <div class="project__icon shopping">
+                <i class="icon">🛒</i>
+              </div>
+              <h3 class="project__title">챗봇 콜봇 솔루션 개발</h3>
+              <p class="project__desc">NHN다이퀘스트</p>
+              <div class="project__tech">
+                <span class="tech__tag">KB국민은행</span>
+                <span class="tech__tag">신한라이프</span>
+                <span class="tech__tag">하나은행</span>
+              </div>
+              <div class="project__period">2021.11 ~ 2024.10</div>
+            </article>
+            
+            <article class="project__item">
+              <div class="project__icon dashboard">
+                <i class="icon">📊</i>
+              </div>
+              <h3 class="project__title">LLM 개발</h3>
+              <p class="project__desc">포니링크</p>
+              <div class="project__tech">
+                <span class="tech__tag">SKT</span>
+                <span class="tech__tag">H사</span>
+              </div>
+              <div class="project__period">2025.04 ~ 재직중</div>
+            </article>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Experience Section -->
+      <section id="experience" class="experience-section">
+        <div class="experience__inner">
+          <h2 class="experience__title">Experience</h2>
+          <div class="experience__timeline">
+            <div class="timeline__item">
+              <div class="timeline__dot"></div>
+              <div class="timeline__content">
+                <h3>IT 융복합기기 회로설계 전문가과정</h3>
+                <p class="timeline__subtitle">대한상공회의소</p>
+                <p class="timeline__desc">PCB 설계, 회로 설계 및및 프로토타입 제작 등을 하며 실무 경험을 쌓았습니다.</p>
+                <span class="timeline__period">2016.03.02 ~ 2016.06.01</span>
+              </div>
+            </div>
+            
+            <div class="timeline__item">
+              <div class="timeline__dot"></div>
+              <div class="timeline__content">
+                <h3>멀티프레임워크기반 웹 전문 개발자</h3>
+                <p class="timeline__subtitle">에이콘아카데미</p>
+                <p class="timeline__desc">프론트엔드와 백엔드 전반에 걸친 웹 개발 기술을 체계적으로 학습하고 실무 프로젝트를 통해 실전 경험을 쌓았습니다..</p>
+                <span class="timeline__period">2017.03.09 ~ 2017.09.12</span>
+              </div>
+            </div>
+            
+            <div class="timeline__item">
+              <div class="timeline__dot"></div>
+              <div class="timeline__content">
+                <h3>회사 웹 개발자</h3>
+                <p class="timeline__subtitle">회사</p>
+                <p class="timeline__desc">여러 회사의 솔루션 및 개발 프로젝트를 수행하며 폭넓은 기술 경험과 프로젝트 관리 능력을 키워가고고 있습니다.</p>
+                <span class="timeline__period">2017.09 ~ 현재</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Site Section -->
+      <section id="site" class="site-section">
+        <div class="site__inner">
+          <h2 class="site__title">Site coding</h2>
+          <div class="site__wrap">
+            <article class="site__item s1">
+              <span class="num">1.</span>
+              <div class="text">
+                <div>Make</div><div>site with</div><div>vue.js</div>
+              </div>
+              <h3 class="title">vue.js를 이용한 프론트엔드</h3>
+              <div class="btn">
+                <a href="https://github.com/ParkHyunchang/my-vue-project">code</a><br>
+                <a href="http://125.141.20.218:3100/#/">view</a>
+              </div>
+              <div class="info">
+                <span>site coding</span>
+                <span>production period : three days</span>
+                <span>use stack : vue.js, axios, vue-router, lodash, lenis</span>
+              </div>
+            </article>
+            <article class="site__item s2">
+              <span class="num">2.</span>
+              <div class="text">
+                <div>Make</div><div>site with</div><div>springboot</div>
+              </div>
+              <h3 class="title">springboot를 이용한 백엔드</h3>
+              <div class="btn">
+                <a href="https://github.com/ParkHyunchang/my-vue-project_backend">code</a><br>
+                <a href="http://125.141.20.218:3100/#/">view</a>
+              </div>
+              <div class="info">
+                <span>site coding</span>
+                <span>production period : two days</span>
+                <span>use stack : Spring Boot 3.2.0, MySQL 8.0, Spring Data JPA, Java21, docker </span>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Portfolio Section -->
+      <section id="port" class="port-section">
+        <div class="port__wrap-sticky">
+          <div class="port__title">Portfolio</div>
+          <div class="port__wrap">
+            <article class="port__item p1">
+              <span class="num">01.</span>
+              <h3 class="title">HTML / CSS</h3>
+              <p class="desc">HTML/CSS를 활용한 반응형 웹</p>
+              <p class="desc">CSS 애니메이션</p>
+              <p class="desc">Sass(scss)</p>
+            </article>
+            <article class="port__item p2">
+              <span class="num">02.</span>
+              <h3 class="title">JavaScript</h3>
+              <p class="desc">JQuery</p>
+              <p class="desc">JSON/AJAX</p>
+              <p class="desc">외부 API</p>
+            </article>
+            <article class="port__item p3">
+              <span class="num">03.</span>
+              <h3 class="title">JAVA</h3>
+              <p class="desc">JSP/Servlet</p>
+              <p class="desc">JDBC</p>
+              <p class="desc">Tomcat</p>
+            </article>
+            <article class="port__item p4">
+              <span class="num">04.</span>
+              <h3 class="title">React</h3>
+              <p class="desc">Context API</p>
+              <p class="desc">외부 API</p>
+            </article>
+            <article class="port__item p5">
+              <span class="num">05.</span>
+              <h3 class="title">DB</h3>
+              <p class="desc">Postgresql</p>
+              <p class="desc">Oracle DB</p>
+            </article>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Contact Section -->
+      <section id="contact" class="contact-section">
+        <div class="contact__inner">
+          <h2 class="contact__title">Contact</h2>
+          <div class="contact__content">
+            <div class="contact__message">
+              <h3>함께 일하고 싶으시다면</h3>
+              <p>새로운 프로젝트나 협업 기회에 대해 언제든 연락주세요. 빠른 시일 내에 답변드리겠습니다.</p>
+            </div>
+            <div class="contact__methods">
+              <div class="contact__method">
+                <span class="contact__icon">📧</span>
+                <a href="mailto:hyunchang1234@hanmail.net">hyunchang1234@hanmail.net</a>
+              </div>
+              <div class="contact__method">
+                <span class="contact__icon">🐙</span>
+                <a href="https://github.com/hyunchang" target="_blank">github.com/hyunchang</a>
+              </div>
+              <!-- 
+              <div class="contact__method">
+                <span class="contact__icon">💼</span>
+                <a href="https://linkedin.com/in/hyunchang" target="_blank">linkedin.com/in/hyunchang</a>
+              </div>
+               -->
+            </div>
+            <div class="contact__button">
+              <a href="mailto:hyunchang1234@hanmail.net" class="btn btn-primary">이메일 보내기</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    
+    <footer id="footer" role="contentinfo">
+      <div class="footer__inner">
+        <div class="footer__text">
+          <span>hyunchang</span>
+          <span>© webs</span>
+        </div>
+        <div class="footer__info">
+          <div class="center">
+            <h3>social</h3>
+            <ul>
+              <li>
+                <a href="https://hyunchang88.tistory.com/">tistory</a>
+                <em>티스토리에 들어오시면 좋은 정보 볼 수 있습니다.</em>
+              </li>
+              <li>
+                <a href="https://blog.naver.com/minister_of_develop/">naverBlog</a>
+                <em>네이버블로그에 들어오시면 좋은 정보 볼 수 있습니다.</em>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer__right">
+          © 2025 hyunchang<br />
+          이 사이트는 뷰3, springboot를 이용하여 제작하였습니다.
+        </div>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -313,51 +334,682 @@ export default {
 <style src="@/assets/css/style.css"></style>
 
 <style>
-/* 데스크탑(기존 스타일) */
-.main-side-menu {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 160px;
-  height: 100vh;
-  background: #e5ded8;
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  box-shadow: 2px 0 8px rgba(0,0,0,0.03);
-}
-.main-side-menu ul {
-  list-style: none;
-  padding: 0;
-  margin: 80px 0 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.main-side-menu li {
+/* 전체 페이지 스크롤바 문제 해결 */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
   margin: 0;
-}
-.main-side-menu a {
-  display: block;
-  padding: 18px 24px;
-  color: #333;
-  text-decoration: none;
-  font-weight: bold;
-  border-radius: 8px;
-  transition: background 0.2s;
-}
-.main-side-menu a:hover,
-.main-side-menu a:focus {
-  background: #d6cec7;
-}
-.main-content {
-  padding-left: 160px;
-}
-.intro__title {
-  font-size: clamp(2rem, 7vw, 6rem);
+  padding: 0;
+  box-sizing: border-box;
 }
 
+* {
+  box-sizing: border-box;
+}
+
+/* 전체 컨테이너 제거 */
+#main {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Hero Section */
+.hero-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-align: center;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero__inner {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  width: 100%;
+}
+
+.hero__title {
+  font-size: clamp(2.5rem, 8vw, 4rem);
+  font-weight: bold;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.hero__title .highlight {
+  color: #ffd700;
+}
+
+.hero__subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+}
+
+.hero__buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 12px 24px;
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.btn-primary {
+  background: white;
+  color: #667eea;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: white;
+  border: 2px solid white;
+}
+
+.btn-secondary:hover {
+  background: white;
+  color: #667eea;
+}
+
+/* About Section */
+.about-section {
+  padding: 5rem 0;
+  background: white;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  position: relative;
+  overflow: hidden;
+}
+
+.about__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  width: 100%;
+}
+
+.about__title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.about__title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: #667eea;
+}
+
+.about__content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: start;
+}
+
+.about__philosophy h3,
+.about__skills h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.about__philosophy p {
+  line-height: 1.6;
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.skills__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.skill__tag {
+  background: #667eea;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Challenge Section */
+.challenge-section {
+  padding: 5rem 0;
+  background: #667eea;
+  color: white;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  position: relative;
+  overflow: hidden;
+}
+
+.challenge__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  width: 100%;
+}
+
+.challenge__title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.challenge__title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: white;
+}
+
+.challenge__desc {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.challenge__item {
+  background: rgba(255,255,255,0.1);
+  padding: 2rem;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.challenge__period {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.challenge__company {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.challenge__work {
+  margin-bottom: 0.5rem;
+  opacity: 0.9;
+}
+
+/* Projects Section */
+.projects-section {
+  padding: 5rem 0;
+  background: white;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  position: relative;
+  overflow: hidden;
+}
+
+.projects__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  width: 100%;
+}
+
+.projects__title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.projects__title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: #667eea;
+}
+
+.projects__wrap {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.project__item {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.project__item:hover {
+  transform: translateY(-5px);
+}
+
+.project__icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.project__icon.graduation {
+  background: #667eea;
+}
+
+.project__icon.shopping {
+  background: #28a745;
+}
+
+.project__icon.dashboard {
+  background: #6f42c1;
+}
+
+.project__title {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.project__desc {
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.project__tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tech__tag {
+  background: #e9ecef;
+  color: #495057;
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 0.8rem;
+}
+
+.project__period {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Experience Section */
+.experience-section {
+  padding: 5rem 0;
+  background: #f8f9fa;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  position: relative;
+  overflow: hidden;
+}
+
+.experience__inner {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  width: 100%;
+}
+
+.experience__title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.experience__title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: #667eea;
+}
+
+.experience__timeline {
+  position: relative;
+}
+
+.experience__timeline::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #667eea;
+}
+
+.timeline__item {
+  position: relative;
+  margin-bottom: 2rem;
+  padding-left: 60px;
+}
+
+.timeline__dot {
+  position: absolute;
+  left: 11px;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  background: #667eea;
+  border-radius: 50%;
+  border: 4px solid white;
+  box-shadow: 0 0 0 2px #667eea;
+}
+
+.timeline__content {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.timeline__content h3 {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.timeline__subtitle {
+  color: #667eea;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.timeline__desc {
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.timeline__period {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+/* Site Section */
+.site-section {
+  padding: 5rem 0;
+  background: white;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  position: relative;
+  overflow: hidden;
+}
+
+.site__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  width: 100%;
+}
+
+.site__title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.port__title {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 3rem;
+  position: relative;
+  padding-top: 2rem;
+}
+
+/* Portfolio Section */
+.port-section {
+  position: relative;
+  height: 100vh;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  overflow: hidden;
+  background: #f8f9fa;
+}
+
+.port__wrap-sticky {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.port__title {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 3rem;
+  position: relative;
+  padding-top: 2rem;
+}
+
+.port__title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: #667eea;
+}
+
+/* Contact Section */
+.contact-section {
+  padding: 5rem 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  position: relative;
+  overflow: hidden;
+}
+
+.contact__inner {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  text-align: center;
+  width: 100%;
+}
+
+.contact__title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.contact__title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: white;
+}
+
+.contact__content {
+  background: rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+}
+
+.contact__message h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.contact__message p {
+  margin-bottom: 2rem;
+  opacity: 0.9;
+}
+
+.contact__methods {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.contact__method {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.contact__icon {
+  font-size: 1.2rem;
+}
+
+.contact__method a {
+  color: white;
+  text-decoration: none;
+  transition: opacity 0.3s ease;
+}
+
+.contact__method a:hover {
+  opacity: 0.8;
+}
+
+.contact__button {
+  margin-top: 2rem;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .about__content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .challenge__desc {
+    grid-template-columns: 1fr;
+  }
+  
+  .projects__wrap {
+    grid-template-columns: 1fr;
+  }
+  
+  .contact__methods {
+    align-items: center;
+  }
+  
+  .contact__method {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  /* 모바일에서 패딩 조정 */
+  .about__inner,
+  .challenge__inner,
+  .projects__inner,
+  .experience__inner,
+  .site__inner,
+  .contact__inner {
+    padding: 0 1rem;
+  }
+}
+
+/* 800px 이상에서 왼쪽 공간 제거 */
+@media (min-width: 800px) {
+  html, body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+  
+  #main {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+  }
+  
+  .hero-section,
+  .about-section,
+  .challenge-section,
+  .projects-section,
+  .experience-section,
+  .site-section,
+  .port-section,
+  .contact-section {
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    width: 100vw;
+  }
+}
+
+/* 기존 스타일 유지 */
 .skill__title {
   margin-bottom: 2rem;
   word-break: keep-all;
@@ -369,46 +1021,6 @@ export default {
   margin-top: 0;
 }
 
-/* 모바일(800px 이하)에서만 본문 100%, 사이드 메뉴 숨김, 인트로 개선 */
-@media (max-width: 800px) {
-  .main-side-menu {
-    display: none;
-  }
-  .main-content {
-    padding-left: 0;
-    width: 100%;
-  }
-  .intro__title {
-    font-size: 2rem;
-    text-align: center;
-    margin-top: 2rem;
-    word-break: keep-all;
-    margin: 0 auto;
-    display: block;
-    white-space: normal !important; /* 줄바꿈 허용 */
-    width: 100%;
-    transform: none !important; /* 데스크탑 설정한 왼쪽이동 제거하여 원래 위치로 돌아가기 */
-  }
-  .intro__inner {
-    align-items: center;
-    padding: 1rem;
-    width: 100%;
-  }
-  .intro__text .img {
-    width: 60vw;
-    height: 60vw;
-    max-width: 300px;
-    max-height: 300px;
-    margin: 0 auto;
-  }
-  .skill__title {
-    font-size: 1.5rem;
-    margin-bottom: 1.2rem;
-  }
-  .skill__desc > div {
-    margin-top: 1rem;
-  }
-}
 /* 모바일 다크모드 설정 */
 @media (prefers-color-scheme: dark) {
   :root {

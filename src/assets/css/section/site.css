@@ -2,19 +2,19 @@
     padding: 16px;
 }
 .site__title {
-    position: sticky;
-    top: 70px;
-    left: 0;
-    width: 70%;
-    height: 5vw;
+    width: 100%;
+    text-align: center;
+    height: auto;
     font-size: clamp(1.2rem, 4vw, 2.5rem);
     font-weight: 900;
     line-height: 1.6;
     font-family: var(--mainKor-font);
     text-transform: uppercase;
     color: var(--black100);
-    border-bottom: 0.4vw solid var(--black100);
-    margin-bottom: 100px;
+    margin-top: 2rem;
+    margin-bottom: 3rem;
+    text-indent: 0;
+    position: relative;
 }
 .site__title em {
     font-size: 1.25rem;
@@ -31,20 +31,20 @@
     left: 0;
 }
 .site__item.s1 {
-    background-color: var(--subBg100);
-    top: 180px;
+    background-color: #667eea;
+    color: white;
 }
 .site__item.s2 {
-    background-color: var(--subBg200);
-    top: 200px;
+    background-color: #28a745;
+    color: white;
 }
 .site__item.s3 {
-    background-color: var(--subBg300);
-    top: 220px;
+    background-color: #6f42c1;
+    color: white;
 }
 .site__item.s4 {
-    background-color: var(--subBg400);
-    top: 240px;
+    background-color: #fd7e14;
+    color: white;
 }
 .site__item .num {
     font-size: 5vw;
@@ -74,12 +74,12 @@
 .site__item .btn a {
     text-decoration: underline;
     text-transform: uppercase;
-    color: var(--black200);
+    color: inherit;
     font-size: 1rem;
     transition: all 0.3s;
 }
 .site__item .btn a:hover {
-    color: var(--black);
+    opacity: 0.8;
 }
 .site__item .info {
     position: absolute;
@@ -87,12 +87,114 @@
     bottom: 3%;
     width: 98%;
     margin-left: 1%;
-    border-top: 1px solid var(--black);
-    border-bottom: 1px solid var(--black);
+    border-top: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
     display: flex;
     justify-content: space-between;
 }
 .site__item .info span {
+    font-family: var(--mainKor-font);
+    font-size: 12px;
+    padding: 3px 0;
+    text-transform: uppercase;
+}
+
+/* 새로운 섹션 기반 디자인 스타일 */
+.site-section .site__inner {
+    padding: 16px;
+}
+.site-section .site__title {
+    position: sticky;
+    top: 70px;
+    left: 0;
+    width: 70%;
+    height: 5vw;
+    font-size: clamp(1.2rem, 4vw, 2.5rem);
+    font-weight: 900;
+    line-height: 1.6;
+    font-family: var(--mainKor-font);
+    text-transform: uppercase;
+    color: var(--black100);
+    border-bottom: 0.4vw solid var(--black100);
+    margin-bottom: 100px;
+}
+.site-section .site__title em {
+    font-size: 1.25rem;
+    font-weight: 400;
+    line-height: 2;
+}
+.site-section .site__item {
+    height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    position: sticky;
+    left: 0;
+}
+.site-section .site__item.s1 {
+    background-color: #667eea;
+    color: white;
+}
+.site-section .site__item.s2 {
+    background-color: #28a745;
+    color: white;
+}
+.site-section .site__item.s3 {
+    background-color: #6f42c1;
+    color: white;
+}
+.site-section .site__item.s4 {
+    background-color: #fd7e14;
+    color: white;
+}
+.site-section .site__item .num {
+    font-size: 5vw;
+    line-height: 1;
+    font-weight: 900;
+    font-family: var(--mainNum-font);
+    position: absolute;
+    left: 1vw;
+    top: 1vw;
+}
+.site-section .site__item .text {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+.site-section .site__item .text > div {
+    font-size: clamp(1rem, 3vw, 1.8rem);
+    line-height: 1;
+    font-weight: 900;
+    text-transform: uppercase;
+    text-decoration: underline;
+    font-family: var(--mainEng-font);
+}
+.site-section .site__item .title {
+    font-family: var(--mainKor-font);
+    margin-bottom: 1rem;
+}
+.site-section .site__item .btn a {
+    text-decoration: underline;
+    text-transform: uppercase;
+    color: inherit;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+.site-section .site__item .btn a:hover {
+    opacity: 0.8;
+}
+.site-section .site__item .info {
+    position: absolute;
+    left: 0;
+    bottom: 3%;
+    width: 98%;
+    margin-left: 1%;
+    border-top: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+    display: flex;
+    justify-content: space-between;
+}
+.site-section .site__item .info span {
     font-family: var(--mainKor-font);
     font-size: 12px;
     padding: 3px 0;
@@ -110,29 +212,58 @@
         background-color: var(--mainBg-color);
     }
     .site__item.s1 {
-        top: 140px;
-    }
-    .site__item.s2 {
-        top: 160px;
-    }
-    .site__item.s3 {
         top: 180px;
     }
-    .site__item.s4 {
+    .site__item.s2 {
         top: 200px;
     }
+    .site__item.s3 {
+        top: 220px;
+    }
+    .site__item.s4 {
+        top: 240px;
+    }
     .site__item .num {
-        font-size: 80px;
-        left: 20px;
-        top: 20px;
+        font-size: 26px;
     }
     .site__item .text > div {
-        font-size: clamp(1rem, 5vw, 1.3rem);
+        font-size: 26px;
     }
     .site__item .info {
         flex-direction: column;
-        width: 90%;
-        margin-left: 5%;
-        padding: 5px 0;
+        gap: 10px;
+    }
+    
+    /* 새로운 섹션 기반 디자인 모바일 스타일 */
+    .site-section .site__title {
+        width: 100%;
+        margin-bottom: 10vw;
+        font-size: clamp(1.1rem, 6vw, 2rem);
+        height: auto;
+        top: 68px;
+        z-index: 1000;
+        background-color: white;
+    }
+    .site-section .site__item.s1 {
+        top: 180px;
+    }
+    .site-section .site__item.s2 {
+        top: 200px;
+    }
+    .site-section .site__item.s3 {
+        top: 220px;
+    }
+    .site-section .site__item.s4 {
+        top: 240px;
+    }
+    .site-section .site__item .num {
+        font-size: 26px;
+    }
+    .site-section .site__item .text > div {
+        font-size: 26px;
+    }
+    .site-section .site__item .info {
+        flex-direction: column;
+        gap: 10px;
     }
 }

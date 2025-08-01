@@ -43,6 +43,52 @@
     font-size: 1.1rem;
 }
 
+/* 새로운 섹션 기반 디자인 스타일 */
+.challenge-section .challenge__inner {
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+}
+.challenge-section .challenge__title {
+    position: sticky;
+    top: 70px;
+    left: 0;
+    width: 70%;
+    height: 5vw;
+    font-size: clamp(1.2rem, 4vw, 2.5rem);
+    font-weight: 900;
+    line-height: 1.6;
+    font-family: var(--mainKor-font);
+    text-transform: uppercase;
+    color: white;
+    border-bottom: 0.4vw solid white;
+    margin-bottom: 100px;
+}
+.challenge-section .challenge__title em {
+    font-size: 1.25rem;
+    font-weight: 400;
+    line-height: 2;
+}
+.challenge-section .challenge__desc {
+    width: 50%;
+}
+.challenge-section .challenge__desc span {
+    font-size: 2.2rem;
+    font-weight: 900;
+    font-family: var(--mainNum-font);
+    white-space: nowrap;
+}
+.challenge-section .challenge__desc h3 {
+    font-size: 1.5rem;
+    text-decoration: underline;
+    text-underline-position: under;
+    margin-bottom: 1vw;
+}
+.challenge-section .challenge__desc p {
+    margin-bottom: 3vh;
+    font-size: 1.1rem;
+}
+
 @media (max-width: 800px){
     .skill__inner {
         flex-direction: column;
@@ -62,5 +108,41 @@
     .skill__desc span {
         font-size: 26px;
         white-space: normal;
+    }
+    
+    /* 새로운 섹션 기반 디자인 모바일 스타일 */
+    .challenge-section .challenge__inner {
+        flex-direction: column;
+    }
+    .challenge-section .challenge__title {
+        width: 100%;
+        margin-bottom: 10vw;
+        font-size: clamp(1.1rem, 6vw, 2rem);
+        height: auto;
+        top: 68px;
+        z-index: 1000;
+        background-color: #667eea;
+    }
+    .challenge-section .challenge__desc {
+        width: 100%;
+    }
+    .challenge-section .challenge__desc span {
+        font-size: 26px;
+        white-space: normal;
+    }
+}
+
+/* 800px 이상에서 왼쪽 공간 제거 */
+@media (min-width: 800px) {
+    .challenge-section {
+        margin-left: calc(-50vw + 50%);
+        margin-right: calc(-50vw + 50%);
+        width: 100vw;
+    }
+    
+    .challenge-section .challenge__inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
     }
 }

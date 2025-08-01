@@ -122,6 +122,44 @@
   height: 1px;
 }
 
+/* 새로운 섹션 기반 디자인 스타일 */
+.hero-section {
+  height: auto;
+  padding-top: 0;
+  min-height: 100vh;
+}
+
+.hero-section .hero__inner {
+  width: 100%;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 2rem;
+}
+
+.hero-section .hero__title {
+  font-size: clamp(2.5rem, 8vw, 4rem);
+  text-transform: none;
+  line-height: 1.2;
+  font-weight: bold;
+  white-space: normal;
+  margin: 0 auto;
+  text-align: center;
+  text-indent: 0;
+  letter-spacing: 0;
+  width: 100%;
+}
+
+.hero-section .intro__text {
+  display: none;
+}
+
+.hero-section .intro_lines {
+  display: none;
+}
+
 @media (max-width: 1200px) {
   .intro__title {
     transform: none !important;
@@ -185,9 +223,38 @@
     justify-content: center;
     align-items: center;
   }
+  
+  /* 새로운 섹션 기반 디자인 모바일 스타일 */
+  .hero-section {
+    padding-top: 0;
+  }
+  
+  .hero-section .hero__title {
+    font-size: clamp(2rem, 8vw, 3rem);
+  }
 }
+
+/* 800px 이상에서 왼쪽 공간 제거 */
+@media (min-width: 800px) {
+  .hero-section {
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    width: 100vw;
+  }
+  
+  .hero-section .hero__inner {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+}
+
 @media (max-width: 320px) {
   .intro__title {
     display: none;
+  }
+  
+  .hero-section .hero__title {
+    display: block;
   }
 }
