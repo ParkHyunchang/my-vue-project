@@ -7,6 +7,7 @@ import TodoCreate from '../pages/todos/create/index.vue';
 import Expense from '../pages/expense.vue';
 import Projects from '../pages/projects.vue';
 import History from '../pages/history.vue';
+import Dating from '../pages/dating.vue';
 
 const router = createRouter({
     history: createWebHashHistory(),
@@ -30,6 +31,11 @@ const router = createRouter({
             path: '/history',
             name: 'History',
             component: History
+        },
+        {
+            path: '/dating',
+            name: 'Dating',
+            component: Dating
         },
         {
             path: '/todos',
