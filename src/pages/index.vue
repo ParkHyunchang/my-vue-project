@@ -15,7 +15,7 @@
       <section id="intro" class="hero-section">
         <div class="hero__inner">
           <h1 class="hero__title">안녕하세요, <span class="highlight">현창</span>입니다</h1>
-          <p class="hero__subtitle">사용자 경험을 중시하는 프론트엔드 개발자</p>
+          <p class="hero__subtitle">AI 웹 개발자 현창입니다.</p>
           <div class="hero__buttons">
             <a href="#port" class="btn btn-primary">프로젝트 보기</a>
             <a href="#contact" class="btn btn-secondary">연락하기</a>

@@ -7,8 +7,8 @@
       <nav :class="['header__nav', { show: isOpen }]" role="navigation" aria-label="메인 메뉴">
         <ul>
           <li><router-link to="/" @click="closeMenu">HOME</router-link></li>
-          <li><router-link to="/portfolio" @click="closeMenu">PORTFOLIO</router-link></li>
-          <li><router-link to="/projects" @click="closeMenu">PROJECTS</router-link></li>
+          <!-- <li><router-link to="/portfolio" @click="closeMenu">PORTFOLIO</router-link></li> -->
+          <!-- <li><router-link to="/projects" @click="closeMenu">PROJECTS</router-link></li> -->
           <li><router-link to="/history" @click="closeMenu">HISTORY</router-link></li>
           <li><router-link to="/todos" @click="closeMenu">TODOS</router-link></li>
           <li><router-link to="/expense" @click="closeMenu">가계부</router-link></li>
