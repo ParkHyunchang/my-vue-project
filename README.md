@@ -66,6 +66,7 @@ mvn spring-boot:run
 2. 프론트엔드(Vue) 개발 서버 실행
 
 ```bash
+# axios.js 에서 개발, 배포 확인 후
 # my-vue-project 디렉토리에서
 npm run serve
 
@@ -74,67 +75,6 @@ netstat -ano | findstr :3100
 taskkill /PID 확인한pid숫자작성  /F
 ```
 
-
-### 로컬 실행
-
-#### 방법 1: 개발 모드
-1. **백엔드 서버 실행**
-   ```bash
-   # my-vue-project-backend 디렉토리에서
-   cd ../my-vue-project-backend
-   
-   # Maven이 설치되어 있다면
-    mvn spring-boot:run
-   # 또는
-   mvn spring-boot:run -Dspring.profiles.active=local
-   ```
-   - 백엔드 서버가 http://localhost:3200 에서 실행됩니다
-
-2. **프론트엔드 개발 서버 실행**
-   ```bash
-   # my-vue-project 디렉토리에서
-   npm run serve
-   ```
-   - 프론트엔드가 http://localhost:3100 에서 실행됩니다
-
-3. **브라우저에서 확인**
-   - http://localhost:3100 접속하여 애플리케이션 확인
-
-#### 방법 2: Docker 컨테이너 실행
-1. **Docker Desktop 실행**
-   - Docker Desktop이 실행 중인지 확인
-
-2. **Docker 이미지 빌드**
-   ```bash
-   docker build -t vue_personal_project .
-   ```
-
-3. **기존 컨테이너 정리 (필요시)**
-   ```bash
-   # 실행 중인 컨테이너 확인
-   docker ps -a
-   
-   # 기존 컨테이너 중지 및 삭제
-   docker stop vue_personal_project
-   docker rm vue_personal_project
-   ```
-
-4. **컨테이너 실행**
-   ```bash
-   docker run -d -p 3100:80 --name vue_personal_project vue_personal_project
-   ```
-
-5. **브라우저에서 확인**
-   - http://localhost:3100 접속하여 애플리케이션 확인
-
-#### 포트 충돌 해결
-```bash
-# 3100 포트 사용 중인 프로세스 확인
-netstat -ano | findstr :3100
-
-# 해당 프로세스 종료 (PID는 위 명령어로 확인한 번호)
-taskkill /PID [확인한PID번호] /F
-```
 
 ### nas 초기 배포
 
@@ -220,10 +160,7 @@ docker run -d --name vue_personal_project -p 3100:80 vue_personal_project:latest
 ### nas 업데이트 간략화
 
 ```bash
-# // api 엔드포인트 백엔드 서버 로컬인지 서버인지 연동설정 확인하고 진행해
-# export default axios.create({
-# // 배포 서버 사용
-# //baseURL: 'http://125.141.20.218:3200/my-vue-project'
+# // # axios.js 에서 개발, 배포 확인 후
 
 # 1. 빌드 및 tar 파일 생성 쉘 실행 (단 도커데스크탑 실행하고 이거 실행해야 에러안남!)
 ./build-and-package.ps1
