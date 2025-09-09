@@ -87,14 +87,14 @@ docker save vue_personal_project -o vue_personal_project.tar
 2. nas docker 에 tar 파일 업로드
 
 ```bash
-/volume1/docker$
-위 경로에! GUI에선 루트에 docker 폴더 있음
+/volume1/docker/my-vue-project$
+위 경로에! GUI에선 docker 폴더 안에 my-vue-project 폴더 있음
 ```
 
 3. 업로드 후 ssh로 붙어서 이미지 로드
 
 ```bash
-cd /volume1/docker
+cd /volume1/docker/my-vue-project
 docker load -i vue_personal_project.tar
 ```
 
@@ -148,7 +148,7 @@ docker save vue_personal_project:latest -o vue_personal_project.tar
 # 4. 생성한 tar 파일 nas 로 전송
 
 # 5. NAS 경로로 이동하여 tar 파일 로드
-cd /volume1/docker
+cd /volume1/docker/my-vue-project
 docker load -i vue_personal_project.tar
 
 # 6. 이전 컨테이너 제거 후 컨테이너 실행 (포트 지정 포함)
@@ -165,8 +165,8 @@ docker run -d --name vue_personal_project -p 3100:80 vue_personal_project:latest
 # 1. 빌드 및 tar 파일 생성 쉘 실행 (단 도커데스크탑 실행하고 이거 실행해야 에러안남!)
 ./build-and-package.ps1
 
-# 2. 생성된 tar 파일 서버로 전송 (서버경로 : cd /volume1/docker)
+# 2. 생성된 tar 파일 서버로 전송 (서버경로 : cd /volume1/docker/my-vue-project)
 
-# 3. 서버에서 배포 쉘 실행 (서버경로 : cd /volume1/docker)
+# 3. 서버에서 배포 쉘 실행 (서버경로 : cd /volume1/docker/my-vue-project)
 ./vue_personal_project_deploy.sh
 ```
