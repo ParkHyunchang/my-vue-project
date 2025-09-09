@@ -38,14 +38,21 @@
           <div class="timeline-body">
             <h3>{{ memory.title }}</h3>
             <p>{{ memory.description }}</p>
-            <div v-if="memory.image" class="timeline-image">
-              <img 
-                :src="getImageUrl(memory.image)" 
-                :alt="memory.title" 
-                @error="handleImageError"
-                @load="handleImageLoad"
-                class="memory-image"
-              />
+            <div v-if="memory.images && memory.images.length > 0" class="timeline-images">
+              <div class="image-gallery">
+                <img 
+                  v-for="(image, index) in memory.images.slice(0, 3)" 
+                  :key="index"
+                  :src="getImageUrl(image)" 
+                  :alt="memory.title" 
+                  @error="handleImageError"
+                  @load="handleImageLoad"
+                  class="memory-image"
+                />
+                <div v-if="memory.images.length > 3" class="more-images">
+                  +{{ memory.images.length - 3 }}
+                </div>
+              </div>
             </div>
             <div class="timeline-footer">
               <span class="location" v-if="memory.location">
@@ -143,28 +150,43 @@
               />
             </div>
             <div class="form-group">
-              <label>Image</label>
+              <label>Images</label>
               <div class="image-upload-container">
                 <input
                   ref="fileInput"
                   type="file"
                   accept="image/*"
+                  multiple
                   @change="handleFileUpload"
                   style="display: none"
                 />
                 <div class="image-upload-area" @click="triggerFileInput">
-                  <div v-if="!currentMemory.image" class="upload-placeholder">
+                  <div class="upload-placeholder">
                     <i class="fas fa-cloud-upload-alt"></i>
                     <p>이미지를 업로드하세요</p>
-                    <small>클릭하여 파일 선택</small>
+                    <small>클릭하여 파일 선택 (여러 개 선택 가능)</small>
                   </div>
-                  <div v-else class="image-preview">
-                    <img :src="getImageUrl(currentMemory.image)" :alt="currentMemory.title" />
-                    <button type="button" class="remove-image" @click.stop="removeImage">
+                </div>
+                
+                <!-- 업로드된 이미지들 -->
+                <div v-if="currentMemory.images && currentMemory.images.length > 0" class="uploaded-images">
+                  <div 
+                    v-for="(image, index) in currentMemory.images" 
+                    :key="index" 
+                    class="image-preview-item"
+                  >
+                    <img :src="getImageUrl(image)" :alt="`Image ${index + 1}`" />
+                    <button 
+                      type="button" 
+                      class="remove-image" 
+                      @click.stop="confirmRemoveImage(index)"
+                      title="이미지 삭제"
+                    >
                       <i class="fas fa-times"></i>
                     </button>
                   </div>
                 </div>
+                
                 <div v-if="uploading" class="upload-progress">
                   <div class="progress-bar">
                     <div class="progress-fill"></div>
@@ -214,6 +236,17 @@
         @delete="deleteMemory"
       />
     </teleport>
+
+    <!-- 이미지 삭제 확인 모달 -->
+    <teleport to="#modal">
+      <DeleteModal
+        v-if="showImageDeleteModal"
+        :title="'이미지 삭제'"
+        :message="'이 이미지를 정말 삭제하시겠습니까?'"
+        @close="closeImageDeleteModal"
+        @delete="removeImage"
+      />
+    </teleport>
   </div>
 </template>
 
@@ -239,6 +272,8 @@ export default {
     const memoryToDelete = ref(null);
     const uploading = ref(false);
     const fileInput = ref(null);
+    const showImageDeleteModal = ref(false);
+    const imageToDelete = ref(null);
 
     const currentMemory = ref({
       title: "",
@@ -247,7 +282,7 @@ export default {
       partner: "",
       description: "",
       location: "",
-      image: "",
+      images: [], // 단일 이미지에서 다중 이미지로 변경
     });
 
     const categories = [
@@ -274,7 +309,30 @@ export default {
     const fetchMemories = async () => {
       try {
         const response = await axios.get("/dating");
-        memories.value = response.data;
+        // 백엔드에서 받은 데이터를 프론트엔드 형식으로 변환
+        memories.value = response.data.map(memory => {
+          let imagesArray = [];
+          
+          if (memory.images && typeof memory.images === 'string') {
+            try {
+              imagesArray = JSON.parse(memory.images);
+            } catch (e) {
+              console.error('이미지 데이터 파싱 실패:', e);
+              imagesArray = memory.image ? [memory.image] : [];
+            }
+          } else if (Array.isArray(memory.images)) {
+            imagesArray = memory.images;
+          } else if (memory.image) {
+            imagesArray = [memory.image];
+          }
+          
+          return {
+            ...memory,
+            images: imagesArray
+          };
+        });
+        
+        console.log('로드된 메모리 데이터:', memories.value);
       } catch (error) {
         triggerToast("Failed to load memories", "danger");
       }
@@ -289,14 +347,38 @@ export default {
         partner: "",
         description: "",
         location: "",
-        image: "",
+        images: [],
       };
       showMemoryModal.value = true;
     };
 
     const openMemoryDetail = (memory) => {
       isEditing.value = true;
-      currentMemory.value = { ...memory };
+      
+      // images 필드 처리 (JSON 문자열을 배열로 변환)
+      let imagesArray = [];
+      if (memory.images && typeof memory.images === 'string') {
+        try {
+          imagesArray = JSON.parse(memory.images);
+        } catch (e) {
+          console.error('이미지 데이터 파싱 실패:', e);
+          imagesArray = [];
+        }
+      } else if (Array.isArray(memory.images)) {
+        imagesArray = memory.images;
+      } else if (memory.image) {
+        // 기존 단일 이미지가 있다면 배열로 변환
+        imagesArray = [memory.image];
+      }
+      
+      currentMemory.value = { 
+        ...memory,
+        images: imagesArray
+      };
+      
+      console.log('수정 모달에서 로드된 데이터:', currentMemory.value);
+      console.log('이미지 배열:', imagesArray);
+      
       showMemoryModal.value = true;
     };
 
@@ -309,7 +391,7 @@ export default {
         partner: "",
         description: "",
         location: "",
-        image: "",
+        images: [],
       };
     };
 
@@ -362,14 +444,30 @@ export default {
       }
 
       try {
+        // 백엔드로 전송할 데이터 준비
+        const memoryData = {
+          ...currentMemory.value,
+          // 이미지 배열을 JSON 문자열로 변환
+          images: currentMemory.value.images ? JSON.stringify(currentMemory.value.images) : null,
+          // 기존 단일 이미지 필드도 유지 (호환성)
+          image: currentMemory.value.images && currentMemory.value.images.length > 0 
+            ? currentMemory.value.images[0] 
+            : null
+        };
+
+        // 디버깅을 위한 로그
+        console.log('전송할 데이터:', memoryData);
+        console.log('이미지 배열:', currentMemory.value.images);
+        console.log('JSON 문자열:', memoryData.images);
+
         if (isEditing.value) {
           await axios.put(
             `/dating/${currentMemory.value.id}`,
-            currentMemory.value
+            memoryData
           );
           triggerToast("추억이 수정되었습니다.");
         } else {
-          await axios.post("/dating", currentMemory.value);
+          await axios.post("/dating", memoryData);
           triggerToast("추억이 생성되었습니다.");
         }
         await fetchMemories();
@@ -430,35 +528,57 @@ export default {
     };
 
     const handleFileUpload = async (event) => {
-      const file = event.target.files[0];
-      if (!file) return;
+      const files = Array.from(event.target.files);
+      if (!files.length) return;
 
-      // 파일 크기 확인 (20MB 제한)
-      if (file.size > 20 * 1024 * 1024) {
-        triggerToast("파일 크기는 20MB 이하여야 합니다.", "danger");
+      // 파일 개수 제한 (최대 10개)
+      if (files.length > 10) {
+        triggerToast("최대 10개의 이미지만 업로드할 수 있습니다.", "danger");
         return;
       }
 
-      // 이미지 파일 확인
-      if (!file.type.startsWith('image/')) {
-        triggerToast("이미지 파일만 업로드 가능합니다.", "danger");
+      // 기존 이미지와 합쳐서 총 개수 확인
+      const totalImages = (currentMemory.value.images?.length || 0) + files.length;
+      if (totalImages > 10) {
+        triggerToast("총 이미지 개수는 10개를 초과할 수 없습니다.", "danger");
         return;
       }
 
       uploading.value = true;
       
       try {
-        const formData = new FormData();
-        formData.append('file', file);
+        const uploadPromises = files.map(async (file) => {
+          // 파일 크기 확인 (20MB 제한)
+          if (file.size > 20 * 1024 * 1024) {
+            throw new Error(`${file.name}: 파일 크기는 20MB 이하여야 합니다.`);
+          }
 
-        const response = await axios.post('/dating/upload', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+          // 이미지 파일 확인
+          if (!file.type.startsWith('image/')) {
+            throw new Error(`${file.name}: 이미지 파일만 업로드 가능합니다.`);
+          }
+
+          const formData = new FormData();
+          formData.append('file', file);
+
+          const response = await axios.post('/dating/upload', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+
+          return response.data;
         });
 
-        currentMemory.value.image = response.data;
-        triggerToast("이미지가 업로드되었습니다.");
+        const uploadedImages = await Promise.all(uploadPromises);
+        
+        // 기존 이미지 배열에 새 이미지들 추가
+        if (!currentMemory.value.images) {
+          currentMemory.value.images = [];
+        }
+        currentMemory.value.images.push(...uploadedImages);
+        
+        triggerToast(`${uploadedImages.length}개의 이미지가 업로드되었습니다.`);
       } catch (error) {
         triggerToast(`이미지 업로드에 실패했습니다: ${error.message}`, "danger");
       } finally {
@@ -470,8 +590,35 @@ export default {
       }
     };
 
-    const removeImage = () => {
-      currentMemory.value.image = '';
+    const confirmRemoveImage = (index) => {
+      imageToDelete.value = index;
+      showImageDeleteModal.value = true;
+    };
+
+    const closeImageDeleteModal = () => {
+      showImageDeleteModal.value = false;
+      imageToDelete.value = null;
+    };
+
+    const removeImage = async () => {
+      if (imageToDelete.value !== null && currentMemory.value.images) {
+        const imageToRemove = currentMemory.value.images[imageToDelete.value];
+        
+        try {
+          // 서버에서 이미지 파일 삭제
+          await axios.delete('/dating/image', {
+            params: { imagePath: imageToRemove }
+          });
+          
+          // 프론트엔드에서 이미지 배열에서 제거
+          currentMemory.value.images.splice(imageToDelete.value, 1);
+          triggerToast("이미지가 삭제되었습니다.");
+        } catch (error) {
+          console.error('이미지 삭제 실패:', error);
+          triggerToast("이미지 삭제에 실패했습니다.", "danger");
+        }
+      }
+      closeImageDeleteModal();
     };
 
     const getImageUrl = (imagePath) => {
@@ -523,10 +670,14 @@ export default {
       fileInput,
       triggerFileInput,
       handleFileUpload,
+      confirmRemoveImage,
       removeImage,
       getImageUrl,
       handleImageError,
       handleImageLoad,
+      // 이미지 삭제 모달 관련
+      showImageDeleteModal,
+      closeImageDeleteModal,
     };
   },
 };
@@ -910,5 +1061,113 @@ export default {
   margin: 0;
   color: #666;
   font-size: 0.9rem;
+}
+
+/* 다중 이미지 업로드 스타일 */
+.uploaded-images {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.image-preview-item {
+  position: relative;
+  display: inline-block;
+}
+
+.image-preview-item img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.image-preview-item img:hover {
+  transform: scale(1.05);
+}
+
+.image-preview-item .remove-image {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.image-preview-item .remove-image:hover {
+  background: #cc0000;
+  transform: scale(1.1);
+}
+
+/* 타임라인 이미지 갤러리 스타일 */
+.timeline-images {
+  margin: 20px 0;
+}
+
+.image-gallery {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.image-gallery .memory-image {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.image-gallery .memory-image:hover {
+  transform: scale(1.1);
+}
+
+.more-images {
+  background: rgba(233, 30, 99, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  min-width: 40px;
+  text-align: center;
+}
+
+/* 모바일에서 이미지 갤러리 조정 */
+@media (max-width: 768px) {
+  .uploaded-images {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+  }
+  
+  .image-preview-item img {
+    height: 100px;
+  }
+  
+  .image-gallery .memory-image {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .more-images {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
 }
 </style>

@@ -2,16 +2,20 @@
 
 echo "🚀 NAS 서버 배포 시작..."
 
-# tar 파일 존재 확인
-if [ ! -f "vue_personal_project.tar" ]; then
-    echo "❌ vue_personal_project.tar 파일을 찾을 수 없습니다!"
+# tar 파일 찾기 (날짜가 붙은 파일 포함)
+TAR_FILE=$(ls vue_personal_project*.tar 2>/dev/null | head -1)
+
+if [ -z "$TAR_FILE" ]; then
+    echo "❌ vue_personal_project*.tar 파일을 찾을 수 없습니다!"
     echo "📁 현재 디렉토리에 tar 파일이 있는지 확인해주세요."
     exit 1
 fi
 
+echo "📦 발견된 tar 파일: $TAR_FILE"
+
 # 5. NAS 경로로 이동하여 tar 파일 로드
 echo "📦 5단계: Docker 이미지 로드 중..."
-docker load -i vue_personal_project.tar
+docker load -i "$TAR_FILE"
 
 if [ $? -ne 0 ]; then
     echo "❌ Docker 이미지 로드 실패!"
