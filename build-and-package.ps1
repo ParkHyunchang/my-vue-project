@@ -25,14 +25,16 @@ Write-Host "✅ Docker build complete!"
 
 # 3. Create tar file
 Write-Host "📦 Step 3: Creating tar file..."
-docker save vue_personal_project:latest -o vue_personal_project.tar
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$tarFileName = "vue_personal_project_$timestamp.tar"
+docker save vue_personal_project:latest -o $tarFileName
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Tar file creation failed!"
     exit 1
 }
-Write-Host "✅ Tar file created!"
+Write-Host "✅ Tar file created: $tarFileName"
 
 Write-Host ""
 Write-Host "🎉 All steps completed!"
-Write-Host "📁 Please transfer vue_personal_project.tar to your NAS."
+Write-Host "📁 Please transfer $tarFileName to your NAS."
 Write-Host "📋 Next: Run deploy.sh on your NAS." 

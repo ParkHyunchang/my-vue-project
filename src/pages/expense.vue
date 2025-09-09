@@ -925,9 +925,11 @@ export default {
   }
 
   .pagination-controls {
-    flex-direction: column;
+    flex-direction: row;
     gap: 10px;
     width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .page-input-container {

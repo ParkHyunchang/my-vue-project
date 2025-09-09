@@ -39,7 +39,13 @@
             <h3>{{ memory.title }}</h3>
             <p>{{ memory.description }}</p>
             <div v-if="memory.image" class="timeline-image">
-              <img :src="getImageUrl(memory.image)" :alt="memory.title" />
+              <img 
+                :src="getImageUrl(memory.image)" 
+                :alt="memory.title" 
+                @error="handleImageError"
+                @load="handleImageLoad"
+                class="memory-image"
+              />
             </div>
             <div class="timeline-footer">
               <span class="location" v-if="memory.location">
@@ -454,8 +460,6 @@ export default {
         currentMemory.value.image = response.data;
         triggerToast("이미지가 업로드되었습니다.");
       } catch (error) {
-        console.error('Image upload error:', error);
-        console.error('Error response:', error.response);
         triggerToast(`이미지 업로드에 실패했습니다: ${error.message}`, "danger");
       } finally {
         uploading.value = false;
@@ -471,12 +475,22 @@ export default {
     };
 
     const getImageUrl = (imagePath) => {
-      if (!imagePath) return '';
+      if (!imagePath || imagePath.trim() === '') return '';
       // 이미 전체 URL인 경우 그대로 반환
       if (imagePath.startsWith('http')) return imagePath;
       // 상대 경로인 경우 현재 axios baseURL과 결합
       const baseURL = axios.defaults.baseURL || 'http://localhost:3200/my-vue-project';
       return `${baseURL}${imagePath}`;
+    };
+
+    const handleImageError = (event) => {
+      // 이미지 로드 실패 시 숨기기
+      event.target.style.display = 'none';
+    };
+
+    const handleImageLoad = (event) => {
+      // 이미지 로드 성공 시 표시
+      event.target.style.display = 'block';
     };
 
     // 초기 데이터 로드
@@ -511,6 +525,8 @@ export default {
       handleFileUpload,
       removeImage,
       getImageUrl,
+      handleImageError,
+      handleImageLoad,
     };
   },
 };
@@ -690,6 +706,17 @@ export default {
 
 .partner-tag i {
   margin-right: 5px;
+}
+
+.timeline-image {
+  margin: 10px 0;
+}
+
+.memory-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 /* 모바일 스타일 */
