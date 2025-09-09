@@ -39,7 +39,7 @@
             <h3>{{ memory.title }}</h3>
             <p>{{ memory.description }}</p>
             <div v-if="memory.image" class="timeline-image">
-              <img :src="memory.image" :alt="memory.title" />
+              <img :src="getImageUrl(memory.image)" :alt="memory.title" />
             </div>
             <div class="timeline-footer">
               <span class="location" v-if="memory.location">
@@ -137,12 +137,35 @@
               />
             </div>
             <div class="form-group">
-              <label>Image URL</label>
-              <input
-                v-model="currentMemory.image"
-                type="url"
-                class="form-control"
-              />
+              <label>Image</label>
+              <div class="image-upload-container">
+                <input
+                  ref="fileInput"
+                  type="file"
+                  accept="image/*"
+                  @change="handleFileUpload"
+                  style="display: none"
+                />
+                <div class="image-upload-area" @click="triggerFileInput">
+                  <div v-if="!currentMemory.image" class="upload-placeholder">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>이미지를 업로드하세요</p>
+                    <small>클릭하여 파일 선택</small>
+                  </div>
+                  <div v-else class="image-preview">
+                    <img :src="getImageUrl(currentMemory.image)" :alt="currentMemory.title" />
+                    <button type="button" class="remove-image" @click.stop="removeImage">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </div>
+                <div v-if="uploading" class="upload-progress">
+                  <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                  </div>
+                  <p>업로드 중...</p>
+                </div>
+              </div>
             </div>
           </form>
         </template>
@@ -208,6 +231,8 @@ export default {
     const selectedCategory = ref("all");
     const showDeleteModal = ref(false);
     const memoryToDelete = ref(null);
+    const uploading = ref(false);
+    const fileInput = ref(null);
 
     const currentMemory = ref({
       title: "",
@@ -393,6 +418,67 @@ export default {
       }
     };
 
+    // 파일 업로드 관련 함수들
+    const triggerFileInput = () => {
+      fileInput.value?.click();
+    };
+
+    const handleFileUpload = async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // 파일 크기 확인 (20MB 제한)
+      if (file.size > 20 * 1024 * 1024) {
+        triggerToast("파일 크기는 20MB 이하여야 합니다.", "danger");
+        return;
+      }
+
+      // 이미지 파일 확인
+      if (!file.type.startsWith('image/')) {
+        triggerToast("이미지 파일만 업로드 가능합니다.", "danger");
+        return;
+      }
+
+      uploading.value = true;
+      
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await axios.post('/dating/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        currentMemory.value.image = response.data;
+        triggerToast("이미지가 업로드되었습니다.");
+      } catch (error) {
+        console.error('Image upload error:', error);
+        console.error('Error response:', error.response);
+        triggerToast(`이미지 업로드에 실패했습니다: ${error.message}`, "danger");
+      } finally {
+        uploading.value = false;
+        // 파일 입력 초기화
+        if (fileInput.value) {
+          fileInput.value.value = '';
+        }
+      }
+    };
+
+    const removeImage = () => {
+      currentMemory.value.image = '';
+    };
+
+    const getImageUrl = (imagePath) => {
+      if (!imagePath) return '';
+      // 이미 전체 URL인 경우 그대로 반환
+      if (imagePath.startsWith('http')) return imagePath;
+      // 상대 경로인 경우 현재 axios baseURL과 결합
+      const baseURL = axios.defaults.baseURL || 'http://localhost:3200/my-vue-project';
+      return `${baseURL}${imagePath}`;
+    };
+
     // 초기 데이터 로드
     fetchMemories();
 
@@ -418,6 +504,13 @@ export default {
       deleteMemory,
       maxDate,
       validateDate,
+      // 파일 업로드 관련
+      uploading,
+      fileInput,
+      triggerFileInput,
+      handleFileUpload,
+      removeImage,
+      getImageUrl,
     };
   },
 };
@@ -682,5 +775,113 @@ export default {
 .modal-footer-buttons > div:last-child {
   display: flex;
   gap: 8px;
+}
+
+/* 이미지 업로드 스타일 */
+.image-upload-container {
+  margin-top: 10px;
+}
+
+.image-upload-area {
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #fafafa;
+}
+
+.image-upload-area:hover {
+  border-color: #e91e63;
+  background: #fef7f7;
+}
+
+.upload-placeholder {
+  color: #666;
+}
+
+.upload-placeholder i {
+  font-size: 2rem;
+  color: #e91e63;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.upload-placeholder p {
+  margin: 10px 0 5px 0;
+  font-weight: 500;
+}
+
+.upload-placeholder small {
+  color: #999;
+}
+
+.image-preview {
+  position: relative;
+  display: inline-block;
+}
+
+.image-preview img {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.remove-image {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.3s ease;
+}
+
+.remove-image:hover {
+  background: #cc0000;
+  transform: scale(1.1);
+}
+
+.upload-progress {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background: #e0e0e0;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #e91e63;
+  border-radius: 2px;
+  animation: progress 2s ease-in-out infinite;
+}
+
+@keyframes progress {
+  0% { width: 0%; }
+  50% { width: 70%; }
+  100% { width: 100%; }
+}
+
+.upload-progress p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
 }
 </style>
