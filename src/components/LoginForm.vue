@@ -67,9 +67,14 @@ export default {
           });
           this.$router.push('/');
         } else {
+          // 구체적인 오류 메시지에 따라 다른 스타일의 토스트 표시
+          const isUsernameError = result.message.includes('존재하지 않는 아이디');
+          const isPasswordError = result.message.includes('비밀번호가 올바르지 않습니다');
+          
           this.$store.dispatch('toast/showToast', {
             message: result.message,
-            type: 'error'
+            type: 'error',
+            duration: isUsernameError || isPasswordError ? 4000 : 3000 // 구체적인 오류는 조금 더 오래 표시
           });
         }
       } catch (error) {
