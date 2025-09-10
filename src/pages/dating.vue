@@ -23,7 +23,7 @@
     <!-- 타임라인 -->
     <div class="timeline">
       <div
-        v-for="memory in filteredMemories"
+        v-for="memory in processedMemories"
         :key="memory.id"
         :class="['timeline-item', memory.category]"
         @click="openMemoryDetail(memory)"
@@ -38,19 +38,19 @@
           <div class="timeline-body">
             <h3>{{ memory.title }}</h3>
             <p>{{ memory.description }}</p>
-            <div v-if="memory.images && memory.images.length > 0" class="timeline-images">
+            <div v-if="memory.processedImages && memory.processedImages.length > 0" class="timeline-images">
               <div class="image-gallery">
                 <img 
-                  v-for="(image, index) in memory.images.slice(0, 3)" 
+                  v-for="(imageUrl, index) in memory.processedImages.slice(0, 3)" 
                   :key="index"
-                  :src="getImageUrl(image)" 
+                  :src="imageUrl" 
                   :alt="memory.title" 
                   @error="handleImageError"
                   @load="handleImageLoad"
                   class="memory-image"
                 />
-                <div v-if="memory.images.length > 3" class="more-images">
-                  +{{ memory.images.length - 3 }}
+                <div v-if="memory.processedImages.length > 3" class="more-images">
+                  +{{ memory.processedImages.length - 3 }}
                 </div>
               </div>
             </div>
@@ -626,9 +626,22 @@ export default {
       // 이미 전체 URL인 경우 그대로 반환
       if (imagePath.startsWith('http')) return imagePath;
       // 상대 경로인 경우 현재 axios baseURL과 결합
-      const baseURL = axios.defaults.baseURL || 'http://localhost:3200/my-vue-project';
+      const baseURL = axios.defaults.baseURL || 'http://125.141.20.218:3200';
       return `${baseURL}${imagePath}`;
     };
+
+    // 이미지 URL을 미리 계산하는 computed 함수
+    const processedMemories = computed(() => {
+      const baseURL = axios.defaults.baseURL || 'http://125.141.20.218:3200';
+      return memories.value.map(memory => ({
+        ...memory,
+        processedImages: memory.images ? memory.images.map(img => {
+          if (!img || img.trim() === '') return '';
+          if (img.startsWith('http')) return img;
+          return `${baseURL}${img}`;
+        }) : []
+      }));
+    });
 
     const handleImageError = (event) => {
       // 이미지 로드 실패 시 숨기기
@@ -651,6 +664,7 @@ export default {
       categoryOptions,
       selectedCategory,
       filteredMemories,
+      processedMemories,
       isEditing,
       openCreateModal,
       openMemoryDetail,

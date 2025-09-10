@@ -39,7 +39,7 @@
             <h3>{{ event.title }}</h3>
             <p>{{ event.description }}</p>
             <div v-if="event.image" class="timeline-image">
-              <img :src="event.image" :alt="event.title" />
+              <img :src="getImageUrl(event.image)" :alt="event.title" />
             </div>
             <div class="timeline-footer">
               <span class="location" v-if="event.location">
@@ -373,6 +373,15 @@ export default {
       }
     };
 
+    const getImageUrl = (imagePath) => {
+      if (!imagePath || imagePath.trim() === '') return '';
+      // 이미 전체 URL인 경우 그대로 반환
+      if (imagePath.startsWith('http')) return imagePath;
+      // 상대 경로인 경우 현재 axios baseURL과 결합
+      const baseURL = axios.defaults.baseURL || 'http://125.141.20.218:3200';
+      return `${baseURL}${imagePath}`;
+    };
+
     // 초기 데이터 로드
     fetchEvents();
 
@@ -398,6 +407,7 @@ export default {
       deleteEvent,
       maxDate,
       validateDate,
+      getImageUrl,
     };
   },
 };
