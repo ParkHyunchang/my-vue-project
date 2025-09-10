@@ -258,7 +258,7 @@ export default {
     DeleteModal,
   },
   setup() {
-    const { triggerToast } = useToast();
+    const { showToast } = useToast();
     const expenses = ref([]);
     const summary = ref({
       totalIncome: 0,
@@ -357,7 +357,7 @@ export default {
       } catch (err) {
         console.error('Error fetching expenses:', err);
         error.value = '가계부 데이터를 불러오는데 실패했습니다.';
-        triggerToast('가계부 데이터를 불러오는데 실패했습니다.', 'danger');
+        showToast('가계부 데이터를 불러오는데 실패했습니다.', 'danger');
       } finally {
         loading.value = false;
       }
@@ -410,10 +410,10 @@ export default {
       try {
         if (isEditing.value) {
           await axios.put(`/expenses/${currentExpense.value.id}`, currentExpense.value);
-          triggerToast('가계부 항목이 수정되었습니다.', 'success');
+          showToast('가계부 항목이 수정되었습니다.', 'success');
         } else {
           await axios.post('/expenses', currentExpense.value);
-          triggerToast('가계부 항목이 추가되었습니다.', 'success');
+          showToast('가계부 항목이 추가되었습니다.', 'success');
         }
         
         await fetchExpenses();
@@ -421,7 +421,7 @@ export default {
         closeExpenseModal();
       } catch (err) {
         console.error('Error saving expense:', err);
-        triggerToast('가계부 항목 저장에 실패했습니다.', 'danger');
+        showToast('가계부 항목 저장에 실패했습니다.', 'danger');
       }
     };
 
@@ -440,11 +440,11 @@ export default {
         await axios.delete(`/expenses/${expenseToDelete.value.id}`);
         await fetchExpenses();
         await fetchSummary();
-        triggerToast('가계부 항목이 삭제되었습니다.', 'success');
+        showToast('가계부 항목이 삭제되었습니다.', 'success');
         closeDeleteModal();
       } catch (err) {
         console.error('Error deleting expense:', err);
-        triggerToast('가계부 항목 삭제에 실패했습니다.', 'danger');
+        showToast('가계부 항목 삭제에 실패했습니다.', 'danger');
       }
     };
 

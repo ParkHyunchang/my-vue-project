@@ -75,8 +75,7 @@ export default {
         const {
             toastMessage,
             toastAlertType,
-            showToast,
-            triggerToast
+            showToast
         } = useToast();
 
         const todoId = route.params.id;
@@ -91,7 +90,7 @@ export default {
             } catch (error) {
                 loading.value = false;
                 console.log(error);
-                triggerToast('Something went wrong', 'danger');
+                showToast('Something went wrong', 'danger');
             }
         };
 
@@ -129,16 +128,16 @@ export default {
 
                 if (props.editing) {
                     await axios.put(`todos/${todoId}`, data);
-                    triggerToast('Successfully Updated!');
+                    showToast('Successfully Updated!');
                     moveToTodoListPage();
                 } else {
                     await axios.post('todos', data);
-                    triggerToast('Successfully Created!');
+                    showToast('Successfully Created!');
                     moveToTodoListPage();
                 }
             } catch (error) {
                 console.log(error);
-                triggerToast('Something went wrong', 'danger');
+                showToast('Something went wrong', 'danger');
             }
         };
 

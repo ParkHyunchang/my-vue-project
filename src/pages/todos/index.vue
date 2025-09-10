@@ -65,8 +65,7 @@ export default {
         const {
             toastMessage,
             toastAlertType,
-            showToast,
-            triggerToast
+            showToast
         } = useToast();
 
         // 서버에서 페이징/검색 적용해서 가져오기
@@ -94,7 +93,7 @@ export default {
             } catch (err) {
                 console.log(err);
                 error.value = 'Something went wrong.';
-                triggerToast('Something went wrong', 'danger')
+                showToast('Something went wrong', 'danger')
             } finally {
                 loading.value = false;
             }

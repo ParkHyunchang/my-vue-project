@@ -186,7 +186,7 @@ export default {
     DeleteModal,
   },
   setup() {
-    const { triggerToast } = useToast();
+    const { showToast } = useToast();
     const events = ref([]);
     const showEventModal = ref(false);
     const isEditing = ref(false);
@@ -227,7 +227,7 @@ export default {
         const response = await axios.get("/histories");
         events.value = response.data;
       } catch (error) {
-        triggerToast("Failed to load events", "danger");
+        showToast("Failed to load events", "danger");
       }
     };
 
@@ -268,7 +268,7 @@ export default {
     const validateDate = (event) => {
       const dateValue = event.target.value;
       if (!dateValue) {
-        triggerToast("날짜를 입력해주세요.", "danger");
+        showToast("날짜를 입력해주세요.", "danger");
         return false;
       }
 
@@ -276,13 +276,13 @@ export default {
       const today = new Date();
 
       if (isNaN(selectedDate.getTime())) {
-        triggerToast("올바른 날짜를 입력해주세요.", "danger");
+        showToast("올바른 날짜를 입력해주세요.", "danger");
         currentEvent.value.date = "";
         return false;
       }
 
       if (selectedDate > today) {
-        triggerToast("미래의 날짜는 입력할 수 없습니다.", "danger");
+        showToast("미래의 날짜는 입력할 수 없습니다.", "danger");
         currentEvent.value.date = "";
         return false;
       }
@@ -293,15 +293,15 @@ export default {
     const saveEvent = async () => {
       // 필수 입력값 검사
       if (!currentEvent.value.title?.trim()) {
-        triggerToast("제목을 입력해주세요.", "danger");
+        showToast("제목을 입력해주세요.", "danger");
         return;
       }
       if (!currentEvent.value.date?.trim()) {
-        triggerToast("날짜를 입력해주세요.", "danger");
+        showToast("날짜를 입력해주세요.", "danger");
         return;
       }
       if (!currentEvent.value.category?.trim()) {
-        triggerToast("카테고리를 선택해주세요.", "danger");
+        showToast("카테고리를 선택해주세요.", "danger");
         return;
       }
 
@@ -316,15 +316,15 @@ export default {
             `/histories/${currentEvent.value.id}`,
             currentEvent.value
           );
-          triggerToast("이벤트가 수정되었습니다.");
+          showToast("이벤트가 수정되었습니다.");
         } else {
           await axios.post("/histories", currentEvent.value);
-          triggerToast("이벤트가 생성되었습니다.");
+          showToast("이벤트가 생성되었습니다.");
         }
         await fetchEvents();
         closeEventModal();
       } catch (error) {
-        triggerToast(
+        showToast(
           isEditing.value
             ? "이벤트 수정에 실패했습니다."
             : "이벤트 생성에 실패했습니다.",
@@ -367,9 +367,9 @@ export default {
         await axios.delete(`/histories/${eventToDelete.value.id}`);
         closeDeleteModal();
         await fetchEvents();
-        triggerToast("이벤트가 삭제되었습니다.");
+        showToast("이벤트가 삭제되었습니다.");
       } catch (error) {
-        triggerToast("이벤트 삭제에 실패했습니다.", "danger");
+        showToast("이벤트 삭제에 실패했습니다.", "danger");
       }
     };
 

@@ -263,7 +263,7 @@ export default {
     DeleteModal,
   },
   setup() {
-    const { triggerToast } = useToast();
+    const { showToast } = useToast();
     const memories = ref([]);
     const showMemoryModal = ref(false);
     const isEditing = ref(false);
@@ -334,7 +334,7 @@ export default {
         
         console.log('로드된 메모리 데이터:', memories.value);
       } catch (error) {
-        triggerToast("Failed to load memories", "danger");
+        showToast("Failed to load memories", "danger");
       }
     };
 
@@ -401,7 +401,7 @@ export default {
     const validateDate = (event) => {
       const dateValue = event.target.value;
       if (!dateValue) {
-        triggerToast("날짜를 입력해주세요.", "danger");
+        showToast("날짜를 입력해주세요.", "danger");
         return false;
       }
 
@@ -409,13 +409,13 @@ export default {
       const today = new Date();
 
       if (isNaN(selectedDate.getTime())) {
-        triggerToast("올바른 날짜를 입력해주세요.", "danger");
+        showToast("올바른 날짜를 입력해주세요.", "danger");
         currentMemory.value.date = "";
         return false;
       }
 
       if (selectedDate > today) {
-        triggerToast("미래의 날짜는 입력할 수 없습니다.", "danger");
+        showToast("미래의 날짜는 입력할 수 없습니다.", "danger");
         currentMemory.value.date = "";
         return false;
       }
@@ -426,15 +426,15 @@ export default {
     const saveMemory = async () => {
       // 필수 입력값 검사
       if (!currentMemory.value.title?.trim()) {
-        triggerToast("제목을 입력해주세요.", "danger");
+        showToast("제목을 입력해주세요.", "danger");
         return;
       }
       if (!currentMemory.value.date?.trim()) {
-        triggerToast("날짜를 입력해주세요.", "danger");
+        showToast("날짜를 입력해주세요.", "danger");
         return;
       }
       if (!currentMemory.value.category?.trim()) {
-        triggerToast("카테고리를 선택해주세요.", "danger");
+        showToast("카테고리를 선택해주세요.", "danger");
         return;
       }
 
@@ -465,15 +465,15 @@ export default {
             `/dating/${currentMemory.value.id}`,
             memoryData
           );
-          triggerToast("추억이 수정되었습니다.");
+          showToast("추억이 수정되었습니다.");
         } else {
           await axios.post("/dating", memoryData);
-          triggerToast("추억이 생성되었습니다.");
+          showToast("추억이 생성되었습니다.");
         }
         await fetchMemories();
         closeMemoryModal();
       } catch (error) {
-        triggerToast(
+        showToast(
           isEditing.value
             ? "추억 수정에 실패했습니다."
             : "추억 생성에 실패했습니다.",
@@ -516,9 +516,9 @@ export default {
         await axios.delete(`/dating/${memoryToDelete.value.id}`);
         closeDeleteModal();
         await fetchMemories();
-        triggerToast("추억이 삭제되었습니다.");
+        showToast("추억이 삭제되었습니다.");
       } catch (error) {
-        triggerToast("추억 삭제에 실패했습니다.", "danger");
+        showToast("추억 삭제에 실패했습니다.", "danger");
       }
     };
 
@@ -533,14 +533,14 @@ export default {
 
       // 파일 개수 제한 (최대 10개)
       if (files.length > 10) {
-        triggerToast("최대 10개의 이미지만 업로드할 수 있습니다.", "danger");
+        showToast("최대 10개의 이미지만 업로드할 수 있습니다.", "danger");
         return;
       }
 
       // 기존 이미지와 합쳐서 총 개수 확인
       const totalImages = (currentMemory.value.images?.length || 0) + files.length;
       if (totalImages > 10) {
-        triggerToast("총 이미지 개수는 10개를 초과할 수 없습니다.", "danger");
+        showToast("총 이미지 개수는 10개를 초과할 수 없습니다.", "danger");
         return;
       }
 
@@ -578,9 +578,9 @@ export default {
         }
         currentMemory.value.images.push(...uploadedImages);
         
-        triggerToast(`${uploadedImages.length}개의 이미지가 업로드되었습니다.`);
+        showToast(`${uploadedImages.length}개의 이미지가 업로드되었습니다.`);
       } catch (error) {
-        triggerToast(`이미지 업로드에 실패했습니다: ${error.message}`, "danger");
+        showToast(`이미지 업로드에 실패했습니다: ${error.message}`, "danger");
       } finally {
         uploading.value = false;
         // 파일 입력 초기화
@@ -612,10 +612,10 @@ export default {
           
           // 프론트엔드에서 이미지 배열에서 제거
           currentMemory.value.images.splice(imageToDelete.value, 1);
-          triggerToast("이미지가 삭제되었습니다.");
+          showToast("이미지가 삭제되었습니다.");
         } catch (error) {
           console.error('이미지 삭제 실패:', error);
-          triggerToast("이미지 삭제에 실패했습니다.", "danger");
+          showToast("이미지 삭제에 실패했습니다.", "danger");
         }
       }
       closeImageDeleteModal();

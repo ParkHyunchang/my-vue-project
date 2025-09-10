@@ -8,12 +8,12 @@ export const useToast = () => {
     // const toastAlertType = computed(() => store.state.toast.toastAlertType);
     // const showToast = computed(() => store.state.toast.showToast); 
 
-    const triggerToast = (message, type = 'success') => {
-        store.dispatch('toast/triggerToast', { message, type } );
+    const showToast = (message, type = 'success') => {
+        store.dispatch('toast/showToast', { message, type } );
     }
 
     return {
         toasts,
-        triggerToast
+        showToast
     }
 }

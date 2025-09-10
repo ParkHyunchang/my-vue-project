@@ -15,10 +15,13 @@
 </template>
 
 <script>
-import { useToast } from "@/composables/toast";
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+
 export default {
   setup() {
-    const { toasts } = useToast();
+    const store = useStore();
+    const toasts = computed(() => store.state.toast.toasts);
 
     return {
       toasts,
@@ -32,7 +35,7 @@ export default {
   position: fixed;
   top: 80px; /* navbar 높이에 맞춰 조정 */
   right: 20px;
-  z-index: 9999; /* 높은 z-index 값 설정 */
+  z-index: 99999; /* 더 높은 z-index 값 설정 */
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -55,7 +58,7 @@ export default {
   border-color: #c3e6cb;
 }
 
-.alert-danger {
+.alert-error {
   color: #721c24;
   background-color: #f8d7da;
   border-color: #f5c6cb;
