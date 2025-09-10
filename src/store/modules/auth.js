@@ -79,7 +79,9 @@ const actions = {
             commit('SET_USER', { username, email, role });
             return true;
         } catch (error) {
-            commit('LOGOUT');
+            if (error.response?.status === 401 || error.response?.status === 403) {
+                commit('LOGOUT');
+            }
             return false;
         }
     }

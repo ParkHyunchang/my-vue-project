@@ -10,6 +10,7 @@ import Projects from '../pages/projects.vue';
 import History from '../pages/history.vue';
 import Dating from '../pages/dating.vue';
 import Auth from '../pages/auth.vue';
+import Admin from '../pages/admin.vue';
 
 const router = createRouter({
     history: createWebHashHistory(),
@@ -73,6 +74,18 @@ const router = createRouter({
             name: 'Expense',
             component: Expense,
             meta: { requiresAuth: true, roles: ['ADMIN'] }
+        },
+        {
+            path: '/admin',
+            name: 'AdminMain',
+            component: () => import('../pages/admin-main.vue'),
+            meta: { requiresAuth: true, roles: ['ADMIN'] }
+        },
+        {
+            path: '/admin/users',
+            name: 'AdminUsers',
+            component: Admin,
+            meta: { requiresAuth: true, roles: ['ADMIN'] }
         }
     ]
 });
@@ -83,27 +96,26 @@ router.beforeEach(async (to, from, next) => {
     const guestOnly = to.matched.some(record => record.meta.guestOnly);
     const requiredRoles = to.meta.roles;
     
-    // 인증 상태 확인
-    const isAuthenticated = store.getters['auth/isAuthenticated'];
-    
-    // 토큰이 있지만 사용자 정보가 없는 경우 인증 확인
     if (store.getters['auth/token'] && !store.getters['auth/user']) {
-        await store.dispatch('auth/checkAuth');
+        try {
+            await store.dispatch('auth/checkAuth');
+        } catch (error) {
+            // 네트워크 에러 등으로 인한 일시적 실패는 무시
+        }
     }
     
-    // 인증이 필요한 페이지인데 로그인하지 않은 경우
+    const isAuthenticated = store.getters['auth/isAuthenticated'];
+    
     if (requiresAuth && !isAuthenticated) {
         next('/login');
         return;
     }
     
-    // 게스트만 접근 가능한 페이지인데 로그인한 경우
     if (guestOnly && isAuthenticated) {
         next('/');
         return;
     }
     
-    // 권한 체크
     if (requiredRoles && isAuthenticated) {
         const userRole = store.getters['auth/user']?.role;
         const hasRequiredRole = requiredRoles.includes(userRole);

@@ -33,6 +33,12 @@
           <li v-if="isAuthenticated && hasRole('ADMIN')">
             <router-link to="/expense" @click="closeMenu">가계부</router-link>
           </li>
+          <li v-if="isAuthenticated && hasRole('ADMIN')" class="dropdown">
+            <a href="#" @click.prevent="toggleAdminMenu" class="dropdown-toggle">관리자</a>
+            <ul v-if="showAdminMenu" class="dropdown-menu">
+              <li><router-link to="/admin/users" @click="closeMenu">사용자 관리</router-link></li>
+            </ul>
+          </li>
         </ul>
         <div v-if="!isAuthenticated" class="desktop-login">
           <router-link to="/login" @click="closeMenu" class="login-btn">로그인</router-link>
@@ -57,6 +63,7 @@ export default {
     const store = useStore();
     const router = useRouter();
     const isOpen = ref(false);
+    const showAdminMenu = ref(false);
     
     const toggleMenu = () => {
       isOpen.value = !isOpen.value;
@@ -64,6 +71,11 @@ export default {
     
     const closeMenu = () => {
       isOpen.value = false;
+      showAdminMenu.value = false;
+    };
+    
+    const toggleAdminMenu = () => {
+      showAdminMenu.value = !showAdminMenu.value;
     };
     
     const handleLogout = async () => {
@@ -85,7 +97,9 @@ export default {
     
     return { 
       isOpen, 
+      showAdminMenu,
       toggleMenu, 
+      toggleAdminMenu,
       closeMenu, 
       handleLogout,
       isAuthenticated,
@@ -187,6 +201,61 @@ export default {
   padding: 6px 12px;
 }
 
+/* 드롭다운 메뉴 스타일 */
+.dropdown {
+  position: relative;
+}
+
+.dropdown-toggle {
+  color: #333;
+  text-decoration: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.dropdown-toggle::after {
+  content: '▼';
+  font-size: 10px;
+  transition: transform 0.3s ease;
+}
+
+.dropdown:hover .dropdown-toggle::after {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  min-width: 150px;
+  z-index: 1000;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dropdown-menu li {
+  margin: 0;
+}
+
+.dropdown-menu a {
+  display: block;
+  padding: 10px 15px;
+  color: #333;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+.dropdown-menu a:hover {
+  background: #f8f9fa;
+}
+
 @media (max-width: 767px) {
   .header__left {
     order: 2;
@@ -205,6 +274,22 @@ export default {
   .desktop-login,
   .desktop-user {
     display: none;
+  }
+  
+  .dropdown-menu {
+    position: static;
+    box-shadow: none;
+    border: none;
+    background: rgba(0, 0, 0, 0.1);
+  }
+  
+  .dropdown-menu a {
+    color: white;
+    padding: 8px 20px;
+  }
+  
+  .dropdown-menu a:hover {
+    background: rgba(255, 255, 255, 0.1);
   }
 }
 </style>

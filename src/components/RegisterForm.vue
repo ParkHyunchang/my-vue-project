@@ -11,7 +11,15 @@
             type="text"
             required
             placeholder="ID를 입력하세요"
+            @blur="checkUsername"
+            :class="{ 'error': usernameError, 'success': usernameSuccess }"
           />
+          <div v-if="usernameError" class="error-message">
+            {{ usernameError }}
+          </div>
+          <div v-if="usernameSuccess" class="success-message">
+            {{ usernameSuccess }}
+          </div>
         </div>
         
         <div class="form-group">
@@ -22,7 +30,15 @@
             type="email"
             required
             placeholder="이메일을 입력하세요"
+            @blur="checkEmail"
+            :class="{ 'error': emailError, 'success': emailSuccess }"
           />
+          <div v-if="emailError" class="error-message">
+            {{ emailError }}
+          </div>
+          <div v-if="emailSuccess" class="success-message">
+            {{ emailSuccess }}
+          </div>
         </div>
         
         <div class="form-group">
@@ -55,11 +71,10 @@
           <select id="role" v-model="form.role" required>
             <option value="USER">일반 사용자</option>
             <option value="PREMIUM">프리미엄 사용자</option>
-            <option value="ADMIN">관리자</option>
           </select>
         </div>
         
-        <button type="submit" :disabled="loading || !isPasswordMatch" class="register-btn">
+        <button type="submit" :disabled="loading || !isFormValid" class="register-btn">
           {{ loading ? '회원가입 중...' : '회원가입' }}
         </button>
         
@@ -85,16 +100,94 @@ export default {
         confirmPassword: '',
         role: 'USER'
       },
-      loading: false
+      loading: false,
+      usernameError: '',
+      usernameSuccess: '',
+      emailError: '',
+      emailSuccess: '',
+      checkingUsername: false,
+      checkingEmail: false
     };
   },
   computed: {
     isPasswordMatch() {
       return this.form.password === this.form.confirmPassword;
+    },
+    isFormValid() {
+      return this.form.username.trim() && 
+             this.form.email.trim() && 
+             this.form.password.trim() && 
+             this.isPasswordMatch &&
+             !this.usernameError &&
+             !this.emailError;
     }
   },
   methods: {
     ...mapActions('auth', ['register']),
+    
+    async checkUsername() {
+      if (!this.form.username.trim()) {
+        this.usernameError = '';
+        this.usernameSuccess = '';
+        return;
+      }
+      
+      if (this.checkingUsername) return;
+      
+      try {
+        this.checkingUsername = true;
+        this.usernameError = '';
+        this.usernameSuccess = '';
+        
+        const axios = (await import('../axios')).default;
+        const response = await axios.get(`/api/auth/check-username/${encodeURIComponent(this.form.username)}`);
+        
+        if (response.data.available) {
+          this.usernameSuccess = response.data.message;
+          this.usernameError = '';
+        } else {
+          this.usernameError = response.data.message;
+          this.usernameSuccess = '';
+        }
+      } catch (error) {
+        this.usernameError = '아이디 확인 중 오류가 발생했습니다.';
+        this.usernameSuccess = '';
+      } finally {
+        this.checkingUsername = false;
+      }
+    },
+    
+    async checkEmail() {
+      if (!this.form.email.trim()) {
+        this.emailError = '';
+        this.emailSuccess = '';
+        return;
+      }
+      
+      if (this.checkingEmail) return;
+      
+      try {
+        this.checkingEmail = true;
+        this.emailError = '';
+        this.emailSuccess = '';
+        
+        const axios = (await import('../axios')).default;
+        const response = await axios.get(`/api/auth/check-email/${encodeURIComponent(this.form.email)}`);
+        
+        if (response.data.available) {
+          this.emailSuccess = response.data.message;
+          this.emailError = '';
+        } else {
+          this.emailError = response.data.message;
+          this.emailSuccess = '';
+        }
+      } catch (error) {
+        this.emailError = '이메일 확인 중 오류가 발생했습니다.';
+        this.emailSuccess = '';
+      } finally {
+        this.checkingEmail = false;
+      }
+    },
     
     async handleRegister() {
       // 비밀번호 확인 검증
@@ -109,7 +202,6 @@ export default {
       this.loading = true;
       
       try {
-        // confirmPassword 필드는 백엔드로 전송하지 않음
         const { confirmPassword, ...registerData } = this.form;
         const result = await this.register(registerData);
         
@@ -192,6 +284,28 @@ input, select {
 input:focus, select:focus {
   outline: none;
   border-color: #667eea;
+}
+
+input.error {
+  border-color: #dc3545;
+}
+
+input.success {
+  border-color: #28a745;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.success-message {
+  color: #28a745;
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 500;
 }
 
 .register-btn {

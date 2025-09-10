@@ -118,12 +118,24 @@ export default {
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
-    padding: 0;
+    padding: 0.25rem;
     color: #666;
+    min-width: 2rem;
+    min-height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s ease;
 }
 
 .close:hover {
     color: #333;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.close:active {
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 .modal-body {
@@ -170,9 +182,21 @@ export default {
     .modal-header {
         padding: 0.75rem;
         flex-shrink: 0;
+        position: relative;
     }
     .modal-title {
         font-size: 1.1rem;
+        padding-right: 3rem; /* X 버튼 공간 확보 */
+    }
+    .close {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.25rem;
+        padding: 0.5rem;
+        min-width: 2.5rem;
+        min-height: 2.5rem;
     }
     .modal-body {
         flex: 1 1 auto;
