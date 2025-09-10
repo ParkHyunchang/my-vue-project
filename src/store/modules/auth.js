@@ -1,7 +1,7 @@
 const state = {
     user: null,
     token: localStorage.getItem('token') || null,
-    isAuthenticated: false
+    isAuthenticated: !!localStorage.getItem('token')
 };
 
 const mutations = {

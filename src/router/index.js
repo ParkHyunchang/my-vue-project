@@ -96,9 +96,15 @@ router.beforeEach(async (to, from, next) => {
     const guestOnly = to.matched.some(record => record.meta.guestOnly);
     const requiredRoles = to.meta.roles;
     
+    // 토큰이 있지만 사용자 정보가 없는 경우 인증 확인
     if (store.getters['auth/token'] && !store.getters['auth/user']) {
         try {
-            await store.dispatch('auth/checkAuth');
+            const authResult = await store.dispatch('auth/checkAuth');
+            // 인증 실패 시 토큰이 제거되므로 다시 확인
+            if (!authResult && store.getters['auth/token']) {
+                // 토큰이 있지만 인증 실패한 경우 로그아웃 처리
+                store.dispatch('auth/logout');
+            }
         } catch (error) {
             // 네트워크 에러 등으로 인한 일시적 실패는 무시
         }

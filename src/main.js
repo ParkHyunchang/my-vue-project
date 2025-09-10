@@ -10,6 +10,18 @@ app.use(store);
 app.use(router);
 
 // 앱 시작 시 인증 상태 확인
-store.dispatch('auth/checkAuth').then(() => {
-  app.mount('#app');
-});
+async function initializeApp() {
+  try {
+    // 토큰이 있는 경우에만 인증 확인
+    if (store.getters['auth/token']) {
+      await store.dispatch('auth/checkAuth');
+    }
+  } catch (error) {
+    // 초기 인증 확인 실패는 무시
+  } finally {
+    // 인증 확인 완료 후 앱 마운트
+    app.mount('#app');
+  }
+}
+
+initializeApp();
