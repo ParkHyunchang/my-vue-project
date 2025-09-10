@@ -39,7 +39,13 @@
             <h3>{{ event.title }}</h3>
             <p>{{ event.description }}</p>
             <div v-if="event.image" class="timeline-image">
-              <img :src="getImageUrl(event.image)" :alt="event.title" />
+              <img 
+                :src="getImageUrl(event.image)" 
+                :alt="event.title" 
+                @error="handleImageError"
+                @load="handleImageLoad"
+                class="memory-image"
+              />
             </div>
             <div class="timeline-footer">
               <span class="location" v-if="event.location">
@@ -122,12 +128,50 @@
               />
             </div>
             <div class="form-group">
-              <label>Image URL</label>
-              <input
-                v-model="currentEvent.image"
-                type="url"
-                class="form-control"
-              />
+              <label>Images</label>
+              <div class="image-upload-container">
+                <input
+                  ref="fileInput"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  @change="handleFileUpload"
+                  style="display: none"
+                />
+                <div class="image-upload-area" @click="triggerFileInput">
+                  <div class="upload-placeholder">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>이미지를 업로드하세요</p>
+                    <small>클릭하여 파일 선택 (여러 개 선택 가능)</small>
+                  </div>
+                </div>
+                
+                <!-- 업로드된 이미지들 -->
+                <div v-if="currentEvent.images && currentEvent.images.length > 0" class="uploaded-images">
+                  <div 
+                    v-for="(image, index) in currentEvent.images" 
+                    :key="index" 
+                    class="image-preview-item"
+                  >
+                    <img :src="getImageUrl(image)" :alt="`Image ${index + 1}`" />
+                    <button 
+                      type="button" 
+                      class="remove-image" 
+                      @click.stop="confirmRemoveImage(index)"
+                      title="이미지 삭제"
+                    >
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </div>
+                
+                <div v-if="uploading" class="upload-progress">
+                  <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                  </div>
+                  <p>업로드 중...</p>
+                </div>
+              </div>
             </div>
           </form>
         </template>
@@ -170,6 +214,17 @@
         @delete="deleteEvent"
       />
     </teleport>
+
+    <!-- 이미지 삭제 확인 모달 -->
+    <teleport to="#modal">
+      <DeleteModal
+        v-if="showImageDeleteModal"
+        :title="'이미지 삭제'"
+        :message="'이 이미지를 정말 삭제하시겠습니까?'"
+        @close="closeImageDeleteModal"
+        @delete="removeImage"
+      />
+    </teleport>
   </div>
 </template>
 
@@ -193,6 +248,10 @@ export default {
     const selectedCategory = ref("all");
     const showDeleteModal = ref(false);
     const eventToDelete = ref(null);
+    const uploading = ref(false);
+    const fileInput = ref(null);
+    const showImageDeleteModal = ref(false);
+    const imageToDelete = ref(null);
 
     const currentEvent = ref({
       title: "",
@@ -201,6 +260,7 @@ export default {
       description: "",
       location: "",
       image: "",
+      images: [], // 다중 이미지 지원
     });
 
     const categories = [
@@ -225,7 +285,28 @@ export default {
     const fetchEvents = async () => {
       try {
         const response = await axios.get("/histories");
-        events.value = response.data;
+        // 백엔드에서 받은 데이터를 프론트엔드 형식으로 변환
+        events.value = response.data.map(event => {
+          let imagesArray = [];
+          
+          if (event.images && typeof event.images === 'string') {
+            try {
+              imagesArray = JSON.parse(event.images);
+            } catch (e) {
+              imagesArray = event.image ? [event.image] : [];
+            }
+          } else if (Array.isArray(event.images)) {
+            imagesArray = event.images;
+          } else if (event.image) {
+            imagesArray = [event.image];
+          }
+          
+          return {
+            ...event,
+            images: imagesArray
+          };
+        });
+        
       } catch (error) {
         showToast("Failed to load events", "danger");
       }
@@ -240,13 +321,35 @@ export default {
         description: "",
         location: "",
         image: "",
+        images: [],
       };
       showEventModal.value = true;
     };
 
     const openEventDetail = (event) => {
       isEditing.value = true;
-      currentEvent.value = { ...event };
+      
+      // images 필드 처리 (JSON 문자열을 배열로 변환)
+      let imagesArray = [];
+      if (event.images && typeof event.images === 'string') {
+        try {
+          imagesArray = JSON.parse(event.images);
+        } catch (e) {
+          imagesArray = [];
+        }
+      } else if (Array.isArray(event.images)) {
+        imagesArray = event.images;
+      } else if (event.image) {
+        // 기존 단일 이미지가 있다면 배열로 변환
+        imagesArray = [event.image];
+      }
+      
+      currentEvent.value = { 
+        ...event,
+        images: imagesArray
+      };
+      
+      
       showEventModal.value = true;
     };
 
@@ -259,6 +362,7 @@ export default {
         description: "",
         location: "",
         image: "",
+        images: [],
       };
     };
 
@@ -311,14 +415,26 @@ export default {
       }
 
       try {
+        // 백엔드로 전송할 데이터 준비
+        const eventData = {
+          ...currentEvent.value,
+          // 이미지 배열을 JSON 문자열로 변환
+          images: currentEvent.value.images ? JSON.stringify(currentEvent.value.images) : null,
+          // 기존 단일 이미지 필드도 유지 (호환성)
+          image: currentEvent.value.images && currentEvent.value.images.length > 0 
+            ? currentEvent.value.images[0] 
+            : null
+        };
+
+
         if (isEditing.value) {
           await axios.put(
             `/histories/${currentEvent.value.id}`,
-            currentEvent.value
+            eventData
           );
           showToast("이벤트가 수정되었습니다.");
         } else {
-          await axios.post("/histories", currentEvent.value);
+          await axios.post("/histories", eventData);
           showToast("이벤트가 생성되었습니다.");
         }
         await fetchEvents();
@@ -382,6 +498,115 @@ export default {
       return `${baseURL}${imagePath}`;
     };
 
+    const handleImageError = (event) => {
+      // 이미지 로드 실패 시 숨기기
+      event.target.style.display = 'none';
+    };
+
+    const handleImageLoad = (event) => {
+      // 이미지 로드 성공 시 표시
+      event.target.style.display = 'block';
+    };
+
+    // 파일 업로드 관련 함수들
+    const triggerFileInput = () => {
+      fileInput.value?.click();
+    };
+
+    const handleFileUpload = async (event) => {
+      const files = Array.from(event.target.files);
+      if (!files.length) return;
+
+      // 파일 개수 제한 (최대 10개)
+      if (files.length > 10) {
+        showToast("최대 10개의 이미지만 업로드할 수 있습니다.", "danger");
+        return;
+      }
+
+      // 기존 이미지와 합쳐서 총 개수 확인
+      const totalImages = (currentEvent.value.images?.length || 0) + files.length;
+      if (totalImages > 10) {
+        showToast("총 이미지 개수는 10개를 초과할 수 없습니다.", "danger");
+        return;
+      }
+
+      uploading.value = true;
+      
+      try {
+        const uploadPromises = files.map(async (file) => {
+          // 파일 크기 확인 (20MB 제한)
+          if (file.size > 20 * 1024 * 1024) {
+            throw new Error(`${file.name}: 파일 크기는 20MB 이하여야 합니다.`);
+          }
+
+          // 이미지 파일 확인
+          if (!file.type.startsWith('image/')) {
+            throw new Error(`${file.name}: 이미지 파일만 업로드 가능합니다.`);
+          }
+
+          const formData = new FormData();
+          formData.append('file', file);
+
+          const response = await axios.post('/histories/upload', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+
+          return response.data;
+        });
+
+        const uploadedImages = await Promise.all(uploadPromises);
+        
+        // 기존 이미지 배열에 새 이미지들 추가
+        if (!currentEvent.value.images) {
+          currentEvent.value.images = [];
+        }
+        currentEvent.value.images.push(...uploadedImages);
+        
+        showToast(`${uploadedImages.length}개의 이미지가 업로드되었습니다.`);
+      } catch (error) {
+        showToast(`이미지 업로드에 실패했습니다: ${error.message}`, "danger");
+      } finally {
+        uploading.value = false;
+        // 파일 입력 초기화
+        if (fileInput.value) {
+          fileInput.value.value = '';
+        }
+      }
+    };
+
+    const confirmRemoveImage = (index) => {
+      imageToDelete.value = index;
+      showImageDeleteModal.value = true;
+    };
+
+    const closeImageDeleteModal = () => {
+      showImageDeleteModal.value = false;
+      imageToDelete.value = null;
+    };
+
+    const removeImage = async () => {
+      if (imageToDelete.value !== null && currentEvent.value.images) {
+        const imageToRemove = currentEvent.value.images[imageToDelete.value];
+        
+        try {
+          // 서버에서 이미지 파일 삭제
+          await axios.delete('/histories/image', {
+            params: { imagePath: imageToRemove }
+          });
+          
+          // 프론트엔드에서 이미지 배열에서 제거
+          currentEvent.value.images.splice(imageToDelete.value, 1);
+          showToast("이미지가 삭제되었습니다.");
+        } catch (error) {
+          console.error('이미지 삭제 실패:', error);
+          showToast("이미지 삭제에 실패했습니다.", "danger");
+        }
+      }
+      closeImageDeleteModal();
+    };
+
     // 초기 데이터 로드
     fetchEvents();
 
@@ -408,6 +633,18 @@ export default {
       maxDate,
       validateDate,
       getImageUrl,
+      handleImageError,
+      handleImageLoad,
+      // 파일 업로드 관련
+      uploading,
+      fileInput,
+      triggerFileInput,
+      handleFileUpload,
+      confirmRemoveImage,
+      removeImage,
+      // 이미지 삭제 모달 관련
+      showImageDeleteModal,
+      closeImageDeleteModal,
     };
   },
 };
@@ -549,6 +786,13 @@ export default {
   border-radius: 8px;
 }
 
+.memory-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
 .timeline-footer {
   margin-top: 20px;
   display: flex;
@@ -643,5 +887,140 @@ export default {
 .modal-footer-buttons > div:last-child {
   display: flex;
   gap: 8px;
+}
+
+/* 이미지 업로드 스타일 */
+.image-upload-container {
+  margin-top: 10px;
+}
+
+.image-upload-area {
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #fafafa;
+}
+
+.image-upload-area:hover {
+  border-color: #007bff;
+  background: #f0f8ff;
+}
+
+.upload-placeholder {
+  color: #666;
+}
+
+.upload-placeholder i {
+  font-size: 2rem;
+  color: #007bff;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.upload-placeholder p {
+  margin: 10px 0 5px 0;
+  font-weight: 500;
+}
+
+.upload-placeholder small {
+  color: #999;
+}
+
+.upload-progress {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background: #e0e0e0;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #007bff;
+  border-radius: 2px;
+  animation: progress 2s ease-in-out infinite;
+}
+
+@keyframes progress {
+  0% { width: 0%; }
+  50% { width: 70%; }
+  100% { width: 100%; }
+}
+
+.upload-progress p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* 다중 이미지 업로드 스타일 */
+.uploaded-images {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.image-preview-item {
+  position: relative;
+  display: inline-block;
+}
+
+.image-preview-item img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.image-preview-item img:hover {
+  transform: scale(1.05);
+}
+
+.image-preview-item .remove-image {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.image-preview-item .remove-image:hover {
+  background: #cc0000;
+  transform: scale(1.1);
+}
+
+/* 모바일에서 이미지 업로드 조정 */
+@media (max-width: 768px) {
+  .uploaded-images {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+  }
+  
+  .image-preview-item img {
+    height: 100px;
+  }
 }
 </style>

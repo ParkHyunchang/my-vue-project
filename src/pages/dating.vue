@@ -317,7 +317,6 @@ export default {
             try {
               imagesArray = JSON.parse(memory.images);
             } catch (e) {
-              console.error('이미지 데이터 파싱 실패:', e);
               imagesArray = memory.image ? [memory.image] : [];
             }
           } else if (Array.isArray(memory.images)) {
@@ -332,7 +331,6 @@ export default {
           };
         });
         
-        console.log('로드된 메모리 데이터:', memories.value);
       } catch (error) {
         showToast("Failed to load memories", "danger");
       }
@@ -361,7 +359,6 @@ export default {
         try {
           imagesArray = JSON.parse(memory.images);
         } catch (e) {
-          console.error('이미지 데이터 파싱 실패:', e);
           imagesArray = [];
         }
       } else if (Array.isArray(memory.images)) {
@@ -376,8 +373,6 @@ export default {
         images: imagesArray
       };
       
-      console.log('수정 모달에서 로드된 데이터:', currentMemory.value);
-      console.log('이미지 배열:', imagesArray);
       
       showMemoryModal.value = true;
     };
@@ -455,10 +450,6 @@ export default {
             : null
         };
 
-        // 디버깅을 위한 로그
-        console.log('전송할 데이터:', memoryData);
-        console.log('이미지 배열:', currentMemory.value.images);
-        console.log('JSON 문자열:', memoryData.images);
 
         if (isEditing.value) {
           await axios.put(
