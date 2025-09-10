@@ -4,9 +4,9 @@ import store from './store';
 // api 엔드포인트 백엔드 서버 연동설정
 const api = axios.create({
   // 배포 서버 사용
-  //baseURL: "http://125.141.20.218:3200/my-vue-project"
+  baseURL: "http://125.141.20.218:3200/my-vue-project"
   // 로컬 실행시 사용
-  baseURL: 'http://localhost:3200/my-vue-project'
+  //baseURL: 'http://localhost:3200/my-vue-project'
 });
 
 // 요청 인터셉터 - JWT 토큰 자동 추가
