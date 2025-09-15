@@ -36,8 +36,10 @@
             <thead>
               <tr>
                 <th>ID</th>
-                <th>사용자명</th>
+                <th>사용자ID</th>
+                <th>이름</th>
                 <th>이메일</th>
+                <th>전화번호</th>
                 <th>권한</th>
                 <th>가입일</th>
                 <th>수정일</th>
@@ -47,8 +49,10 @@
             <tbody>
               <tr v-for="user in users" :key="user.id" class="user-row">
                 <td>{{ user.id }}</td>
-                <td>{{ user?.username || '-' }}</td>
+                <td>{{ user?.userId || '-' }}</td>
+                <td>{{ user?.name || '-' }}</td>
                 <td>{{ user?.email || '-' }}</td>
+                <td>{{ user?.phone || '-' }}</td>
                 <td>
                   <span :class="['role-badge', user?.role?.toLowerCase()]">
                     {{ getRoleDisplayName(user?.role) }}
@@ -60,16 +64,16 @@
                   <button 
                     @click="openEditModal(user)" 
                     class="btn btn-edit"
-                    :disabled="user?.username === currentUser?.username || user?.role === 'ADMIN'"
-                    :title="user?.username === currentUser?.username ? '본인 계정은 수정할 수 없습니다' : user?.role === 'ADMIN' ? '관리자 계정은 수정할 수 없습니다' : ''"
+                    :disabled="user?.userId === currentUser?.username || user?.role === 'ADMIN'"
+                    :title="user?.userId === currentUser?.username ? '본인 계정은 수정할 수 없습니다' : user?.role === 'ADMIN' ? '관리자 계정은 수정할 수 없습니다' : ''"
                   >
                     권한 수정
                   </button>
                   <button 
                     @click="confirmDelete(user)" 
                     class="btn btn-delete"
-                    :disabled="user?.username === currentUser?.username || user?.role === 'ADMIN'"
-                    :title="user?.username === currentUser?.username ? '본인 계정은 삭제할 수 없습니다' : user?.role === 'ADMIN' ? '관리자 계정은 삭제할 수 없습니다' : ''"
+                    :disabled="user?.userId === currentUser?.username || user?.role === 'ADMIN'"
+                    :title="user?.userId === currentUser?.username ? '본인 계정은 삭제할 수 없습니다' : user?.role === 'ADMIN' ? '관리자 계정은 삭제할 수 없습니다' : ''"
                   >
                     삭제
                   </button>
@@ -89,12 +93,20 @@
       <template #body>
         <div class="edit-form">
           <div class="form-group">
-            <label>사용자명:</label>
-            <input type="text" :value="editingUser?.username" readonly class="form-control" />
+            <label>사용자ID:</label>
+            <input type="text" :value="editingUser?.userId" readonly class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>이름:</label>
+            <input type="text" :value="editingUser?.name" readonly class="form-control" />
           </div>
           <div class="form-group">
             <label>이메일:</label>
             <input type="text" :value="editingUser?.email" readonly class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>전화번호:</label>
+            <input type="text" :value="editingUser?.phone || '-'" readonly class="form-control" />
           </div>
           <div class="form-group">
             <label>권한:</label>
@@ -102,13 +114,13 @@
               <option value="USER">일반 사용자</option>
               <option value="PREMIUM">프리미엄 사용자</option>
               <option 
-                v-if="isAllowedAdmin(editingUser?.username)" 
+                v-if="isAllowedAdmin(editingUser?.userId)" 
                 value="ADMIN"
               >
                 관리자
               </option>
             </select>
-            <div v-if="newRole === 'ADMIN' && !isAllowedAdmin(editingUser?.username)" class="error-message">
+            <div v-if="newRole === 'ADMIN' && !isAllowedAdmin(editingUser?.userId)" class="error-message">
               관리자 권한은 허용된 사용자만 설정할 수 있습니다.
             </div>
           </div>
@@ -130,12 +142,20 @@
       <template #body>
         <div class="create-form">
           <div class="form-group">
-            <label>사용자명:</label>
-            <input v-model="newUser.username" type="text" class="form-control" placeholder="사용자명을 입력하세요" />
+            <label>사용자ID:</label>
+            <input v-model="newUser.userId" type="text" class="form-control" placeholder="사용자ID를 입력하세요" />
+          </div>
+          <div class="form-group">
+            <label>이름:</label>
+            <input v-model="newUser.name" type="text" class="form-control" placeholder="이름을 입력하세요" />
           </div>
           <div class="form-group">
             <label>이메일:</label>
             <input v-model="newUser.email" type="email" class="form-control" placeholder="이메일을 입력하세요" />
+          </div>
+          <div class="form-group">
+            <label>전화번호:</label>
+            <input v-model="newUser.phone" type="tel" class="form-control" placeholder="전화번호를 입력하세요 (선택사항)" />
           </div>
           <div class="form-group">
             <label>비밀번호:</label>
@@ -157,13 +177,13 @@
               <option value="USER">일반 사용자</option>
               <option value="PREMIUM">프리미엄 사용자</option>
               <option 
-                v-if="isAllowedAdmin(newUser.username)" 
+                v-if="isAllowedAdmin(newUser.userId)" 
                 value="ADMIN"
               >
                 관리자
               </option>
             </select>
-            <div v-if="newUser.role === 'ADMIN' && !isAllowedAdmin(newUser.username)" class="error-message">
+            <div v-if="newUser.role === 'ADMIN' && !isAllowedAdmin(newUser.userId)" class="error-message">
               관리자 권한은 허용된 사용자만 설정할 수 있습니다.
             </div>
           </div>
@@ -187,7 +207,7 @@
           <div class="warning-icon">⚠️</div>
           <div class="warning-content">
             <h4>정말로 삭제하시겠습니까?</h4>
-            <p><strong>{{ deletingUser?.username }}</strong> ({{ deletingUser?.email }}) 사용자를 삭제하려고 합니다.</p>
+            <p><strong>{{ deletingUser?.name }}</strong> ({{ deletingUser?.email }}) 사용자를 삭제하려고 합니다.</p>
             <div class="warning-details">
               <p class="warning-text">⚠️ 이 작업은 되돌릴 수 없습니다!</p>
               <p class="warning-text">⚠️ 사용자의 모든 데이터가 영구적으로 삭제됩니다!</p>
@@ -244,8 +264,10 @@ export default {
     const newRole = ref('');
     const deleteConfirmation = ref('');
     const newUser = ref({
-      username: '',
+      userId: '',
+      name: '',
       email: '',
+      phone: '',
       password: '',
       confirmPassword: '',
       role: 'USER'
@@ -258,14 +280,15 @@ export default {
     const userCount = computed(() => users.value.filter(u => u.role === 'USER').length);
     
     const isCreateFormValid = computed(() => {
-      return newUser.value.username.trim() && 
+      return newUser.value.userId.trim() && 
+             newUser.value.name.trim() &&
              newUser.value.email.trim() && 
              newUser.value.password.trim() && 
              newUser.value.password.length >= 6 &&
              newUser.value.confirmPassword.trim() &&
              newUser.value.password === newUser.value.confirmPassword &&
              newUser.value.role &&
-             !(newUser.value.role === 'ADMIN' && !isAllowedAdmin(newUser.value.username));
+             !(newUser.value.role === 'ADMIN' && !isAllowedAdmin(newUser.value.userId));
     });
 
     const fetchUsers = async () => {
@@ -302,8 +325,10 @@ export default {
 
     const openCreateModal = () => {
       newUser.value = {
-        username: '',
+        userId: '',
+        name: '',
         email: '',
+        phone: '',
         password: '',
         confirmPassword: '',
         role: 'USER'
@@ -314,8 +339,10 @@ export default {
     const closeCreateModal = () => {
       showCreateModal.value = false;
       newUser.value = {
-        username: '',
+        userId: '',
+        name: '',
         email: '',
+        phone: '',
         password: '',
         confirmPassword: '',
         role: 'USER'
@@ -327,8 +354,10 @@ export default {
         loading.value = true;
         
         const userData = {
-          username: newUser.value.username,
+          userId: newUser.value.userId,
+          name: newUser.value.name,
           email: newUser.value.email,
+          phone: newUser.value.phone,
           password: newUser.value.password,
           role: newUser.value.role
         };
@@ -338,7 +367,7 @@ export default {
         await fetchUsers();
         
         store.dispatch('toast/showToast', {
-          message: `${newUser.value.username} 사용자가 성공적으로 생성되었습니다.`,
+          message: `${newUser.value.name} 사용자가 성공적으로 생성되었습니다.`,
           type: 'success'
         });
 
@@ -367,7 +396,7 @@ export default {
         }
 
         store.dispatch('toast/showToast', {
-          message: `${editingUser.value.username}의 권한이 ${getRoleDisplayName(newRole.value)}로 변경되었습니다.`,
+          message: `${editingUser.value.name}의 권한이 ${getRoleDisplayName(newRole.value)}로 변경되었습니다.`,
           type: 'success'
         });
 
@@ -408,7 +437,7 @@ export default {
         users.value = users.value.filter(u => u.id !== deletingUser.value.id);
 
         store.dispatch('toast/showToast', {
-          message: `${deletingUser.value.username} 사용자가 성공적으로 삭제되었습니다.`,
+          message: `${deletingUser.value.name} 사용자가 성공적으로 삭제되었습니다.`,
           type: 'success'
         });
 

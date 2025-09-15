@@ -4,22 +4,33 @@
       <h2>회원가입</h2>
       <form @submit.prevent="handleRegister">
         <div class="form-group">
-          <label for="username">ID</label>
+          <label for="userId">ID</label>
           <input
-            id="username"
-            v-model="form.username"
+            id="userId"
+            v-model="form.userId"
             type="text"
             required
             placeholder="ID를 입력하세요"
-            @blur="checkUsername"
-            :class="{ 'error': usernameError, 'success': usernameSuccess }"
+            @blur="checkUserId"
+            :class="{ 'error': userIdError, 'success': userIdSuccess }"
           />
-          <div v-if="usernameError" class="error-message">
-            {{ usernameError }}
+          <div v-if="userIdError" class="error-message">
+            {{ userIdError }}
           </div>
-          <div v-if="usernameSuccess" class="success-message">
-            {{ usernameSuccess }}
+          <div v-if="userIdSuccess" class="success-message">
+            {{ userIdSuccess }}
           </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="name">이름</label>
+          <input
+            id="name"
+            v-model="form.name"
+            type="text"
+            required
+            placeholder="이름을 입력하세요"
+          />
         </div>
         
         <div class="form-group">
@@ -67,11 +78,13 @@
         </div>
         
         <div class="form-group">
-          <label for="role">권한</label>
-          <select id="role" v-model="form.role" required>
-            <option value="USER">일반 사용자</option>
-            <option value="PREMIUM">프리미엄 사용자</option>
-          </select>
+          <label for="phone">전화번호</label>
+          <input
+            id="phone"
+            v-model="form.phone"
+            type="tel"
+            placeholder="전화번호를 입력하세요 (선택사항)"
+          />
         </div>
         
         <button type="submit" :disabled="loading || !isFormValid" class="register-btn">
@@ -94,18 +107,20 @@ export default {
   data() {
     return {
       form: {
-        username: '',
+        userId: '',
+        name: '',
         email: '',
+        phone: '',
         password: '',
         confirmPassword: '',
         role: 'USER'
       },
       loading: false,
-      usernameError: '',
-      usernameSuccess: '',
+      userIdError: '',
+      userIdSuccess: '',
       emailError: '',
       emailSuccess: '',
-      checkingUsername: false,
+      checkingUserId: false,
       checkingEmail: false
     };
   },
@@ -114,46 +129,47 @@ export default {
       return this.form.password === this.form.confirmPassword;
     },
     isFormValid() {
-      return this.form.username.trim() && 
+      return this.form.userId.trim() && 
+             this.form.name.trim() &&
              this.form.email.trim() && 
              this.form.password.trim() && 
              this.isPasswordMatch &&
-             !this.usernameError &&
+             !this.userIdError &&
              !this.emailError;
     }
   },
   methods: {
     ...mapActions('auth', ['register']),
     
-    async checkUsername() {
-      if (!this.form.username.trim()) {
-        this.usernameError = '';
-        this.usernameSuccess = '';
+    async checkUserId() {
+      if (!this.form.userId.trim()) {
+        this.userIdError = '';
+        this.userIdSuccess = '';
         return;
       }
       
-      if (this.checkingUsername) return;
+      if (this.checkingUserId) return;
       
       try {
-        this.checkingUsername = true;
-        this.usernameError = '';
-        this.usernameSuccess = '';
+        this.checkingUserId = true;
+        this.userIdError = '';
+        this.userIdSuccess = '';
         
         const axios = (await import('../axios')).default;
-        const response = await axios.get(`/api/auth/check-username/${encodeURIComponent(this.form.username)}`);
+        const response = await axios.get(`/api/auth/check-username/${encodeURIComponent(this.form.userId)}`);
         
         if (response.data.available) {
-          this.usernameSuccess = response.data.message;
-          this.usernameError = '';
+          this.userIdSuccess = response.data.message;
+          this.userIdError = '';
         } else {
-          this.usernameError = response.data.message;
-          this.usernameSuccess = '';
+          this.userIdError = response.data.message;
+          this.userIdSuccess = '';
         }
       } catch (error) {
-        this.usernameError = '아이디 확인 중 오류가 발생했습니다.';
-        this.usernameSuccess = '';
+        this.userIdError = '아이디 확인 중 오류가 발생했습니다.';
+        this.userIdSuccess = '';
       } finally {
-        this.checkingUsername = false;
+        this.checkingUserId = false;
       }
     },
     
