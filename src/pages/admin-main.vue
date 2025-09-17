@@ -14,6 +14,13 @@
           <router-link to="/admin/users" class="menu-link">관리하기</router-link>
         </div>
         
+        <div class="admin-menu-card">
+          <div class="menu-icon">🔐</div>
+          <h3>메뉴 권한 관리</h3>
+          <p>사용자 권한별 메뉴 접근 권한 설정</p>
+          <router-link to="/admin/menu-management" class="menu-link">관리하기</router-link>
+        </div>
+        
         <!-- 향후 추가될 관리 기능들을 위한 플레이스홀더 -->
         <div class="admin-menu-card coming-soon">
           <div class="menu-icon">⚙️</div>

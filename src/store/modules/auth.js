@@ -26,7 +26,7 @@ const mutations = {
 };
 
 const actions = {
-    async login({ commit }, credentials) {
+    async login({ commit, dispatch }, credentials) {
         try {
             const axios = (await import('../../axios')).default;
             const response = await axios.post('/api/auth/login', credentials);
@@ -35,6 +35,13 @@ const actions = {
             commit('SET_TOKEN', token);
             commit('SET_USER', { username, email, role });
             
+            // 메뉴 권한 로드
+            try {
+                await dispatch('menu/loadUserMenus', null, { root: true });
+            } catch (error) {
+                console.error('메뉴 권한 로드 실패:', error);
+            }
+            
             return { success: true, message };
         } catch (error) {
             const message = error.response?.data?.message || '로그인에 실패했습니다.';
@@ -42,7 +49,7 @@ const actions = {
         }
     },
     
-    async register({ commit }, userData) {
+    async register({ commit, dispatch }, userData) {
         try {
             const axios = (await import('../../axios')).default;
             const response = await axios.post('/api/auth/register', userData);
@@ -50,6 +57,13 @@ const actions = {
             
             commit('SET_TOKEN', token);
             commit('SET_USER', { username, email, role });
+            
+            // 메뉴 권한 로드
+            try {
+                await dispatch('menu/loadUserMenus', null, { root: true });
+            } catch (error) {
+                console.error('메뉴 권한 로드 실패:', error);
+            }
             
             return { success: true, message };
         } catch (error) {
@@ -62,7 +76,7 @@ const actions = {
         commit('LOGOUT');
     },
     
-    async checkAuth({ commit, state }) {
+    async checkAuth({ commit, dispatch, state }) {
         if (!state.token) {
             return false;
         }
@@ -77,6 +91,14 @@ const actions = {
             
             const { username, email, role } = response.data;
             commit('SET_USER', { username, email, role });
+            
+            // 메뉴 권한 로드
+            try {
+                await dispatch('menu/loadUserMenus', null, { root: true });
+            } catch (error) {
+                console.error('메뉴 권한 로드 실패:', error);
+            }
+            
             return true;
         } catch (error) {
             if (error.response?.status === 401 || error.response?.status === 403) {

@@ -86,6 +86,12 @@ const router = createRouter({
             name: 'AdminUsers',
             component: Admin,
             meta: { requiresAuth: true, roles: ['ADMIN'] }
+        },
+        {
+            path: '/admin/menu-management',
+            name: 'AdminMenuManagement',
+            component: () => import('../pages/admin-menu-management.vue'),
+            meta: { requiresAuth: true, roles: ['ADMIN'] }
         }
     ]
 });
@@ -110,6 +116,17 @@ router.beforeEach(async (to, from, next) => {
         }
     }
     
+    // 인증된 사용자의 메뉴 권한이 비어있으면 새로고침
+    if (store.getters['auth/isAuthenticated'] && 
+        store.getters['auth/user'] && 
+        (!store.getters['menu/accessibleMenus'] || store.getters['menu/accessibleMenus'].length === 0)) {
+        try {
+            await store.dispatch('menu/loadUserMenus');
+        } catch (error) {
+            console.error('메뉴 권한 로드 실패:', error);
+        }
+    }
+    
     const isAuthenticated = store.getters['auth/isAuthenticated'];
     
     if (requiresAuth && !isAuthenticated) {
@@ -129,6 +146,19 @@ router.beforeEach(async (to, from, next) => {
         if (!hasRequiredRole) {
             store.dispatch('toast/showToast', {
                 message: '접근 권한이 없습니다.',
+                type: 'error'
+            });
+            next('/');
+            return;
+        }
+    }
+    
+    // 메뉴 권한 확인 (기존 role 기반 권한과 별개로 메뉴 권한도 확인)
+    if (isAuthenticated) {
+        const canAccessMenu = store.getters['menu/canAccessMenu'](to.path);
+        if (!canAccessMenu) {
+            store.dispatch('toast/showToast', {
+                message: '해당 메뉴에 접근할 권한이 없습니다.',
                 type: 'error'
             });
             next('/');

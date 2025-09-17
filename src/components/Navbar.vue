@@ -16,27 +16,21 @@
           <span></span>
         </div>
       </div>
-      <nav :class="['header__nav', { show: isOpen }]" role="navigation" aria-label="메인 메뉴">
+      <nav 
+        :class="['header__nav', { show: isOpen }]" 
+        role="navigation" 
+        aria-label="메인 메뉴"
+      >
         <ul>
-          <li><router-link to="/" @click="closeMenu">HOME</router-link></li>
-          <!-- <li><router-link to="/portfolio" @click="closeMenu">PORTFOLIO</router-link></li> -->
-          <!-- <li><router-link to="/projects" @click="closeMenu">PROJECTS</router-link></li> -->
-          <li v-if="isAuthenticated && hasRole('PREMIUM')">
-            <router-link to="/history" @click="closeMenu">HISTORY</router-link>
+          <li v-for="menu in navigationMenus" :key="menu.path">
+            <router-link :to="menu.path" @click="closeMenu">{{ menu.navLabel }}</router-link>
           </li>
-          <li v-if="isAuthenticated && hasRole('PREMIUM')">
-            <router-link to="/dating" @click="closeMenu">DATING</router-link>
-          </li>
-          <li v-if="isAuthenticated">
-            <router-link to="/todos" @click="closeMenu">TODOS</router-link>
-          </li>
-          <li v-if="isAuthenticated && hasRole('ADMIN')">
-            <router-link to="/expense" @click="closeMenu">가계부</router-link>
-          </li>
-          <li v-if="isAuthenticated && hasRole('ADMIN')" class="dropdown">
+          <li v-if="hasAdminAccess" class="dropdown">
             <a href="#" @click.prevent="toggleAdminMenu" class="dropdown-toggle">관리자</a>
-            <ul v-if="showAdminMenu" class="dropdown-menu">
-              <li><router-link to="/admin/users" @click="closeMenu">사용자 관리</router-link></li>
+            <ul v-if="showAdminMenu" class="dropdown-menu" @click.stop>
+              <li v-for="adminMenu in adminSubMenus" :key="adminMenu.path">
+                <router-link :to="adminMenu.path" @click="closeMenu">{{ adminMenu.navLabel }}</router-link>
+              </li>
             </ul>
           </li>
         </ul>
@@ -53,7 +47,7 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 
@@ -65,6 +59,7 @@ export default {
     const isOpen = ref(false);
     const showAdminMenu = ref(false);
     
+    
     const toggleMenu = () => {
       isOpen.value = !isOpen.value;
     };
@@ -74,7 +69,8 @@ export default {
       showAdminMenu.value = false;
     };
     
-    const toggleAdminMenu = () => {
+    const toggleAdminMenu = (event) => {
+      event.stopPropagation(); // 이벤트 버블링 방지
       showAdminMenu.value = !showAdminMenu.value;
     };
     
@@ -90,10 +86,40 @@ export default {
     
     const isAuthenticated = computed(() => store.getters['auth/isAuthenticated']);
     const user = computed(() => store.getters['auth/user']);
+    const navigationMenus = computed(() => store.getters['menu/navigationMenus']);
+    const adminSubMenus = computed(() => store.getters['menu/adminSubMenus']);
+    const hasAdminAccess = computed(() => store.getters['menu/hasAdminAccess']);
     
     const hasRole = (role) => {
       return store.getters['auth/hasRole'](role);
     };
+    
+    
+    // 바깥 영역 클릭/터치 시 메뉴 닫기
+    const handleDocumentClick = (event) => {
+      // 드롭다운 메뉴나 토글 버튼이 아닌 곳을 클릭하면 드롭다운 닫기
+      const dropdownElement = event.target.closest('.dropdown');
+      if (!dropdownElement && showAdminMenu.value) {
+        showAdminMenu.value = false;
+      }
+      
+      // 모바일 메뉴나 햄버거 버튼이 아닌 곳을 클릭/터치하면 메뉴 닫기
+      const navElement = event.target.closest('.header__nav');
+      const mobileToggle = event.target.closest('.header__nav__mobile');
+      if (!navElement && !mobileToggle && isOpen.value) {
+        closeMenu();
+      }
+    };
+    
+    onMounted(() => {
+      document.addEventListener('click', handleDocumentClick);
+      document.addEventListener('touchstart', handleDocumentClick);
+    });
+    
+    onUnmounted(() => {
+      document.removeEventListener('click', handleDocumentClick);
+      document.removeEventListener('touchstart', handleDocumentClick);
+    });
     
     return { 
       isOpen, 
@@ -104,6 +130,9 @@ export default {
       handleLogout,
       isAuthenticated,
       user,
+      navigationMenus,
+      adminSubMenus,
+      hasAdminAccess,
       hasRole
     };
   }
@@ -111,6 +140,7 @@ export default {
 </script>
 
 <style scoped>
+
 .header__left {
   display: flex;
   align-items: center;
@@ -231,29 +261,41 @@ export default {
   left: 0;
   background: white;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  min-width: 150px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  min-width: 180px;
   z-index: 1000;
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 8px 0;
+  overflow: hidden;
 }
 
 .dropdown-menu li {
   margin: 0;
+  width: 100%;
 }
 
 .dropdown-menu a {
   display: block;
-  padding: 10px 15px;
+  padding: 12px 16px;
   color: #333;
   text-decoration: none;
-  transition: background 0.3s ease;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+  border-bottom: 1px solid #f0f0f0;
+  white-space: nowrap;
+}
+
+.dropdown-menu li:last-child a {
+  border-bottom: none;
 }
 
 .dropdown-menu a:hover {
   background: #f8f9fa;
+  color: #007bff;
+  padding-left: 20px;
 }
 
 @media (max-width: 767px) {
@@ -263,6 +305,8 @@ export default {
   
   .header__nav {
     order: 3;
+    position: relative;
+    z-index: 999; /* 오버레이보다 위에 표시 */
   }
   
   .user-section {
@@ -281,15 +325,25 @@ export default {
     box-shadow: none;
     border: none;
     background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    margin-top: 10px;
+    padding: 0;
   }
   
   .dropdown-menu a {
     color: white;
-    padding: 8px 20px;
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 14px;
+  }
+  
+  .dropdown-menu li:last-child a {
+    border-bottom: none;
   }
   
   .dropdown-menu a:hover {
     background: rgba(255, 255, 255, 0.1);
+    padding-left: 24px;
   }
 }
 </style>
