@@ -91,7 +91,7 @@ export default {
                     numberOfTodos.value = 0;
                 }
             } catch (err) {
-                console.log(err);
+                console.error('할 일 목록 로드 실패:', err);
                 error.value = 'Something went wrong.';
                 showToast('Something went wrong', 'danger')
             } finally {

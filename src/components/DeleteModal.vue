@@ -1,5 +1,5 @@
 <template>
-  <Modal>
+  <Modal @close="onClose">
     <template #header>
       <h3>{{ title || "삭제 확인" }}</h3>
     </template>

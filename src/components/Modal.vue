@@ -1,5 +1,5 @@
 <template>
-    <div class="modal-wrapper" @click.self="onClose">
+    <div class="modal-wrapper" @click.self="onClose" @wheel.stop>
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -49,6 +49,7 @@ export default {
             window.scrollTo(0, parseInt(scrollY || '0') * -1);
         }
 
+
         // ESC 키로 모달 닫기
         const handleKeydown = (event) => {
             if (event.key === 'Escape') {
@@ -59,6 +60,7 @@ export default {
         onMounted(() => {
             disableScroll();
             document.addEventListener('keydown', handleKeydown);
+            // document에 휠 이벤트 등록하지 않고, 모달 wrapper에만 등록
         });
 
         onUnmounted(() => {
@@ -142,7 +144,29 @@ export default {
     padding: 1rem;
     max-height: 70vh;
     overflow-y: auto;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch; /* iOS 스크롤 부드럽게 */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #ccc #f1f1f1; /* Firefox */
+}
+
+/* Webkit 브라우저용 스크롤바 스타일 */
+.modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: #999;
 }
 
 .modal-footer {

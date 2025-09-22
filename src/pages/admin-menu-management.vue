@@ -522,7 +522,7 @@ export default {
         }
         
       } catch (error) {
-        console.log('메뉴 권한 정보를 불러오는데 실패했습니다. 기본값을 사용합니다.');
+        console.error('메뉴 권한 정보를 불러오는데 실패했습니다. 기본값을 사용합니다.');
         
         // API 실패 시 기본 권한 설정 (이미 위에서 설정했지만 확실히 하기 위해)
         roles.forEach(role => {
@@ -569,7 +569,7 @@ export default {
         closeSaveModal();
         
       } catch (error) {
-        console.log(error);
+        console.error('메뉴 권한 설정 저장 실패:', error);
         store.dispatch('toast/showToast', {
           message: '메뉴 권한 설정 저장에 실패했습니다.',
           type: 'error'

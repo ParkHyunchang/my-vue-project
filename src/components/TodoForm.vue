@@ -89,7 +89,7 @@ export default {
                 loading.value = false;
             } catch (error) {
                 loading.value = false;
-                console.log(error);
+                console.error('할 일 저장 실패:', error);
                 showToast('Something went wrong', 'danger');
             }
         };
@@ -136,7 +136,7 @@ export default {
                     moveToTodoListPage();
                 }
             } catch (error) {
-                console.log(error);
+                console.error('할 일 저장 실패:', error);
                 showToast('Something went wrong', 'danger');
             }
         };

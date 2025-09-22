@@ -1,7 +1,8 @@
 const state = {
     user: null,
     token: localStorage.getItem('token') || null,
-    isAuthenticated: !!localStorage.getItem('token')
+    isAuthenticated: !!localStorage.getItem('token'),
+    crudPermissions: []
 };
 
 const mutations = {
@@ -21,7 +22,11 @@ const mutations = {
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
+        state.crudPermissions = [];
         localStorage.removeItem('token');
+    },
+    SET_CRUD_PERMISSIONS(state, permissions) {
+        state.crudPermissions = permissions;
     }
 };
 
@@ -40,6 +45,13 @@ const actions = {
                 await dispatch('menu/loadUserMenus', null, { root: true });
             } catch (error) {
                 console.error('메뉴 권한 로드 실패:', error);
+            }
+            
+            // CRUD 권한 로드
+            try {
+                await dispatch('loadCrudPermissions');
+            } catch (error) {
+                console.error('CRUD 권한 로드 실패:', error);
             }
             
             return { success: true, message };
@@ -63,6 +75,13 @@ const actions = {
                 await dispatch('menu/loadUserMenus', null, { root: true });
             } catch (error) {
                 console.error('메뉴 권한 로드 실패:', error);
+            }
+            
+            // CRUD 권한 로드
+            try {
+                await dispatch('loadCrudPermissions');
+            } catch (error) {
+                console.error('CRUD 권한 로드 실패:', error);
             }
             
             return { success: true, message };
@@ -99,12 +118,44 @@ const actions = {
                 console.error('메뉴 권한 로드 실패:', error);
             }
             
+            // CRUD 권한 로드
+            try {
+                await dispatch('loadCrudPermissions');
+            } catch (error) {
+                console.error('CRUD 권한 로드 실패:', error);
+            }
+            
             return true;
         } catch (error) {
             if (error.response?.status === 401 || error.response?.status === 403) {
                 commit('LOGOUT');
             }
             return false;
+        }
+    },
+    
+    async loadCrudPermissions({ commit, state }) {
+        if (!state.token || !state.user) {
+            return;
+        }
+        
+        try {
+            const axios = (await import('../../axios')).default;
+            const response = await axios.get('/api/admin/user-crud-permissions', {
+                headers: {
+                    Authorization: `Bearer ${state.token}`
+                }
+            });
+            
+            commit('SET_CRUD_PERMISSIONS', response.data);
+        } catch (error) {
+            // 403 에러는 권한이 없는 것이므로 조용히 처리
+            if (error.response?.status === 403) {
+                console.error('CRUD 권한 로드 권한 없음 - 기본 권한 사용');
+            } else {
+                console.error('CRUD 권한 로드 실패:', error);
+            }
+            commit('SET_CRUD_PERMISSIONS', []);
         }
     }
 };
@@ -120,6 +171,27 @@ const getters = {
         if (role === 'ADMIN') return state.user.role === 'ADMIN';
         if (role === 'PREMIUM') return state.user.role === 'PREMIUM' || state.user.role === 'ADMIN';
         return state.user.role === role;
+    },
+    crudPermissions: state => state.crudPermissions,
+    canCreate: (state) => (menuPath) => {
+        if (state.user?.role === 'ADMIN') return true;
+        const permission = state.crudPermissions.find(p => p.menuPath === menuPath);
+        return permission?.canCreate || false;
+    },
+    canRead: (state) => (menuPath) => {
+        if (state.user?.role === 'ADMIN') return true;
+        const permission = state.crudPermissions.find(p => p.menuPath === menuPath);
+        return permission?.canRead || false;
+    },
+    canUpdate: (state) => (menuPath) => {
+        if (state.user?.role === 'ADMIN') return true;
+        const permission = state.crudPermissions.find(p => p.menuPath === menuPath);
+        return permission?.canUpdate || false;
+    },
+    canDelete: (state) => (menuPath) => {
+        if (state.user?.role === 'ADMIN') return true;
+        const permission = state.crudPermissions.find(p => p.menuPath === menuPath);
+        return permission?.canDelete || false;
     }
 };
 

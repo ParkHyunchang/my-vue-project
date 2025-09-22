@@ -15,7 +15,7 @@ export function smooth() {
 
     requestAnimationFrame(raf);
 
-    lenis.on("scroll", (e) => {
-        // console.log(e);
+    lenis.on("scroll", () => {
+        // 스크롤 이벤트 처리
     });
 }

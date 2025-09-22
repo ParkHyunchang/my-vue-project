@@ -2,7 +2,11 @@
   <div class="dating-container">
     <div class="page-header">
       <h2>My Dating History</h2>
-      <button class="btn btn-primary" @click="openCreateModal">
+      <button 
+        v-if="canCreate" 
+        class="btn btn-primary" 
+        @click="openCreateModal"
+      >
         Add New Memory
       </button>
     </div>
@@ -66,6 +70,7 @@
                 </span>
               </div>
               <button
+                v-if="canDelete"
                 class="btn btn-sm btn-danger delete-btn"
                 @click.stop="openDeleteModal(memory)"
               >
@@ -160,7 +165,7 @@
                   @change="handleFileUpload"
                   style="display: none"
                 />
-                <div class="image-upload-area" @click="triggerFileInput">
+                <div v-if="canUpdate" class="image-upload-area" @click="triggerFileInput">
                   <div class="upload-placeholder">
                     <i class="fas fa-cloud-upload-alt"></i>
                     <p>이미지를 업로드하세요</p>
@@ -177,6 +182,7 @@
                   >
                     <img :src="getImageUrl(image)" :alt="`Image ${index + 1}`" />
                     <button 
+                      v-if="canDelete"
                       type="button" 
                       class="remove-image" 
                       @click.stop="confirmRemoveImage(index)"
@@ -201,10 +207,10 @@
           <div class="modal-footer-buttons">
             <div>
               <button
+                v-if="isEditing && canDelete"
                 type="button"
                 class="btn btn-danger"
                 @click="openDeleteModal(currentMemory)"
-                v-if="isEditing"
               >
                 삭제
               </button>
@@ -215,9 +221,14 @@
                 class="btn btn-secondary"
                 @click="closeMemoryModal"
               >
-                취소
+                닫기
               </button>
-              <button type="button" class="btn btn-primary" @click="saveMemory">
+              <button 
+                v-if="isEditing ? canUpdate : canCreate"
+                type="button" 
+                class="btn btn-primary" 
+                @click="saveMemory"
+              >
                 {{ isEditing ? "수정" : "저장" }}
               </button>
             </div>
@@ -252,6 +263,7 @@
 
 <script>
 import { ref, computed } from "vue";
+import { useStore } from "vuex";
 import Modal from "@/components/Modal.vue";
 import DeleteModal from "@/components/DeleteModal.vue";
 import { useToast } from "@/composables/toast";
@@ -264,6 +276,7 @@ export default {
   },
   setup() {
     const { showToast } = useToast();
+    const store = useStore();
     const memories = ref([]);
     const showMemoryModal = ref(false);
     const isEditing = ref(false);
@@ -298,6 +311,12 @@ export default {
 
     // 실제 카테고리만 포함하는 배열 (전체 제외)
     const categoryOptions = categories.filter((cat) => cat.id !== "all");
+    
+    // 권한 체크 computed 속성들
+    const canCreate = computed(() => store.getters['auth/canCreate']('/dating'));
+    const canRead = computed(() => store.getters['auth/canRead']('/dating'));
+    const canUpdate = computed(() => store.getters['auth/canUpdate']('/dating'));
+    const canDelete = computed(() => store.getters['auth/canDelete']('/dating'));
 
     const filteredMemories = computed(() => {
       if (selectedCategory.value === "all") return memories.value;
@@ -515,12 +534,24 @@ export default {
 
     // 파일 업로드 관련 함수들
     const triggerFileInput = () => {
+      // 수정 권한이 없는 경우 파일 선택을 막음
+      if (!canUpdate.value) {
+        showToast("이미지 업로드 권한이 없습니다.", "danger");
+        return;
+      }
+      
       fileInput.value?.click();
     };
 
     const handleFileUpload = async (event) => {
       const files = Array.from(event.target.files);
       if (!files.length) return;
+      
+      // 수정 권한이 없는 경우 업로드를 막음
+      if (!canUpdate.value) {
+        showToast("이미지 업로드 권한이 없습니다.", "danger");
+        return;
+      }
 
       // 파일 개수 제한 (최대 10개)
       if (files.length > 10) {
@@ -571,7 +602,12 @@ export default {
         
         showToast(`${uploadedImages.length}개의 이미지가 업로드되었습니다.`);
       } catch (error) {
-        showToast(`이미지 업로드에 실패했습니다: ${error.message}`, "danger");
+        // 권한 에러 처리
+        if (error.response?.status === 403) {
+          showToast("이미지 업로드 권한이 없습니다.", "danger");
+        } else {
+          showToast(`이미지 업로드에 실패했습니다: ${error.message}`, "danger");
+        }
       } finally {
         uploading.value = false;
         // 파일 입력 초기화
@@ -582,6 +618,12 @@ export default {
     };
 
     const confirmRemoveImage = (index) => {
+      // 삭제 권한이 없는 경우 모달을 표시하지 않음
+      if (!canDelete.value) {
+        showToast("이미지 삭제 권한이 없습니다.", "danger");
+        return;
+      }
+      
       imageToDelete.value = index;
       showImageDeleteModal.value = true;
     };
@@ -606,7 +648,13 @@ export default {
           showToast("이미지가 삭제되었습니다.");
         } catch (error) {
           console.error('이미지 삭제 실패:', error);
-          showToast("이미지 삭제에 실패했습니다.", "danger");
+          
+          // 권한 에러 처리
+          if (error.response?.status === 403) {
+            showToast("이미지 삭제 권한이 없습니다.", "danger");
+          } else {
+            showToast("이미지 삭제에 실패했습니다.", "danger");
+          }
         }
       }
       closeImageDeleteModal();
@@ -683,6 +731,11 @@ export default {
       // 이미지 삭제 모달 관련
       showImageDeleteModal,
       closeImageDeleteModal,
+      // 권한 체크
+      canCreate,
+      canRead,
+      canUpdate,
+      canDelete,
     };
   },
 };

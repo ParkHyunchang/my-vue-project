@@ -135,7 +135,7 @@ const actions = {
             const response = await axios.get('/api/auth/my-menu-permissions');
             commit('SET_USER_MENUS', response.data);
         } catch (error) {
-            console.log('사용자 메뉴 권한을 불러오는데 실패했습니다. 기본 권한을 사용합니다.');
+            console.error('사용자 메뉴 권한을 불러오는데 실패했습니다. 기본 권한을 사용합니다.');
             
             // 기본 권한 설정
             const user = rootGetters['auth/user'];
