@@ -318,12 +318,6 @@ export default {
     const canUpdate = computed(() => store.getters['auth/canUpdate']('/dating'));
     const canDelete = computed(() => store.getters['auth/canDelete']('/dating'));
 
-    const filteredMemories = computed(() => {
-      if (selectedCategory.value === "all") return memories.value;
-      return memories.value.filter(
-        (memory) => memory.category === selectedCategory.value
-      );
-    });
 
     const fetchMemories = async () => {
       try {
@@ -493,8 +487,7 @@ export default {
     };
 
     const filterByCategory = (categoryId) => {
-      selectedCategory.value =
-        selectedCategory.value === categoryId ? null : categoryId;
+      selectedCategory.value = categoryId;
     };
 
     const formatDate = (date) => {
@@ -669,10 +662,20 @@ export default {
       return `${baseURL}${imagePath}`;
     };
 
-    // 이미지 URL을 미리 계산하는 computed 함수
+    // 이미지 URL을 미리 계산하고 카테고리 필터링을 적용하는 computed 함수
     const processedMemories = computed(() => {
       const baseURL = axios.defaults.baseURL || 'http://125.141.20.218:3200';
-      return memories.value.map(memory => ({
+      
+      // 먼저 카테고리 필터링 적용
+      let filteredMemories = memories.value;
+      if (selectedCategory.value !== "all") {
+        filteredMemories = memories.value.filter(
+          (memory) => memory.category === selectedCategory.value
+        );
+      }
+      
+      // 그 다음 이미지 URL 처리
+      return filteredMemories.map(memory => ({
         ...memory,
         processedImages: memory.images ? memory.images.map(img => {
           if (!img || img.trim() === '') return '';
@@ -702,7 +705,6 @@ export default {
       categories,
       categoryOptions,
       selectedCategory,
-      filteredMemories,
       processedMemories,
       isEditing,
       openCreateModal,
