@@ -11,6 +11,36 @@
       </button>
     </div>
 
+    <!-- 디데이 표시 섹션 -->
+    <div class="dday-section" v-if="firstMeetDate || specialDate">
+      <div class="dday-container">
+        <div v-if="firstMeetDate" class="dday-item">
+          <div class="dday-label">
+            <i class="fas fa-heart"></i>
+            첫만남
+          </div>
+          <div class="dday-value">
+            D+{{ firstMeetDays }}
+          </div>
+          <div class="dday-date">
+            {{ formatDate(firstMeetDate) }}
+          </div>
+        </div>
+        <div v-if="specialDate" class="dday-item">
+          <div class="dday-label">
+            <i class="fas fa-star"></i>
+            사귄날
+          </div>
+          <div class="dday-value">
+            D+{{ specialDays }}
+          </div>
+          <div class="dday-date">
+            {{ formatDate(specialDate) }}
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 타임라인 필터 -->
     <div class="timeline-filter">
       <button
@@ -33,7 +63,7 @@
         @click="openMemoryDetail(memory)"
       >
         <div class="timeline-date">
-          {{ formatDate(memory.date) }}
+          {{ formatMemoryDate(memory) }}
         </div>
         <div class="timeline-content">
           <div class="timeline-icon">
@@ -100,15 +130,73 @@
               />
             </div>
             <div class="form-group">
-              <label>Date</label>
-              <input
-                v-model="currentMemory.date"
-                type="date"
-                class="form-control"
-                required
-                :max="maxDate"
-                @input="validateDate"
-              />
+              <label>날짜 선택</label>
+              <div class="date-type-selection">
+                <div class="date-type-options">
+                  <label class="radio-option">
+                    <input
+                      type="radio"
+                      v-model="currentMemory.dateType"
+                      value="single"
+                      @change="onDateTypeChange"
+                    />
+                    <span>하루</span>
+                  </label>
+                  <label class="radio-option">
+                    <input
+                      type="radio"
+                      v-model="currentMemory.dateType"
+                      value="range"
+                      @change="onDateTypeChange"
+                    />
+                    <span>기간</span>
+                  </label>
+                </div>
+                
+                <!-- 하루 선택 -->
+                <div v-if="currentMemory.dateType === 'single'" class="single-date-input">
+                  <input
+                    v-model="currentMemory.date"
+                    type="date"
+                    class="form-control"
+                    required
+                    :max="maxDate"
+                    @input="validateSingleDate"
+                    placeholder="날짜를 선택하세요"
+                  />
+                </div>
+                
+                <!-- 기간 선택 -->
+                <div v-if="currentMemory.dateType === 'range'" class="range-date-inputs">
+                  <div class="date-input-group">
+                    <label>시작일</label>
+                    <input
+                      v-model="currentMemory.startDate"
+                      type="date"
+                      class="form-control"
+                      required
+                      :max="maxDate"
+                      @input="validateRangeDate"
+                    />
+                  </div>
+                  <div class="date-input-group">
+                    <label>종료일</label>
+                    <input
+                      v-model="currentMemory.endDate"
+                      type="date"
+                      class="form-control"
+                      required
+                      :max="maxDate"
+                      :min="currentMemory.startDate"
+                      @input="validateRangeDate"
+                    />
+                  </div>
+                  <div v-if="dateRangeInfo" class="date-range-info">
+                    <span class="range-duration">{{ dateRangeInfo.duration }}일</span>
+                    <span class="range-period">{{ dateRangeInfo.period }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="form-group">
               <label>Category</label>
@@ -291,6 +379,9 @@ export default {
     const currentMemory = ref({
       title: "",
       date: "",
+      dateType: "single", // "single" 또는 "range"
+      startDate: "",
+      endDate: "",
       category: "",
       partner: "",
       description: "",
@@ -305,12 +396,20 @@ export default {
       { id: "travel", name: "여행", icon: "fas fa-plane" },
       { id: "anniversary", name: "기념일", icon: "fas fa-calendar-heart" },
       { id: "gift", name: "선물", icon: "fas fa-gift" },
-      { id: "special", name: "특별한날", icon: "fas fa-star" },
+      { id: "special", name: "사귀기로한날", icon: "fas fa-star" },
       { id: "memory", name: "추억", icon: "fas fa-camera" },
     ];
 
     // 실제 카테고리만 포함하는 배열 (전체 제외)
-    const categoryOptions = categories.filter((cat) => cat.id !== "all");
+    // 첫만남이 이미 있으면 첫만남 카테고리 제외
+    const categoryOptions = computed(() => {
+      const hasFirstMeet = memories.value.some(memory => memory.category === 'first_meet');
+      return categories.filter((cat) => {
+        if (cat.id === "all") return false;
+        if (cat.id === "first_meet" && hasFirstMeet) return false;
+        return true;
+      });
+    });
     
     // 권한 체크 computed 속성들
     const canCreate = computed(() => store.getters['auth/canCreate']('/dating'));
@@ -354,6 +453,9 @@ export default {
       currentMemory.value = {
         title: "",
         date: "",
+        dateType: "single",
+        startDate: "",
+        endDate: "",
         category: "",
         partner: "",
         description: "",
@@ -383,6 +485,9 @@ export default {
       
       currentMemory.value = { 
         ...memory,
+        dateType: memory.dateType || "single", // 기존 데이터 호환성
+        startDate: memory.startDate || "",
+        endDate: memory.endDate || "",
         images: imagesArray
       };
       
@@ -395,6 +500,9 @@ export default {
       currentMemory.value = {
         title: "",
         date: "",
+        dateType: "single",
+        startDate: "",
+        endDate: "",
         category: "",
         partner: "",
         description: "",
@@ -406,7 +514,19 @@ export default {
     // 최대 날짜를 현재 날짜로 설정
     const maxDate = new Date().toISOString().split("T")[0];
 
-    const validateDate = (event) => {
+    // 날짜 타입 변경 핸들러
+    const onDateTypeChange = () => {
+      // 날짜 타입이 변경되면 기존 날짜 값들 초기화
+      if (currentMemory.value.dateType === "single") {
+        currentMemory.value.startDate = "";
+        currentMemory.value.endDate = "";
+      } else {
+        currentMemory.value.date = "";
+      }
+    };
+
+    // 단일 날짜 검증
+    const validateSingleDate = (event) => {
       const dateValue = event.target.value;
       if (!dateValue) {
         showToast("날짜를 입력해주세요.", "danger");
@@ -431,15 +551,89 @@ export default {
       return true;
     };
 
+    // 기간 날짜 검증
+    const validateRangeDate = () => {
+      const startDate = currentMemory.value.startDate;
+      const endDate = currentMemory.value.endDate;
+
+      if (!startDate || !endDate) {
+        return true; // 아직 입력이 완료되지 않았으면 검증하지 않음
+      }
+
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const today = new Date();
+
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        showToast("올바른 날짜를 입력해주세요.", "danger");
+        return false;
+      }
+
+      if (start > today || end > today) {
+        showToast("미래의 날짜는 입력할 수 없습니다.", "danger");
+        return false;
+      }
+
+      if (start > end) {
+        showToast("시작일은 종료일보다 이전이어야 합니다.", "danger");
+        currentMemory.value.endDate = "";
+        return false;
+      }
+
+      return true;
+    };
+
+    // 기간 정보 계산 (computed)
+    const dateRangeInfo = computed(() => {
+      if (currentMemory.value.dateType !== "range" || 
+          !currentMemory.value.startDate || 
+          !currentMemory.value.endDate) {
+        return null;
+      }
+
+      const start = new Date(currentMemory.value.startDate);
+      const end = new Date(currentMemory.value.endDate);
+      
+      if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
+        return null;
+      }
+
+      const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+      const startFormatted = start.toLocaleDateString("ko-KR");
+      const endFormatted = end.toLocaleDateString("ko-KR");
+      
+      return {
+        duration,
+        period: `${startFormatted} ~ ${endFormatted}`
+      };
+    });
+
+    // 기존 validateDate 함수 (호환성 유지)
+    const validateDate = (event) => {
+      if (currentMemory.value.dateType === "single") {
+        return validateSingleDate(event);
+      } else {
+        return validateRangeDate();
+      }
+    };
+
     const saveMemory = async () => {
       // 필수 입력값 검사
       if (!currentMemory.value.title?.trim()) {
         showToast("제목을 입력해주세요.", "danger");
         return;
       }
-      if (!currentMemory.value.date?.trim()) {
-        showToast("날짜를 입력해주세요.", "danger");
-        return;
+      // 날짜 검증 (타입에 따라)
+      if (currentMemory.value.dateType === "single") {
+        if (!currentMemory.value.date?.trim()) {
+          showToast("날짜를 입력해주세요.", "danger");
+          return;
+        }
+      } else {
+        if (!currentMemory.value.startDate?.trim() || !currentMemory.value.endDate?.trim()) {
+          showToast("시작일과 종료일을 모두 입력해주세요.", "danger");
+          return;
+        }
       }
       if (!currentMemory.value.category?.trim()) {
         showToast("카테고리를 선택해주세요.", "danger");
@@ -447,8 +641,14 @@ export default {
       }
 
       // 날짜 유효성 검사
-      if (!validateDate({ target: { value: currentMemory.value.date } })) {
-        return;
+      if (currentMemory.value.dateType === "single") {
+        if (!validateSingleDate({ target: { value: currentMemory.value.date } })) {
+          return;
+        }
+      } else {
+        if (!validateRangeDate()) {
+          return;
+        }
       }
 
       try {
@@ -496,6 +696,17 @@ export default {
         month: "long",
         day: "numeric",
       });
+    };
+
+    // 메모리 날짜 포맷팅 (단일/기간 구분)
+    const formatMemoryDate = (memory) => {
+      if (memory.dateType === "range" && memory.startDate && memory.endDate) {
+        const startFormatted = formatDate(memory.startDate);
+        const endFormatted = formatDate(memory.endDate);
+        return `${startFormatted} ~ ${endFormatted}`;
+      } else {
+        return formatDate(memory.date);
+      }
     };
 
     const getCategoryIcon = (categoryId) => {
@@ -640,6 +851,7 @@ export default {
           currentMemory.value.images.splice(imageToDelete.value, 1);
           showToast("이미지가 삭제되었습니다.");
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.error('이미지 삭제 실패:', error);
           
           // 권한 에러 처리
@@ -661,6 +873,35 @@ export default {
       const baseURL = axios.defaults.baseURL || 'http://125.141.20.218:3200';
       return `${baseURL}${imagePath}`;
     };
+
+    // 디데이 계산을 위한 computed 속성들
+    const firstMeetDate = computed(() => {
+      const firstMeet = memories.value.find(memory => memory.category === 'first_meet');
+      return firstMeet ? firstMeet.date : null;
+    });
+
+    const specialDate = computed(() => {
+      const special = memories.value.find(memory => memory.category === 'special');
+      return special ? special.date : null;
+    });
+
+    const firstMeetDays = computed(() => {
+      if (!firstMeetDate.value) return 0;
+      const today = new Date();
+      const firstMeet = new Date(firstMeetDate.value);
+      const diffTime = today - firstMeet;
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays;
+    });
+
+    const specialDays = computed(() => {
+      if (!specialDate.value) return 0;
+      const today = new Date();
+      const special = new Date(specialDate.value);
+      const diffTime = today - special;
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays;
+    });
 
     // 이미지 URL을 미리 계산하고 카테고리 필터링을 적용하는 computed 함수
     const processedMemories = computed(() => {
@@ -713,6 +954,7 @@ export default {
       saveMemory,
       filterByCategory,
       formatDate,
+      formatMemoryDate,
       getCategoryIcon,
       showDeleteModal,
       openDeleteModal,
@@ -738,6 +980,16 @@ export default {
       canRead,
       canUpdate,
       canDelete,
+      // 디데이 관련
+      firstMeetDate,
+      specialDate,
+      firstMeetDays,
+      specialDays,
+      // 새로운 날짜 관련
+      onDateTypeChange,
+      validateSingleDate,
+      validateRangeDate,
+      dateRangeInfo,
     };
   },
 };
@@ -760,6 +1012,66 @@ export default {
 .page-header h2 {
   font-size: 2.5rem;
   color: #e91e63;
+}
+
+/* 디데이 섹션 스타일 */
+.dday-section {
+  margin-bottom: 40px;
+  padding: 20px;
+  background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(233, 30, 99, 0.1);
+}
+
+.dday-container {
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.dday-item {
+  text-align: center;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(233, 30, 99, 0.15);
+  min-width: 200px;
+  transition: transform 0.3s ease;
+}
+
+.dday-item:hover {
+  transform: translateY(-5px);
+}
+
+.dday-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #e91e63;
+  margin-bottom: 10px;
+}
+
+.dday-label i {
+  font-size: 1.2rem;
+}
+
+.dday-value {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #e91e63;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 4px rgba(233, 30, 99, 0.2);
+}
+
+.dday-date {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
 }
 
 .timeline-filter {
@@ -934,6 +1246,41 @@ export default {
 @media (max-width: 768px) {
   .page-header h2 {
     font-size: 1.5rem;
+  }
+
+  .dday-section {
+    margin-bottom: 25px;
+    padding: 12px;
+  }
+
+  .dday-container {
+    gap: 15px;
+    flex-direction: row;
+  }
+
+  .dday-item {
+    min-width: 120px;
+    max-width: 140px;
+    padding: 12px 8px;
+    flex: 1;
+  }
+
+  .dday-value {
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+  }
+
+  .dday-label {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+
+  .dday-label i {
+    font-size: 1rem;
+  }
+
+  .dday-date {
+    font-size: 0.75rem;
   }
 
   .filter-btn {
@@ -1207,6 +1554,104 @@ export default {
   font-weight: 500;
   min-width: 40px;
   text-align: center;
+}
+
+/* 날짜 선택 스타일 */
+.date-type-selection {
+  margin-top: 10px;
+}
+
+.date-type-options {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #666;
+  transition: color 0.3s ease;
+}
+
+.radio-option:hover {
+  color: #e91e63;
+}
+
+.radio-option input[type="radio"] {
+  margin: 0;
+  accent-color: #e91e63;
+}
+
+.radio-option input[type="radio"]:checked + span {
+  color: #e91e63;
+  font-weight: 600;
+}
+
+.single-date-input {
+  margin-top: 10px;
+}
+
+.range-date-inputs {
+  margin-top: 10px;
+}
+
+.date-input-group {
+  margin-bottom: 15px;
+}
+
+.date-input-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #666;
+}
+
+.date-range-info {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.range-duration {
+  font-weight: 600;
+  color: #e91e63;
+  font-size: 1.1rem;
+}
+
+.range-period {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* 모바일에서 날짜 선택 조정 */
+@media (max-width: 768px) {
+  .date-type-options {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .date-range-info {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+  
+  .range-duration {
+    font-size: 1rem;
+  }
+  
+  .range-period {
+    font-size: 0.8rem;
+  }
 }
 
 /* 모바일에서 이미지 갤러리 조정 */
