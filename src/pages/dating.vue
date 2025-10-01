@@ -93,12 +93,6 @@
                 <i class="fas fa-map-marker-alt"></i>
                 {{ memory.location }}
               </span>
-              <div class="memory-tags" v-if="memory.partner">
-                <span class="partner-tag">
-                  <i class="fas fa-heart"></i>
-                  {{ memory.partner }}
-                </span>
-              </div>
               <button
                 v-if="canDelete"
                 class="btn btn-sm btn-danger delete-btn"
@@ -216,15 +210,6 @@
                   {{ cat.name }}
                 </option>
               </select>
-            </div>
-            <div class="form-group">
-              <label>Partner</label>
-              <input
-                v-model="currentMemory.partner"
-                type="text"
-                class="form-control"
-                placeholder="상대방 이름 (선택사항)"
-              />
             </div>
             <div class="form-group">
               <label>Description</label>
@@ -383,7 +368,6 @@ export default {
       startDate: "",
       endDate: "",
       category: "",
-      partner: "",
       description: "",
       location: "",
       images: [], // 단일 이미지에서 다중 이미지로 변경
@@ -457,7 +441,6 @@ export default {
         startDate: "",
         endDate: "",
         category: "",
-        partner: "",
         description: "",
         location: "",
         images: [],
@@ -504,7 +487,6 @@ export default {
         startDate: "",
         endDate: "",
         category: "",
-        partner: "",
         description: "",
         location: "",
         images: [],
@@ -1184,6 +1166,7 @@ export default {
   color: #666;
   font-size: 1.1rem;
   line-height: 1.6;
+  white-space: pre-line;
 }
 
 .timeline-image {
