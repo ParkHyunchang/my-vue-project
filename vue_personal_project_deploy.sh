@@ -3,10 +3,10 @@
 echo "🚀 NAS 서버 배포 시작..."
 
 # tar 파일 찾기 (날짜가 붙은 파일 포함)
-TAR_FILE=$(ls vue_personal_project*.tar 2>/dev/null | head -1)
+TAR_FILE=$(ls frontEnd_deployment*.tar 2>/dev/null | head -1)
 
 if [ -z "$TAR_FILE" ]; then
-    echo "❌ vue_personal_project*.tar 파일을 찾을 수 없습니다!"
+    echo "❌ frontEnd_deployment*.tar 파일을 찾을 수 없습니다!"
     echo "📁 현재 디렉토리에 tar 파일이 있는지 확인해주세요."
     exit 1
 fi
