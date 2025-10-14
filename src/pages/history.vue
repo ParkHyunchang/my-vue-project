@@ -29,7 +29,7 @@
         @click="openEventDetail(event)"
       >
         <div class="timeline-date">
-          {{ formatDate(event.date) }}
+          {{ formatEventDate(event) }}
         </div>
         <div class="timeline-content">
           <div class="timeline-icon">
@@ -82,15 +82,73 @@
               />
             </div>
             <div class="form-group">
-              <label>Date</label>
-              <input
-                v-model="currentEvent.date"
-                type="date"
-                class="form-control"
-                required
-                :max="maxDate"
-                @input="validateDate"
-              />
+              <label>날짜 선택</label>
+              <div class="date-type-selection">
+                <div class="date-type-options">
+                  <label class="radio-option">
+                    <input
+                      type="radio"
+                      v-model="currentEvent.dateType"
+                      value="single"
+                      @change="onDateTypeChange"
+                    />
+                    <span>하루</span>
+                  </label>
+                  <label class="radio-option">
+                    <input
+                      type="radio"
+                      v-model="currentEvent.dateType"
+                      value="range"
+                      @change="onDateTypeChange"
+                    />
+                    <span>기간</span>
+                  </label>
+                </div>
+                
+                <!-- 하루 선택 -->
+                <div v-if="currentEvent.dateType === 'single'" class="single-date-input">
+                  <input
+                    v-model="currentEvent.date"
+                    type="date"
+                    class="form-control"
+                    required
+                    :max="maxDate"
+                    @input="validateSingleDate"
+                    placeholder="날짜를 선택하세요"
+                  />
+                </div>
+                
+                <!-- 기간 선택 -->
+                <div v-if="currentEvent.dateType === 'range'" class="range-date-inputs">
+                  <div class="date-input-group">
+                    <label>시작일</label>
+                    <input
+                      v-model="currentEvent.startDate"
+                      type="date"
+                      class="form-control"
+                      required
+                      :max="maxDate"
+                      @input="validateRangeDate"
+                    />
+                  </div>
+                  <div class="date-input-group">
+                    <label>종료일</label>
+                    <input
+                      v-model="currentEvent.endDate"
+                      type="date"
+                      class="form-control"
+                      required
+                      :max="maxDate"
+                      :min="currentEvent.startDate"
+                      @input="validateRangeDate"
+                    />
+                  </div>
+                  <div v-if="dateRangeInfo" class="date-range-info">
+                    <span class="range-duration">{{ dateRangeInfo.duration }}일</span>
+                    <span class="range-period">{{ dateRangeInfo.period }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="form-group">
               <label>Category</label>
@@ -256,6 +314,9 @@ export default {
     const currentEvent = ref({
       title: "",
       date: "",
+      dateType: "single", // "single" 또는 "range"
+      startDate: "",
+      endDate: "",
       category: "",
       description: "",
       location: "",
@@ -317,6 +378,9 @@ export default {
       currentEvent.value = {
         title: "",
         date: "",
+        dateType: "single",
+        startDate: "",
+        endDate: "",
         category: "",
         description: "",
         location: "",
@@ -346,6 +410,9 @@ export default {
       
       currentEvent.value = { 
         ...event,
+        dateType: event.dateType || "single", // 기존 데이터 호환성
+        startDate: event.startDate || "",
+        endDate: event.endDate || "",
         images: imagesArray
       };
       
@@ -358,6 +425,9 @@ export default {
       currentEvent.value = {
         title: "",
         date: "",
+        dateType: "single",
+        startDate: "",
+        endDate: "",
         category: "",
         description: "",
         location: "",
@@ -369,7 +439,19 @@ export default {
     // 최대 날짜를 현재 날짜로 설정
     const maxDate = new Date().toISOString().split("T")[0];
 
-    const validateDate = (event) => {
+    // 날짜 타입 변경 핸들러
+    const onDateTypeChange = () => {
+      // 날짜 타입이 변경되면 기존 날짜 값들 초기화
+      if (currentEvent.value.dateType === "single") {
+        currentEvent.value.startDate = "";
+        currentEvent.value.endDate = "";
+      } else {
+        currentEvent.value.date = "";
+      }
+    };
+
+    // 단일 날짜 검증
+    const validateSingleDate = (event) => {
       const dateValue = event.target.value;
       if (!dateValue) {
         showToast("날짜를 입력해주세요.", "danger");
@@ -394,15 +476,89 @@ export default {
       return true;
     };
 
+    // 기간 날짜 검증
+    const validateRangeDate = () => {
+      const startDate = currentEvent.value.startDate;
+      const endDate = currentEvent.value.endDate;
+
+      if (!startDate || !endDate) {
+        return true; // 아직 입력이 완료되지 않았으면 검증하지 않음
+      }
+
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const today = new Date();
+
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        showToast("올바른 날짜를 입력해주세요.", "danger");
+        return false;
+      }
+
+      if (start > today || end > today) {
+        showToast("미래의 날짜는 입력할 수 없습니다.", "danger");
+        return false;
+      }
+
+      if (start > end) {
+        showToast("시작일은 종료일보다 이전이어야 합니다.", "danger");
+        currentEvent.value.endDate = "";
+        return false;
+      }
+
+      return true;
+    };
+
+    // 기간 정보 계산 (computed)
+    const dateRangeInfo = computed(() => {
+      if (currentEvent.value.dateType !== "range" || 
+          !currentEvent.value.startDate || 
+          !currentEvent.value.endDate) {
+        return null;
+      }
+
+      const start = new Date(currentEvent.value.startDate);
+      const end = new Date(currentEvent.value.endDate);
+      
+      if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
+        return null;
+      }
+
+      const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+      const startFormatted = start.toLocaleDateString("ko-KR");
+      const endFormatted = end.toLocaleDateString("ko-KR");
+      
+      return {
+        duration,
+        period: `${startFormatted} ~ ${endFormatted}`
+      };
+    });
+
+    // 기존 validateDate 함수 (호환성 유지)
+    const validateDate = (event) => {
+      if (currentEvent.value.dateType === "single") {
+        return validateSingleDate(event);
+      } else {
+        return validateRangeDate();
+      }
+    };
+
     const saveEvent = async () => {
       // 필수 입력값 검사
       if (!currentEvent.value.title?.trim()) {
         showToast("제목을 입력해주세요.", "danger");
         return;
       }
-      if (!currentEvent.value.date?.trim()) {
-        showToast("날짜를 입력해주세요.", "danger");
-        return;
+      // 날짜 검증 (타입에 따라)
+      if (currentEvent.value.dateType === "single") {
+        if (!currentEvent.value.date?.trim()) {
+          showToast("날짜를 입력해주세요.", "danger");
+          return;
+        }
+      } else {
+        if (!currentEvent.value.startDate?.trim() || !currentEvent.value.endDate?.trim()) {
+          showToast("시작일과 종료일을 모두 입력해주세요.", "danger");
+          return;
+        }
       }
       if (!currentEvent.value.category?.trim()) {
         showToast("카테고리를 선택해주세요.", "danger");
@@ -410,8 +566,14 @@ export default {
       }
 
       // 날짜 유효성 검사
-      if (!validateDate({ target: { value: currentEvent.value.date } })) {
-        return;
+      if (currentEvent.value.dateType === "single") {
+        if (!validateSingleDate({ target: { value: currentEvent.value.date } })) {
+          return;
+        }
+      } else {
+        if (!validateRangeDate()) {
+          return;
+        }
       }
 
       try {
@@ -460,6 +622,17 @@ export default {
         month: "long",
         day: "numeric",
       });
+    };
+
+    // 이벤트 날짜 포맷팅 (단일/기간 구분)
+    const formatEventDate = (event) => {
+      if (event.dateType === "range" && event.startDate && event.endDate) {
+        const startFormatted = formatDate(event.startDate);
+        const endFormatted = formatDate(event.endDate);
+        return `${startFormatted} ~ ${endFormatted}`;
+      } else {
+        return formatDate(event.date);
+      }
     };
 
     const getCategoryIcon = (categoryId) => {
@@ -625,6 +798,7 @@ export default {
       saveEvent,
       filterByCategory,
       formatDate,
+      formatEventDate,
       getCategoryIcon,
       showDeleteModal,
       openDeleteModal,
@@ -645,6 +819,11 @@ export default {
       // 이미지 삭제 모달 관련
       showImageDeleteModal,
       closeImageDeleteModal,
+      // 새로운 날짜 관련
+      onDateTypeChange,
+      validateSingleDate,
+      validateRangeDate,
+      dateRangeInfo,
     };
   },
 };
@@ -1021,6 +1200,104 @@ export default {
   
   .image-preview-item img {
     height: 100px;
+  }
+}
+
+/* 날짜 선택 스타일 */
+.date-type-selection {
+  margin-top: 10px;
+}
+
+.date-type-options {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #666;
+  transition: color 0.3s ease;
+}
+
+.radio-option:hover {
+  color: #007bff;
+}
+
+.radio-option input[type="radio"] {
+  margin: 0;
+  accent-color: #007bff;
+}
+
+.radio-option input[type="radio"]:checked + span {
+  color: #007bff;
+  font-weight: 600;
+}
+
+.single-date-input {
+  margin-top: 10px;
+}
+
+.range-date-inputs {
+  margin-top: 10px;
+}
+
+.date-input-group {
+  margin-bottom: 15px;
+}
+
+.date-input-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #666;
+}
+
+.date-range-info {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.range-duration {
+  font-weight: 600;
+  color: #007bff;
+  font-size: 1.1rem;
+}
+
+.range-period {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* 모바일에서 날짜 선택 조정 */
+@media (max-width: 768px) {
+  .date-type-options {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .date-range-info {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+  
+  .range-duration {
+    font-size: 1rem;
+  }
+  
+  .range-period {
+    font-size: 0.8rem;
   }
 }
 </style>
