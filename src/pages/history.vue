@@ -23,7 +23,7 @@
     <!-- 타임라인 -->
     <div class="timeline">
       <div
-        v-for="event in filteredEvents"
+        v-for="event in processedEvents"
         :key="event.id"
         :class="['timeline-item', event.category]"
         @click="openEventDetail(event)"
@@ -38,14 +38,21 @@
           <div class="timeline-body">
             <h3>{{ event.title }}</h3>
             <p>{{ event.description }}</p>
-            <div v-if="event.image" class="timeline-image">
-              <img 
-                :src="getImageUrl(event.image)" 
-                :alt="event.title" 
-                @error="handleImageError"
-                @load="handleImageLoad"
-                class="memory-image"
-              />
+            <div v-if="event.processedImages && event.processedImages.length > 0" class="timeline-images">
+              <div class="image-gallery">
+                <img 
+                  v-for="(imageUrl, index) in event.processedImages.slice(0, 3)" 
+                  :key="index"
+                  :src="imageUrl" 
+                  :alt="event.title" 
+                  @error="handleImageError"
+                  @load="handleImageLoad"
+                  class="memory-image"
+                />
+                <div v-if="event.processedImages.length > 3" class="more-images">
+                  +{{ event.processedImages.length - 3 }}
+                </div>
+              </div>
             </div>
             <div class="timeline-footer">
               <span class="location" v-if="event.location">
@@ -341,6 +348,20 @@ export default {
       return events.value.filter(
         (event) => event.category === selectedCategory.value
       );
+    });
+
+    // 이미지 URL을 미리 계산하고 카테고리 필터링을 적용하는 computed 함수
+    const processedEvents = computed(() => {
+      const baseURL = axios.defaults.baseURL;
+      
+      return filteredEvents.value.map(event => ({
+        ...event,
+        processedImages: event.images ? event.images.map(img => {
+          if (!img || img.trim() === '') return '';
+          if (img.startsWith('http')) return img;
+          return `${baseURL}${img}`;
+        }) : []
+      }));
     });
 
     const fetchEvents = async () => {
@@ -667,7 +688,7 @@ export default {
       // 이미 전체 URL인 경우 그대로 반환
       if (imagePath.startsWith('http')) return imagePath;
       // 상대 경로인 경우 현재 axios baseURL과 결합
-      const baseURL = axios.defaults.baseURL || 'http://125.141.20.218:3200';
+      const baseURL = axios.defaults.baseURL;
       return `${baseURL}${imagePath}`;
     };
 
@@ -773,6 +794,7 @@ export default {
           currentEvent.value.images.splice(imageToDelete.value, 1);
           showToast("이미지가 삭제되었습니다.");
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.error('이미지 삭제 실패:', error);
           showToast("이미지 삭제에 실패했습니다.", "danger");
         }
@@ -791,6 +813,7 @@ export default {
       categoryOptions,
       selectedCategory,
       filteredEvents,
+      processedEvents,
       isEditing,
       openCreateModal,
       openEventDetail,
@@ -1191,6 +1214,42 @@ export default {
   transform: scale(1.1);
 }
 
+/* 타임라인 이미지 갤러리 스타일 */
+.timeline-images {
+  margin: 20px 0;
+}
+
+.image-gallery {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.image-gallery .memory-image {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.image-gallery .memory-image:hover {
+  transform: scale(1.1);
+}
+
+.more-images {
+  background: rgba(0, 123, 255, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  min-width: 40px;
+  text-align: center;
+}
+
 /* 모바일에서 이미지 업로드 조정 */
 @media (max-width: 768px) {
   .uploaded-images {
@@ -1200,6 +1259,16 @@ export default {
   
   .image-preview-item img {
     height: 100px;
+  }
+  
+  .image-gallery .memory-image {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .more-images {
+    padding: 6px 10px;
+    font-size: 0.8rem;
   }
 }
 

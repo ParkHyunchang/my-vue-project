@@ -852,7 +852,7 @@ export default {
       // 이미 전체 URL인 경우 그대로 반환
       if (imagePath.startsWith('http')) return imagePath;
       // 상대 경로인 경우 현재 axios baseURL과 결합
-      const baseURL = axios.defaults.baseURL || 'http://125.141.20.218:3200';
+      const baseURL = axios.defaults.baseURL;
       return `${baseURL}${imagePath}`;
     };
 
@@ -887,7 +887,7 @@ export default {
 
     // 이미지 URL을 미리 계산하고 카테고리 필터링을 적용하는 computed 함수
     const processedMemories = computed(() => {
-      const baseURL = axios.defaults.baseURL || 'http://125.141.20.218:3200';
+      const baseURL = axios.defaults.baseURL;
       
       // 먼저 카테고리 필터링 적용
       let filteredMemories = memories.value;

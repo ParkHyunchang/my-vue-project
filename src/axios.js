@@ -1,12 +1,32 @@
 import axios from "axios";
 import store from './store';
 
+// 현재 브라우저 URL을 기반으로 백엔드 URL 결정
+const getBaseURL = () => {
+  const hostname = window.location.hostname;
+  
+  // 로컬 개발 환경
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:3200';
+  }
+  
+  // IP 주소로 접속
+  if (hostname === '125.141.20.218') {
+    return 'http://125.141.20.218:3200';
+  }
+  
+  // 도메인으로 접속
+  if (hostname.includes('synology.me')) {
+    return `http://${hostname}:3200`;
+  }
+  
+  // 기타 경우 (기본값)
+  return 'http://125.141.20.218:3200';
+};
+
 // api 엔드포인트 백엔드 서버 연동설정
 const api = axios.create({
-  // 배포 서버 사용
-  baseURL: "http://125.141.20.218:3200"
-  // 로컬 실행시 사용
-  //baseURL: 'http://localhost:3200'
+  baseURL: getBaseURL()
 });
 
 // 요청 인터셉터 - JWT 토큰 자동 추가
