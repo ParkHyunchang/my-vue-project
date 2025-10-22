@@ -35,7 +35,7 @@ export default {
   position: fixed;
   top: 80px; /* navbar 높이에 맞춰 조정 */
   right: 20px;
-  z-index: 99999; /* 더 높은 z-index 값 설정 */
+  z-index: 100000; /* 모달보다 높은 z-index 값 설정 */
   display: flex;
   flex-direction: column;
   gap: 10px;
