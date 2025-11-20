@@ -11,6 +11,20 @@
       </button>
     </div>
 
+    <form class="search-bar" @submit.prevent="applySearch">
+      <input
+        v-model="searchInput"
+        type="text"
+        class="search-input"
+        placeholder="제목, 설명, 장소 검색"
+        aria-label="Dating search"
+        autocomplete="off"
+      />
+      <button type="submit" class="search-submit" aria-label="검색 실행">
+        <i class="fas fa-search"></i>
+      </button>
+    </form>
+
     <!-- 디데이 표시 섹션 -->
     <div class="dday-section" v-if="firstMeetDate || specialDate">
       <div class="dday-container">
@@ -351,6 +365,8 @@ export default {
     const { showToast } = useToast();
     const store = useStore();
     const memories = ref([]);
+    const searchQuery = ref("");
+    const searchInput = ref("");
     const showMemoryModal = ref(false);
     const isEditing = ref(false);
     const selectedCategory = ref("all");
@@ -888,13 +904,27 @@ export default {
     // 이미지 URL을 미리 계산하고 카테고리 필터링을 적용하는 computed 함수
     const processedMemories = computed(() => {
       const baseURL = axios.defaults.baseURL;
+      const query = searchQuery.value.trim().toLowerCase();
       
       // 먼저 카테고리 필터링 적용
       let filteredMemories = memories.value;
       if (selectedCategory.value !== "all") {
-        filteredMemories = memories.value.filter(
+        filteredMemories = filteredMemories.filter(
           (memory) => memory.category === selectedCategory.value
         );
+      }
+      if (query) {
+        filteredMemories = filteredMemories.filter((memory) => {
+          const target = [
+            memory.title,
+            memory.description,
+            memory.location,
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+          return target.includes(query);
+        });
       }
       
       // 그 다음 이미지 URL 처리
@@ -907,6 +937,10 @@ export default {
         }) : []
       }));
     });
+
+    const applySearch = () => {
+      searchQuery.value = searchInput.value.trim();
+    };
 
     const handleImageError = (event) => {
       // 이미지 로드 실패 시 숨기기
@@ -923,6 +957,8 @@ export default {
 
     return {
       memories,
+      searchQuery,
+      searchInput,
       showMemoryModal,
       currentMemory,
       categories,
@@ -972,6 +1008,7 @@ export default {
       validateSingleDate,
       validateRangeDate,
       dateRangeInfo,
+      applySearch,
     };
   },
 };
@@ -994,6 +1031,55 @@ export default {
 .page-header h2 {
   font-size: 2.5rem;
   color: #e91e63;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin: 0 auto 30px;
+  max-width: 400px;
+  background: #ffffff;
+  border: 1px solid #f0c2d0;
+  border-radius: 999px;
+  box-shadow: 0 4px 10px rgba(233, 30, 99, 0.08);
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  font-size: 1rem;
+  color: #444;
+  background: transparent;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: #b999ab;
+}
+
+.search-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #e91e63;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.search-submit:hover,
+.search-submit:focus {
+  background: #d21857;
+}
+
+.search-submit i {
+  font-size: 0.95rem;
 }
 
 /* 디데이 섹션 스타일 */
