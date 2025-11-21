@@ -88,15 +88,29 @@
             <p>{{ memory.description }}</p>
             <div v-if="memory.processedImages && memory.processedImages.length > 0" class="timeline-images">
               <div class="image-gallery">
-                <img 
-                  v-for="(imageUrl, index) in memory.processedImages.slice(0, 3)" 
+                <template
+                  v-for="(mediaUrl, index) in memory.processedImages.slice(0, 3)"
                   :key="index"
-                  :src="imageUrl" 
-                  :alt="memory.title" 
-                  @error="handleImageError"
-                  @load="handleImageLoad"
-                  class="memory-image"
-                />
+                >
+                  <video
+                    v-if="isVideoMedia(mediaUrl)"
+                    :src="mediaUrl"
+                    class="memory-image memory-video"
+                    muted
+                    loop
+                    playsinline
+                    autoplay
+                    preload="metadata"
+                  ></video>
+                  <img 
+                    v-else
+                    :src="mediaUrl" 
+                    :alt="memory.title" 
+                    @error="handleImageError"
+                    @load="handleImageLoad"
+                    class="memory-image"
+                  />
+                </template>
                 <div v-if="memory.processedImages.length > 3" class="more-images">
                   +{{ memory.processedImages.length - 3 }}
                 </div>
@@ -242,12 +256,12 @@
               />
             </div>
             <div class="form-group">
-              <label>Images</label>
+              <label>Images / Videos</label>
               <div class="image-upload-container">
                 <input
                   ref="fileInput"
                   type="file"
-                  accept="image/*"
+                  accept="image/*,video/*"
                   multiple
                   @change="handleFileUpload"
                   style="display: none"
@@ -255,7 +269,7 @@
                 <div v-if="canUpdate" class="image-upload-area" @click="triggerFileInput">
                   <div class="upload-placeholder">
                     <i class="fas fa-cloud-upload-alt"></i>
-                    <p>이미지를 업로드하세요</p>
+                    <p>이미지 또는 동영상을 업로드하세요</p>
                     <small>클릭하여 파일 선택 (여러 개 선택 가능)</small>
                   </div>
                 </div>
@@ -267,13 +281,25 @@
                     :key="index" 
                     class="image-preview-item"
                   >
-                    <img :src="getImageUrl(image)" :alt="`Image ${index + 1}`" />
+                    <video
+                      v-if="isVideoMedia(image)"
+                      :src="getImageUrl(image)"
+                    controls
+                    playsinline
+                      class="media-preview media-preview-video"
+                    ></video>
+                    <img
+                      v-else
+                      :src="getImageUrl(image)"
+                      :alt="`Media ${index + 1}`"
+                      class="media-preview"
+                    />
                     <button 
                       v-if="canDelete"
                       type="button" 
                       class="remove-image" 
                       @click.stop="confirmRemoveImage(index)"
-                      title="이미지 삭제"
+                      title="미디어 삭제"
                     >
                       <i class="fas fa-times"></i>
                     </button>
@@ -339,8 +365,8 @@
     <teleport to="#modal">
       <DeleteModal
         v-if="showImageDeleteModal"
-        :title="'이미지 삭제'"
-        :message="'이 이미지를 정말 삭제하시겠습니까?'"
+        :title="'미디어 삭제'"
+        :message="'이 미디어를 정말 삭제하시겠습니까?'"
         @close="closeImageDeleteModal"
         @delete="removeImage"
       />
@@ -376,6 +402,11 @@ export default {
     const fileInput = ref(null);
     const showImageDeleteModal = ref(false);
     const imageToDelete = ref(null);
+
+    const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"];
+    const VIDEO_EXTENSIONS = ["mp4", "mov", "mkv", "webm", "avi", "m4v", "3gp"];
+    const MAX_IMAGE_SIZE = 20 * 1024 * 1024; // 20MB
+    const MAX_VIDEO_SIZE = 200 * 1024 * 1024; // 200MB
 
     const currentMemory = ref({
       title: "",
@@ -735,10 +766,47 @@ export default {
     };
 
     // 파일 업로드 관련 함수들
+    const getExtensionFromName = (name = "") => {
+      if (!name) return "";
+      const sanitized = name.split("?")[0];
+      const segments = sanitized.split(".");
+      if (segments.length < 2) return "";
+      return segments.pop().toLowerCase();
+    };
+
+    const isImageFile = (file) => {
+      if (!file) return false;
+      if (file.type && file.type.startsWith("image/")) return true;
+      return IMAGE_EXTENSIONS.includes(getExtensionFromName(file.name));
+    };
+
+    const isVideoFile = (file) => {
+      if (!file) return false;
+      if (file.type && file.type.startsWith("video/")) return true;
+      return VIDEO_EXTENSIONS.includes(getExtensionFromName(file.name));
+    };
+
+    const extractPath = (value) => {
+      if (!value) return "";
+      if (typeof value === "string") return value;
+      if (typeof value === "object") {
+        if (value.path) return value.path;
+        if (value.url) return value.url;
+      }
+      return "";
+    };
+
+    const isVideoMedia = (value) => {
+      const path = extractPath(value);
+      if (!path) return false;
+      const ext = getExtensionFromName(path);
+      return VIDEO_EXTENSIONS.includes(ext);
+    };
+
     const triggerFileInput = () => {
       // 수정 권한이 없는 경우 파일 선택을 막음
       if (!canUpdate.value) {
-        showToast("이미지 업로드 권한이 없습니다.", "danger");
+        showToast("미디어 업로드 권한이 없습니다.", "danger");
         return;
       }
       
@@ -751,20 +819,20 @@ export default {
       
       // 수정 권한이 없는 경우 업로드를 막음
       if (!canUpdate.value) {
-        showToast("이미지 업로드 권한이 없습니다.", "danger");
+        showToast("미디어 업로드 권한이 없습니다.", "danger");
         return;
       }
 
       // 파일 개수 제한 (최대 10개)
       if (files.length > 10) {
-        showToast("최대 10개의 이미지만 업로드할 수 있습니다.", "danger");
+        showToast("최대 10개의 미디어만 업로드할 수 있습니다.", "danger");
         return;
       }
 
       // 기존 이미지와 합쳐서 총 개수 확인
       const totalImages = (currentMemory.value.images?.length || 0) + files.length;
       if (totalImages > 10) {
-        showToast("총 이미지 개수는 10개를 초과할 수 없습니다.", "danger");
+        showToast("총 미디어 개수는 10개를 초과할 수 없습니다.", "danger");
         return;
       }
 
@@ -773,13 +841,19 @@ export default {
       try {
         const uploadPromises = files.map(async (file) => {
           // 파일 크기 확인 (20MB 제한)
-          if (file.size > 20 * 1024 * 1024) {
-            throw new Error(`${file.name}: 파일 크기는 20MB 이하여야 합니다.`);
+          const isImage = isImageFile(file);
+          const isVideo = isVideoFile(file);
+
+          if (!isImage && !isVideo) {
+            throw new Error(`${file.name}: 이미지 또는 동영상 파일만 업로드 가능합니다.`);
           }
 
-          // 이미지 파일 확인
-          if (!file.type.startsWith('image/')) {
-            throw new Error(`${file.name}: 이미지 파일만 업로드 가능합니다.`);
+          if (isImage && file.size > MAX_IMAGE_SIZE) {
+            throw new Error(`${file.name}: 이미지 파일 크기는 20MB 이하여야 합니다.`);
+          }
+
+          if (isVideo && file.size > MAX_VIDEO_SIZE) {
+            throw new Error(`${file.name}: 동영상 파일 크기는 200MB 이하여야 합니다.`);
           }
 
           const formData = new FormData();
@@ -802,13 +876,13 @@ export default {
         }
         currentMemory.value.images.push(...uploadedImages);
         
-        showToast(`${uploadedImages.length}개의 이미지가 업로드되었습니다.`);
+        showToast(`${uploadedImages.length}개의 미디어가 업로드되었습니다.`);
       } catch (error) {
         // 권한 에러 처리
         if (error.response?.status === 403) {
-          showToast("이미지 업로드 권한이 없습니다.", "danger");
+          showToast("미디어 업로드 권한이 없습니다.", "danger");
         } else {
-          showToast(`이미지 업로드에 실패했습니다: ${error.message}`, "danger");
+          showToast(`미디어 업로드에 실패했습니다: ${error.message}`, "danger");
         }
       } finally {
         uploading.value = false;
@@ -822,7 +896,7 @@ export default {
     const confirmRemoveImage = (index) => {
       // 삭제 권한이 없는 경우 모달을 표시하지 않음
       if (!canDelete.value) {
-        showToast("이미지 삭제 권한이 없습니다.", "danger");
+        showToast("미디어 삭제 권한이 없습니다.", "danger");
         return;
       }
       
@@ -838,25 +912,32 @@ export default {
     const removeImage = async () => {
       if (imageToDelete.value !== null && currentMemory.value.images) {
         const imageToRemove = currentMemory.value.images[imageToDelete.value];
+        const imagePath = extractPath(imageToRemove);
+        
+        if (!imagePath) {
+          showToast("미디어 경로를 찾을 수 없습니다.", "danger");
+          closeImageDeleteModal();
+          return;
+        }
         
         try {
           // 서버에서 이미지 파일 삭제
           await axios.delete('/dating/image', {
-            params: { imagePath: imageToRemove }
+            params: { imagePath }
           });
           
           // 프론트엔드에서 이미지 배열에서 제거
           currentMemory.value.images.splice(imageToDelete.value, 1);
-          showToast("이미지가 삭제되었습니다.");
+          showToast("미디어가 삭제되었습니다.");
         } catch (error) {
           // eslint-disable-next-line no-console
-          console.error('이미지 삭제 실패:', error);
+          console.error('미디어 삭제 실패:', error);
           
           // 권한 에러 처리
           if (error.response?.status === 403) {
-            showToast("이미지 삭제 권한이 없습니다.", "danger");
+            showToast("미디어 삭제 권한이 없습니다.", "danger");
           } else {
-            showToast("이미지 삭제에 실패했습니다.", "danger");
+            showToast("미디어 삭제에 실패했습니다.", "danger");
           }
         }
       }
@@ -864,12 +945,13 @@ export default {
     };
 
     const getImageUrl = (imagePath) => {
-      if (!imagePath || imagePath.trim() === '') return '';
+      const path = extractPath(imagePath);
+      if (!path || path.trim() === '') return '';
       // 이미 전체 URL인 경우 그대로 반환
-      if (imagePath.startsWith('http')) return imagePath;
+      if (path.startsWith('http')) return path;
       // 상대 경로인 경우 현재 axios baseURL과 결합
       const baseURL = axios.defaults.baseURL;
-      return `${baseURL}${imagePath}`;
+      return `${baseURL}${path}`;
     };
 
     // 디데이 계산을 위한 computed 속성들
@@ -903,7 +985,6 @@ export default {
 
     // 이미지 URL을 미리 계산하고 카테고리 필터링을 적용하는 computed 함수
     const processedMemories = computed(() => {
-      const baseURL = axios.defaults.baseURL;
       const query = searchQuery.value.trim().toLowerCase();
       
       // 먼저 카테고리 필터링 적용
@@ -930,11 +1011,9 @@ export default {
       // 그 다음 이미지 URL 처리
       return filteredMemories.map(memory => ({
         ...memory,
-        processedImages: memory.images ? memory.images.map(img => {
-          if (!img || img.trim() === '') return '';
-          if (img.startsWith('http')) return img;
-          return `${baseURL}${img}`;
-        }) : []
+        processedImages: memory.images ? memory.images
+          .map(img => getImageUrl(img))
+          .filter(Boolean) : []
       }));
     });
 
@@ -988,6 +1067,7 @@ export default {
       confirmRemoveImage,
       removeImage,
       getImageUrl,
+      isVideoMedia,
       handleImageError,
       handleImageLoad,
       // 이미지 삭제 모달 관련
@@ -1552,7 +1632,7 @@ export default {
   display: inline-block;
 }
 
-.image-preview-item img {
+.image-preview-item .media-preview {
   width: 100%;
   height: 120px;
   object-fit: cover;
@@ -1561,8 +1641,12 @@ export default {
   transition: transform 0.3s ease;
 }
 
-.image-preview-item img:hover {
+.image-preview-item .media-preview:hover {
   transform: scale(1.05);
+}
+
+.image-preview-item .media-preview-video {
+  background: #000;
 }
 
 .image-preview-item .remove-image {
@@ -1612,6 +1696,11 @@ export default {
 
 .image-gallery .memory-image:hover {
   transform: scale(1.1);
+}
+
+.memory-video {
+  background: #000;
+  object-fit: cover;
 }
 
 .more-images {
@@ -1730,7 +1819,7 @@ export default {
     gap: 10px;
   }
   
-  .image-preview-item img {
+  .image-preview-item .media-preview {
     height: 100px;
   }
   
