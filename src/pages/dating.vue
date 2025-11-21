@@ -21,7 +21,11 @@
         autocomplete="off"
       />
       <button type="submit" class="search-submit" aria-label="검색 실행">
-        <i class="fas fa-search"></i>
+        <img
+          src="@/assets/img/btn_search_01.png"
+          alt="검색 아이콘"
+          class="search-icon"
+        />
       </button>
     </form>
 
@@ -1143,23 +1147,24 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: 40px;
+  height: 40px;
   border: none;
-  background: #e91e63;
-  color: #fff;
+  background: transparent;
+  padding: 0;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: transform 0.2s ease;
 }
 
 .search-submit:hover,
 .search-submit:focus {
-  background: #d21857;
+  transform: scale(1.05);
 }
 
-.search-submit i {
-  font-size: 0.95rem;
+.search-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 /* 디데이 섹션 스타일 */
