@@ -1023,6 +1023,12 @@ export default {
   --timeline-media-video-bg: rgba(40, 167, 69, 0.15);
   --timeline-media-video-color: #1e7e34;
   --timeline-icon-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+  --timeline-icon-offset: 58px;
+  --timeline-icon-offset-mobile: 26px;
+  --timeline-icon-size: 42px;
+  --timeline-icon-size-mobile: 20px;
+  --timeline-icon-font-size: 1.05rem;
+  --timeline-icon-font-size-mobile: 0.68rem;
 }
 
 .page-header {

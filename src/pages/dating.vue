@@ -1151,11 +1151,17 @@ export default {
   --timeline-text-color: #666666;
   --timeline-more-media-bg: rgba(233, 30, 99, 0.8);
   --timeline-more-media-color: #ffffff;
-  --timeline-media-image-bg: rgba(233, 30, 99, 0.12);
+  --timeline-media-image-bg: rgba(233, 30, 99, 0.1);
   --timeline-media-image-color: #c2185b;
-  --timeline-media-video-bg: rgba(233, 30, 99, 0.15);
-  --timeline-media-video-color: #ad1457;
+  --timeline-media-video-bg: rgba(103, 58, 183, 0.12);
+  --timeline-media-video-color: #5e35b1;
   --timeline-icon-shadow: 0 2px 8px rgba(233, 30, 99, 0.3);
+  --timeline-icon-offset: 58px;
+  --timeline-icon-offset-mobile: 26px;
+  --timeline-icon-size: 42px;
+  --timeline-icon-size-mobile: 20px;
+  --timeline-icon-font-size: 1.05rem;
+  --timeline-icon-font-size-mobile: 0.7rem;
 }
 
 .page-header {
@@ -1617,29 +1623,6 @@ export default {
   font-weight: 500;
   min-width: 40px;
   text-align: center;
-}
-
-.media-counts {
-  display: flex;
-  gap: 10px;
-  margin-top: 12px;
-  font-size: 0.9rem;
-}
-
-.media-count-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-weight: 600;
-  background: rgba(233, 30, 99, 0.1);
-  color: #c2185b;
-}
-
-.media-count-tag.video {
-  background: rgba(103, 58, 183, 0.12);
-  color: #5e35b1;
 }
 
 /* 날짜 선택 스타일 */
