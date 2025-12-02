@@ -1020,18 +1020,23 @@ export default {
 
 .timeline-date {
   position: absolute;
-  top: 0;
-  left: -180px;
-  padding: 8px 16px;
+  top: 10px;
+  right: calc(100% + 24px);
+  padding: 10px 20px;
   background: #f8f9fa;
-  border-radius: 6px;
+  border-radius: 999px;
   font-size: 1rem;
   font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+  word-break: keep-all;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
 }
 
 .timeline-item:nth-child(even) .timeline-date {
-  left: auto;
-  right: -180px;
+  right: auto;
+  left: calc(100% + 24px);
+  text-align: left;
 }
 
 .timeline-content {
@@ -1136,6 +1141,11 @@ export default {
     right: 0;
     margin-bottom: 10px;
     display: inline-block;
+    text-align: left;
+    max-width: 100%;
+    white-space: normal;
+    border-radius: 12px;
+    box-shadow: none;
   }
 
   .timeline-icon,
