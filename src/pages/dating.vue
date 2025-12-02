@@ -288,9 +288,12 @@
                     <video
                       v-if="isVideoMedia(image)"
                       :src="getImageUrl(image)"
-                    controls
-                    playsinline
+                      ref="previewVideos"
                       class="media-preview media-preview-video"
+                      controls
+                      playsinline
+                      muted
+                      @loadeddata="handlePreviewVideoLoaded"
                     ></video>
                     <img
                       v-else
@@ -379,7 +382,7 @@
 </template>
 
 <script>
-import { ref, computed } from "vue";
+import { ref, computed, onBeforeUpdate } from "vue";
 import { useStore } from "vuex";
 import Modal from "@/components/Modal.vue";
 import DeleteModal from "@/components/DeleteModal.vue";
@@ -406,6 +409,11 @@ export default {
     const fileInput = ref(null);
     const showImageDeleteModal = ref(false);
     const imageToDelete = ref(null);
+    const previewVideos = ref([]);
+
+    onBeforeUpdate(() => {
+      previewVideos.value = [];
+    });
 
     const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"];
     const VIDEO_EXTENSIONS = ["mp4", "mov", "mkv", "webm", "avi", "m4v", "3gp"];
@@ -530,6 +538,7 @@ export default {
     };
 
     const closeMemoryModal = () => {
+      stopAllPreviewVideos();
       showMemoryModal.value = false;
       currentMemory.value = {
         title: "",
@@ -807,6 +816,30 @@ export default {
       return VIDEO_EXTENSIONS.includes(ext);
     };
 
+    const handlePreviewVideoLoaded = (event) => {
+      const videoElement = event?.target;
+      if (!videoElement) return;
+
+      videoElement.muted = true;
+      videoElement.currentTime = 0;
+
+      const playPromise = videoElement.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch((error) => {
+          // eslint-disable-next-line no-console
+          console.error("미리보기 동영상 자동재생 실패:", error);
+        });
+      }
+    };
+
+    const stopAllPreviewVideos = () => {
+      previewVideos.value.forEach((videoElement) => {
+        if (!videoElement) return;
+        videoElement.pause();
+        videoElement.currentTime = 0;
+      });
+    };
+
     const triggerFileInput = () => {
       // 수정 권한이 없는 경우 파일 선택을 막음
       if (!canUpdate.value) {
@@ -1070,6 +1103,8 @@ export default {
       handleFileUpload,
       confirmRemoveImage,
       removeImage,
+      previewVideos,
+      handlePreviewVideoLoaded,
       getImageUrl,
       isVideoMedia,
       handleImageError,

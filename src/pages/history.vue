@@ -211,12 +211,12 @@
               />
             </div>
             <div class="form-group">
-              <label>Images</label>
+              <label>Images / Videos</label>
               <div class="image-upload-container">
                 <input
                   ref="fileInput"
                   type="file"
-                  accept="image/*"
+                  accept="image/*,video/*"
                   multiple
                   @change="handleFileUpload"
                   style="display: none"
@@ -224,7 +224,7 @@
                 <div class="image-upload-area" @click="triggerFileInput">
                   <div class="upload-placeholder">
                     <i class="fas fa-cloud-upload-alt"></i>
-                    <p>이미지를 업로드하세요</p>
+                    <p>이미지 또는 동영상을 업로드하세요</p>
                     <small>클릭하여 파일 선택 (여러 개 선택 가능)</small>
                   </div>
                 </div>
@@ -236,12 +236,29 @@
                     :key="index" 
                     class="image-preview-item"
                   >
-                    <img :src="getImageUrl(image)" :alt="`Image ${index + 1}`" />
+                    <video
+                      v-if="isVideoMedia(image)"
+                      :src="getMediaUrl(image)"
+                      ref="previewVideos"
+                      class="media-preview media-preview-video"
+                      controls
+                      playsinline
+                      muted
+                      @loadeddata="handlePreviewVideoLoaded"
+                    ></video>
+                    <img
+                      v-else
+                      :src="getMediaUrl(image)"
+                      :alt="`Media ${index + 1}`"
+                      class="media-preview"
+                      @error="handleImageError"
+                      @load="handleImageLoad"
+                    />
                     <button 
                       type="button" 
                       class="remove-image" 
                       @click.stop="confirmRemoveImage(index)"
-                      title="이미지 삭제"
+                      title="미디어 삭제"
                     >
                       <i class="fas fa-times"></i>
                     </button>
@@ -302,8 +319,8 @@
     <teleport to="#modal">
       <DeleteModal
         v-if="showImageDeleteModal"
-        :title="'이미지 삭제'"
-        :message="'이 이미지를 정말 삭제하시겠습니까?'"
+        :title="'미디어 삭제'"
+        :message="'이 미디어를 정말 삭제하시겠습니까?'"
         @close="closeImageDeleteModal"
         @delete="removeImage"
       />
@@ -312,7 +329,7 @@
 </template>
 
 <script>
-import { ref, computed } from "vue";
+import { ref, computed, onBeforeUpdate } from "vue";
 import Modal from "@/components/Modal.vue";
 import DeleteModal from "@/components/DeleteModal.vue";
 import { useToast } from "@/composables/toast";
@@ -337,6 +354,11 @@ export default {
     const fileInput = ref(null);
     const showImageDeleteModal = ref(false);
     const imageToDelete = ref(null);
+    const previewVideos = ref([]);
+
+    onBeforeUpdate(() => {
+      previewVideos.value = [];
+    });
 
     const currentEvent = ref({
       title: "",
@@ -350,6 +372,11 @@ export default {
       image: "",
       images: [], // 다중 이미지 지원
     });
+
+    const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"];
+    const VIDEO_EXTENSIONS = ["mp4", "mov", "mkv", "webm", "avi", "m4v", "3gp"];
+    const MAX_IMAGE_SIZE = 20 * 1024 * 1024; // 20MB
+    const MAX_VIDEO_SIZE = 200 * 1024 * 1024; // 200MB
 
     const categories = [
       { id: "all", name: "전체", icon: "fas fa-list" },
@@ -372,7 +399,6 @@ export default {
 
     // 이미지 URL을 미리 계산하고 카테고리 필터링을 적용하는 computed 함수
     const processedEvents = computed(() => {
-      const baseURL = axios.defaults.baseURL;
       const query = searchQuery.value.trim().toLowerCase();
 
       let eventsToProcess = filteredEvents.value;
@@ -394,11 +420,7 @@ export default {
       return eventsToProcess.map(event => ({
         ...event,
         processedImages: event.images ? event.images
-          .map(img => {
-            if (!img || img.trim() === "") return "";
-            if (img.startsWith("http")) return img;
-            return `${baseURL}${img}`;
-          })
+          .map(img => getMediaUrl(img))
           .filter(Boolean) : []
       }));
     });
@@ -485,6 +507,7 @@ export default {
     };
 
     const closeEventModal = () => {
+      stopAllPreviewVideos();
       showEventModal.value = false;
       currentEvent.value = {
         title: "",
@@ -726,13 +749,73 @@ export default {
       }
     };
 
-    const getImageUrl = (imagePath) => {
-      if (!imagePath || imagePath.trim() === '') return '';
-      // 이미 전체 URL인 경우 그대로 반환
-      if (imagePath.startsWith('http')) return imagePath;
-      // 상대 경로인 경우 현재 axios baseURL과 결합
+    const getExtensionFromName = (name = "") => {
+      if (!name) return "";
+      const sanitized = name.split("?")[0];
+      const segments = sanitized.split(".");
+      if (segments.length < 2) return "";
+      return segments.pop().toLowerCase();
+    };
+
+    const isImageFile = (file) => {
+      if (!file) return false;
+      if (file.type && file.type.startsWith("image/")) return true;
+      return IMAGE_EXTENSIONS.includes(getExtensionFromName(file.name));
+    };
+
+    const isVideoFile = (file) => {
+      if (!file) return false;
+      if (file.type && file.type.startsWith("video/")) return true;
+      return VIDEO_EXTENSIONS.includes(getExtensionFromName(file.name));
+    };
+
+    const extractPath = (value) => {
+      if (!value) return "";
+      if (typeof value === "string") return value;
+      if (typeof value === "object") {
+        if (value.path) return value.path;
+        if (value.url) return value.url;
+      }
+      return "";
+    };
+
+    const isVideoMedia = (value) => {
+      const path = extractPath(value);
+      if (!path) return false;
+      const ext = getExtensionFromName(path);
+      return VIDEO_EXTENSIONS.includes(ext);
+    };
+
+    const getMediaUrl = (mediaPath) => {
+      const path = extractPath(mediaPath);
+      if (!path || (typeof path === "string" && path.trim() === "")) return "";
+      if (path.startsWith("http")) return path;
       const baseURL = axios.defaults.baseURL;
-      return `${baseURL}${imagePath}`;
+      return `${baseURL}${path}`;
+    };
+
+    const handlePreviewVideoLoaded = (event) => {
+      const videoElement = event?.target;
+      if (!videoElement) return;
+
+      videoElement.muted = true;
+      videoElement.currentTime = 0;
+
+      const playPromise = videoElement.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch((error) => {
+          // eslint-disable-next-line no-console
+          console.error("히스토리 미디어 자동재생 실패:", error);
+        });
+      }
+    };
+
+    const stopAllPreviewVideos = () => {
+      previewVideos.value.forEach((videoElement) => {
+        if (!videoElement) return;
+        videoElement.pause();
+        videoElement.currentTime = 0;
+      });
     };
 
     const handleImageError = (event) => {
@@ -756,14 +839,14 @@ export default {
 
       // 파일 개수 제한 (최대 10개)
       if (files.length > 10) {
-        showToast("최대 10개의 이미지만 업로드할 수 있습니다.", "danger");
+        showToast("최대 10개의 미디어만 업로드할 수 있습니다.", "danger");
         return;
       }
 
       // 기존 이미지와 합쳐서 총 개수 확인
-      const totalImages = (currentEvent.value.images?.length || 0) + files.length;
-      if (totalImages > 10) {
-        showToast("총 이미지 개수는 10개를 초과할 수 없습니다.", "danger");
+      const totalMedia = (currentEvent.value.images?.length || 0) + files.length;
+      if (totalMedia > 10) {
+        showToast("총 미디어 개수는 10개를 초과할 수 없습니다.", "danger");
         return;
       }
 
@@ -771,14 +854,19 @@ export default {
       
       try {
         const uploadPromises = files.map(async (file) => {
-          // 파일 크기 확인 (20MB 제한)
-          if (file.size > 20 * 1024 * 1024) {
-            throw new Error(`${file.name}: 파일 크기는 20MB 이하여야 합니다.`);
+          const isImage = isImageFile(file);
+          const isVideo = isVideoFile(file);
+
+          if (!isImage && !isVideo) {
+            throw new Error(`${file.name}: 이미지 또는 동영상 파일만 업로드 가능합니다.`);
           }
 
-          // 이미지 파일 확인
-          if (!file.type.startsWith('image/')) {
-            throw new Error(`${file.name}: 이미지 파일만 업로드 가능합니다.`);
+          if (isImage && file.size > MAX_IMAGE_SIZE) {
+            throw new Error(`${file.name}: 이미지 파일 크기는 20MB 이하여야 합니다.`);
+          }
+
+          if (isVideo && file.size > MAX_VIDEO_SIZE) {
+            throw new Error(`${file.name}: 동영상 파일 크기는 200MB 이하여야 합니다.`);
           }
 
           const formData = new FormData();
@@ -793,17 +881,17 @@ export default {
           return response.data;
         });
 
-        const uploadedImages = await Promise.all(uploadPromises);
+        const uploadedMedia = await Promise.all(uploadPromises);
         
         // 기존 이미지 배열에 새 이미지들 추가
         if (!currentEvent.value.images) {
           currentEvent.value.images = [];
         }
-        currentEvent.value.images.push(...uploadedImages);
+        currentEvent.value.images.push(...uploadedMedia);
         
-        showToast(`${uploadedImages.length}개의 이미지가 업로드되었습니다.`);
+        showToast(`${uploadedMedia.length}개의 미디어가 업로드되었습니다.`);
       } catch (error) {
-        showToast(`이미지 업로드에 실패했습니다: ${error.message}`, "danger");
+        showToast(`미디어 업로드에 실패했습니다: ${error.message}`, "danger");
       } finally {
         uploading.value = false;
         // 파일 입력 초기화
@@ -835,11 +923,11 @@ export default {
           
           // 프론트엔드에서 이미지 배열에서 제거
           currentEvent.value.images.splice(imageToDelete.value, 1);
-          showToast("이미지가 삭제되었습니다.");
+          showToast("미디어가 삭제되었습니다.");
         } catch (error) {
           // eslint-disable-next-line no-console
-          console.error('이미지 삭제 실패:', error);
-          showToast("이미지 삭제에 실패했습니다.", "danger");
+          console.error('미디어 삭제 실패:', error);
+          showToast("미디어 삭제에 실패했습니다.", "danger");
         }
       }
       closeImageDeleteModal();
@@ -874,9 +962,12 @@ export default {
       deleteEvent,
       maxDate,
       validateDate,
-      getImageUrl,
+      previewVideos,
+      getMediaUrl,
+      isVideoMedia,
       handleImageError,
       handleImageLoad,
+      handlePreviewVideoLoaded,
       // 파일 업로드 관련
       uploading,
       fileInput,
