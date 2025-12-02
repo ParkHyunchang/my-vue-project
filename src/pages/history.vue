@@ -26,119 +26,25 @@
     </form>
 
     <!-- 타임라인 필터 -->
-    <div class="timeline-filter">
-      <div class="category-filter-row">
-        <button
-          v-for="category in categories"
-          :key="category.id"
-          :class="['filter-btn', { active: selectedCategory === category.id }]"
-          @click="filterByCategory(category.id)"
-        >
-          <i :class="category.icon"></i>
-          {{ category.name }}
-        </button>
-      </div>
-      <div class="media-filter-row">
-        <button
-          v-for="option in mediaFilterOptions"
-          :key="option.id"
-          :class="['filter-btn', 'media-filter-btn', { active: mediaFilter === option.id }]"
-          @click="setMediaFilter(option.id)"
-        >
-          {{ option.label }}
-        </button>
-      </div>
-    </div>
+    <TimelineFilter
+      :categories="categories"
+      :selected-category="selectedCategory"
+      :media-filter-options="mediaFilterOptions"
+      :media-filter="mediaFilter"
+      @select-category="filterByCategory"
+      @select-media="setMediaFilter"
+    />
 
     <!-- 타임라인 -->
-    <div class="timeline">
-      <div
-        v-for="event in processedEvents"
-        :key="event.id"
-        :class="['timeline-item', event.category]"
-        @click="openEventDetail(event)"
-      >
-        <div class="timeline-date">
-          {{ formatEventDate(event) }}
-        </div>
-        <div class="timeline-content">
-          <div class="timeline-icon">
-            <i :class="getCategoryIcon(event.category)"></i>
-          </div>
-          <div class="timeline-body">
-            <h3>{{ event.title }}</h3>
-            <p>{{ event.description }}</p>
-            <div v-if="event.processedMedia && event.processedMedia.length > 0" class="timeline-images">
-              <div class="image-gallery">
-                <template
-                  v-for="media in event.processedMedia.slice(0, 3)"
-                  :key="media.originalIndex"
-                >
-                  <div
-                    class="media-thumbnail"
-                    :class="{ 'has-video': media.isVideo }"
-                  >
-                    <video
-                      v-if="media.isVideo"
-                      :src="media.url"
-                      class="memory-image memory-video"
-                      muted
-                      loop
-                      playsinline
-                      autoplay
-                      preload="metadata"
-                    ></video>
-                    <img
-                      v-else
-                      :src="media.url"
-                      :alt="event.title"
-                      @error="handleImageError"
-                      @load="handleImageLoad"
-                      class="memory-image"
-                    />
-                    <span
-                      v-if="media.isVideo && media.originalIndex === event.firstVideoIndex"
-                      class="video-overlay-indicator"
-                    >
-                      <i class="fas fa-play"></i>
-                    </span>
-                  </div>
-                </template>
-                <div v-if="event.totalMediaCount > 3" class="more-media">
-                  +{{ event.totalMediaCount - 3 }}
-                </div>
-              </div>
-              <div class="media-counts">
-                <span
-                  v-if="event.imageCount"
-                  class="media-count-tag image"
-                >
-                  이미지 {{ event.imageCount }}
-                </span>
-                <span
-                  v-if="event.videoCount"
-                  class="media-count-tag video"
-                >
-                  동영상 {{ event.videoCount }}
-                </span>
-              </div>
-            </div>
-            <div class="timeline-footer">
-              <span class="location" v-if="event.location">
-                <i class="fas fa-map-marker-alt"></i>
-                {{ event.location }}
-              </span>
-              <button
-                class="btn btn-sm btn-danger delete-btn"
-                @click.stop="openDeleteModal(event)"
-              >
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <TimelineList
+      :items="processedEvents"
+      :date-formatter="formatEventDate"
+      :category-icon-getter="getCategoryIcon"
+      @select="openEventDetail"
+      @delete="openDeleteModal"
+      @image-error="handleImageError"
+      @image-load="handleImageLoad"
+    />
 
     <!-- 이벤트 생성/수정 모달 -->
     <teleport to="#modal">
@@ -383,6 +289,8 @@
 import { ref, computed, onBeforeUpdate } from "vue";
 import Modal from "@/components/Modal.vue";
 import DeleteModal from "@/components/DeleteModal.vue";
+import TimelineFilter from "@/components/TimelineFilter.vue";
+import TimelineList from "@/components/TimelineList.vue";
 import { useToast } from "@/composables/toast";
 import axios from "@/axios";
 
@@ -390,6 +298,8 @@ export default {
   components: {
     Modal,
     DeleteModal,
+    TimelineFilter,
+    TimelineList,
   },
   setup() {
     const { showToast } = useToast();
@@ -1096,6 +1006,23 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  --timeline-primary-color: #007bff;
+  --timeline-line-color: #e0e0e0;
+  --timeline-filter-bg: #f0f0f0;
+  --timeline-filter-color: #333333;
+  --timeline-active-bg: #007bff;
+  --timeline-active-color: #ffffff;
+  --timeline-date-bg: #f8f9fa;
+  --timeline-date-color: #333333;
+  --timeline-card-bg: #ffffff;
+  --timeline-card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --timeline-more-media-bg: rgba(0, 123, 255, 0.8);
+  --timeline-more-media-color: #ffffff;
+  --timeline-media-image-bg: rgba(0, 123, 255, 0.12);
+  --timeline-media-image-color: #0056b3;
+  --timeline-media-video-bg: rgba(40, 167, 69, 0.15);
+  --timeline-media-video-color: #1e7e34;
+  --timeline-icon-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
 }
 
 .page-header {
@@ -1159,289 +1086,7 @@ export default {
   object-fit: contain;
 }
 
-.timeline-filter {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  margin-bottom: 50px;
-  align-items: center;
-}
-
-.category-filter-row,
-.media-filter-row {
-  display: flex;
-  gap: 15px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.filter-btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 25px;
-  background: #f0f0f0;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 1rem;
-}
-
-.media-filter-btn {
-  min-width: 90px;
-  font-weight: 600;
-}
-
-.filter-btn.active {
-  background: #007bff;
-  color: white;
-}
-
-.timeline {
-  position: relative;
-  padding: 40px 0;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.timeline::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2px;
-  height: 100%;
-  background: #e0e0e0;
-}
-
-.timeline-item {
-  position: relative;
-  margin-bottom: 80px;
-  width: calc(50% - 50px);
-  margin-left: auto;
-}
-
-.timeline-item:nth-child(even) {
-  margin-left: 0;
-  margin-right: auto;
-}
-
-.timeline-date {
-  position: absolute;
-  top: 10px;
-  right: calc(100% + 24px);
-  padding: 10px 20px;
-  background: #f8f9fa;
-  border-radius: 999px;
-  font-size: 1rem;
-  font-weight: 500;
-  text-align: right;
-  white-space: nowrap;
-  word-break: keep-all;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
-}
-
-.timeline-item:nth-child(even) .timeline-date {
-  right: auto;
-  left: calc(100% + 24px);
-  text-align: left;
-}
-
-.timeline-content {
-  background: white;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.timeline-icon {
-  position: absolute;
-  left: -70px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 50px;
-  height: 50px;
-  background: #007bff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.2rem;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
-}
-
-.timeline-item:nth-child(even) .timeline-icon {
-  left: auto;
-  right: -70px;
-}
-
-.timeline-body h3 {
-  margin: 0 0 15px;
-  font-size: 1.4rem;
-}
-
-.timeline-body p {
-  margin: 0;
-  color: #666;
-  font-size: 1.1rem;
-  line-height: 1.6;
-}
-
-.timeline-image {
-  margin: 20px 0;
-}
-
-.timeline-image img {
-  max-width: 100%;
-  border-radius: 8px;
-}
-
-.memory-image {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.memory-video {
-  background: #000;
-  object-fit: cover;
-}
-
-.media-thumbnail {
-  position: relative;
-}
-
-.video-overlay-indicator {
-  position: absolute;
-  bottom: 6px;
-  right: 6px;
-  background: rgba(0, 123, 255, 0.85);
-  color: #fff;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
-}
-
-.video-overlay-indicator i {
-  margin-left: 2px;
-}
-
-.more-media {
-  background: rgba(0, 123, 255, 0.8);
-  color: white;
-  padding: 8px 12px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  min-width: 40px;
-  text-align: center;
-}
-
-.media-counts {
-  display: flex;
-  gap: 10px;
-  margin-top: 12px;
-  font-size: 0.9rem;
-}
-
-.media-count-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-weight: 600;
-  background: rgba(0, 123, 255, 0.12);
-  color: #0056b3;
-}
-
-.media-count-tag.video {
-  background: rgba(40, 167, 69, 0.15);
-  color: #1e7e34;
-}
-
-.timeline-footer {
-  margin-top: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.location {
-  color: #666;
-  font-size: 1rem;
-}
-
-.location i {
-  margin-right: 8px;
-}
-
-/* 모바일 스타일 */
-@media (max-width: 768px) {
-  .page-header h2 {
-    font-size: 1.5rem;
-  }
-
-  .filter-btn {
-    padding: 6px 12px;
-    font-size: 0.8rem;
-  }
-
-  .timeline::before {
-    left: 20px;
-  }
-
-  .timeline-item,
-  .timeline-item:nth-child(even) {
-    width: calc(100% - 40px);
-    margin-left: 40px;
-    margin-right: 0;
-  }
-
-  .timeline-date,
-  .timeline-item:nth-child(even) .timeline-date {
-    position: relative;
-    left: 0;
-    right: 0;
-    margin-bottom: 10px;
-    display: inline-block;
-    text-align: left;
-    max-width: 100%;
-    white-space: normal;
-    border-radius: 12px;
-    box-shadow: none;
-  }
-
-  .timeline-icon,
-  .timeline-item:nth-child(even) .timeline-icon {
-    left: -40px;
-    right: auto;
-    width: 30px;
-    height: 30px;
-    font-size: 0.8rem;
-  }
-
-  .timeline-content {
-    padding: 15px;
-  }
-
-  .timeline-body h3 {
-    font-size: 1rem;
-  }
-
-  .timeline-body p {
-    font-size: 0.9rem;
-  }
-
-  .location {
-    font-size: 0.8rem;
-  }
-}
+/* Timeline presentation styles are defined in src/styles/timeline.css */
 
 .event-form {
   display: flex;

@@ -60,120 +60,26 @@
     </div>
 
     <!-- 타임라인 필터 -->
-    <div class="timeline-filter">
-      <div class="category-filter-row">
-        <button
-          v-for="category in categories"
-          :key="category.id"
-          :class="['filter-btn', { active: selectedCategory === category.id }]"
-          @click="filterByCategory(category.id)"
-        >
-          <i :class="category.icon"></i>
-          {{ category.name }}
-        </button>
-      </div>
-      <div class="media-filter-row">
-        <button
-          v-for="option in mediaFilterOptions"
-          :key="option.id"
-          :class="['filter-btn', 'media-filter-btn', { active: mediaFilter === option.id }]"
-          @click="setMediaFilter(option.id)"
-        >
-          {{ option.label }}
-        </button>
-      </div>
-    </div>
+    <TimelineFilter
+      :categories="categories"
+      :selected-category="selectedCategory"
+      :media-filter-options="mediaFilterOptions"
+      :media-filter="mediaFilter"
+      @select-category="filterByCategory"
+      @select-media="setMediaFilter"
+    />
 
     <!-- 타임라인 -->
-    <div class="timeline">
-      <div
-        v-for="memory in processedMemories"
-        :key="memory.id"
-        :class="['timeline-item', memory.category]"
-        @click="openMemoryDetail(memory)"
-      >
-        <div class="timeline-date">
-          {{ formatMemoryDate(memory) }}
-        </div>
-        <div class="timeline-content">
-          <div class="timeline-icon">
-            <i :class="getCategoryIcon(memory.category)"></i>
-          </div>
-          <div class="timeline-body">
-            <h3>{{ memory.title }}</h3>
-            <p>{{ memory.description }}</p>
-            <div v-if="memory.processedMedia && memory.processedMedia.length > 0" class="timeline-images">
-              <div class="image-gallery">
-                <template
-                  v-for="media in memory.processedMedia.slice(0, 3)"
-                  :key="media.originalIndex"
-                >
-                  <div
-                    class="media-thumbnail"
-                    :class="{ 'has-video': media.isVideo }"
-                  >
-                    <video
-                      v-if="media.isVideo"
-                      :src="media.url"
-                      class="memory-image memory-video"
-                      muted
-                      loop
-                      playsinline
-                      autoplay
-                      preload="metadata"
-                    ></video>
-                    <img
-                      v-else
-                      :src="media.url"
-                      :alt="memory.title"
-                      @error="handleImageError"
-                      @load="handleImageLoad"
-                      class="memory-image"
-                    />
-                    <span
-                      v-if="media.isVideo && media.originalIndex === memory.firstVideoIndex"
-                      class="video-overlay-indicator"
-                    >
-                      <i class="fas fa-play"></i>
-                    </span>
-                  </div>
-                </template>
-                <div v-if="memory.totalMediaCount > 3" class="more-media">
-                  +{{ memory.totalMediaCount - 3 }}
-                </div>
-              </div>
-              <div class="media-counts">
-                <span
-                  v-if="memory.imageCount"
-                  class="media-count-tag image"
-                >
-                  이미지 {{ memory.imageCount }}
-                </span>
-                <span
-                  v-if="memory.videoCount"
-                  class="media-count-tag video"
-                >
-                  동영상 {{ memory.videoCount }}
-                </span>
-              </div>
-            </div>
-            <div class="timeline-footer">
-              <span class="location" v-if="memory.location">
-                <i class="fas fa-map-marker-alt"></i>
-                {{ memory.location }}
-              </span>
-              <button
-                v-if="canDelete"
-                class="btn btn-sm btn-danger delete-btn"
-                @click.stop="openDeleteModal(memory)"
-              >
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <TimelineList
+      :items="processedMemories"
+      :date-formatter="formatMemoryDate"
+      :category-icon-getter="getCategoryIcon"
+      :allow-delete="canDelete"
+      @select="openMemoryDetail"
+      @delete="openDeleteModal"
+      @image-error="handleImageError"
+      @image-load="handleImageLoad"
+    />
 
     <!-- 추억 생성/수정 모달 -->
     <teleport to="#modal">
@@ -423,6 +329,8 @@ import { ref, computed, onBeforeUpdate } from "vue";
 import { useStore } from "vuex";
 import Modal from "@/components/Modal.vue";
 import DeleteModal from "@/components/DeleteModal.vue";
+import TimelineFilter from "@/components/TimelineFilter.vue";
+import TimelineList from "@/components/TimelineList.vue";
 import { useToast } from "@/composables/toast";
 import axios from "@/axios";
 
@@ -430,6 +338,8 @@ export default {
   components: {
     Modal,
     DeleteModal,
+    TimelineFilter,
+    TimelineList,
   },
   setup() {
     const { showToast } = useToast();
@@ -1225,6 +1135,27 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  --timeline-primary-color: #e91e63;
+  --timeline-line-color: #ffc1cc;
+  --timeline-filter-bg: #f0f0f0;
+  --timeline-filter-color: #333333;
+  --timeline-active-bg: #e91e63;
+  --timeline-active-color: #ffffff;
+  --timeline-date-bg: #fce4ec;
+  --timeline-date-color: #e91e63;
+  --timeline-date-shadow: 0 6px 12px rgba(233, 30, 99, 0.1);
+  --timeline-card-bg: #ffffff;
+  --timeline-card-border: 1px solid #fce4ec;
+  --timeline-card-shadow: 0 4px 12px rgba(233, 30, 99, 0.1);
+  --timeline-heading-color: #e91e63;
+  --timeline-text-color: #666666;
+  --timeline-more-media-bg: rgba(233, 30, 99, 0.8);
+  --timeline-more-media-color: #ffffff;
+  --timeline-media-image-bg: rgba(233, 30, 99, 0.12);
+  --timeline-media-image-color: #c2185b;
+  --timeline-media-video-bg: rgba(233, 30, 99, 0.15);
+  --timeline-media-video-color: #ad1457;
+  --timeline-icon-shadow: 0 2px 8px rgba(233, 30, 99, 0.3);
 }
 
 .page-header {
@@ -1349,162 +1280,17 @@ export default {
   font-weight: 500;
 }
 
-.timeline-filter {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  margin-bottom: 50px;
-  align-items: center;
-}
+/* Timeline presentation styles are defined in src/styles/timeline.css */
 
-.category-filter-row,
-.media-filter-row {
-  display: flex;
-  gap: 15px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
+/* timeline base styles moved to shared stylesheet */
 
-.filter-btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 25px;
-  background: #f0f0f0;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 1rem;
-}
-
-.media-filter-btn {
-  min-width: 90px;
-  font-weight: 600;
-}
-
-.filter-btn.active {
-  background: #e91e63;
-  color: white;
-}
-
-.timeline {
-  position: relative;
-  padding: 40px 0;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.timeline::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2px;
-  height: 100%;
-  background: #ffc1cc;
-}
-
-.timeline-item {
-  position: relative;
-  margin-bottom: 80px;
-  width: calc(50% - 50px);
-  margin-left: auto;
-}
-
-.timeline-item:nth-child(even) {
-  margin-left: 0;
-  margin-right: auto;
-}
-
-.timeline-date {
-  position: absolute;
-  top: 10px;
-  right: calc(100% + 24px);
-  padding: 10px 20px;
-  background: #fce4ec;
-  border-radius: 999px;
-  font-size: 1rem;
-  font-weight: 500;
-  color: #e91e63;
-  text-align: right;
-  white-space: nowrap;
-  word-break: keep-all;
-  box-shadow: 0 6px 12px rgba(233, 30, 99, 0.1);
-}
-
-.timeline-item:nth-child(even) .timeline-date {
-  right: auto;
-  left: calc(100% + 24px);
-  text-align: left;
-}
-
-.timeline-content {
-  background: white;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(233, 30, 99, 0.1);
-  border: 1px solid #fce4ec;
-}
-
-.timeline-icon {
-  position: absolute;
-  left: -70px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 50px;
-  height: 50px;
-  background: #e91e63;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.2rem;
-  box-shadow: 0 2px 8px rgba(233, 30, 99, 0.3);
-}
-
-.timeline-item:nth-child(even) .timeline-icon {
-  left: auto;
-  right: -70px;
-}
-
-.timeline-body h3 {
-  margin: 0 0 15px;
-  font-size: 1.4rem;
-  color: #e91e63;
-}
-
-.timeline-body p {
-  margin: 0;
-  color: #666;
-  font-size: 1.1rem;
-  line-height: 1.6;
+.dating-container :deep(.timeline-body p) {
   white-space: pre-line;
 }
 
-.timeline-image {
-  margin: 20px 0;
-}
-
-.timeline-image img {
-  max-width: 100%;
-  border-radius: 8px;
-}
-
-.timeline-footer {
-  margin-top: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.dating-container :deep(.timeline-footer) {
   flex-wrap: wrap;
   gap: 10px;
-}
-
-.location {
-  color: #666;
-  font-size: 1rem;
-}
-
-.location i {
-  margin-right: 8px;
 }
 
 .memory-tags {
@@ -1576,63 +1362,8 @@ export default {
   .dday-date {
     font-size: 0.75rem;
   }
-
-  .filter-btn {
-    padding: 6px 12px;
-    font-size: 0.8rem;
-  }
-
-  .timeline::before {
-    left: 20px;
-  }
-
-  .timeline-item,
-  .timeline-item:nth-child(even) {
-    width: calc(100% - 40px);
-    margin-left: 40px;
-    margin-right: 0;
-  }
-
-  .timeline-date,
-  .timeline-item:nth-child(even) .timeline-date {
-    position: relative;
-    left: 0;
-    right: 0;
-    margin-bottom: 10px;
-    display: inline-block;
-    text-align: left;
-    max-width: 100%;
-    white-space: normal;
-    border-radius: 12px;
-    box-shadow: none;
-  }
-
-  .timeline-icon,
-  .timeline-item:nth-child(even) .timeline-icon {
-    left: -40px;
-    right: auto;
-    width: 30px;
-    height: 30px;
-    font-size: 0.8rem;
-  }
-
-  .timeline-content {
-    padding: 15px;
-  }
-
-  .timeline-body h3 {
-    font-size: 1rem;
-  }
-
-  .timeline-body p {
-    font-size: 0.9rem;
-  }
-
-  .location {
-    font-size: 0.8rem;
-  }
-
-  .timeline-footer {
+  
+  .dating-container :deep(.timeline-footer) {
     flex-direction: column;
     align-items: flex-start;
   }
