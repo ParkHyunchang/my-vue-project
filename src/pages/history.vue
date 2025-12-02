@@ -27,15 +27,27 @@
 
     <!-- 타임라인 필터 -->
     <div class="timeline-filter">
-      <button
-        v-for="category in categories"
-        :key="category.id"
-        :class="['filter-btn', { active: selectedCategory === category.id }]"
-        @click="filterByCategory(category.id)"
-      >
-        <i :class="category.icon"></i>
-        {{ category.name }}
-      </button>
+      <div class="category-filter-row">
+        <button
+          v-for="category in categories"
+          :key="category.id"
+          :class="['filter-btn', { active: selectedCategory === category.id }]"
+          @click="filterByCategory(category.id)"
+        >
+          <i :class="category.icon"></i>
+          {{ category.name }}
+        </button>
+      </div>
+      <div class="media-filter-row">
+        <button
+          v-for="option in mediaFilterOptions"
+          :key="option.id"
+          :class="['filter-btn', 'media-filter-btn', { active: mediaFilter === option.id }]"
+          @click="setMediaFilter(option.id)"
+        >
+          {{ option.label }}
+        </button>
+      </div>
     </div>
 
     <!-- 타임라인 -->
@@ -56,20 +68,59 @@
           <div class="timeline-body">
             <h3>{{ event.title }}</h3>
             <p>{{ event.description }}</p>
-            <div v-if="event.processedImages && event.processedImages.length > 0" class="timeline-images">
+            <div v-if="event.processedMedia && event.processedMedia.length > 0" class="timeline-images">
               <div class="image-gallery">
-                <img 
-                  v-for="(imageUrl, index) in event.processedImages.slice(0, 3)" 
-                  :key="index"
-                  :src="imageUrl" 
-                  :alt="event.title" 
-                  @error="handleImageError"
-                  @load="handleImageLoad"
-                  class="memory-image"
-                />
-                <div v-if="event.processedImages.length > 3" class="more-images">
-                  +{{ event.processedImages.length - 3 }}
+                <template
+                  v-for="media in event.processedMedia.slice(0, 3)"
+                  :key="media.originalIndex"
+                >
+                  <div
+                    class="media-thumbnail"
+                    :class="{ 'has-video': media.isVideo }"
+                  >
+                    <video
+                      v-if="media.isVideo"
+                      :src="media.url"
+                      class="memory-image memory-video"
+                      muted
+                      loop
+                      playsinline
+                      autoplay
+                      preload="metadata"
+                    ></video>
+                    <img
+                      v-else
+                      :src="media.url"
+                      :alt="event.title"
+                      @error="handleImageError"
+                      @load="handleImageLoad"
+                      class="memory-image"
+                    />
+                    <span
+                      v-if="media.isVideo && media.originalIndex === event.firstVideoIndex"
+                      class="video-overlay-indicator"
+                    >
+                      <i class="fas fa-play"></i>
+                    </span>
+                  </div>
+                </template>
+                <div v-if="event.totalMediaCount > 3" class="more-media">
+                  +{{ event.totalMediaCount - 3 }}
                 </div>
+              </div>
+              <div class="media-counts">
+                <span
+                  v-if="event.imageCount"
+                  class="media-count-tag image"
+                >
+                  이미지 {{ event.imageCount }}
+                </span>
+                <span
+                  v-if="event.videoCount"
+                  class="media-count-tag video"
+                >
+                  동영상 {{ event.videoCount }}
+                </span>
               </div>
             </div>
             <div class="timeline-footer">
@@ -348,6 +399,7 @@ export default {
     const showEventModal = ref(false);
     const isEditing = ref(false);
     const selectedCategory = ref("all");
+    const mediaFilter = ref("all");
     const showDeleteModal = ref(false);
     const eventToDelete = ref(null);
     const uploading = ref(false);
@@ -387,6 +439,12 @@ export default {
       { id: "record", name: "기록", icon: "fas fa-trophy" },
     ];
 
+    const mediaFilterOptions = [
+      { id: "all", label: "전체" },
+      { id: "image", label: "이미지" },
+      { id: "video", label: "동영상" },
+    ];
+
     // 실제 카테고리만 포함하는 배열 (전체 제외)
     const categoryOptions = categories.filter((cat) => cat.id !== "all");
 
@@ -416,13 +474,50 @@ export default {
           return target.includes(query);
         });
       }
-      
-      return eventsToProcess.map(event => ({
-        ...event,
-        processedImages: event.images ? event.images
-          .map(img => getMediaUrl(img))
-          .filter(Boolean) : []
-      }));
+
+      const processed = eventsToProcess.map((event) => {
+        const mediaList = Array.isArray(event.images)
+          ? event.images
+          : event.image
+            ? [event.image]
+            : [];
+
+        const processedMedia = mediaList
+          .map((mediaItem, index) => {
+            const url = getMediaUrl(mediaItem);
+            if (!url) return null;
+            const isVideo = isVideoMedia(mediaItem);
+            return {
+              url,
+              isVideo,
+              originalIndex: index,
+            };
+          })
+          .filter(Boolean);
+
+        const videoCount = processedMedia.filter((media) => media.isVideo).length;
+        const imageCount = processedMedia.length - videoCount;
+        const firstVideo = processedMedia.find((media) => media.isVideo);
+
+        return {
+          ...event,
+          processedMedia,
+          imageCount,
+          videoCount,
+          totalMediaCount: processedMedia.length,
+          firstVideoIndex: firstVideo ? firstVideo.originalIndex : -1,
+        };
+      });
+
+      if (mediaFilter.value === "image") {
+        return processed.filter((event) => event.imageCount > 0);
+      }
+
+      if (mediaFilter.value === "video") {
+        return processed.filter((event) => event.videoCount > 0);
+      }
+
+      return processed;
     });
 
     const fetchEvents = async () => {
@@ -457,6 +552,10 @@ export default {
 
     const applySearch = () => {
       searchQuery.value = searchInput.value.trim();
+    };
+
+    const setMediaFilter = (type) => {
+      mediaFilter.value = type;
     };
 
     const openCreateModal = () => {
@@ -945,6 +1044,8 @@ export default {
       categories,
       categoryOptions,
       selectedCategory,
+      mediaFilter,
+      mediaFilterOptions,
       filteredEvents,
       processedEvents,
       isEditing,
@@ -953,6 +1054,7 @@ export default {
       closeEventModal,
       saveEvent,
       filterByCategory,
+      setMediaFilter,
       formatDate,
       formatEventDate,
       getCategoryIcon,
@@ -1059,8 +1161,16 @@ export default {
 
 .timeline-filter {
   display: flex;
-  gap: 15px;
+  flex-direction: column;
+  gap: 18px;
   margin-bottom: 50px;
+  align-items: center;
+}
+
+.category-filter-row,
+.media-filter-row {
+  display: flex;
+  gap: 15px;
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -1073,6 +1183,11 @@ export default {
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 1rem;
+}
+
+.media-filter-btn {
+  min-width: 90px;
+  font-weight: 600;
 }
 
 .filter-btn.active {
@@ -1185,6 +1300,69 @@ export default {
   height: auto;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.memory-video {
+  background: #000;
+  object-fit: cover;
+}
+
+.media-thumbnail {
+  position: relative;
+}
+
+.video-overlay-indicator {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  background: rgba(0, 123, 255, 0.85);
+  color: #fff;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+}
+
+.video-overlay-indicator i {
+  margin-left: 2px;
+}
+
+.more-media {
+  background: rgba(0, 123, 255, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  min-width: 40px;
+  text-align: center;
+}
+
+.media-counts {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  font-size: 0.9rem;
+}
+
+.media-count-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  background: rgba(0, 123, 255, 0.12);
+  color: #0056b3;
+}
+
+.media-count-tag.video {
+  background: rgba(40, 167, 69, 0.15);
+  color: #1e7e34;
 }
 
 .timeline-footer {
