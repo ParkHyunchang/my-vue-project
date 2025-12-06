@@ -68,13 +68,13 @@ mvn spring-boot:run
 ```bash
 # axios.js 에서 개발, 배포 확인 후
 # my-vue-project 디렉토리에서
+npm run build
 npm run serve
 
 # 포트 확인 명령어
 netstat -ano | findstr :3100
 taskkill /PID 확인한pid숫자작성  /F
 ```
-
 
 ### nas 초기 배포
 
