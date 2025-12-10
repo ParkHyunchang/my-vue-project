@@ -293,6 +293,7 @@ import TimelineFilter from "@/components/TimelineFilter.vue";
 import TimelineList from "@/components/TimelineList.vue";
 import { useToast } from "@/composables/toast";
 import axios from "@/axios";
+import { useUploadLimits } from "@/composables/useUploadLimits";
 
 export default {
   components: {
@@ -303,6 +304,12 @@ export default {
   },
   setup() {
     const { showToast } = useToast();
+    const {
+      maxImageSizeBytes,
+      maxVideoSizeBytes,
+      maxImageLimitLabel,
+      maxVideoLimitLabel,
+    } = useUploadLimits();
     const events = ref([]);
     const searchQuery = ref("");
     const searchInput = ref("");
@@ -337,8 +344,6 @@ export default {
 
     const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"];
     const VIDEO_EXTENSIONS = ["mp4", "mov", "mkv", "webm", "avi", "m4v", "3gp"];
-    const MAX_IMAGE_SIZE = 20 * 1024 * 1024; // 20MB
-    const MAX_VIDEO_SIZE = 200 * 1024 * 1024; // 200MB
 
     const categories = [
       { id: "all", name: "전체", icon: "fas fa-list" },
@@ -870,12 +875,16 @@ export default {
             throw new Error(`${file.name}: 이미지 또는 동영상 파일만 업로드 가능합니다.`);
           }
 
-          if (isImage && file.size > MAX_IMAGE_SIZE) {
-            throw new Error(`${file.name}: 이미지 파일 크기는 20MB 이하여야 합니다.`);
+          if (isImage && file.size > maxImageSizeBytes) {
+            throw new Error(
+              `${file.name}: 이미지 파일 크기는 ${maxImageLimitLabel} 이하여야 합니다.`
+            );
           }
 
-          if (isVideo && file.size > MAX_VIDEO_SIZE) {
-            throw new Error(`${file.name}: 동영상 파일 크기는 200MB 이하여야 합니다.`);
+          if (isVideo && file.size > maxVideoSizeBytes) {
+            throw new Error(
+              `${file.name}: 동영상 파일 크기는 ${maxVideoLimitLabel} 이하여야 합니다.`
+            );
           }
 
           const formData = new FormData();

@@ -333,6 +333,7 @@ import TimelineFilter from "@/components/TimelineFilter.vue";
 import TimelineList from "@/components/TimelineList.vue";
 import { useToast } from "@/composables/toast";
 import axios from "@/axios";
+import { useUploadLimits } from "@/composables/useUploadLimits";
 
 export default {
   components: {
@@ -343,6 +344,12 @@ export default {
   },
   setup() {
     const { showToast } = useToast();
+    const {
+      maxImageSizeBytes,
+      maxVideoSizeBytes,
+      maxImageLimitLabel,
+      maxVideoLimitLabel,
+    } = useUploadLimits();
     const store = useStore();
     const memories = ref([]);
     const searchQuery = ref("");
@@ -365,8 +372,6 @@ export default {
 
     const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"];
     const VIDEO_EXTENSIONS = ["mp4", "mov", "mkv", "webm", "avi", "m4v", "3gp"];
-    const MAX_IMAGE_SIZE = 20 * 1024 * 1024; // 20MB
-    const MAX_VIDEO_SIZE = 200 * 1024 * 1024; // 200MB
 
     const currentMemory = ref({
       title: "",
@@ -413,6 +418,10 @@ export default {
     const canRead = computed(() => store.getters['auth/canRead']('/dating'));
     const canUpdate = computed(() => store.getters['auth/canUpdate']('/dating'));
     const canDelete = computed(() => store.getters['auth/canDelete']('/dating'));
+
+    const hasUploadPermission = computed(() =>
+      isEditing.value ? canUpdate.value : canCreate.value
+    );
 
 
     const fetchMemories = async () => {
@@ -796,7 +805,7 @@ export default {
 
     const triggerFileInput = () => {
       // 수정 권한이 없는 경우 파일 선택을 막음
-      if (!canUpdate.value) {
+      if (!hasUploadPermission.value) {
         showToast("미디어 업로드 권한이 없습니다.", "danger");
         return;
       }
@@ -809,7 +818,7 @@ export default {
       if (!files.length) return;
       
       // 수정 권한이 없는 경우 업로드를 막음
-      if (!canUpdate.value) {
+      if (!hasUploadPermission.value) {
         showToast("미디어 업로드 권한이 없습니다.", "danger");
         return;
       }
@@ -831,7 +840,7 @@ export default {
       
       try {
         const uploadPromises = files.map(async (file) => {
-          // 파일 크기 확인 (20MB 제한)
+          // 파일 크기 확인 (환경 설정 기반)
           const isImage = isImageFile(file);
           const isVideo = isVideoFile(file);
 
@@ -839,12 +848,16 @@ export default {
             throw new Error(`${file.name}: 이미지 또는 동영상 파일만 업로드 가능합니다.`);
           }
 
-          if (isImage && file.size > MAX_IMAGE_SIZE) {
-            throw new Error(`${file.name}: 이미지 파일 크기는 20MB 이하여야 합니다.`);
+          if (isImage && file.size > maxImageSizeBytes) {
+            throw new Error(
+              `${file.name}: 이미지 파일 크기는 ${maxImageLimitLabel} 이하여야 합니다.`
+            );
           }
 
-          if (isVideo && file.size > MAX_VIDEO_SIZE) {
-            throw new Error(`${file.name}: 동영상 파일 크기는 200MB 이하여야 합니다.`);
+          if (isVideo && file.size > maxVideoSizeBytes) {
+            throw new Error(
+              `${file.name}: 동영상 파일 크기는 ${maxVideoLimitLabel} 이하여야 합니다.`
+            );
           }
 
           const formData = new FormData();
@@ -1114,6 +1127,7 @@ export default {
       canRead,
       canUpdate,
       canDelete,
+      hasUploadPermission,
       // 디데이 관련
       firstMeetDate,
       specialDate,
