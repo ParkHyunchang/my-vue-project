@@ -195,6 +195,15 @@
         <option value="title-asc">제목 가나다순</option>
         <option value="title-desc">제목 역순</option>
       </select>
+      <select v-model.number="itemsPerPage" @change="changeItemsPerPage" class="filter-select items-per-page-select">
+        <option
+          v-for="option in itemsPerPageOptions"
+          :key="option"
+          :value="option"
+        >
+          {{ option }}개씩 보기
+        </option>
+      </select>
     </div>
 
     <div v-if="loading" class="loading">
@@ -352,21 +361,20 @@
                 <option value="EXPENSE">지출</option>
               </select>
             </div>
-            <div class="form-group">
+            <div class="form-group category-group">
               <label>카테고리</label>
-              <select
-                v-model="currentExpense.category"
-                class="form-control"
-                required
-              >
-                <option
+              <div class="category-grid">
+                <button
+                  type="button"
                   v-for="category in formCategoryOptions"
                   :key="category"
-                  :value="category"
+                  :class="['category-option', { active: currentExpense.category === category }]"
+                  @click="currentExpense.category = category"
                 >
                   {{ category }}
-                </option>
-              </select>
+                </button>
+              </div>
+              <input type="hidden" :value="currentExpense.category" required>
             </div>
             <div
               v-if="currentExpense.type === 'EXPENSE'"
@@ -387,28 +395,24 @@
         </template>
         <template #footer>
           <div class="modal-footer-buttons">
-            <div>
-              <button
-                type="button"
-                class="btn btn-danger"
-                @click="openDeleteModal(currentExpense)"
-                v-if="isEditing"
-              >
-                삭제
-              </button>
-            </div>
-            <div>
-              <button
-                type="button"
-                class="btn btn-secondary"
-                @click="closeExpenseModal"
-              >
-                취소
-              </button>
-              <button type="button" class="btn btn-primary" @click="saveExpense">
-                {{ isEditing ? '수정' : '저장' }}
-              </button>
-            </div>
+            <button type="button" class="btn btn-primary" @click="saveExpense">
+              {{ isEditing ? '수정' : '저장' }}
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              @click="openDeleteModal(currentExpense)"
+              v-if="isEditing"
+            >
+              삭제
+            </button>
+            <!-- <button
+              type="button"
+              class="btn btn-primary"
+              @click="closeExpenseModal"
+            >
+              취소
+            </button> -->
           </div>
         </template>
       </Modal>
@@ -520,7 +524,9 @@ export default {
     ];
 
     const currentPage = ref(1);
-    const itemsPerPage = ref(5);
+    const defaultItemsPerPage = typeof window !== 'undefined' && window.innerWidth <= 768 ? 5 : 10;
+    const itemsPerPage = ref(defaultItemsPerPage);
+    const itemsPerPageOptions = [5, 10, 20];
     const pageInput = ref(1);
     const pageInputError = ref(false);
 
@@ -945,6 +951,12 @@ export default {
       pageInputError.value = false;
     };
 
+    const changeItemsPerPage = () => {
+      currentPage.value = 1;
+      pageInput.value = 1;
+      pageInputError.value = false;
+    };
+
     const setViewMode = (mode) => {
       viewMode.value = mode;
       currentPage.value = 1;
@@ -1096,6 +1108,7 @@ export default {
       dateRangeError,
       currentPage,
       itemsPerPage,
+      itemsPerPageOptions,
       pageInput,
       pageInputError,
       showDeleteModal,
@@ -1118,6 +1131,7 @@ export default {
       deleteExpense,
       filterExpenses,
       sortExpenses,
+      changeItemsPerPage,
       setPeriod,
       setViewMode,
       goToPage,
@@ -1699,10 +1713,40 @@ export default {
   color: #333;
 }
 
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.category-option {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  color: #333;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.category-option:hover {
+  border-color: #007bff;
+  background: #f0f5ff;
+}
+
+.category-option.active {
+  border-color: #007bff;
+  background: #007bff;
+  color: #fff;
+  font-weight: 600;
+}
+
 .modal-footer-buttons {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+  gap: 12px;
 }
 
 @media (max-width: 768px) {
@@ -1816,6 +1860,10 @@ export default {
   
   .form-group label {
     font-size: 14px;
+  }
+
+  .category-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   
   /* 모바일에서 버튼 크기 조정 */
