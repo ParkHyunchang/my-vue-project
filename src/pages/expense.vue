@@ -362,7 +362,7 @@
         <template #body>
           <form @submit.prevent="saveExpense" class="expense-form">
             <div class="form-group">
-              <label>제목</label>
+              <label>내역</label>
               <input
                 v-model="currentExpense.title"
                 type="text"
@@ -371,12 +371,16 @@
               />
             </div>
             <div class="form-group">
-              <label>설명</label>
-              <textarea
-                v-model="currentExpense.description"
+              <label>날짜</label>
+              <input
+                v-model="currentExpense.date"
+                type="date"
                 class="form-control"
-                rows="3"
-              ></textarea>
+                required
+              />
+              <span v-if="currentExpense.fixed" class="form-hint">
+                고정 지출은 선택한 날짜 기준으로 매달 자동 등록됩니다.
+              </span>
             </div>
             <div class="form-group">
               <label>금액</label>
@@ -489,6 +493,20 @@ const buildMonthRange = (year, month) => {
     startDate: `${year}-${monthString}-01T00:00:00`,
     endDate: `${year}-${monthString}-${dayString}T23:59:59`
   };
+};
+
+const formatDateInputValue = (value) => {
+  if (!value) {
+    return '';
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 const buildCreatedAtForImport = (expense, targetDate) => {
@@ -612,12 +630,14 @@ export default {
     ];
 
     const currentExpense = ref({
+      id: undefined,
       title: '',
-      description: '',
       amount: null,
       category: expenseCategories[0],
       type: 'EXPENSE',
-      fixed: false
+      fixed: false,
+      date: formatDateInputValue(new Date()),
+      description: ''
     });
 
     const periodFilter = ref('current-month');
@@ -899,18 +919,39 @@ export default {
 
     const resetForm = () => {
       currentExpense.value = {
+        id: undefined,
         title: '',
-        description: '',
         amount: null,
         category: expenseCategories[0],
         type: 'EXPENSE',
-        fixed: false
+        fixed: false,
+        date: formatDateInputValue(new Date()),
+        description: ''
       };
+    };
+
+    const computeDefaultDateForCurrentPeriod = () => {
+      if (periodFilter.value === 'previous-month') {
+        const previous = new Date();
+        previous.setMonth(previous.getMonth() - 1);
+        return formatDateInputValue(previous);
+      }
+      if (periodFilter.value === 'custom-month' && selectedMonth.value) {
+        const [year, month] = selectedMonth.value.split('-');
+        if (year && month) {
+          return `${year}-${month}-01`;
+        }
+      }
+      if (periodFilter.value === 'custom-range' && customStartDate.value) {
+        return customStartDate.value;
+      }
+      return formatDateInputValue(new Date());
     };
 
     const openCreateModal = () => {
       isEditing.value = false;
       resetForm();
+      currentExpense.value.date = computeDefaultDateForCurrentPeriod();
       showExpenseModal.value = true;
     };
 
@@ -920,6 +961,7 @@ export default {
       currentExpense.value.type = 'EXPENSE';
       currentExpense.value.fixed = true;
       currentExpense.value.category = '주거비';
+      currentExpense.value.date = computeDefaultDateForCurrentPeriod();
       showExpenseModal.value = true;
     };
 
@@ -983,7 +1025,8 @@ export default {
         amount: expense.amount,
         category: expense.category,
         type: expense.type,
-        fixed: !!expense.fixed
+        fixed: !!expense.fixed,
+        date: formatDateInputValue(expense.createdAt)
       };
       showExpenseModal.value = true;
     };
@@ -994,14 +1037,19 @@ export default {
     };
 
     const saveExpense = async () => {
+      const { date, ...rest } = currentExpense.value;
       const payload = {
-        ...currentExpense.value,
+        ...rest,
         amount: Number(currentExpense.value.amount)
       };
 
       if (Number.isNaN(payload.amount)) {
         showToast('금액을 확인해주세요.', 'danger');
         return;
+      }
+
+      if (date) {
+        payload.createdAt = `${date}T00:00:00`;
       }
 
       try {
@@ -1302,6 +1350,7 @@ export default {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+  margin-bottom: 12px;
 }
 
 .top-action-buttons .btn {
@@ -1311,7 +1360,7 @@ export default {
 .period-section {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
   margin-bottom: 0;
 }
 
@@ -1319,27 +1368,33 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  justify-content: flex-start;
 }
 
 .period-button {
-  padding: 8px 14px;
-  border: 1px solid #ddd;
-  background: #fff;
-  border-radius: 6px;
-  color: #333;
+  padding: 10px 18px;
+  border: 1px solid #d0d7ff;
+  background: #ffffff;
+  border-radius: 999px;
+  color: #3b4cc0;
   cursor: pointer;
   transition: all 0.2s ease;
+  font-weight: 600;
+  min-width: 110px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(59, 76, 192, 0.1);
 }
 
 .period-button:hover {
-  background: #f0f5ff;
-  border-color: #007bff;
+  background: #eef1ff;
+  border-color: #3b4cc0;
 }
 
 .period-button.active {
-  background: #007bff;
+  background: #3b4cc0;
   color: #fff;
-  border-color: #007bff;
+  border-color: #3b4cc0;
+  box-shadow: 0 3px 6px rgba(59, 76, 192, 0.3);
 }
 
 .period-inputs {
@@ -1958,8 +2013,10 @@ export default {
   }
 
   .period-buttons {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     justify-content: center;
+    gap: 6px;
   }
 
   .range-fields {
@@ -1994,7 +2051,8 @@ export default {
   .top-action-buttons {
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    gap: 12px;
+    margin-bottom: 20px;
   }
 
   .top-action-buttons .btn {
