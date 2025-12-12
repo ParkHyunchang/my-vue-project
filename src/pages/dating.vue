@@ -1300,10 +1300,7 @@ export default {
   font-weight: 500;
 }
 
-/* Timeline presentation styles are defined in src/styles/timeline.css */
-
-/* timeline base styles moved to shared stylesheet */
-
+/* 타임라인에서도 설명 줄바꿈이 유지되도록 */
 .dating-container :deep(.timeline-body p) {
   white-space: pre-line;
 }

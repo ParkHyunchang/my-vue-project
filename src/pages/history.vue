@@ -1101,7 +1101,10 @@ export default {
   object-fit: contain;
 }
 
-/* Timeline presentation styles are defined in src/styles/timeline.css */
+/* 타임라인에서도 설명 줄바꿈이 유지되도록 */
+.history-container :deep(.timeline-body p) {
+  white-space: pre-line;
+}
 
 .event-form {
   display: flex;
