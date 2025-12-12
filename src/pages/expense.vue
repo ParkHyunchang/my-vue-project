@@ -2,83 +2,6 @@
   <div class="expense-container">
     <div class="page-header">
       <h2>가계부</h2>
-      <div class="header-actions">
-        <button class="btn btn-secondary" @click="openCreateFixedModal">
-          + 고정 지출 추가
-        </button>
-        <button class="btn btn-primary" @click="openCreateModal">
-          + 새 항목 추가
-        </button>
-      </div>
-    </div>
-
-    <div class="period-section">
-      <div class="period-buttons">
-        <button
-          :class="['period-button', { active: periodFilter === 'current-month' }]"
-          @click="setPeriod('current-month')"
-        >
-          이번 달
-        </button>
-        <button
-          :class="['period-button', { active: periodFilter === 'previous-month' }]"
-          @click="setPeriod('previous-month')"
-        >
-          지난 달
-        </button>
-        <button
-          :class="['period-button', { active: periodFilter === 'custom-month' }]"
-          @click="setPeriod('custom-month')"
-        >
-          달 선택
-        </button>
-        <button
-          :class="['period-button', { active: periodFilter === 'custom-range' }]"
-          @click="setPeriod('custom-range')"
-        >
-          기간 선택
-        </button>
-        <button
-          :class="['period-button', { active: periodFilter === 'all' }]"
-          @click="setPeriod('all')"
-        >
-          전체
-        </button>
-      </div>
-
-      <div v-if="periodFilter === 'custom-month'" class="period-inputs">
-        <label class="period-label-text" for="periodMonth">조회할 달</label>
-        <input
-          id="periodMonth"
-          type="month"
-          v-model="selectedMonth"
-          class="period-input"
-        />
-      </div>
-
-      <div v-if="periodFilter === 'custom-range'" class="period-inputs range-inputs">
-        <label class="period-label-text">조회 기간</label>
-        <div class="range-fields">
-          <input
-            type="date"
-            v-model="customStartDate"
-            class="period-input"
-          />
-          <span class="range-separator">~</span>
-          <input
-            type="date"
-            v-model="customEndDate"
-            class="period-input"
-          />
-        </div>
-      </div>
-
-      <div v-if="periodLabel" class="period-label">
-        {{ periodLabel }}
-      </div>
-      <div v-if="dateRangeError" class="period-error">
-        {{ dateRangeError }}
-      </div>
     </div>
 
     <div class="summary-cards">
@@ -100,60 +23,175 @@
       </div>
     </div>
 
-    <div class="fixed-section">
-      <div class="section-header">
-        <div>
-          <h3>고정 지출 관리</h3>
-          <p class="section-subtitle">
-            매달 반복되는 지출을 별도로 기록하고 확인하세요.
-          </p>
+    <div class="filter-toolbar">
+      <div class="period-section">
+        <div class="period-buttons">
+          <button
+            :class="['period-button', { active: periodFilter === 'current-month' }]"
+            @click="setPeriod('current-month')"
+          >
+            이번 달
+          </button>
+          <button
+            :class="['period-button', { active: periodFilter === 'previous-month' }]"
+            @click="setPeriod('previous-month')"
+          >
+            지난 달
+          </button>
+          <button
+            :class="['period-button', { active: periodFilter === 'custom-month' }]"
+            @click="setPeriod('custom-month')"
+          >
+            달 선택
+          </button>
+          <button
+            :class="['period-button', { active: periodFilter === 'custom-range' }]"
+            @click="setPeriod('custom-range')"
+          >
+            기간 선택
+          </button>
+          <button
+            :class="['period-button', { active: periodFilter === 'all' }]"
+            @click="setPeriod('all')"
+          >
+            전체
+          </button>
         </div>
-        <button class="btn btn-secondary" @click="openCreateFixedModal">
-          + 고정 지출 추가
+
+        <div v-if="periodFilter === 'custom-month'" class="period-inputs">
+          <label class="period-label-text" for="periodMonth">조회할 달</label>
+          <input
+            id="periodMonth"
+            type="month"
+            v-model="selectedMonth"
+            class="period-input"
+          />
+        </div>
+
+        <div v-if="periodFilter === 'custom-range'" class="period-inputs range-inputs">
+          <label class="period-label-text">조회 기간</label>
+          <div class="range-fields">
+            <input
+              type="date"
+              v-model="customStartDate"
+              class="period-input"
+            />
+            <span class="range-separator">~</span>
+            <input
+              type="date"
+              v-model="customEndDate"
+              class="period-input"
+            />
+          </div>
+        </div>
+
+        <div v-if="periodLabel" class="period-label">
+          {{ periodLabel }}
+        </div>
+        <div v-if="dateRangeError" class="period-error">
+          {{ dateRangeError }}
+        </div>
+      </div>
+
+      <div class="top-action-buttons">
+        <button
+          class="btn btn-primary"
+          @click="importFixedExpenses"
+          :disabled="isImportingFixed || fixedExpenses.length === 0 || !canImportToCurrentView"
+          :title="canImportToCurrentView ? '' : '현재 선택한 기간에는 고정 지출을 일괄 추가할 수 없습니다.'"
+        >
+          <span v-if="isImportingFixed">추가 중...</span>
+          <span v-else>{{ importButtonLabel }}</span>
+        </button>
+        <button class="btn btn-primary" @click="openCreateModal">
+          + 새 항목 추가
         </button>
       </div>
-      <div v-if="fixedLoading" class="fixed-loading">
-        고정 지출을 불러오는 중입니다...
+    </div>
+
+    <div class="fixed-section" :class="{ collapsed: fixedCollapsed }">
+      <div class="section-header">
+        <div class="section-header-left">
+          <div>
+            <h3>고정 지출 관리</h3>
+            <p class="section-subtitle">
+              매달 반복되는 지출을 별도로 기록하고 확인하세요.
+            </p>
+          </div>
+        </div>
+        <div class="section-actions">
+          <div class="fixed-summary compact-summary">
+            <span>총 {{ fixedExpenses.length }}건</span>
+            <span>합계 {{ formatCurrency(fixedExpensesTotal) }}원</span>
+          </div>
+          <button
+            type="button"
+            class="collapse-toggle"
+            @click="toggleFixedSection"
+            :aria-expanded="!fixedCollapsed"
+          >
+            <span>{{ fixedCollapsed ? '열기' : '접기' }}</span>
+            <span class="collapse-icon">{{ fixedCollapsed ? '＋' : '－' }}</span>
+          </button>
+          <button class="btn btn-secondary" @click="openCreateFixedModal">
+            + 고정 지출 추가
+          </button>
+        </div>
+      </div>
+      <div v-if="fixedCollapsed" class="fixed-collapsed-summary">
+        총 {{ fixedExpenses.length }}건 · 합계 {{ formatCurrency(fixedExpensesTotal) }}원
       </div>
       <div v-else>
-        <div v-if="fixedExpenses.length === 0" class="empty-state">
-          등록된 고정 지출이 없습니다.
-        </div>
-        <div v-else>
+        <div class="fixed-toolbar">
           <div class="fixed-summary">
             <span>총 {{ fixedExpenses.length }}건</span>
             <span>합계 {{ formatCurrency(fixedExpensesTotal) }}원</span>
           </div>
-          <div class="fixed-list">
-            <div
-              v-for="expense in fixedExpenses"
-              :key="expense.id"
-              class="fixed-item"
-            >
-              <div class="fixed-item-main">
-                <div class="fixed-item-title">
-                  <h4>{{ expense.title }}</h4>
-                  <span class="badge badge-fixed">고정</span>
-                </div>
-                <p v-if="expense.description" class="description">
-                  {{ expense.description }}
-                </p>
-                <div class="meta">
-                  <span class="category">{{ expense.category }}</span>
-                  <span class="date">{{ formatDate(expense.createdAt) }}</span>
-                </div>
+          <button
+            class="btn btn-primary"
+            @click="importFixedExpenses"
+            :disabled="isImportingFixed || fixedExpenses.length === 0 || !canImportToCurrentView"
+            :title="canImportToCurrentView ? '' : '현재 선택한 기간에는 고정 지출을 일괄 추가할 수 없습니다.'"
+          >
+            <span v-if="isImportingFixed">추가 중...</span>
+            <span v-else>{{ importButtonLabel }}</span>
+          </button>
+        </div>
+        <div v-if="fixedLoading" class="fixed-loading">
+          고정 지출을 불러오는 중입니다...
+        </div>
+        <div v-else-if="fixedExpenses.length === 0" class="empty-state">
+          등록된 고정 지출이 없습니다.
+        </div>
+        <div v-else class="fixed-list">
+          <div
+            v-for="expense in fixedExpenses"
+            :key="expense.id"
+            class="fixed-item"
+          >
+            <div class="fixed-item-main">
+              <div class="fixed-item-title">
+                <h4>{{ expense.title }}</h4>
+                <span class="badge badge-fixed">고정</span>
               </div>
-              <div class="fixed-item-amount">
-                - {{ formatCurrency(expense.amount) }}원
+              <p v-if="expense.description" class="description">
+                {{ expense.description }}
+              </p>
+              <div class="meta">
+                <span class="category">{{ expense.category }}</span>
+                <span class="date">{{ formatDate(expense.createdAt) }}</span>
               </div>
-              <div class="fixed-item-actions">
-                <button @click="openEditModal(expense)" class="btn btn-sm btn-primary">
-                  수정
-                </button>
-                <button @click="openDeleteModal(expense)" class="btn btn-sm btn-danger">
-                  삭제
-                </button>
-              </div>
+            </div>
+            <div class="fixed-item-amount">
+              - {{ formatCurrency(expense.amount) }}원
+            </div>
+            <div class="fixed-item-actions">
+              <button @click="openEditModal(expense)" class="btn btn-sm btn-primary">
+                수정
+              </button>
+              <button @click="openDeleteModal(expense)" class="btn btn-sm btn-danger">
+                삭제
+              </button>
             </div>
           </div>
         </div>
@@ -406,13 +444,13 @@
             >
               삭제
             </button>
-            <!-- <button
+            <button
               type="button"
               class="btn btn-primary"
               @click="closeExpenseModal"
             >
               취소
-            </button> -->
+            </button>
           </div>
         </template>
       </Modal>
@@ -451,6 +489,25 @@ const buildMonthRange = (year, month) => {
     startDate: `${year}-${monthString}-01T00:00:00`,
     endDate: `${year}-${monthString}-${dayString}T23:59:59`
   };
+};
+
+const buildCreatedAtForImport = (expense, targetDate) => {
+  const year = targetDate.getFullYear();
+  const month = targetDate.getMonth();
+  let day = 1;
+
+  if (expense.createdAt) {
+    const sourceDate = new Date(expense.createdAt);
+    if (!Number.isNaN(sourceDate.getTime())) {
+      day = sourceDate.getDate();
+    }
+  }
+
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const safeDay = Math.min(day, lastDay);
+  const monthString = String(month + 1).padStart(2, '0');
+  const dayString = String(safeDay).padStart(2, '0');
+  return `${year}-${monthString}-${dayString}T00:00:00`;
 };
 
 const formatDateTimeForBoundary = (dateString, boundary) => {
@@ -498,6 +555,8 @@ export default {
 
     const expenses = ref([]);
     const fixedExpenses = ref([]);
+    const fixedCollapsed = ref(true);
+    const isImportingFixed = ref(false);
     const summary = ref({
       totalIncome: 0,
       totalExpense: 0,
@@ -567,6 +626,17 @@ export default {
     const customEndDate = ref('');
     const dateRangeError = ref('');
     const totalRecords = ref(0);
+
+    const canImportToCurrentView = computed(() => ['current-month', 'previous-month'].includes(periodFilter.value));
+
+    const importButtonLabel = computed(() => {
+      if (!canImportToCurrentView.value) {
+        return '선택된 기간에 추가할 수 없습니다';
+      }
+      return periodFilter.value === 'previous-month'
+        ? '지난 달에 고정 지출 추가'
+        : '이번 달에 고정 지출 추가';
+    });
 
     const categoryFilterOptions = computed(() => {
       if (selectedType.value === 'INCOME') {
@@ -853,6 +923,57 @@ export default {
       showExpenseModal.value = true;
     };
 
+    const toggleFixedSection = () => {
+      fixedCollapsed.value = !fixedCollapsed.value;
+    };
+
+    const importFixedExpenses = async () => {
+      if (fixedExpenses.value.length === 0 || isImportingFixed.value) {
+        return;
+      }
+
+      if (!canImportToCurrentView.value) {
+        showToast('현재 선택한 기간에는 고정 지출을 일괄 추가할 수 없습니다.', 'warning');
+        return;
+      }
+
+      isImportingFixed.value = true;
+      showToast('고정 지출을 추가하고 있습니다...', 'info');
+
+      const targetDate = new Date();
+      if (periodFilter.value === 'previous-month') {
+        targetDate.setMonth(targetDate.getMonth() - 1);
+      }
+      targetDate.setDate(1);
+      targetDate.setHours(0, 0, 0, 0);
+
+      const successMessage = periodFilter.value === 'previous-month'
+        ? '지난 달에 고정 지출 항목을 추가했습니다.'
+        : '이번 달에 고정 지출 항목을 추가했습니다.';
+
+      try {
+        const payloads = fixedExpenses.value.map((expense) => ({
+          title: expense.title,
+          description: expense.description,
+          amount: expense.amount,
+          category: expense.category,
+          type: 'EXPENSE',
+          fixed: false,
+          createdAt: buildCreatedAtForImport(expense, targetDate)
+        }));
+
+        await Promise.all(payloads.map((payload) => axios.post('/expenses', payload)));
+        await loadExpensesForCurrentPeriod();
+        showToast(successMessage, 'success');
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Error importing fixed expenses:', err);
+        showToast('고정 지출 항목 추가에 실패했습니다.', 'danger');
+      } finally {
+        isImportingFixed.value = false;
+      }
+    };
+
     const openEditModal = (expense) => {
       isEditing.value = true;
       currentExpense.value = {
@@ -1092,6 +1213,10 @@ export default {
       summary,
       fixedExpenses,
       fixedExpensesForPeriod,
+      fixedCollapsed,
+      isImportingFixed,
+      canImportToCurrentView,
+      importButtonLabel,
       currentPeriodSummary,
       fixedExpensesTotal,
       showExpenseModal,
@@ -1131,6 +1256,8 @@ export default {
       deleteExpense,
       filterExpenses,
       sortExpenses,
+      toggleFixedSection,
+      importFixedExpenses,
       changeItemsPerPage,
       setPeriod,
       setViewMode,
@@ -1154,9 +1281,6 @@ export default {
 }
 
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 30px;
 }
 
@@ -1165,22 +1289,30 @@ export default {
   color: #333;
 }
 
-.header-actions {
+.filter-toolbar {
   display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 30px 0;
+}
+
+.top-action-buttons {
+  display: flex;
+  justify-content: flex-end;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }
 
-.header-actions .btn {
-  min-width: 140px;
+.top-action-buttons .btn {
+  min-width: 160px;
 }
 
 .period-section {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  margin-bottom: 25px;
+  margin-bottom: 0;
 }
 
 .period-buttons {
@@ -1310,11 +1442,64 @@ export default {
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 30px;
+  transition: all 0.3s ease;
 }
 
 .section-header {
   display: flex;
   align-items: center;
+.collapse-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: 1px solid #d0d7ff;
+  background: #fff;
+  color: #4b5fd4;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.collapse-toggle:hover {
+  background: #EEF1FF;
+}
+
+.collapse-icon {
+  font-size: 16px;
+}
+
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fixed-collapsed-summary {
+  margin-top: 15px;
+  padding: 12px 15px;
+  border-radius: 10px;
+  background: rgba(224, 231, 255, 0.6);
+  color: #3b4cc0;
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+}
+
+.fixed-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.compact-summary {
+  display: none;
+}
+
   justify-content: space-between;
   gap: 15px;
   margin-bottom: 15px;
@@ -1397,6 +1582,15 @@ export default {
 .fixed-item-actions {
   display: flex;
   gap: 8px;
+}
+
+.fixed-section.collapsed .fixed-list,
+.fixed-section.collapsed .fixed-toolbar {
+  display: none;
+}
+
+.fixed-section.collapsed .section-subtitle {
+  display: none;
 }
 
 .view-mode-toggle {
@@ -1754,23 +1948,17 @@ export default {
     padding: 10px;
   }
   
-  .page-header {
-    flex-direction: column;
-    gap: 15px;
-    align-items: stretch;
-  }
-
-  .header-actions {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-  
   .page-header h2 {
     font-size: 24px;
   }
 
+  .filter-toolbar {
+    gap: 15px;
+    margin: 20px 0;
+  }
+
   .period-buttons {
+    flex-direction: column;
     justify-content: center;
   }
 
@@ -1800,6 +1988,17 @@ export default {
   .filters {
     flex-direction: column;
     gap: 10px;
+    width: 100%;
+  }
+
+  .top-action-buttons {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .top-action-buttons .btn {
+    width: 100%;
   }
 
   .view-mode-toggle {
@@ -1837,6 +2036,29 @@ export default {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
+  }
+
+  .collapse-toggle {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .section-actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .fixed-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .compact-summary {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 14px;
   }
 
   .fixed-item {
