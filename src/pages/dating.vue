@@ -325,7 +325,7 @@
 </template>
 
 <script>
-import { ref, computed, onBeforeUpdate } from "vue";
+import { ref, computed, onBeforeUpdate, onMounted, onUnmounted } from "vue";
 import { useStore } from "vuex";
 import Modal from "@/components/Modal.vue";
 import DeleteModal from "@/components/DeleteModal.vue";
@@ -369,6 +369,74 @@ export default {
     onBeforeUpdate(() => {
       previewVideos.value = [];
     });
+
+    // D-day가 자정이 지나면 자동 갱신되도록 현재 시간을 반응형으로 유지
+    const nowTick = ref(Date.now());
+    let nowTimer = null;
+    let handleVisibilityChange = null;
+
+    onMounted(() => {
+      const scheduleNextMidnightTick = () => {
+        // 로컬 기준 다음 자정(00:00:00.000)까지 남은 시간만큼만 대기
+        const now = new Date();
+        const nextMidnight = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate() + 1,
+          0,
+          0,
+          0,
+          0
+        );
+        const targetTime = nextMidnight.getTime();
+        const msUntilNextMidnight = targetTime - now.getTime();
+
+        nowTimer = setTimeout(() => {
+          // 드물게(클럭 변경/타이머 특이케이스) 자정 전에 호출되면 남은 시간만큼만 재대기
+          const nowMs = Date.now();
+          if (nowMs < targetTime) {
+            nowTimer = setTimeout(() => {
+              nowTick.value = Date.now();
+              scheduleNextMidnightTick();
+            }, Math.max(0, targetTime - Date.now()));
+            return;
+          }
+
+          nowTick.value = nowMs;
+          scheduleNextMidnightTick();
+        }, Math.max(0, msUntilNextMidnight));
+      };
+
+      handleVisibilityChange = () => {
+        // 탭이 백그라운드였다가 돌아오면(자정 경계 포함) 즉시 갱신
+        if (!document.hidden) nowTick.value = Date.now();
+      };
+
+      scheduleNextMidnightTick();
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+    });
+
+    onUnmounted(() => {
+      if (nowTimer) clearTimeout(nowTimer);
+      if (handleVisibilityChange) {
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+        handleVisibilityChange = null;
+      }
+    });
+
+    const toLocalMidnight = (d) => {
+      const x = new Date(d);
+      x.setHours(0, 0, 0, 0);
+      return x;
+    };
+
+    // "YYYY-MM-DD" 문자열을 로컬 자정으로 파싱(UTC 해석으로 인한 날짜 밀림 방지)
+    const parseYmdLocalMidnight = (v) => {
+      if (!v) return null;
+      const s = String(v);
+      const d = s.length === 10 ? new Date(`${s}T00:00:00`) : new Date(s);
+      return toLocalMidnight(d);
+    };
 
     const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"];
     const VIDEO_EXTENSIONS = ["mp4", "mov", "mkv", "webm", "avi", "m4v", "3gp"];
@@ -696,7 +764,8 @@ export default {
     };
 
     const formatDate = (date) => {
-      return new Date(date).toLocaleDateString("ko-KR", {
+      const d = parseYmdLocalMidnight(date);
+      return d.toLocaleDateString("ko-KR", {
         year: "numeric",
         month: "long",
         day: "numeric",
@@ -971,8 +1040,8 @@ export default {
 
     const firstMeetDays = computed(() => {
       if (!firstMeetDate.value) return 0;
-      const today = new Date();
-      const firstMeet = new Date(firstMeetDate.value);
+      const today = toLocalMidnight(new Date(nowTick.value));
+      const firstMeet = parseYmdLocalMidnight(firstMeetDate.value);
       const diffTime = today - firstMeet;
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
       return diffDays;
@@ -980,8 +1049,8 @@ export default {
 
     const specialDays = computed(() => {
       if (!specialDate.value) return 0;
-      const today = new Date();
-      const special = new Date(specialDate.value);
+      const today = toLocalMidnight(new Date(nowTick.value));
+      const special = parseYmdLocalMidnight(specialDate.value);
       const diffTime = today - special;
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
       return diffDays;
