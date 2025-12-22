@@ -64,7 +64,8 @@
     padding: 12px 16px;
     font-size: 16px;
     line-height: 1.5;
-    color: #495057;
+    color: #000;
+    -webkit-text-fill-color: #000; /* 일부 모바일(WebKit)에서 텍스트가 회색으로 렌더링되는 케이스 보정 */
     background-color: #fff;
     border: 1px solid #ced4da;
     border-radius: 6px;
@@ -74,7 +75,8 @@
 }
 
 .form-control:focus {
-    color: #495057;
+    color: #000;
+    -webkit-text-fill-color: #000;
     background-color: #fff;
     border-color: #80bdff;
     outline: 0;
@@ -84,6 +86,13 @@
 .form-control::placeholder {
     color: #6c757d;
     opacity: 1;
+}
+
+/* 자동완성(autofill)로 글씨가 연하게 바뀌는 케이스 보정 (주로 WebKit) */
+.form-control:-webkit-autofill,
+.form-control:-webkit-autofill:hover,
+.form-control:-webkit-autofill:focus {
+    -webkit-text-fill-color: #000;
 }
 
 /* 드롭다운 스타일 */
@@ -128,12 +137,14 @@ select.form-control {
         background-color: #2b2b2b;
         border-color: #444;
         color: #e0e0e0;
+        -webkit-text-fill-color: #e0e0e0;
     }
     
     .form-control:focus {
         background-color: #2b2b2b;
         border-color: #007bff;
         color: #e0e0e0;
+        -webkit-text-fill-color: #e0e0e0;
     }
     
     .form-control::placeholder {
@@ -143,5 +154,11 @@ select.form-control {
     select.form-control option {
         background-color: #2b2b2b;
         color: #e0e0e0;
+    }
+
+    .form-control:-webkit-autofill,
+    .form-control:-webkit-autofill:hover,
+    .form-control:-webkit-autofill:focus {
+        -webkit-text-fill-color: #e0e0e0;
     }
 } 
