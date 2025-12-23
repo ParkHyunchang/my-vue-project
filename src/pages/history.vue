@@ -1,54 +1,69 @@
 <template>
   <div class="history-container">
-    <div class="page-header">
-      <h2>My History</h2>
-      <button class="btn btn-primary" @click="openCreateModal">
-        Add New Event
-      </button>
-    </div>
+    <!--
+      모바일 파일 업로드(파일 선택창) 복귀 시 대형 DOM(타임라인/필터/리스트)이 함께 리페인트되면
+      모달 오버레이가 순간 흔들리며 "팝업↔메인"처럼 깜빡이는 체감이 생길 수 있음.
+      모달이 떠있는 동안에는 배경 컨텐츠를 숨겨 페인트 자체를 줄여 안정화.
+    -->
+    <div class="history-page-content" v-show="!showEventModal">
+      <div class="page-header">
+        <h2>My History</h2>
+        <button class="btn btn-primary" @click="openCreateModal">
+          Add New Event
+        </button>
+      </div>
 
-    <form class="search-bar" @submit.prevent="applySearch">
-      <input
-        v-model="searchInput"
-        type="text"
-        class="search-input"
-        placeholder="제목, 설명, 장소 검색"
-        aria-label="History search"
-        autocomplete="off"
-      />
-      <button type="submit" class="search-submit" aria-label="검색 실행">
-        <img
-          src="@/assets/img/btn_search_01.png"
-          alt="검색 아이콘"
-          class="search-icon"
+      <form class="search-bar" @submit.prevent="applySearch">
+        <input
+          v-model="searchInput"
+          type="text"
+          class="search-input"
+          placeholder="제목, 설명, 장소 검색"
+          aria-label="History search"
+          autocomplete="off"
         />
-      </button>
-    </form>
+        <button type="submit" class="search-submit" aria-label="검색 실행">
+          <img
+            src="@/assets/img/btn_search_01.png"
+            alt="검색 아이콘"
+            class="search-icon"
+          />
+        </button>
+      </form>
 
-    <!-- 타임라인 필터 -->
-    <TimelineFilter
-      :categories="categories"
-      :selected-category="selectedCategory"
-      :media-filter-options="mediaFilterOptions"
-      :media-filter="mediaFilter"
-      @select-category="filterByCategory"
-      @select-media="setMediaFilter"
-    />
+      <!-- 타임라인 필터 -->
+      <TimelineFilter
+        :categories="categories"
+        :selected-category="selectedCategory"
+        :media-filter-options="mediaFilterOptions"
+        :media-filter="mediaFilter"
+        @select-category="filterByCategory"
+        @select-media="setMediaFilter"
+      />
 
-    <!-- 타임라인 -->
-    <TimelineList
-      :items="processedEvents"
-      :date-formatter="formatEventDate"
-      :category-icon-getter="getCategoryIcon"
-      @select="openEventDetail"
-      @delete="openDeleteModal"
-      @image-error="handleImageError"
-      @image-load="handleImageLoad"
-    />
+      <!-- 타임라인 -->
+      <TimelineList
+        :items="processedEvents"
+        :date-formatter="formatEventDate"
+        :category-icon-getter="getCategoryIcon"
+        @select="openEventDetail"
+        @delete="openDeleteModal"
+        @image-error="handleImageError"
+        @image-load="handleImageLoad"
+      />
+    </div>
 
     <!-- 이벤트 생성/수정 모달 -->
     <teleport to="#modal">
-      <Modal v-if="showEventModal" @close="closeEventModal">
+      <Modal
+        v-if="showEventModal"
+        :close-on-backdrop="!modalLock"
+        :close-on-esc="!modalLock"
+        :close-disabled="modalLock"
+        :busy="isMobileLike && (uploading || postUploadSettling)"
+        :busy-text="'업로드 중...'"
+        @close="requestCloseEventModal"
+      >
         <template #header>
           <h3>{{ isEditing ? "이벤트 수정" : "새 이벤트 추가" }}</h3>
         </template>
@@ -286,7 +301,7 @@
 </template>
 
 <script>
-import { ref, computed, onBeforeUpdate } from "vue";
+import { ref, computed, onBeforeUpdate, nextTick, onMounted, onUnmounted } from "vue";
 import Modal from "@/components/Modal.vue";
 import DeleteModal from "@/components/DeleteModal.vue";
 import TimelineFilter from "@/components/TimelineFilter.vue";
@@ -320,6 +335,80 @@ export default {
     const showDeleteModal = ref(false);
     const eventToDelete = ref(null);
     const uploading = ref(false);
+    const isSelectingFiles = ref(false);
+    const postUploadSettling = ref(false);
+    const isMobileLike = ref(false);
+    const updateIsMobileLike = () => {
+      if (typeof window === "undefined" || !window.matchMedia) {
+        isMobileLike.value = false;
+        return;
+      }
+      const coarse = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+      const small = window.matchMedia("(max-width: 768px)").matches;
+      isMobileLike.value = coarse || small;
+    };
+
+    onMounted(() => {
+      updateIsMobileLike();
+      window.addEventListener?.("resize", updateIsMobileLike);
+    });
+
+    onUnmounted(() => {
+      window.removeEventListener?.("resize", updateIsMobileLike);
+    });
+    // 업로드/파일선택 중에는 모달 닫힘을 막아(모바일 ghost click 등) 깜빡임을 최소화
+    const modalLock = computed(() => uploading.value || isSelectingFiles.value);
+
+    const waitForModalMediaSettled = async (timeoutMs = 800) => {
+      if (typeof document === "undefined") return;
+      await nextTick();
+
+      const root = document.querySelector("#modal");
+      if (!root) return;
+
+      const nodes = Array.from(root.querySelectorAll("img, video"));
+      if (!nodes.length) return;
+
+      await new Promise((resolve) => {
+        let done = 0;
+        let finished = false;
+
+        const finish = () => {
+          if (finished) return;
+          finished = true;
+          resolve();
+        };
+
+        const timer = setTimeout(finish, timeoutMs);
+
+        const onDone = () => {
+          done += 1;
+          if (done >= nodes.length) {
+            clearTimeout(timer);
+            finish();
+          }
+        };
+
+        nodes.forEach((el) => {
+          if (el.tagName === "IMG") {
+            if (el.complete) {
+              onDone();
+              return;
+            }
+            el.addEventListener("load", onDone, { once: true });
+            el.addEventListener("error", onDone, { once: true });
+            return;
+          }
+
+          if (el.readyState >= 2) {
+            onDone();
+            return;
+          }
+          el.addEventListener("loadeddata", onDone, { once: true });
+          el.addEventListener("error", onDone, { once: true });
+        });
+      });
+    };
     const fileInput = ref(null);
     const showImageDeleteModal = ref(false);
     const imageToDelete = ref(null);
@@ -535,6 +624,11 @@ export default {
         image: "",
         images: [],
       };
+    };
+
+    const requestCloseEventModal = () => {
+      if (modalLock.value) return;
+      closeEventModal();
     };
 
     // 최대 날짜를 현재 날짜로 설정
@@ -814,14 +908,6 @@ export default {
 
       videoElement.muted = true;
       videoElement.currentTime = 0;
-
-      const playPromise = videoElement.play();
-      if (playPromise && typeof playPromise.catch === "function") {
-        playPromise.catch((error) => {
-          // eslint-disable-next-line no-console
-          console.error("히스토리 미디어 자동재생 실패:", error);
-        });
-      }
     };
 
     const stopAllPreviewVideos = () => {
@@ -844,12 +930,16 @@ export default {
 
     // 파일 업로드 관련 함수들
     const triggerFileInput = () => {
+      isSelectingFiles.value = true;
       fileInput.value?.click();
     };
 
     const handleFileUpload = async (event) => {
+      isSelectingFiles.value = false;
       const files = Array.from(event.target.files);
-      if (!files.length) return;
+      if (!files.length) {
+        return;
+      }
 
       // 파일 개수 제한 (최대 10개)
       if (files.length > 10) {
@@ -908,10 +998,14 @@ export default {
         currentEvent.value.images.push(...uploadedMedia);
         
         showToast(`${uploadedMedia.length}개의 미디어가 업로드되었습니다.`);
+        postUploadSettling.value = true;
+        await waitForModalMediaSettled(1500);
+        await new Promise((r) => setTimeout(r, 300));
       } catch (error) {
         showToast(`미디어 업로드에 실패했습니다: ${error.message}`, "danger");
       } finally {
         uploading.value = false;
+        postUploadSettling.value = false;
         // 파일 입력 초기화
         if (fileInput.value) {
           fileInput.value.value = '';
@@ -991,9 +1085,14 @@ export default {
       handlePreviewVideoLoaded,
       // 파일 업로드 관련
       uploading,
+      isSelectingFiles,
+      postUploadSettling,
+      isMobileLike,
+      modalLock,
       fileInput,
       triggerFileInput,
       handleFileUpload,
+      requestCloseEventModal,
       confirmRemoveImage,
       removeImage,
       // 이미지 삭제 모달 관련

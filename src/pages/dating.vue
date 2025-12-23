@@ -1,89 +1,104 @@
 <template>
   <div class="dating-container">
-    <div class="page-header">
-      <h2>My Dating History</h2>
-      <button 
-        v-if="canCreate" 
-        class="btn btn-primary" 
-        @click="openCreateModal"
-      >
-        Add New Memory
-      </button>
-    </div>
+    <!--
+      모바일 파일 업로드(파일 선택창) 복귀 시 대형 DOM(타임라인/필터/리스트)이 함께 리페인트되면
+      모달 오버레이가 순간 흔들리며 "팝업↔메인"처럼 깜빡이는 체감이 생길 수 있음.
+      모달이 떠있는 동안에는 배경 컨텐츠를 숨겨 페인트 자체를 줄여 안정화.
+    -->
+    <div class="dating-page-content" v-show="!showMemoryModal">
+      <div class="page-header">
+        <h2>My Dating History</h2>
+        <button 
+          v-if="canCreate" 
+          class="btn btn-primary" 
+          @click="openCreateModal"
+        >
+          Add New Memory
+        </button>
+      </div>
 
-    <form class="search-bar" @submit.prevent="applySearch">
-      <input
-        v-model="searchInput"
-        type="text"
-        class="search-input"
-        placeholder="제목, 설명, 장소 검색"
-        aria-label="Dating search"
-        autocomplete="off"
-      />
-      <button type="submit" class="search-submit" aria-label="검색 실행">
-        <img
-          src="@/assets/img/btn_search_01.png"
-          alt="검색 아이콘"
-          class="search-icon"
+      <form class="search-bar" @submit.prevent="applySearch">
+        <input
+          v-model="searchInput"
+          type="text"
+          class="search-input"
+          placeholder="제목, 설명, 장소 검색"
+          aria-label="Dating search"
+          autocomplete="off"
         />
-      </button>
-    </form>
+        <button type="submit" class="search-submit" aria-label="검색 실행">
+          <img
+            src="@/assets/img/btn_search_01.png"
+            alt="검색 아이콘"
+            class="search-icon"
+          />
+        </button>
+      </form>
 
-    <!-- 디데이 표시 섹션 -->
-    <div class="dday-section" v-if="firstMeetDate || specialDate">
-      <div class="dday-container">
-        <div v-if="firstMeetDate" class="dday-item">
-          <div class="dday-label">
-            <i class="fas fa-heart"></i>
-            첫만남
+      <!-- 디데이 표시 섹션 -->
+      <div class="dday-section" v-if="firstMeetDate || specialDate">
+        <div class="dday-container">
+          <div v-if="firstMeetDate" class="dday-item">
+            <div class="dday-label">
+              <i class="fas fa-heart"></i>
+              첫만남
+            </div>
+            <div class="dday-value">
+              D+{{ firstMeetDays }}
+            </div>
+            <div class="dday-date">
+              {{ formatDate(firstMeetDate) }}
+            </div>
           </div>
-          <div class="dday-value">
-            D+{{ firstMeetDays }}
-          </div>
-          <div class="dday-date">
-            {{ formatDate(firstMeetDate) }}
-          </div>
-        </div>
-        <div v-if="specialDate" class="dday-item">
-          <div class="dday-label">
-            <i class="fas fa-star"></i>
-            사귄날
-          </div>
-          <div class="dday-value">
-            D+{{ specialDays }}
-          </div>
-          <div class="dday-date">
-            {{ formatDate(specialDate) }}
+          <div v-if="specialDate" class="dday-item">
+            <div class="dday-label">
+              <i class="fas fa-star"></i>
+              사귄날
+            </div>
+            <div class="dday-value">
+              D+{{ specialDays }}
+            </div>
+            <div class="dday-date">
+              {{ formatDate(specialDate) }}
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- 타임라인 필터 -->
+      <TimelineFilter
+        :categories="categories"
+        :selected-category="selectedCategory"
+        :media-filter-options="mediaFilterOptions"
+        :media-filter="mediaFilter"
+        @select-category="filterByCategory"
+        @select-media="setMediaFilter"
+      />
+
+      <!-- 타임라인 -->
+      <TimelineList
+        :items="processedMemories"
+        :date-formatter="formatMemoryDate"
+        :category-icon-getter="getCategoryIcon"
+        :allow-delete="canDelete"
+        @select="openMemoryDetail"
+        @delete="openDeleteModal"
+        @image-error="handleImageError"
+        @image-load="handleImageLoad"
+      />
     </div>
-
-    <!-- 타임라인 필터 -->
-    <TimelineFilter
-      :categories="categories"
-      :selected-category="selectedCategory"
-      :media-filter-options="mediaFilterOptions"
-      :media-filter="mediaFilter"
-      @select-category="filterByCategory"
-      @select-media="setMediaFilter"
-    />
-
-    <!-- 타임라인 -->
-    <TimelineList
-      :items="processedMemories"
-      :date-formatter="formatMemoryDate"
-      :category-icon-getter="getCategoryIcon"
-      :allow-delete="canDelete"
-      @select="openMemoryDetail"
-      @delete="openDeleteModal"
-      @image-error="handleImageError"
-      @image-load="handleImageLoad"
-    />
 
     <!-- 추억 생성/수정 모달 -->
     <teleport to="#modal">
-      <Modal v-if="showMemoryModal" @close="closeMemoryModal">
+      <Modal
+        v-if="showMemoryModal"
+        :close-on-backdrop="!modalLock"
+        :close-on-esc="!modalLock"
+        :close-disabled="modalLock"
+        :busy="isMobileLike && (uploading || postUploadSettling)"
+        :busy-text="'업로드 중...'"
+        @close="requestCloseMemoryModal"
+      >
         <template #header>
           <h3>{{ isEditing ? "추억 수정" : "새 추억 추가" }}</h3>
         </template>
@@ -325,7 +340,7 @@
 </template>
 
 <script>
-import { ref, computed, onBeforeUpdate, onMounted, onUnmounted } from "vue";
+import { ref, computed, onBeforeUpdate, onMounted, onUnmounted, nextTick } from "vue";
 import { useStore } from "vuex";
 import Modal from "@/components/Modal.vue";
 import DeleteModal from "@/components/DeleteModal.vue";
@@ -361,6 +376,9 @@ export default {
     const showDeleteModal = ref(false);
     const memoryToDelete = ref(null);
     const uploading = ref(false);
+    const isSelectingFiles = ref(false);
+    const postUploadSettling = ref(false);
+    const isMobileLike = ref(false);
     const fileInput = ref(null);
     const showImageDeleteModal = ref(false);
     const imageToDelete = ref(null);
@@ -370,53 +388,70 @@ export default {
       previewVideos.value = [];
     });
 
-    // D-day가 자정이 지나면 자동 갱신되도록 현재 시간을 반응형으로 유지
+    // D-day 표시를 자정 경계에서 자동 갱신 (업로드/파일선택 중 불필요한 리렌더 방지를 위해 '날짜가 바뀐 경우에만' 갱신)
     const nowTick = ref(Date.now());
     let nowTimer = null;
     let handleVisibilityChange = null;
+    let lastDayKey = "";
+
+    const getDayKey = (ms) => {
+      const d = new Date(ms);
+      return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+    };
+
+    const scheduleNextMidnightTick = () => {
+      const now = new Date();
+      const nextMidnight = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() + 1,
+        0,
+        0,
+        0,
+        0
+      );
+      const targetTime = nextMidnight.getTime();
+      const msUntilNextMidnight = Math.max(0, targetTime - now.getTime());
+
+      nowTimer = setTimeout(() => {
+        nowTick.value = Date.now();
+        lastDayKey = getDayKey(nowTick.value);
+        scheduleNextMidnightTick();
+      }, msUntilNextMidnight);
+    };
+
+    const updateIsMobileLike = () => {
+      if (typeof window === "undefined" || !window.matchMedia) {
+        isMobileLike.value = false;
+        return;
+      }
+      // 실제 모바일(터치/coarse pointer) 우선, fallback으로 폭 기준
+      const coarse = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+      const small = window.matchMedia("(max-width: 768px)").matches;
+      isMobileLike.value = coarse || small;
+    };
 
     onMounted(() => {
-      const scheduleNextMidnightTick = () => {
-        // 로컬 기준 다음 자정(00:00:00.000)까지 남은 시간만큼만 대기
-        const now = new Date();
-        const nextMidnight = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate() + 1,
-          0,
-          0,
-          0,
-          0
-        );
-        const targetTime = nextMidnight.getTime();
-        const msUntilNextMidnight = targetTime - now.getTime();
+      updateIsMobileLike();
+      window.addEventListener?.("resize", updateIsMobileLike);
 
-        nowTimer = setTimeout(() => {
-          // 드물게(클럭 변경/타이머 특이케이스) 자정 전에 호출되면 남은 시간만큼만 재대기
-          const nowMs = Date.now();
-          if (nowMs < targetTime) {
-            nowTimer = setTimeout(() => {
-              nowTick.value = Date.now();
-              scheduleNextMidnightTick();
-            }, Math.max(0, targetTime - Date.now()));
-            return;
-          }
-
-          nowTick.value = nowMs;
-          scheduleNextMidnightTick();
-        }, Math.max(0, msUntilNextMidnight));
-      };
-
-      handleVisibilityChange = () => {
-        // 탭이 백그라운드였다가 돌아오면(자정 경계 포함) 즉시 갱신
-        if (!document.hidden) nowTick.value = Date.now();
-      };
-
+      // D-day 갱신 스케줄링
+      lastDayKey = getDayKey(nowTick.value);
       scheduleNextMidnightTick();
+      handleVisibilityChange = () => {
+        if (document.hidden) return;
+        const nowMs = Date.now();
+        const dayKey = getDayKey(nowMs);
+        if (dayKey !== lastDayKey) {
+          lastDayKey = dayKey;
+          nowTick.value = nowMs;
+        }
+      };
       document.addEventListener("visibilitychange", handleVisibilityChange);
     });
 
     onUnmounted(() => {
+      window.removeEventListener?.("resize", updateIsMobileLike);
       if (nowTimer) clearTimeout(nowTimer);
       if (handleVisibilityChange) {
         document.removeEventListener("visibilitychange", handleVisibilityChange);
@@ -490,6 +525,61 @@ export default {
     const hasUploadPermission = computed(() =>
       isEditing.value ? canUpdate.value : canCreate.value
     );
+
+    // 업로드/파일선택 중에는 모달 닫힘을 막아(모바일 ghost click 등) 깜빡임을 최소화
+    const modalLock = computed(() => uploading.value || isSelectingFiles.value);
+
+    const waitForModalMediaSettled = async (timeoutMs = 800) => {
+      if (typeof document === "undefined") return;
+      await nextTick();
+
+      const root = document.querySelector("#modal");
+      if (!root) return;
+
+      const nodes = Array.from(root.querySelectorAll("img, video"));
+      if (!nodes.length) return;
+
+      await new Promise((resolve) => {
+        let done = 0;
+        let finished = false;
+
+        const finish = () => {
+          if (finished) return;
+          finished = true;
+          resolve();
+        };
+
+        const timer = setTimeout(finish, timeoutMs);
+
+        const onDone = () => {
+          done += 1;
+          if (done >= nodes.length) {
+            clearTimeout(timer);
+            finish();
+          }
+        };
+
+        nodes.forEach((el) => {
+          if (el.tagName === "IMG") {
+            if (el.complete) {
+              onDone();
+              return;
+            }
+            el.addEventListener("load", onDone, { once: true });
+            el.addEventListener("error", onDone, { once: true });
+            return;
+          }
+
+          // VIDEO
+          if (el.readyState >= 2) {
+            onDone();
+            return;
+          }
+          el.addEventListener("loadeddata", onDone, { once: true });
+          el.addEventListener("error", onDone, { once: true });
+        });
+      });
+    };
 
 
     const fetchMemories = async () => {
@@ -582,6 +672,11 @@ export default {
         location: "",
         images: [],
       };
+    };
+
+    const requestCloseMemoryModal = () => {
+      if (modalLock.value) return;
+      closeMemoryModal();
     };
 
     // 최대 날짜를 현재 날짜로 설정
@@ -854,14 +949,6 @@ export default {
 
       videoElement.muted = true;
       videoElement.currentTime = 0;
-
-      const playPromise = videoElement.play();
-      if (playPromise && typeof playPromise.catch === "function") {
-        playPromise.catch((error) => {
-          // eslint-disable-next-line no-console
-          console.error("미리보기 동영상 자동재생 실패:", error);
-        });
-      }
     };
 
     const stopAllPreviewVideos = () => {
@@ -879,12 +966,16 @@ export default {
         return;
       }
       
+      isSelectingFiles.value = true;
       fileInput.value?.click();
     };
 
     const handleFileUpload = async (event) => {
+      isSelectingFiles.value = false;
       const files = Array.from(event.target.files);
-      if (!files.length) return;
+      if (!files.length) {
+        return;
+      }
       
       // 수정 권한이 없는 경우 업로드를 막음
       if (!hasUploadPermission.value) {
@@ -950,6 +1041,11 @@ export default {
         currentMemory.value.images.push(...uploadedImages);
         
         showToast(`${uploadedImages.length}개의 미디어가 업로드되었습니다.`);
+        // 업로드 완료 직후(오버레이가 내려가는 순간) 미디어 로드/디코딩으로 한 프레임 튀는 현상이 있어
+        // 완료 후에도 잠깐 busy 오버레이를 유지하여 체감 깜빡임을 최소화
+        postUploadSettling.value = true;
+        await waitForModalMediaSettled(1500);
+        await new Promise((r) => setTimeout(r, 300));
       } catch (error) {
         // 권한 에러 처리
         if (error.response?.status === 403) {
@@ -959,6 +1055,7 @@ export default {
         }
       } finally {
         uploading.value = false;
+        postUploadSettling.value = false;
         // 파일 입력 초기화
         if (fileInput.value) {
           fileInput.value.value = '';
@@ -1002,6 +1099,7 @@ export default {
           // 프론트엔드에서 이미지 배열에서 제거
           currentMemory.value.images.splice(imageToDelete.value, 1);
           showToast("미디어가 삭제되었습니다.");
+          await waitForModalMediaSettled(800);
         } catch (error) {
           // eslint-disable-next-line no-console
           console.error('미디어 삭제 실패:', error);
@@ -1176,9 +1274,14 @@ export default {
       validateDate,
       // 파일 업로드 관련
       uploading,
+      isSelectingFiles,
+      postUploadSettling,
+      isMobileLike,
+      modalLock,
       fileInput,
       triggerFileInput,
       handleFileUpload,
+      requestCloseMemoryModal,
       confirmRemoveImage,
       removeImage,
       previewVideos,

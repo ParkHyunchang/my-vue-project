@@ -1,13 +1,23 @@
 <template>
-    <div class="modal-wrapper" @click.self="onClose" @wheel.stop>
+    <div
+        class="modal-wrapper"
+        @click.self="onBackdropClick"
+        @wheel.stop
+    >
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">
                         <slot name="header"></slot>
                     </h5>
-                    <button type="button" class="close">
-                        <span @click="onClose">&times;</span>
+                    <button
+                        type="button"
+                        class="close"
+                        :disabled="closeDisabled"
+                        :aria-disabled="closeDisabled ? 'true' : 'false'"
+                        @click="onCloseClick"
+                    >
+                        <span>&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
@@ -15,6 +25,11 @@
                 </div>
                 <div class="modal-footer">
                     <slot name="footer"></slot>
+                </div>
+
+                <div v-if="busy" class="modal-busy-overlay" aria-live="polite" aria-busy="true">
+                    <div class="modal-busy-spinner" aria-hidden="true"></div>
+                    <div class="modal-busy-text">{{ busyText }}</div>
                 </div>
             </div>
         </div>
@@ -24,52 +39,104 @@
 <script>
 import { getCurrentInstance, onMounted, onUnmounted } from 'vue';
 export default {
-    setup() {
+    props: {
+        closeOnBackdrop: {
+            type: Boolean,
+            default: true,
+        },
+        closeOnEsc: {
+            type: Boolean,
+            default: true,
+        },
+        // 업로드/파일 선택 등으로 닫힘을 막아야 하는 경우 사용
+        closeDisabled: {
+            type: Boolean,
+            default: false,
+        },
+        // 업로드 진행 등 "busy" 구간에 모달 내부를 고정 오버레이로 덮어 깜빡임 체감 최소화
+        busy: {
+            type: Boolean,
+            default: false,
+        },
+        busyText: {
+            type: String,
+            default: '업로드 중...',
+        },
+    },
+    setup(props) {
         const { emit } = getCurrentInstance();
+        let savedBodyOverflow = '';
+        let savedBodyPaddingRight = '';
+        let savedHtmlOverflow = '';
+        let savedHtmlPaddingRight = '';
         
         const onClose = () => {
+            if (props.closeDisabled) return;
             emit('close');
         }
 
-        // 모달이 열릴 때 body 스크롤 방지
-        const disableScroll = () => {
-            document.body.style.overflow = 'hidden';
-            document.body.style.position = 'fixed';
-            document.body.style.width = '100%';
-            document.body.style.top = `-${window.scrollY}px`;
-        }
+        const onCloseClick = () => {
+            onClose();
+        };
 
-        // 모달이 닫힐 때 body 스크롤 복원
-        const enableScroll = () => {
-            const scrollY = document.body.style.top;
-            document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.width = '';
-            document.body.style.top = '';
-            window.scrollTo(0, parseInt(scrollY || '0') * -1);
-        }
+        const onBackdropClick = () => {
+            if (props.closeDisabled) return;
+            if (!props.closeOnBackdrop) return;
+            onClose();
+        };
 
 
         // ESC 키로 모달 닫기
         const handleKeydown = (event) => {
             if (event.key === 'Escape') {
+                if (props.closeDisabled) return;
+                if (!props.closeOnEsc) return;
                 onClose();
             }
         }
 
+        const getScrollbarWidth = () =>
+            Math.max(0, window.innerWidth - document.documentElement.clientWidth);
+
+        const lockScroll = () => {
+            savedBodyOverflow = document.body.style.overflow;
+            savedBodyPaddingRight = document.body.style.paddingRight;
+            savedHtmlOverflow = document.documentElement.style.overflow;
+            savedHtmlPaddingRight = document.documentElement.style.paddingRight;
+
+            const scrollbarWidth = getScrollbarWidth();
+            if (scrollbarWidth > 0) {
+                document.body.style.paddingRight = `${scrollbarWidth}px`;
+                document.documentElement.style.paddingRight = `${scrollbarWidth}px`;
+            }
+
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
+        };
+
+        const unlockScroll = () => {
+            document.body.style.overflow = savedBodyOverflow;
+            document.body.style.paddingRight = savedBodyPaddingRight;
+            document.documentElement.style.overflow = savedHtmlOverflow;
+            document.documentElement.style.paddingRight = savedHtmlPaddingRight;
+        };
+
         onMounted(() => {
-            disableScroll();
+            lockScroll();
+
             document.addEventListener('keydown', handleKeydown);
             // document에 휠 이벤트 등록하지 않고, 모달 wrapper에만 등록
         });
 
         onUnmounted(() => {
-            enableScroll();
+            unlockScroll();
             document.removeEventListener('keydown', handleKeydown);
         });
 
         return {
             onClose,
+            onCloseClick,
+            onBackdropClick,
         }
     }
 }
@@ -87,7 +154,8 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(2px); /* 배경 블러 효과 */
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
 }
 
 .modal-dialog {
@@ -100,7 +168,42 @@ export default {
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
+    position: relative;
 }
+
+.modal-busy-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    pointer-events: all;
+}
+
+.modal-busy-spinner {
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    border: 4px solid rgba(0, 0, 0, 0.12);
+    border-top-color: rgba(233, 30, 99, 0.9);
+    animation: modalBusySpin 0.9s linear infinite;
+}
+
+.modal-busy-text {
+    font-size: 0.95rem;
+    color: #444;
+    font-weight: 600;
+}
+
+@keyframes modalBusySpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 
 .modal-header {
     padding: 1rem;
@@ -182,15 +285,20 @@ export default {
     .modal-wrapper {
         padding: 0;
         align-items: stretch;
+        height: 100vh;   /* 폴백 */
         height: 100dvh;
+        min-height: 100vh;
         min-height: 100dvh;
         display: flex;
     }
     .modal-dialog {
         width: 100vw;
         margin: 0;
+        height: 100vh;   /* 폴백 */
         height: 100dvh;
+        min-height: 100vh;
         min-height: 100dvh;
+        max-height: 100vh;
         max-height: 100dvh;
         display: flex;
         align-items: stretch;
