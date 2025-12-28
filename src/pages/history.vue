@@ -101,9 +101,12 @@
                     <span>기간</span>
                   </label>
                 </div>
-                
+
                 <!-- 하루 선택 -->
-                <div v-if="currentEvent.dateType === 'single'" class="single-date-input">
+                <div
+                  v-if="currentEvent.dateType === 'single'"
+                  class="single-date-input"
+                >
                   <input
                     v-model="currentEvent.date"
                     type="date"
@@ -114,9 +117,12 @@
                     placeholder="날짜를 선택하세요"
                   />
                 </div>
-                
+
                 <!-- 기간 선택 -->
-                <div v-if="currentEvent.dateType === 'range'" class="range-date-inputs">
+                <div
+                  v-if="currentEvent.dateType === 'range'"
+                  class="range-date-inputs"
+                >
                   <div class="date-input-group">
                     <label>시작일</label>
                     <input
@@ -141,7 +147,9 @@
                     />
                   </div>
                   <div v-if="dateRangeInfo" class="date-range-info">
-                    <span class="range-duration">{{ dateRangeInfo.duration }}일</span>
+                    <span class="range-duration"
+                      >{{ dateRangeInfo.duration }}일</span
+                    >
                     <span class="range-period">{{ dateRangeInfo.period }}</span>
                   </div>
                 </div>
@@ -200,12 +208,15 @@
                     <small>클릭하여 파일 선택 (여러 개 선택 가능)</small>
                   </div>
                 </div>
-                
+
                 <!-- 업로드된 이미지들 -->
-                <div v-if="currentEvent.images && currentEvent.images.length > 0" class="uploaded-images">
-                  <div 
-                    v-for="(image, index) in currentEvent.images" 
-                    :key="index" 
+                <div
+                  v-if="currentEvent.images && currentEvent.images.length > 0"
+                  class="uploaded-images"
+                >
+                  <div
+                    v-for="(image, index) in currentEvent.images"
+                    :key="index"
                     class="image-preview-item"
                   >
                     <video
@@ -226,9 +237,9 @@
                       @error="handleImageError"
                       @load="handleImageLoad"
                     />
-                    <button 
-                      type="button" 
-                      class="remove-image" 
+                    <button
+                      type="button"
+                      class="remove-image"
                       @click.stop="confirmRemoveImage(index)"
                       title="미디어 삭제"
                     >
@@ -236,7 +247,7 @@
                     </button>
                   </div>
                 </div>
-                
+
                 <div v-if="uploading" class="upload-progress">
                   <div class="progress-bar">
                     <div class="progress-fill"></div>
@@ -301,7 +312,14 @@
 </template>
 
 <script>
-import { ref, computed, onBeforeUpdate, nextTick, onMounted, onUnmounted } from "vue";
+import {
+  ref,
+  computed,
+  onBeforeUpdate,
+  nextTick,
+  onMounted,
+  onUnmounted,
+} from "vue";
 import Modal from "@/components/Modal.vue";
 import DeleteModal from "@/components/DeleteModal.vue";
 import TimelineFilter from "@/components/TimelineFilter.vue";
@@ -343,7 +361,9 @@ export default {
         isMobileLike.value = false;
         return;
       }
-      const coarse = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+      const coarse = window.matchMedia(
+        "(hover: none) and (pointer: coarse)"
+      ).matches;
       const small = window.matchMedia("(max-width: 768px)").matches;
       isMobileLike.value = coarse || small;
     };
@@ -467,11 +487,7 @@ export default {
 
       if (query) {
         eventsToProcess = eventsToProcess.filter((event) => {
-          const target = [
-            event.title,
-            event.description,
-            event.location,
-          ]
+          const target = [event.title, event.description, event.location]
             .filter(Boolean)
             .join(" ")
             .toLowerCase();
@@ -483,8 +499,8 @@ export default {
         const mediaList = Array.isArray(event.images)
           ? event.images
           : event.image
-            ? [event.image]
-            : [];
+          ? [event.image]
+          : [];
 
         const processedMedia = mediaList
           .map((mediaItem, index) => {
@@ -499,7 +515,9 @@ export default {
           })
           .filter(Boolean);
 
-        const videoCount = processedMedia.filter((media) => media.isVideo).length;
+        const videoCount = processedMedia.filter(
+          (media) => media.isVideo
+        ).length;
         const imageCount = processedMedia.length - videoCount;
         const firstVideo = processedMedia.find((media) => media.isVideo);
 
@@ -528,10 +546,10 @@ export default {
       try {
         const response = await axios.get("/histories");
         // 백엔드에서 받은 데이터를 프론트엔드 형식으로 변환
-        events.value = response.data.map(event => {
+        events.value = response.data.map((event) => {
           let imagesArray = [];
-          
-          if (event.images && typeof event.images === 'string') {
+
+          if (event.images && typeof event.images === "string") {
             try {
               imagesArray = JSON.parse(event.images);
             } catch (e) {
@@ -542,13 +560,12 @@ export default {
           } else if (event.image) {
             imagesArray = [event.image];
           }
-          
+
           return {
             ...event,
-            images: imagesArray
+            images: imagesArray,
           };
         });
-        
       } catch (error) {
         showToast("Failed to load events", "danger");
       }
@@ -581,10 +598,10 @@ export default {
 
     const openEventDetail = (event) => {
       isEditing.value = true;
-      
+
       // images 필드 처리 (JSON 문자열을 배열로 변환)
       let imagesArray = [];
-      if (event.images && typeof event.images === 'string') {
+      if (event.images && typeof event.images === "string") {
         try {
           imagesArray = JSON.parse(event.images);
         } catch (e) {
@@ -596,16 +613,15 @@ export default {
         // 기존 단일 이미지가 있다면 배열로 변환
         imagesArray = [event.image];
       }
-      
-      currentEvent.value = { 
+
+      currentEvent.value = {
         ...event,
         dateType: event.dateType || "single", // 기존 데이터 호환성
         startDate: event.startDate || "",
         endDate: event.endDate || "",
-        images: imagesArray
+        images: imagesArray,
       };
-      
-      
+
       showEventModal.value = true;
     };
 
@@ -705,15 +721,17 @@ export default {
 
     // 기간 정보 계산 (computed)
     const dateRangeInfo = computed(() => {
-      if (currentEvent.value.dateType !== "range" || 
-          !currentEvent.value.startDate || 
-          !currentEvent.value.endDate) {
+      if (
+        currentEvent.value.dateType !== "range" ||
+        !currentEvent.value.startDate ||
+        !currentEvent.value.endDate
+      ) {
         return null;
       }
 
       const start = new Date(currentEvent.value.startDate);
       const end = new Date(currentEvent.value.endDate);
-      
+
       if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
         return null;
       }
@@ -721,10 +739,10 @@ export default {
       const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
       const startFormatted = start.toLocaleDateString("ko-KR");
       const endFormatted = end.toLocaleDateString("ko-KR");
-      
+
       return {
         duration,
-        period: `${startFormatted} ~ ${endFormatted}`
+        period: `${startFormatted} ~ ${endFormatted}`,
       };
     });
 
@@ -750,7 +768,10 @@ export default {
           return;
         }
       } else {
-        if (!currentEvent.value.startDate?.trim() || !currentEvent.value.endDate?.trim()) {
+        if (
+          !currentEvent.value.startDate?.trim() ||
+          !currentEvent.value.endDate?.trim()
+        ) {
           showToast("시작일과 종료일을 모두 입력해주세요.", "danger");
           return;
         }
@@ -762,7 +783,9 @@ export default {
 
       // 날짜 유효성 검사
       if (currentEvent.value.dateType === "single") {
-        if (!validateSingleDate({ target: { value: currentEvent.value.date } })) {
+        if (
+          !validateSingleDate({ target: { value: currentEvent.value.date } })
+        ) {
           return;
         }
       } else {
@@ -776,19 +799,18 @@ export default {
         const eventData = {
           ...currentEvent.value,
           // 이미지 배열을 JSON 문자열로 변환
-          images: currentEvent.value.images ? JSON.stringify(currentEvent.value.images) : null,
+          images: currentEvent.value.images
+            ? JSON.stringify(currentEvent.value.images)
+            : null,
           // 기존 단일 이미지 필드도 유지 (호환성)
-          image: currentEvent.value.images && currentEvent.value.images.length > 0 
-            ? currentEvent.value.images[0] 
-            : null
+          image:
+            currentEvent.value.images && currentEvent.value.images.length > 0
+              ? currentEvent.value.images[0]
+              : null,
         };
 
-
         if (isEditing.value) {
-          await axios.put(
-            `/histories/${currentEvent.value.id}`,
-            eventData
-          );
+          await axios.put(`/histories/${currentEvent.value.id}`, eventData);
           showToast("이벤트가 수정되었습니다.");
         } else {
           await axios.post("/histories", eventData);
@@ -920,12 +942,12 @@ export default {
 
     const handleImageError = (event) => {
       // 이미지 로드 실패 시 숨기기
-      event.target.style.display = 'none';
+      event.target.style.display = "none";
     };
 
     const handleImageLoad = (event) => {
       // 이미지 로드 성공 시 표시
-      event.target.style.display = 'block';
+      event.target.style.display = "block";
     };
 
     // 파일 업로드 관련 함수들
@@ -942,27 +964,30 @@ export default {
       }
 
       // 파일 개수 제한 (최대 10개)
-      if (files.length > 10) {
-        showToast("최대 10개의 미디어만 업로드할 수 있습니다.", "danger");
+      if (files.length > 20) {
+        showToast("최대 20개의 미디어만 업로드할 수 있습니다.", "danger");
         return;
       }
 
       // 기존 이미지와 합쳐서 총 개수 확인
-      const totalMedia = (currentEvent.value.images?.length || 0) + files.length;
-      if (totalMedia > 10) {
-        showToast("총 미디어 개수는 10개를 초과할 수 없습니다.", "danger");
+      const totalMedia =
+        (currentEvent.value.images?.length || 0) + files.length;
+      if (totalMedia > 20) {
+        showToast("총 미디어 개수는 20개를 초과할 수 없습니다.", "danger");
         return;
       }
 
       uploading.value = true;
-      
+
       try {
         const uploadPromises = files.map(async (file) => {
           const isImage = isImageFile(file);
           const isVideo = isVideoFile(file);
 
           if (!isImage && !isVideo) {
-            throw new Error(`${file.name}: 이미지 또는 동영상 파일만 업로드 가능합니다.`);
+            throw new Error(
+              `${file.name}: 이미지 또는 동영상 파일만 업로드 가능합니다.`
+            );
           }
 
           if (isImage && file.size > maxImageSizeBytes) {
@@ -978,11 +1003,11 @@ export default {
           }
 
           const formData = new FormData();
-          formData.append('file', file);
+          formData.append("file", file);
 
-          const response = await axios.post('/histories/upload', formData, {
+          const response = await axios.post("/histories/upload", formData, {
             headers: {
-              'Content-Type': 'multipart/form-data',
+              "Content-Type": "multipart/form-data",
             },
           });
 
@@ -990,13 +1015,13 @@ export default {
         });
 
         const uploadedMedia = await Promise.all(uploadPromises);
-        
+
         // 기존 이미지 배열에 새 이미지들 추가
         if (!currentEvent.value.images) {
           currentEvent.value.images = [];
         }
         currentEvent.value.images.push(...uploadedMedia);
-        
+
         showToast(`${uploadedMedia.length}개의 미디어가 업로드되었습니다.`);
         postUploadSettling.value = true;
         await waitForModalMediaSettled(1500);
@@ -1008,7 +1033,7 @@ export default {
         postUploadSettling.value = false;
         // 파일 입력 초기화
         if (fileInput.value) {
-          fileInput.value.value = '';
+          fileInput.value.value = "";
         }
       }
     };
@@ -1026,19 +1051,19 @@ export default {
     const removeImage = async () => {
       if (imageToDelete.value !== null && currentEvent.value.images) {
         const imageToRemove = currentEvent.value.images[imageToDelete.value];
-        
+
         try {
           // 서버에서 이미지 파일 삭제
-          await axios.delete('/histories/image', {
-            params: { imagePath: imageToRemove }
+          await axios.delete("/histories/image", {
+            params: { imagePath: imageToRemove },
           });
-          
+
           // 프론트엔드에서 이미지 배열에서 제거
           currentEvent.value.images.splice(imageToDelete.value, 1);
           showToast("미디어가 삭제되었습니다.");
         } catch (error) {
           // eslint-disable-next-line no-console
-          console.error('미디어 삭제 실패:', error);
+          console.error("미디어 삭제 실패:", error);
           showToast("미디어 삭제에 실패했습니다.", "danger");
         }
       }
@@ -1290,9 +1315,15 @@ export default {
 }
 
 @keyframes progress {
-  0% { width: 0%; }
-  50% { width: 70%; }
-  100% { width: 100%; }
+  0% {
+    width: 0%;
+  }
+  50% {
+    width: 70%;
+  }
+  100% {
+    width: 100%;
+  }
 }
 
 .upload-progress p {
@@ -1319,7 +1350,7 @@ export default {
   height: 120px;
   object-fit: cover;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
 }
 
@@ -1343,7 +1374,7 @@ export default {
   justify-content: center;
   font-size: 12px;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .image-preview-item .remove-image:hover {
@@ -1368,7 +1399,7 @@ export default {
   height: 80px;
   object-fit: cover;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
 }
 
@@ -1393,16 +1424,16 @@ export default {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 10px;
   }
-  
+
   .image-preview-item img {
     height: 100px;
   }
-  
+
   .image-gallery .memory-image {
     width: 60px;
     height: 60px;
   }
-  
+
   .more-images {
     padding: 6px 10px;
     font-size: 0.8rem;
@@ -1491,17 +1522,17 @@ export default {
     flex-direction: column;
     gap: 10px;
   }
-  
+
   .date-range-info {
     flex-direction: column;
     gap: 8px;
     text-align: center;
   }
-  
+
   .range-duration {
     font-size: 1rem;
   }
-  
+
   .range-period {
     font-size: 0.8rem;
   }

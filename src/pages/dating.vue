@@ -8,9 +8,9 @@
     <div class="dating-page-content" v-show="!showMemoryModal">
       <div class="page-header">
         <h2>My Dating History</h2>
-        <button 
-          v-if="canCreate" 
-          class="btn btn-primary" 
+        <button
+          v-if="canCreate"
+          class="btn btn-primary"
           @click="openCreateModal"
         >
           Add New Memory
@@ -43,9 +43,7 @@
               <i class="fas fa-heart"></i>
               첫만남
             </div>
-            <div class="dday-value">
-              D+{{ firstMeetDays }}
-            </div>
+            <div class="dday-value">D+{{ firstMeetDays }}</div>
             <div class="dday-date">
               {{ formatDate(firstMeetDate) }}
             </div>
@@ -55,9 +53,7 @@
               <i class="fas fa-star"></i>
               사귄날
             </div>
-            <div class="dday-value">
-              D+{{ specialDays }}
-            </div>
+            <div class="dday-value">D+{{ specialDays }}</div>
             <div class="dday-date">
               {{ formatDate(specialDate) }}
             </div>
@@ -136,9 +132,12 @@
                     <span>기간</span>
                   </label>
                 </div>
-                
+
                 <!-- 하루 선택 -->
-                <div v-if="currentMemory.dateType === 'single'" class="single-date-input">
+                <div
+                  v-if="currentMemory.dateType === 'single'"
+                  class="single-date-input"
+                >
                   <input
                     v-model="currentMemory.date"
                     type="date"
@@ -149,9 +148,12 @@
                     placeholder="날짜를 선택하세요"
                   />
                 </div>
-                
+
                 <!-- 기간 선택 -->
-                <div v-if="currentMemory.dateType === 'range'" class="range-date-inputs">
+                <div
+                  v-if="currentMemory.dateType === 'range'"
+                  class="range-date-inputs"
+                >
                   <div class="date-input-group">
                     <label>시작일</label>
                     <input
@@ -176,7 +178,9 @@
                     />
                   </div>
                   <div v-if="dateRangeInfo" class="date-range-info">
-                    <span class="range-duration">{{ dateRangeInfo.duration }}일</span>
+                    <span class="range-duration"
+                      >{{ dateRangeInfo.duration }}일</span
+                    >
                     <span class="range-period">{{ dateRangeInfo.period }}</span>
                   </div>
                 </div>
@@ -228,19 +232,26 @@
                   @change="handleFileUpload"
                   style="display: none"
                 />
-                <div v-if="canUpdate" class="image-upload-area" @click="triggerFileInput">
+                <div
+                  v-if="canUpdate"
+                  class="image-upload-area"
+                  @click="triggerFileInput"
+                >
                   <div class="upload-placeholder">
                     <i class="fas fa-cloud-upload-alt"></i>
                     <p>이미지 또는 동영상을 업로드하세요</p>
                     <small>클릭하여 파일 선택 (여러 개 선택 가능)</small>
                   </div>
                 </div>
-                
+
                 <!-- 업로드된 이미지들 -->
-                <div v-if="currentMemory.images && currentMemory.images.length > 0" class="uploaded-images">
-                  <div 
-                    v-for="(image, index) in currentMemory.images" 
-                    :key="index" 
+                <div
+                  v-if="currentMemory.images && currentMemory.images.length > 0"
+                  class="uploaded-images"
+                >
+                  <div
+                    v-for="(image, index) in currentMemory.images"
+                    :key="index"
                     class="image-preview-item"
                   >
                     <video
@@ -259,10 +270,10 @@
                       :alt="`Media ${index + 1}`"
                       class="media-preview"
                     />
-                    <button 
+                    <button
                       v-if="canDelete"
-                      type="button" 
-                      class="remove-image" 
+                      type="button"
+                      class="remove-image"
                       @click.stop="confirmRemoveImage(index)"
                       title="미디어 삭제"
                     >
@@ -270,7 +281,7 @@
                     </button>
                   </div>
                 </div>
-                
+
                 <div v-if="uploading" class="upload-progress">
                   <div class="progress-bar">
                     <div class="progress-fill"></div>
@@ -301,10 +312,10 @@
               >
                 닫기
               </button>
-              <button 
+              <button
                 v-if="isEditing ? canUpdate : canCreate"
-                type="button" 
-                class="btn btn-primary" 
+                type="button"
+                class="btn btn-primary"
                 @click="saveMemory"
               >
                 {{ isEditing ? "수정" : "저장" }}
@@ -340,7 +351,14 @@
 </template>
 
 <script>
-import { ref, computed, onBeforeUpdate, onMounted, onUnmounted, nextTick } from "vue";
+import {
+  ref,
+  computed,
+  onBeforeUpdate,
+  onMounted,
+  onUnmounted,
+  nextTick,
+} from "vue";
 import { useStore } from "vuex";
 import Modal from "@/components/Modal.vue";
 import DeleteModal from "@/components/DeleteModal.vue";
@@ -426,7 +444,9 @@ export default {
         return;
       }
       // 실제 모바일(터치/coarse pointer) 우선, fallback으로 폭 기준
-      const coarse = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+      const coarse = window.matchMedia(
+        "(hover: none) and (pointer: coarse)"
+      ).matches;
       const small = window.matchMedia("(max-width: 768px)").matches;
       isMobileLike.value = coarse || small;
     };
@@ -454,7 +474,10 @@ export default {
       window.removeEventListener?.("resize", updateIsMobileLike);
       if (nowTimer) clearTimeout(nowTimer);
       if (handleVisibilityChange) {
-        document.removeEventListener("visibilitychange", handleVisibilityChange);
+        document.removeEventListener(
+          "visibilitychange",
+          handleVisibilityChange
+        );
         handleVisibilityChange = null;
       }
     });
@@ -508,19 +531,27 @@ export default {
     // 실제 카테고리만 포함하는 배열 (전체 제외)
     // 첫만남이 이미 있으면 첫만남 카테고리 제외
     const categoryOptions = computed(() => {
-      const hasFirstMeet = memories.value.some(memory => memory.category === 'first_meet');
+      const hasFirstMeet = memories.value.some(
+        (memory) => memory.category === "first_meet"
+      );
       return categories.filter((cat) => {
         if (cat.id === "all") return false;
         if (cat.id === "first_meet" && hasFirstMeet) return false;
         return true;
       });
     });
-    
+
     // 권한 체크 computed 속성들
-    const canCreate = computed(() => store.getters['auth/canCreate']('/dating'));
-    const canRead = computed(() => store.getters['auth/canRead']('/dating'));
-    const canUpdate = computed(() => store.getters['auth/canUpdate']('/dating'));
-    const canDelete = computed(() => store.getters['auth/canDelete']('/dating'));
+    const canCreate = computed(() =>
+      store.getters["auth/canCreate"]("/dating")
+    );
+    const canRead = computed(() => store.getters["auth/canRead"]("/dating"));
+    const canUpdate = computed(() =>
+      store.getters["auth/canUpdate"]("/dating")
+    );
+    const canDelete = computed(() =>
+      store.getters["auth/canDelete"]("/dating")
+    );
 
     const hasUploadPermission = computed(() =>
       isEditing.value ? canUpdate.value : canCreate.value
@@ -581,15 +612,14 @@ export default {
       });
     };
 
-
     const fetchMemories = async () => {
       try {
         const response = await axios.get("/dating");
         // 백엔드에서 받은 데이터를 프론트엔드 형식으로 변환
-        memories.value = response.data.map(memory => {
+        memories.value = response.data.map((memory) => {
           let imagesArray = [];
-          
-          if (memory.images && typeof memory.images === 'string') {
+
+          if (memory.images && typeof memory.images === "string") {
             try {
               imagesArray = JSON.parse(memory.images);
             } catch (e) {
@@ -600,13 +630,12 @@ export default {
           } else if (memory.image) {
             imagesArray = [memory.image];
           }
-          
+
           return {
             ...memory,
-            images: imagesArray
+            images: imagesArray,
           };
         });
-        
       } catch (error) {
         showToast("Failed to load memories", "danger");
       }
@@ -630,10 +659,10 @@ export default {
 
     const openMemoryDetail = (memory) => {
       isEditing.value = true;
-      
+
       // images 필드 처리 (JSON 문자열을 배열로 변환)
       let imagesArray = [];
-      if (memory.images && typeof memory.images === 'string') {
+      if (memory.images && typeof memory.images === "string") {
         try {
           imagesArray = JSON.parse(memory.images);
         } catch (e) {
@@ -645,16 +674,15 @@ export default {
         // 기존 단일 이미지가 있다면 배열로 변환
         imagesArray = [memory.image];
       }
-      
-      currentMemory.value = { 
+
+      currentMemory.value = {
         ...memory,
         dateType: memory.dateType || "single", // 기존 데이터 호환성
         startDate: memory.startDate || "",
         endDate: memory.endDate || "",
-        images: imagesArray
+        images: imagesArray,
       };
-      
-      
+
       showMemoryModal.value = true;
     };
 
@@ -753,15 +781,17 @@ export default {
 
     // 기간 정보 계산 (computed)
     const dateRangeInfo = computed(() => {
-      if (currentMemory.value.dateType !== "range" || 
-          !currentMemory.value.startDate || 
-          !currentMemory.value.endDate) {
+      if (
+        currentMemory.value.dateType !== "range" ||
+        !currentMemory.value.startDate ||
+        !currentMemory.value.endDate
+      ) {
         return null;
       }
 
       const start = new Date(currentMemory.value.startDate);
       const end = new Date(currentMemory.value.endDate);
-      
+
       if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
         return null;
       }
@@ -769,10 +799,10 @@ export default {
       const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
       const startFormatted = start.toLocaleDateString("ko-KR");
       const endFormatted = end.toLocaleDateString("ko-KR");
-      
+
       return {
         duration,
-        period: `${startFormatted} ~ ${endFormatted}`
+        period: `${startFormatted} ~ ${endFormatted}`,
       };
     });
 
@@ -798,7 +828,10 @@ export default {
           return;
         }
       } else {
-        if (!currentMemory.value.startDate?.trim() || !currentMemory.value.endDate?.trim()) {
+        if (
+          !currentMemory.value.startDate?.trim() ||
+          !currentMemory.value.endDate?.trim()
+        ) {
           showToast("시작일과 종료일을 모두 입력해주세요.", "danger");
           return;
         }
@@ -810,7 +843,9 @@ export default {
 
       // 날짜 유효성 검사
       if (currentMemory.value.dateType === "single") {
-        if (!validateSingleDate({ target: { value: currentMemory.value.date } })) {
+        if (
+          !validateSingleDate({ target: { value: currentMemory.value.date } })
+        ) {
           return;
         }
       } else {
@@ -824,19 +859,18 @@ export default {
         const memoryData = {
           ...currentMemory.value,
           // 이미지 배열을 JSON 문자열로 변환
-          images: currentMemory.value.images ? JSON.stringify(currentMemory.value.images) : null,
+          images: currentMemory.value.images
+            ? JSON.stringify(currentMemory.value.images)
+            : null,
           // 기존 단일 이미지 필드도 유지 (호환성)
-          image: currentMemory.value.images && currentMemory.value.images.length > 0 
-            ? currentMemory.value.images[0] 
-            : null
+          image:
+            currentMemory.value.images && currentMemory.value.images.length > 0
+              ? currentMemory.value.images[0]
+              : null,
         };
 
-
         if (isEditing.value) {
-          await axios.put(
-            `/dating/${currentMemory.value.id}`,
-            memoryData
-          );
+          await axios.put(`/dating/${currentMemory.value.id}`, memoryData);
           showToast("추억이 수정되었습니다.");
         } else {
           await axios.post("/dating", memoryData);
@@ -965,7 +999,7 @@ export default {
         showToast("미디어 업로드 권한이 없습니다.", "danger");
         return;
       }
-      
+
       isSelectingFiles.value = true;
       fileInput.value?.click();
     };
@@ -976,7 +1010,7 @@ export default {
       if (!files.length) {
         return;
       }
-      
+
       // 수정 권한이 없는 경우 업로드를 막음
       if (!hasUploadPermission.value) {
         showToast("미디어 업로드 권한이 없습니다.", "danger");
@@ -984,20 +1018,21 @@ export default {
       }
 
       // 파일 개수 제한 (최대 10개)
-      if (files.length > 10) {
-        showToast("최대 10개의 미디어만 업로드할 수 있습니다.", "danger");
+      if (files.length > 20) {
+        showToast("최대 20개의 미디어만 업로드할 수 있습니다.", "danger");
         return;
       }
 
       // 기존 이미지와 합쳐서 총 개수 확인
-      const totalImages = (currentMemory.value.images?.length || 0) + files.length;
-      if (totalImages > 10) {
-        showToast("총 미디어 개수는 10개를 초과할 수 없습니다.", "danger");
+      const totalImages =
+        (currentMemory.value.images?.length || 0) + files.length;
+      if (totalImages > 20) {
+        showToast("총 미디어 개수는 20개를 초과할 수 없습니다.", "danger");
         return;
       }
 
       uploading.value = true;
-      
+
       try {
         const uploadPromises = files.map(async (file) => {
           // 파일 크기 확인 (환경 설정 기반)
@@ -1005,7 +1040,9 @@ export default {
           const isVideo = isVideoFile(file);
 
           if (!isImage && !isVideo) {
-            throw new Error(`${file.name}: 이미지 또는 동영상 파일만 업로드 가능합니다.`);
+            throw new Error(
+              `${file.name}: 이미지 또는 동영상 파일만 업로드 가능합니다.`
+            );
           }
 
           if (isImage && file.size > maxImageSizeBytes) {
@@ -1021,11 +1058,11 @@ export default {
           }
 
           const formData = new FormData();
-          formData.append('file', file);
+          formData.append("file", file);
 
-          const response = await axios.post('/dating/upload', formData, {
+          const response = await axios.post("/dating/upload", formData, {
             headers: {
-              'Content-Type': 'multipart/form-data',
+              "Content-Type": "multipart/form-data",
             },
           });
 
@@ -1033,13 +1070,13 @@ export default {
         });
 
         const uploadedImages = await Promise.all(uploadPromises);
-        
+
         // 기존 이미지 배열에 새 이미지들 추가
         if (!currentMemory.value.images) {
           currentMemory.value.images = [];
         }
         currentMemory.value.images.push(...uploadedImages);
-        
+
         showToast(`${uploadedImages.length}개의 미디어가 업로드되었습니다.`);
         // 업로드 완료 직후(오버레이가 내려가는 순간) 미디어 로드/디코딩으로 한 프레임 튀는 현상이 있어
         // 완료 후에도 잠깐 busy 오버레이를 유지하여 체감 깜빡임을 최소화
@@ -1058,7 +1095,7 @@ export default {
         postUploadSettling.value = false;
         // 파일 입력 초기화
         if (fileInput.value) {
-          fileInput.value.value = '';
+          fileInput.value.value = "";
         }
       }
     };
@@ -1069,7 +1106,7 @@ export default {
         showToast("미디어 삭제 권한이 없습니다.", "danger");
         return;
       }
-      
+
       imageToDelete.value = index;
       showImageDeleteModal.value = true;
     };
@@ -1083,27 +1120,27 @@ export default {
       if (imageToDelete.value !== null && currentMemory.value.images) {
         const imageToRemove = currentMemory.value.images[imageToDelete.value];
         const imagePath = extractPath(imageToRemove);
-        
+
         if (!imagePath) {
           showToast("미디어 경로를 찾을 수 없습니다.", "danger");
           closeImageDeleteModal();
           return;
         }
-        
+
         try {
           // 서버에서 이미지 파일 삭제
-          await axios.delete('/dating/image', {
-            params: { imagePath }
+          await axios.delete("/dating/image", {
+            params: { imagePath },
           });
-          
+
           // 프론트엔드에서 이미지 배열에서 제거
           currentMemory.value.images.splice(imageToDelete.value, 1);
           showToast("미디어가 삭제되었습니다.");
           await waitForModalMediaSettled(800);
         } catch (error) {
           // eslint-disable-next-line no-console
-          console.error('미디어 삭제 실패:', error);
-          
+          console.error("미디어 삭제 실패:", error);
+
           // 권한 에러 처리
           if (error.response?.status === 403) {
             showToast("미디어 삭제 권한이 없습니다.", "danger");
@@ -1117,9 +1154,9 @@ export default {
 
     const getImageUrl = (imagePath) => {
       const path = extractPath(imagePath);
-      if (!path || path.trim() === '') return '';
+      if (!path || path.trim() === "") return "";
       // 이미 전체 URL인 경우 그대로 반환
-      if (path.startsWith('http')) return path;
+      if (path.startsWith("http")) return path;
       // 상대 경로인 경우 현재 axios baseURL과 결합
       const baseURL = axios.defaults.baseURL;
       return `${baseURL}${path}`;
@@ -1127,12 +1164,16 @@ export default {
 
     // 디데이 계산을 위한 computed 속성들
     const firstMeetDate = computed(() => {
-      const firstMeet = memories.value.find(memory => memory.category === 'first_meet');
+      const firstMeet = memories.value.find(
+        (memory) => memory.category === "first_meet"
+      );
       return firstMeet ? firstMeet.date : null;
     });
 
     const specialDate = computed(() => {
-      const special = memories.value.find(memory => memory.category === 'special');
+      const special = memories.value.find(
+        (memory) => memory.category === "special"
+      );
       return special ? special.date : null;
     });
 
@@ -1157,7 +1198,7 @@ export default {
     // 이미지 URL을 미리 계산하고 카테고리 필터링을 적용하는 computed 함수
     const processedMemories = computed(() => {
       const query = searchQuery.value.trim().toLowerCase();
-      
+
       // 먼저 카테고리 필터링 적용
       let filteredMemories = memories.value;
       if (selectedCategory.value !== "all") {
@@ -1167,11 +1208,7 @@ export default {
       }
       if (query) {
         filteredMemories = filteredMemories.filter((memory) => {
-          const target = [
-            memory.title,
-            memory.description,
-            memory.location,
-          ]
+          const target = [memory.title, memory.description, memory.location]
             .filter(Boolean)
             .join(" ")
             .toLowerCase();
@@ -1184,8 +1221,8 @@ export default {
         const mediaList = Array.isArray(memory.images)
           ? memory.images
           : memory.image
-            ? [memory.image]
-            : [];
+          ? [memory.image]
+          : [];
         const processedMedia = mediaList
           .map((mediaItem, index) => {
             const url = getImageUrl(mediaItem);
@@ -1199,7 +1236,9 @@ export default {
           })
           .filter(Boolean);
 
-        const videoCount = processedMedia.filter((media) => media.isVideo).length;
+        const videoCount = processedMedia.filter(
+          (media) => media.isVideo
+        ).length;
         const imageCount = processedMedia.length - videoCount;
         const firstVideo = processedMedia.find((media) => media.isVideo);
 
@@ -1234,12 +1273,12 @@ export default {
 
     const handleImageError = (event) => {
       // 이미지 로드 실패 시 숨기기
-      event.target.style.display = 'none';
+      event.target.style.display = "none";
     };
 
     const handleImageLoad = (event) => {
       // 이미지 로드 성공 시 표시
-      event.target.style.display = 'block';
+      event.target.style.display = "block";
     };
 
     // 초기 데이터 로드
@@ -1508,7 +1547,7 @@ export default {
   max-width: 100%;
   height: auto;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* 모바일 스타일 */
@@ -1551,7 +1590,7 @@ export default {
   .dday-date {
     font-size: 0.75rem;
   }
-  
+
   .dating-container :deep(.timeline-footer) {
     flex-direction: column;
     align-items: flex-start;
@@ -1630,7 +1669,7 @@ export default {
   max-width: 200px;
   max-height: 200px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .remove-image {
@@ -1678,9 +1717,15 @@ export default {
 }
 
 @keyframes progress {
-  0% { width: 0%; }
-  50% { width: 70%; }
-  100% { width: 100%; }
+  0% {
+    width: 0%;
+  }
+  50% {
+    width: 70%;
+  }
+  100% {
+    width: 100%;
+  }
 }
 
 .upload-progress p {
@@ -1707,7 +1752,7 @@ export default {
   height: 120px;
   object-fit: cover;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
 }
 
@@ -1735,7 +1780,7 @@ export default {
   justify-content: center;
   font-size: 12px;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .image-preview-item .remove-image:hover {
@@ -1760,7 +1805,7 @@ export default {
   height: 80px;
   object-fit: cover;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
 }
 
@@ -1890,17 +1935,17 @@ export default {
     flex-direction: column;
     gap: 10px;
   }
-  
+
   .date-range-info {
     flex-direction: column;
     gap: 8px;
     text-align: center;
   }
-  
+
   .range-duration {
     font-size: 1rem;
   }
-  
+
   .range-period {
     font-size: 0.8rem;
   }
@@ -1912,16 +1957,16 @@ export default {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 10px;
   }
-  
+
   .image-preview-item .media-preview {
     height: 100px;
   }
-  
+
   .image-gallery .memory-image {
     width: 60px;
     height: 60px;
   }
-  
+
   .more-images {
     padding: 6px 10px;
     font-size: 0.8rem;
