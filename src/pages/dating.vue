@@ -1017,7 +1017,7 @@ export default {
         return;
       }
 
-      // 파일 개수 제한 (최대 10개)
+      // 파일 개수 제한 (최대 20개)
       if (files.length > 20) {
         showToast("최대 20개의 미디어만 업로드할 수 있습니다.", "danger");
         return;
