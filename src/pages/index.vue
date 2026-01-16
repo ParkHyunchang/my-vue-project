@@ -60,26 +60,26 @@
           <h2 class="challenge__title">Challenge <em>나의 경력</em></h2>
           <div class="challenge__desc">
             <div class="challenge__item">
-              <span class="challenge__period">2017.09 ~ 2021.09</span>
+              <span class="challenge__period">2017.09.04 ~ 2021.09.24</span>
               <h3 class="challenge__company">(주)나일소프트</h3>
               <p class="challenge__work">웹 취약점점검 솔루션 개발 및 유지보수</p>
               <p class="challenge__work">JAVA 웹 개발</p>
               <p class="challenge__work">clireport 보고서 개발</p>
             </div>
             <div class="challenge__item">
-              <span class="challenge__period">2021.09 ~ 2021.11</span>
+              <span class="challenge__period">2021.10.05 ~ 2021.11.09</span>
               <h3 class="challenge__company">(주)아이나비모빌리티</h3>
               <p class="challenge__work">서버개발</p>
             </div>
             <div class="challenge__item">
-              <span class="challenge__period">2021.11 ~ 2024.10</span>
+              <span class="challenge__period">2021.11.29 ~ 2024.10.18</span>
               <h3 class="challenge__company">(주)NHN다이퀘스트</h3>
               <p class="challenge__work">AI 콜봇 개발 및 유지보수</p>
               <p class="challenge__work">엔진 및 딥러닝 패치</p>
               <p class="challenge__work">딥러닝 CI/CD 구축 (docker, 젠킨스, 깃)</p>
             </div>
             <div class="challenge__item">
-              <span class="challenge__period">2025.04 ~ 재직중</span>
+              <span class="challenge__period">2025.04.21 ~ 재직중</span>
               <h3 class="challenge__company">(주)포니링크</h3>
               <p class="challenge__work">LLM 개발운영 - 대규모 언어 모델 프로젝트</p>
             </div>
