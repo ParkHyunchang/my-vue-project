@@ -1,51 +1,45 @@
 #!/bin/bash
+# ──────────────────────────────────────────────────────────────────────────────
+# 프론트엔드 수동 배포 스크립트 (레지스트리 pull 방식)
+# GitHub Actions가 자동 배포하지만, 수동으로 재배포가 필요할 때 사용
+#
+# 사용법:
+#   GHCR_PAT=<토큰> GITHUB_ACTOR=<깃허브아이디> ./vue_personal_project_deploy.sh
+# ──────────────────────────────────────────────────────────────────────────────
 
-echo "🚀 NAS 서버 배포 시작..."
+set -e
 
-# tar 파일 찾기 (날짜가 붙은 파일 포함)
-TAR_FILE=$(ls frontEnd_deployment*.tar 2>/dev/null | head -1)
+IMAGE_NAME="${IMAGE_NAME:-ghcr.io/parkhyunchang/my-vue-project:latest}"
 
-if [ -z "$TAR_FILE" ]; then
-    echo "❌ frontEnd_deployment*.tar 파일을 찾을 수 없습니다!"
-    echo "📁 현재 디렉토리에 tar 파일이 있는지 확인해주세요."
-    exit 1
+echo "🚀 프론트엔드 배포 시작..."
+
+# GHCR 로그인 (환경변수로 토큰 전달)
+if [ -n "$GHCR_PAT" ] && [ -n "$GITHUB_ACTOR" ]; then
+    echo "🔐 GHCR 로그인 중..."
+    echo "$GHCR_PAT" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+else
+    echo "⚠️  GHCR_PAT 또는 GITHUB_ACTOR 환경변수가 설정되지 않았습니다."
+    echo "   이미 로그인되어 있다면 계속 진행합니다..."
 fi
 
-echo "📦 발견된 tar 파일: $TAR_FILE"
+echo "📦 이미지 pull 중: $IMAGE_NAME"
+docker pull "$IMAGE_NAME"
 
-# 5. NAS 경로로 이동하여 tar 파일 로드
-echo "📦 5단계: Docker 이미지 로드 중..."
-docker load -i "$TAR_FILE"
-
-if [ $? -ne 0 ]; then
-    echo "❌ Docker 이미지 로드 실패!"
-    exit 1
-fi
-echo "✅ Docker 이미지 로드 완료!"
-
-# 6. 이전 컨테이너 제거 후 컨테이너 실행 (포트 지정 포함)
-echo "🔄 6단계: 컨테이너 재시작 중..."
-
-# 기존 컨테이너 중지 및 제거
-echo "⏹️  기존 컨테이너 중지..."
+echo "🔄 컨테이너 재시작 중..."
 docker stop vue_personal_project 2>/dev/null || true
-echo "🗑️  기존 컨테이너 제거..."
 docker rm vue_personal_project 2>/dev/null || true
 
-# 새 컨테이너 실행
-echo "▶️  새 컨테이너 실행..."
-docker run -d --name vue_personal_project -p 3100:80 vue_personal_project:latest
+docker run -d \
+  --name vue_personal_project \
+  --restart unless-stopped \
+  -p 3100:80 \
+  "$IMAGE_NAME"
 
-if [ $? -ne 0 ]; then
-    echo "❌ 컨테이너 실행 실패!"
-    exit 1
-fi
-echo "✅ 컨테이너 실행 완료!"
+docker image prune -f
 
 echo ""
 echo "🎉 배포가 완료되었습니다!"
-echo "🌐 http://your-nas-ip:3100 에서 확인하세요."
+echo "🌐 http://$(hostname -I | awk '{print $1}'):3100 에서 확인하세요."
+echo ""
 echo "📊 컨테이너 상태:"
-docker ps | grep vue_personal_project 
-
-
+docker ps | grep vue_personal_project
