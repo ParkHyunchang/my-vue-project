@@ -359,6 +359,8 @@ import {
   onUnmounted,
   nextTick,
 } from "vue";
+
+const DDAY_END_DATE = "2026-02-21";
 import { useStore } from "vuex";
 import Modal from "@/components/Modal.vue";
 import DeleteModal from "@/components/DeleteModal.vue";
@@ -406,38 +408,6 @@ export default {
       previewVideos.value = [];
     });
 
-    // D-day 표시를 자정 경계에서 자동 갱신 (업로드/파일선택 중 불필요한 리렌더 방지를 위해 '날짜가 바뀐 경우에만' 갱신)
-    const nowTick = ref(Date.now());
-    let nowTimer = null;
-    let handleVisibilityChange = null;
-    let lastDayKey = "";
-
-    const getDayKey = (ms) => {
-      const d = new Date(ms);
-      return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-    };
-
-    const scheduleNextMidnightTick = () => {
-      const now = new Date();
-      const nextMidnight = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate() + 1,
-        0,
-        0,
-        0,
-        0
-      );
-      const targetTime = nextMidnight.getTime();
-      const msUntilNextMidnight = Math.max(0, targetTime - now.getTime());
-
-      nowTimer = setTimeout(() => {
-        nowTick.value = Date.now();
-        lastDayKey = getDayKey(nowTick.value);
-        scheduleNextMidnightTick();
-      }, msUntilNextMidnight);
-    };
-
     const updateIsMobileLike = () => {
       if (typeof window === "undefined" || !window.matchMedia) {
         isMobileLike.value = false;
@@ -454,32 +424,10 @@ export default {
     onMounted(() => {
       updateIsMobileLike();
       window.addEventListener?.("resize", updateIsMobileLike);
-
-      // D-day 갱신 스케줄링
-      lastDayKey = getDayKey(nowTick.value);
-      scheduleNextMidnightTick();
-      handleVisibilityChange = () => {
-        if (document.hidden) return;
-        const nowMs = Date.now();
-        const dayKey = getDayKey(nowMs);
-        if (dayKey !== lastDayKey) {
-          lastDayKey = dayKey;
-          nowTick.value = nowMs;
-        }
-      };
-      document.addEventListener("visibilitychange", handleVisibilityChange);
     });
 
     onUnmounted(() => {
       window.removeEventListener?.("resize", updateIsMobileLike);
-      if (nowTimer) clearTimeout(nowTimer);
-      if (handleVisibilityChange) {
-        document.removeEventListener(
-          "visibilitychange",
-          handleVisibilityChange
-        );
-        handleVisibilityChange = null;
-      }
     });
 
     const toLocalMidnight = (d) => {
@@ -543,14 +491,14 @@ export default {
 
     // 권한 체크 computed 속성들
     const canCreate = computed(() =>
-      store.getters["auth/canCreate"]("/dating")
+      store.getters["auth/canCreate"]("/dating_sys")
     );
-    const canRead = computed(() => store.getters["auth/canRead"]("/dating"));
+    const canRead = computed(() => store.getters["auth/canRead"]("/dating_sys"));
     const canUpdate = computed(() =>
-      store.getters["auth/canUpdate"]("/dating")
+      store.getters["auth/canUpdate"]("/dating_sys")
     );
     const canDelete = computed(() =>
-      store.getters["auth/canDelete"]("/dating")
+      store.getters["auth/canDelete"]("/dating_sys")
     );
 
     const hasUploadPermission = computed(() =>
@@ -614,7 +562,7 @@ export default {
 
     const fetchMemories = async () => {
       try {
-        const response = await axios.get("/dating");
+        const response = await axios.get("/dating_sys");
         // 백엔드에서 받은 데이터를 프론트엔드 형식으로 변환
         memories.value = response.data.map((memory) => {
           let imagesArray = [];
@@ -870,10 +818,10 @@ export default {
         };
 
         if (isEditing.value) {
-          await axios.put(`/dating/${currentMemory.value.id}`, memoryData);
+          await axios.put(`/dating_sys/${currentMemory.value.id}`, memoryData);
           showToast("추억이 수정되었습니다.");
         } else {
-          await axios.post("/dating", memoryData);
+          await axios.post("/dating_sys", memoryData);
           showToast("추억이 생성되었습니다.");
         }
         await fetchMemories();
@@ -930,7 +878,7 @@ export default {
 
     const deleteMemory = async () => {
       try {
-        await axios.delete(`/dating/${memoryToDelete.value.id}`);
+        await axios.delete(`/dating_sys/${memoryToDelete.value.id}`);
         closeDeleteModal();
         await fetchMemories();
         showToast("추억이 삭제되었습니다.");
@@ -1060,7 +1008,7 @@ export default {
           const formData = new FormData();
           formData.append("file", file);
 
-          const response = await axios.post("/dating/upload", formData, {
+          const response = await axios.post("/dating_sys/upload", formData, {
             headers: {
               "Content-Type": "multipart/form-data",
             },
@@ -1129,7 +1077,7 @@ export default {
 
         try {
           // 서버에서 이미지 파일 삭제
-          await axios.delete("/dating/image", {
+          await axios.delete("/dating_sys/image", {
             params: { imagePath },
           });
 
@@ -1177,20 +1125,20 @@ export default {
       return special ? special.date : null;
     });
 
+    const ddayBaseDate = parseYmdLocalMidnight(DDAY_END_DATE);
+
     const firstMeetDays = computed(() => {
       if (!firstMeetDate.value) return 0;
-      const today = toLocalMidnight(new Date(nowTick.value));
       const firstMeet = parseYmdLocalMidnight(firstMeetDate.value);
-      const diffTime = today - firstMeet;
+      const diffTime = ddayBaseDate - firstMeet;
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
       return diffDays;
     });
 
     const specialDays = computed(() => {
       if (!specialDate.value) return 0;
-      const today = toLocalMidnight(new Date(nowTick.value));
       const special = parseYmdLocalMidnight(specialDate.value);
-      const diffTime = today - special;
+      const diffTime = ddayBaseDate - special;
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
       return diffDays;
     });

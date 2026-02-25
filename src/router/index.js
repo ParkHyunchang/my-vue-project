@@ -9,6 +9,7 @@ import Expense from '../pages/expense.vue';
 import Projects from '../pages/projects.vue';
 import History from '../pages/history.vue';
 import Dating from '../pages/dating.vue';
+import DatingSys from '../pages/dating_sys.vue';
 import Auth from '../pages/auth.vue';
 import Admin from '../pages/admin.vue';
 
@@ -49,6 +50,12 @@ const router = createRouter({
             path: '/dating',
             name: 'Dating',
             component: Dating,
+            meta: { requiresAuth: true, roles: ['PREMIUM', 'ADMIN'] }
+        },
+        {
+            path: '/dating_sys',
+            name: 'DatingSys',
+            component: DatingSys,
             meta: { requiresAuth: true, roles: ['PREMIUM', 'ADMIN'] }
         },
         {

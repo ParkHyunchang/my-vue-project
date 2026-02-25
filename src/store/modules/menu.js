@@ -52,6 +52,16 @@ const state = {
             navLabel: 'DATING'
         },
         {
+            path: '/dating_sys',
+            name: '데이팅 추억',
+            icon: '📸',
+            description: '데이팅 추억 기록',
+            category: 'personal',
+            isRequired: false,
+            showInNav: true,
+            navLabel: 'DATING SYS'
+        },
+        {
             path: '/todos',
             name: '할일 목록',
             icon: '📝',
@@ -191,10 +201,10 @@ function getDefaultMenusForRole(role) {
             '/', '/portfolio', '/projects', '/todos', '/todos/create'
         ],
         'PREMIUM': [
-            '/', '/portfolio', '/projects', '/history', '/dating', '/todos', '/todos/create'
+            '/', '/portfolio', '/projects', '/history', '/dating', '/dating_sys', '/todos', '/todos/create'
         ],
         'ADMIN': [
-            '/', '/portfolio', '/projects', '/history', '/dating', '/todos', '/todos/create',
+            '/', '/portfolio', '/projects', '/history', '/dating', '/dating_sys', '/todos', '/todos/create',
             '/expense', '/admin', '/admin/users', '/admin/menu-management'
         ]
     };
