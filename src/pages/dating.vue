@@ -45,7 +45,11 @@
             </div>
             <div class="dday-value">D+{{ firstMeetDays }}</div>
             <div class="dday-date">
-              {{ formatDate(firstMeetDate) }}
+              <template v-if="firstMeetEndDate">
+                <span>{{ formatDate(firstMeetDate) }}</span>
+                <span>~ {{ formatDate(firstMeetEndDate) }}</span>
+              </template>
+              <span v-else>{{ formatDate(firstMeetDate) }}</span>
             </div>
           </div>
           <div v-if="specialDate" class="dday-item">
@@ -55,7 +59,11 @@
             </div>
             <div class="dday-value">D+{{ specialDays }}</div>
             <div class="dday-date">
-              {{ formatDate(specialDate) }}
+              <template v-if="specialEndDate">
+                <span>{{ formatDate(specialDate) }}</span>
+                <span>~ {{ formatDate(specialEndDate) }}</span>
+              </template>
+              <span v-else>{{ formatDate(specialDate) }}</span>
             </div>
           </div>
         </div>
@@ -1020,12 +1028,32 @@ export default {
     // D-day: 오늘 날짜 기준 실시간 계산
     const firstMeetDate = computed(() => {
       const firstMeet = memories.value.find((m) => m.category === "first_meet");
-      return firstMeet ? firstMeet.date : null;
+      if (!firstMeet) return null;
+      return firstMeet.dateType === "range" && firstMeet.startDate
+        ? firstMeet.startDate
+        : firstMeet.date;
+    });
+
+    const firstMeetEndDate = computed(() => {
+      const firstMeet = memories.value.find((m) => m.category === "first_meet");
+      return firstMeet && firstMeet.dateType === "range" && firstMeet.endDate
+        ? firstMeet.endDate
+        : null;
     });
 
     const specialDate = computed(() => {
       const special = memories.value.find((m) => m.category === "special");
-      return special ? special.date : null;
+      if (!special) return null;
+      return special.dateType === "range" && special.startDate
+        ? special.startDate
+        : special.date;
+    });
+
+    const specialEndDate = computed(() => {
+      const special = memories.value.find((m) => m.category === "special");
+      return special && special.dateType === "range" && special.endDate
+        ? special.endDate
+        : null;
     });
 
     const firstMeetDays = computed(() => {
@@ -1111,7 +1139,7 @@ export default {
       handleImageError, handleImageLoad, setMediaFilter,
       showImageDeleteModal, closeImageDeleteModal,
       canCreate, canRead, canUpdate, canDelete, hasUploadPermission,
-      firstMeetDate, specialDate, firstMeetDays, specialDays,
+      firstMeetDate, firstMeetEndDate, specialDate, specialEndDate, firstMeetDays, specialDays,
       onDateTypeChange, validateSingleDate, validateRangeDate, dateRangeInfo, applySearch,
     };
   },
@@ -1255,7 +1283,7 @@ export default {
   text-shadow: 0 2px 4px rgba(233, 30, 99, 0.2);
 }
 
-.dday-date { font-size: 0.9rem; color: #666; font-weight: 500; }
+.dday-date { font-size: 0.9rem; color: #666; font-weight: 500; display: flex; flex-direction: column; align-items: center; gap: 2px; }
 
 .dating-container :deep(.timeline-body p) { white-space: pre-line; }
 .dating-container :deep(.timeline-footer) { flex-wrap: wrap; gap: 10px; }

@@ -45,12 +45,11 @@
             </div>
             <div class="dday-value">D+{{ firstMeetDays }}</div>
             <div class="dday-date">
-              <span v-if="firstMeetEndDate">
-                {{ formatDate(firstMeetDate) }} ~ {{ formatDate(firstMeetEndDate) }}
-              </span>
-              <span v-else>
-                {{ formatDate(firstMeetDate) }}
-              </span>
+              <template v-if="firstMeetEndDate">
+                <span>{{ formatDate(firstMeetDate) }}</span>
+                <span>~ {{ formatDate(firstMeetEndDate) }}</span>
+              </template>
+              <span v-else>{{ formatDate(firstMeetDate) }}</span>
             </div>
           </div>
           <div v-if="specialDate" class="dday-item">
@@ -60,12 +59,11 @@
             </div>
             <div class="dday-value">D+{{ specialDays }}</div>
             <div class="dday-date">
-              <span v-if="specialEndDate">
-                {{ formatDate(specialDate) }} ~ {{ formatDate(specialEndDate) }}
-              </span>
-              <span v-else>
-                {{ formatDate(specialDate) }}
-              </span>
+              <template v-if="specialEndDate">
+                <span>{{ formatDate(specialDate) }}</span>
+                <span>~ {{ formatDate(specialEndDate) }}</span>
+              </template>
+              <span v-else>{{ formatDate(specialDate) }}</span>
             </div>
           </div>
         </div>
@@ -1518,6 +1516,10 @@ export default {
   font-size: 0.9rem;
   color: #666;
   font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
 }
 
 /* 타임라인에서도 설명 줄바꿈이 유지되도록 */
