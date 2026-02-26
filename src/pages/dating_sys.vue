@@ -45,7 +45,12 @@
             </div>
             <div class="dday-value">D+{{ firstMeetDays }}</div>
             <div class="dday-date">
-              {{ formatDate(firstMeetDate) }}
+              <span v-if="firstMeetEndDate">
+                {{ formatDate(firstMeetDate) }} ~ {{ formatDate(firstMeetEndDate) }}
+              </span>
+              <span v-else>
+                {{ formatDate(firstMeetDate) }}
+              </span>
             </div>
           </div>
           <div v-if="specialDate" class="dday-item">
@@ -55,7 +60,12 @@
             </div>
             <div class="dday-value">D+{{ specialDays }}</div>
             <div class="dday-date">
-              {{ formatDate(specialDate) }}
+              <span v-if="specialEndDate">
+                {{ formatDate(specialDate) }} ~ {{ formatDate(specialEndDate) }}
+              </span>
+              <span v-else>
+                {{ formatDate(specialDate) }}
+              </span>
             </div>
           </div>
         </div>
@@ -192,6 +202,7 @@
                 v-model="currentMemory.category"
                 class="form-control"
                 required
+                @change="onCategoryChange"
               >
                 <option value="" disabled selected>
                   카테고리를 선택하세요
@@ -658,6 +669,25 @@ export default {
     // 최대 날짜를 현재 날짜로 설정
     const maxDate = new Date().toISOString().split("T")[0];
 
+    // 카테고리 변경 핸들러
+    const onCategoryChange = () => {
+      // 첫만남 또는 사귄날 카테고리 선택 시 자동으로 "기간" 모드로 전환
+      if (
+        currentMemory.value.category === "first_meet" ||
+        currentMemory.value.category === "special"
+      ) {
+        // 기간 모드로 전환
+        if (currentMemory.value.dateType === "single") {
+          currentMemory.value.dateType = "range";
+          // 기존 단일 날짜가 있으면 시작일로 이동
+          if (currentMemory.value.date) {
+            currentMemory.value.startDate = currentMemory.value.date;
+            currentMemory.value.date = "";
+          }
+        }
+      }
+    };
+
     // 날짜 타입 변경 핸들러
     const onDateTypeChange = () => {
       // 날짜 타입이 변경되면 기존 날짜 값들 초기화
@@ -1115,14 +1145,42 @@ export default {
       const firstMeet = memories.value.find(
         (memory) => memory.category === "first_meet"
       );
-      return firstMeet ? firstMeet.date : null;
+      if (!firstMeet) return null;
+      // dateType이 range이고 startDate가 있으면 startDate 사용, 아니면 date 사용
+      return firstMeet.dateType === "range" && firstMeet.startDate
+        ? firstMeet.startDate
+        : firstMeet.date;
+    });
+
+    const firstMeetEndDate = computed(() => {
+      const firstMeet = memories.value.find(
+        (memory) => memory.category === "first_meet"
+      );
+      // dateType이 range이고 endDate가 있으면 endDate 반환
+      return firstMeet && firstMeet.dateType === "range" && firstMeet.endDate
+        ? firstMeet.endDate
+        : null;
     });
 
     const specialDate = computed(() => {
       const special = memories.value.find(
         (memory) => memory.category === "special"
       );
-      return special ? special.date : null;
+      if (!special) return null;
+      // dateType이 range이고 startDate가 있으면 startDate 사용, 아니면 date 사용
+      return special.dateType === "range" && special.startDate
+        ? special.startDate
+        : special.date;
+    });
+
+    const specialEndDate = computed(() => {
+      const special = memories.value.find(
+        (memory) => memory.category === "special"
+      );
+      // dateType이 range이고 endDate가 있으면 endDate 반환
+      return special && special.dateType === "range" && special.endDate
+        ? special.endDate
+        : null;
     });
 
     const ddayBaseDate = parseYmdLocalMidnight(DDAY_END_DATE);
@@ -1289,10 +1347,13 @@ export default {
       hasUploadPermission,
       // 디데이 관련
       firstMeetDate,
+      firstMeetEndDate,
       specialDate,
+      specialEndDate,
       firstMeetDays,
       specialDays,
       // 새로운 날짜 관련
+      onCategoryChange,
       onDateTypeChange,
       validateSingleDate,
       validateRangeDate,
