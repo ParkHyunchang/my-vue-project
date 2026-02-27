@@ -9,9 +9,12 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: rgba(116, 99, 99, 0.1);
+    background-color: rgba(255, 255, 255, 0.97);
     backdrop-filter: blur(15px);
     padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    height: 68px;
+    box-sizing: border-box;
 }
 .header__logo {
     font-size: 0.9rem;

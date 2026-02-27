@@ -397,10 +397,17 @@ export default {
     background: white;
     padding: 10px 16px;
     border-bottom: 1px solid #e2e8f0;
-    position: sticky;
+    position: fixed;
     top: 68px;
-    z-index: 10;
+    left: 0;
+    right: 0;
+    z-index: 100;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+
+  /* fixed 미니바 높이만큼 콘텐츠 여백 보정 */
+  .admin-page-content {
+    padding-top: 49px;
   }
 
   .mobile-hamburger {

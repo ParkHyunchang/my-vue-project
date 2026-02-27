@@ -8,9 +8,22 @@
         <div v-if="!isAuthenticated" class="auth-buttons">
           <router-link to="/login" @click="closeMenu" class="login-btn">로그인</router-link>
         </div>
-        <div v-else class="user-section">
-          <span class="user-info">{{ user.username }} ({{ user.role }})</span>
-          <button @click="handleLogout" class="logout-btn">로그아웃</button>
+        <!-- 모바일 전용: 아바타 클릭 → 드롭다운 -->
+        <div v-else class="mobile-avatar-wrapper" @click.stop="toggleUserDropdown">
+          <div class="mobile-avatar">{{ userInitial }}</div>
+          <transition name="dropdown-fade">
+            <div v-if="showUserDropdown" class="mobile-user-dropdown" @click.stop>
+              <div class="dropdown-user-header">
+                <div class="dropdown-avatar-lg">{{ userInitial }}</div>
+                <div class="dropdown-user-meta">
+                  <span class="dropdown-username">{{ user.username }}</span>
+                  <span class="dropdown-role">{{ user.role }}</span>
+                </div>
+              </div>
+              <div class="dropdown-divider"></div>
+              <button @click="handleLogout" class="dropdown-logout-btn">로그아웃</button>
+            </div>
+          </transition>
         </div>
         <div class="header__nav__mobile" @click="toggleMenu">
           <span></span>
@@ -52,12 +65,20 @@ export default {
     const store = useStore();
     const router = useRouter();
     const isOpen = ref(false);
-    
+    const showUserDropdown = ref(false);
+
     const toggleMenu = () => {
       isOpen.value = !isOpen.value;
+      showUserDropdown.value = false;
     };
-    
+
     const closeMenu = () => {
+      isOpen.value = false;
+      showUserDropdown.value = false;
+    };
+
+    const toggleUserDropdown = () => {
+      showUserDropdown.value = !showUserDropdown.value;
       isOpen.value = false;
     };
     
@@ -73,6 +94,7 @@ export default {
     
     const isAuthenticated = computed(() => store.getters['auth/isAuthenticated']);
     const user = computed(() => store.getters['auth/user']);
+    const userInitial = computed(() => user.value?.username?.charAt(0)?.toUpperCase() || '?');
     const navigationMenus = computed(() => store.getters['menu/navigationMenus']);
     const hasAdminAccess = computed(() => store.getters['menu/hasAdminAccess']);
     
@@ -83,11 +105,14 @@ export default {
     
     // 바깥 영역 클릭/터치 시 메뉴 닫기
     const handleDocumentClick = (event) => {
-      // 모바일 메뉴나 햄버거 버튼이 아닌 곳을 클릭/터치하면 메뉴 닫기
       const navElement = event.target.closest('.header__nav');
       const mobileToggle = event.target.closest('.header__nav__mobile');
+      const avatarWrapper = event.target.closest('.mobile-avatar-wrapper');
       if (!navElement && !mobileToggle && isOpen.value) {
-        closeMenu();
+        isOpen.value = false;
+      }
+      if (!avatarWrapper && showUserDropdown.value) {
+        showUserDropdown.value = false;
       }
     };
     
@@ -102,12 +127,15 @@ export default {
     });
     
     return { 
-      isOpen, 
-      toggleMenu, 
+      isOpen,
+      showUserDropdown,
+      toggleMenu,
+      toggleUserDropdown,
       closeMenu, 
       handleLogout,
       isAuthenticated,
       user,
+      userInitial,
       navigationMenus,
       hasAdminAccess,
       hasRole
@@ -121,7 +149,7 @@ export default {
 .header__left {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
 }
 
 .auth-buttons {
@@ -143,12 +171,126 @@ export default {
   background: #5a6fd8;
 }
 
-.user-section {
+/* ===== 모바일 아바타 + 드롭다운 ===== */
+.mobile-avatar-wrapper {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 15px;
 }
 
+.mobile-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.mobile-avatar:hover {
+  opacity: 0.85;
+}
+
+.mobile-user-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e2e8f0;
+  min-width: 220px;
+  z-index: 20000;
+  overflow: hidden;
+}
+
+.dropdown-user-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #f8fafc;
+}
+
+.dropdown-avatar-lg {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dropdown-user-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.dropdown-username {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-role {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.dropdown-logout-btn {
+  width: 100%;
+  padding: 13px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  color: #dc3545;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.dropdown-logout-btn:hover {
+  background: #fff5f5;
+}
+
+/* 드롭다운 트랜지션 */
+.dropdown-fade-enter-active,
+.dropdown-fade-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.dropdown-fade-enter-from,
+.dropdown-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* ===== 데스크탑: 아바타 숨기고 desktop-user 표시 ===== */
 .user-info {
   font-size: 14px;
   color: #666;
@@ -185,8 +327,9 @@ export default {
     padding: 0;
   }
   
+  /* 데스크탑에서는 header__left의 로그인/아바타 숨김 */
   .header__left .auth-buttons,
-  .header__left .user-section {
+  .header__left .mobile-avatar-wrapper {
     display: none;
   }
 }
@@ -217,19 +360,13 @@ export default {
   .header__nav {
     order: 3;
     position: relative;
-    z-index: 999; /* 오버레이보다 위에 표시 */
+    z-index: 999;
   }
-  
-  .user-section {
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start;
-  }
-  
+
+  /* 모바일에서는 desktop-user / desktop-login 숨김 */
   .desktop-login,
   .desktop-user {
     display: none;
   }
-  
 }
 </style>
