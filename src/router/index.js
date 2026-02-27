@@ -84,21 +84,25 @@ const router = createRouter({
         },
         {
             path: '/admin',
-            name: 'AdminMain',
-            component: () => import('../pages/admin-main.vue'),
-            meta: { requiresAuth: true, roles: ['ADMIN'] }
-        },
-        {
-            path: '/admin/users',
-            name: 'AdminUsers',
-            component: Admin,
-            meta: { requiresAuth: true, roles: ['ADMIN'] }
-        },
-        {
-            path: '/admin/menu-management',
-            name: 'AdminMenuManagement',
-            component: () => import('../pages/admin-menu-management.vue'),
-            meta: { requiresAuth: true, roles: ['ADMIN'] }
+            component: () => import('../components/AdminLayout.vue'),
+            meta: { requiresAuth: true, roles: ['ADMIN'] },
+            children: [
+                {
+                    path: '',
+                    name: 'AdminMain',
+                    component: () => import('../pages/admin-main.vue'),
+                },
+                {
+                    path: 'users',
+                    name: 'AdminUsers',
+                    component: Admin,
+                },
+                {
+                    path: 'menu-management',
+                    name: 'AdminMenuManagement',
+                    component: () => import('../pages/admin-menu-management.vue'),
+                }
+            ]
         }
     ]
 });

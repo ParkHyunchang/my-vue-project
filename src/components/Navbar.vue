@@ -25,13 +25,8 @@
           <li v-for="menu in navigationMenus" :key="menu.path">
             <router-link :to="menu.path" @click="closeMenu">{{ menu.navLabel }}</router-link>
           </li>
-          <li v-if="hasAdminAccess" class="dropdown">
-            <a href="#" @click.prevent="toggleAdminMenu" class="dropdown-toggle">관리자</a>
-            <ul v-if="showAdminMenu" class="dropdown-menu" @click.stop>
-              <li v-for="adminMenu in adminSubMenus" :key="adminMenu.path">
-                <router-link :to="adminMenu.path" @click="closeMenu">{{ adminMenu.navLabel }}</router-link>
-              </li>
-            </ul>
+          <li v-if="hasAdminAccess">
+            <router-link to="/admin" @click="closeMenu">관리자</router-link>
           </li>
         </ul>
         <div v-if="!isAuthenticated" class="desktop-login">
@@ -57,8 +52,6 @@ export default {
     const store = useStore();
     const router = useRouter();
     const isOpen = ref(false);
-    const showAdminMenu = ref(false);
-    
     
     const toggleMenu = () => {
       isOpen.value = !isOpen.value;
@@ -66,12 +59,6 @@ export default {
     
     const closeMenu = () => {
       isOpen.value = false;
-      showAdminMenu.value = false;
-    };
-    
-    const toggleAdminMenu = (event) => {
-      event.stopPropagation(); // 이벤트 버블링 방지
-      showAdminMenu.value = !showAdminMenu.value;
     };
     
     const handleLogout = async () => {
@@ -87,7 +74,6 @@ export default {
     const isAuthenticated = computed(() => store.getters['auth/isAuthenticated']);
     const user = computed(() => store.getters['auth/user']);
     const navigationMenus = computed(() => store.getters['menu/navigationMenus']);
-    const adminSubMenus = computed(() => store.getters['menu/adminSubMenus']);
     const hasAdminAccess = computed(() => store.getters['menu/hasAdminAccess']);
     
     const hasRole = (role) => {
@@ -97,12 +83,6 @@ export default {
     
     // 바깥 영역 클릭/터치 시 메뉴 닫기
     const handleDocumentClick = (event) => {
-      // 드롭다운 메뉴나 토글 버튼이 아닌 곳을 클릭하면 드롭다운 닫기
-      const dropdownElement = event.target.closest('.dropdown');
-      if (!dropdownElement && showAdminMenu.value) {
-        showAdminMenu.value = false;
-      }
-      
       // 모바일 메뉴나 햄버거 버튼이 아닌 곳을 클릭/터치하면 메뉴 닫기
       const navElement = event.target.closest('.header__nav');
       const mobileToggle = event.target.closest('.header__nav__mobile');
@@ -123,15 +103,12 @@ export default {
     
     return { 
       isOpen, 
-      showAdminMenu,
       toggleMenu, 
-      toggleAdminMenu,
       closeMenu, 
       handleLogout,
       isAuthenticated,
       user,
       navigationMenus,
-      adminSubMenus,
       hasAdminAccess,
       hasRole
     };
@@ -231,72 +208,6 @@ export default {
   padding: 6px 12px;
 }
 
-/* 드롭다운 메뉴 스타일 */
-.dropdown {
-  position: relative;
-}
-
-.dropdown-toggle {
-  color: #333;
-  text-decoration: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.dropdown-toggle::after {
-  content: '▼';
-  font-size: 10px;
-  transition: transform 0.3s ease;
-}
-
-.dropdown:hover .dropdown-toggle::after {
-  transform: rotate(180deg);
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  min-width: 180px;
-  z-index: 1000;
-  list-style: none;
-  margin: 0;
-  padding: 8px 0;
-  overflow: hidden;
-}
-
-.dropdown-menu li {
-  margin: 0;
-  width: 100%;
-}
-
-.dropdown-menu a {
-  display: block;
-  padding: 12px 16px;
-  color: #333;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  font-size: 14px;
-  font-weight: 500;
-  border-bottom: 1px solid #f0f0f0;
-  white-space: nowrap;
-}
-
-.dropdown-menu li:last-child a {
-  border-bottom: none;
-}
-
-.dropdown-menu a:hover {
-  background: #f8f9fa;
-  color: #007bff;
-  padding-left: 20px;
-}
 
 @media (max-width: 767px) {
   .header__left {
@@ -320,30 +231,5 @@ export default {
     display: none;
   }
   
-  .dropdown-menu {
-    position: static;
-    box-shadow: none;
-    border: none;
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 4px;
-    margin-top: 10px;
-    padding: 0;
-  }
-  
-  .dropdown-menu a {
-    color: white;
-    padding: 12px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 14px;
-  }
-  
-  .dropdown-menu li:last-child a {
-    border-bottom: none;
-  }
-  
-  .dropdown-menu a:hover {
-    background: rgba(255, 255, 255, 0.1);
-    padding-left: 24px;
-  }
 }
 </style>

@@ -20,19 +20,19 @@ export default {
 </script>
 
 <style>
+body {
+  background: #f1f5f9;
+  margin: 0;
+}
+
 .main-wrapper {
-  padding-top: 100px; /* navbar 높이보다 더 크게 설정 */
+  padding-top: 68px;
   width: 100%;
   margin: 0;
-  padding-left: 0; /* 사이드 메뉴 제거로 인한 패딩 제거 */
+  padding-left: 0;
   padding-right: 0;
   overflow-x: hidden;
-}
-@media (max-width: 800px) {
-  .main-wrapper {
-    padding-top: 120px; /* 모바일에서는 더 큰 패딩 */
-    padding-left: 0;
-    padding-right: 0;
-  }
+  min-height: 100vh;
+  background: #f1f5f9;
 }
 </style>
