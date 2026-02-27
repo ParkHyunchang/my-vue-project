@@ -1150,70 +1150,164 @@ export default {
   }
   
   .menu-management-header h1 {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
   }
   
+  .menu-management-header p {
+    font-size: 0.95rem;
+  }
+  
+  /* ✅ role-tabs를 가로 스크롤로 변경 */
   .role-tabs {
-    flex-direction: column;
+    flex-direction: row;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  
+  .role-tabs::-webkit-scrollbar {
+    display: none;
   }
   
   .role-tab {
-    flex-direction: row;
+    flex-shrink: 0;
+    min-width: 100px;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    padding: 15px;
+    padding: 12px 10px;
+    gap: 4px;
   }
   
+  /* ✅ active 탭 border-bottom으로 통일 */
   .role-tab.active {
-    border-bottom: none;
-    border-left: 3px solid #007bff;
+    border-bottom: 3px solid #007bff;
+    border-left: none;
+  }
+  
+  .role-icon {
+    font-size: 1.3rem;
+  }
+  
+  .role-name {
+    font-size: 0.85rem;
+  }
+  
+  .role-count {
+    font-size: 0.75rem;
   }
   
   .menu-management-section {
-    padding: 20px;
+    padding: 15px;
   }
   
   .section-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 15px;
+    gap: 12px;
   }
   
+  .section-header h2 {
+    font-size: 1.1rem;
+  }
+  
+  /* ✅ header-actions 버튼을 3열 그리드로 배치 */
   .header-actions {
-    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    justify-content: stretch;
   }
   
+  .header-actions .btn {
+    padding: 8px 6px;
+    font-size: 12px;
+    text-align: center;
+    white-space: nowrap;
+  }
+  
+  .menu-categories {
+    gap: 20px;
+  }
+  
+  .category-header {
+    padding: 12px 15px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .category-header h3 {
+    font-size: 0.95rem;
+    flex: 1;
+  }
+  
+  .menu-items {
+    padding: 12px;
+    gap: 10px;
+  }
+  
+  /* ✅ menu-item을 가로 유지하여 compact하게 */
   .menu-item {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 15px;
-    padding: 15px;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+  }
+  
+  .menu-info {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .menu-main {
+    margin-bottom: 4px;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  
+  .menu-name {
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   
   .menu-details {
     margin-left: 0;
   }
   
+  .menu-path {
+    font-size: 0.78rem;
+  }
+  
+  .menu-description {
+    font-size: 0.78rem;
+  }
+  
+  /* ✅ menu-controls를 우측 고정 compact */
   .menu-controls {
-    flex-direction: row;
-    justify-content: space-between;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    min-width: auto;
-    width: 100%;
+    min-width: 70px;
+    flex-shrink: 0;
+    gap: 6px;
+    width: auto;
   }
   
   .menu-status {
-    text-align: left;
-    flex: 1;
+    text-align: center;
   }
   
   .status-label {
-    font-size: 0.7rem;
-    padding: 3px 6px;
+    font-size: 0.68rem;
+    padding: 3px 5px;
+    white-space: nowrap;
   }
   
   .summary-stats {
-    justify-content: center;
-    gap: 20px;
+    justify-content: space-around;
+    gap: 15px;
   }
   
   .save-confirmation {

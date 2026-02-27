@@ -15,18 +15,18 @@
               새 사용자 생성
             </button>
             <div class="stats">
-              <span class="stat-item">
+              <button @click="filterByRole('')" :class="['stat-item', { active: searchFilters.role === '' }]">
                 전체: {{ users.length }}명
-              </span>
-              <span class="stat-item">
+              </button>
+              <button @click="filterByRole('ADMIN')" :class="['stat-item', 'stat-admin', { active: searchFilters.role === 'ADMIN' }]">
                 관리자: {{ adminCount }}명
-              </span>
-              <span class="stat-item">
+              </button>
+              <button @click="filterByRole('PREMIUM')" :class="['stat-item', 'stat-premium', { active: searchFilters.role === 'PREMIUM' }]">
                 프리미엄: {{ premiumCount }}명
-              </span>
-              <span class="stat-item">
+              </button>
+              <button @click="filterByRole('USER')" :class="['stat-item', 'stat-user', { active: searchFilters.role === 'USER' }]">
                 일반: {{ userCount }}명
-              </span>
+              </button>
             </div>
           </div>
         </div>
@@ -831,6 +831,10 @@ export default {
       searchFilters.value.role = '';
       searchFilters.value.name = '';
     };
+
+    const filterByRole = (role) => {
+      searchFilters.value.role = role;
+    };
     
     // CRUD 권한 관리 함수들
     const loadUserCrudPermissions = async (userRole) => {
@@ -998,6 +1002,7 @@ export default {
       updateUserInfo,
       searchUsers,
       resetSearch,
+      filterByRole,
       getRoleDisplayName,
       formatDate,
       isAllowedAdmin,
@@ -1083,6 +1088,35 @@ export default {
   font-size: 14px;
   color: #495057;
   border: 1px solid #e9ecef;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.stat-item:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.stat-item.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.stat-item.stat-admin.active {
+  background: #d32f2f;
+  border-color: #d32f2f;
+}
+
+.stat-item.stat-premium.active {
+  background: #f57c00;
+  border-color: #f57c00;
+}
+
+.stat-item.stat-user.active {
+  background: #1976d2;
+  border-color: #1976d2;
 }
 
 /* 검색 섹션 스타일 */
@@ -1831,48 +1865,69 @@ export default {
   }
   
   .search-actions {
-    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  
+  .search-actions .btn {
+    width: 100%;
   }
   
   /* 사용자 카드 모바일 */
   .user-card {
     flex-direction: column;
     align-items: stretch;
-    gap: 15px;
+    gap: 10px;
     padding: 15px;
   }
   
+  /* ✅ 왼쪽 정렬로 변경 */
   .user-main {
-    justify-content: center;
-    text-align: center;
+    justify-content: flex-start;
+    text-align: left;
+    flex-wrap: wrap;
   }
   
   .user-details {
-    gap: 8px;
+    gap: 6px;
   }
   
+  /* ✅ 라벨/값을 가로 배치하여 가독성 향상 */
   .detail-item {
-    flex-direction: column;
-    gap: 2px;
-    text-align: center;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    text-align: left;
+    padding: 4px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .detail-item:last-child {
+    border-bottom: none;
   }
   
   .detail-label {
-    min-width: auto;
+    min-width: 65px;
+    flex-shrink: 0;
     font-size: 12px;
   }
   
   .detail-value {
     font-size: 13px;
+    text-align: right;
+    word-break: break-all;
   }
   
+  /* ✅ 버튼을 오른쪽 정렬 */
   .user-actions {
-    justify-content: center;
+    justify-content: flex-end;
   }
   
   .btn-detail {
-    width: 100%;
-    padding: 10px;
+    padding: 8px 20px;
+    font-size: 13px;
   }
   
   /* 사용자 상세 모달 모바일 */
@@ -1887,19 +1942,21 @@ export default {
     gap: 10px;
   }
   
+  /* ✅ 저장/닫기를 위로, 삭제를 아래로 */
   .modal-actions-horizontal {
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .modal-actions-left .btn,
-  .modal-actions-right .btn {
-    width: 100%;
+    flex-direction: column-reverse;
+    gap: 10px;
   }
   
   .modal-actions-left,
   .modal-actions-right {
-    justify-content: center;
+    width: 100%;
+    justify-content: stretch;
+  }
+  
+  .modal-actions-left .btn,
+  .modal-actions-right .btn {
+    flex: 1;
   }
   
   .delete-warning {
@@ -1921,41 +1978,58 @@ export default {
     padding: 10px;
   }
   
-  /* CRUD 권한 관리 모바일 스타일 */
+  /* ✅ 탭 네비게이션을 가로로 유지 (세로 제거) */
   .tab-navigation {
-    flex-direction: column;
+    flex-direction: row;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
   
   .tab-button {
-    padding: 10px 15px;
+    flex: 1;
+    min-width: 100px;
+    padding: 10px 8px;
     font-size: 13px;
+    white-space: nowrap;
   }
   
+  /* CRUD 권한 관리 모바일 스타일 */
   .permissions-grid {
     grid-template-columns: 1fr;
-    gap: 15px;
+    gap: 12px;
   }
   
   .permission-card {
-    padding: 15px;
+    padding: 12px;
   }
   
+  /* ✅ permission-header를 가로 유지하되 compact하게 */
   .permission-header {
-    flex-direction: column;
-    gap: 10px;
-    align-items: stretch;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
   }
   
   .menu-info {
-    justify-content: center;
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .menu-details h6 {
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   
   .permission-actions {
-    justify-content: center;
+    flex-shrink: 0;
   }
   
+  /* ✅ CRUD 체크박스를 2열 유지 */
   .permission-controls {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
   }
   
