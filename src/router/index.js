@@ -101,6 +101,11 @@ const router = createRouter({
                     path: 'menu-management',
                     name: 'AdminMenuManagement',
                     component: () => import('../pages/admin-menu-management.vue'),
+                },
+                {
+                    path: 'role-management',
+                    name: 'AdminRoleManagement',
+                    component: () => import('../pages/admin-role-management.vue'),
                 }
             ]
         }

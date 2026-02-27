@@ -305,6 +305,15 @@ export default {
         category: 'admin',
         isRequired: false,
         defaultRoles: ['ADMIN']
+      },
+      {
+        path: '/admin/role-management',
+        name: '권한 관리',
+        icon: '🛡️',
+        description: '사용자 권한(Role) 관리',
+        category: 'admin',
+        isRequired: false,
+        defaultRoles: ['ADMIN']
       }
     ];
 

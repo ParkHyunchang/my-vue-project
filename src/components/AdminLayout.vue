@@ -56,6 +56,15 @@
           <span class="link-icon">🔐</span>
           <span class="link-text">메뉴 권한 관리</span>
         </router-link>
+        <router-link
+          to="/admin/role-management"
+          class="sidebar-link"
+          :class="{ active: $route.path === '/admin/role-management' }"
+          @click="closeSidebar"
+        >
+          <span class="link-icon">🛡️</span>
+          <span class="link-text">권한 관리</span>
+        </router-link>
       </nav>
     </aside>
 
@@ -98,6 +107,7 @@ export default {
       '/admin': '대시보드',
       '/admin/users': '사용자 관리',
       '/admin/menu-management': '메뉴 권한 관리',
+      '/admin/role-management': '권한 관리',
     };
     const pageTitle = computed(() => pageTitleMap[route.path] || '관리자');
 

@@ -122,6 +122,17 @@ const state = {
             showInNav: false,
             navLabel: '메뉴 권한 관리',
             isAdminSubMenu: true
+        },
+        {
+            path: '/admin/role-management',
+            name: '권한 관리',
+            icon: '🛡️',
+            description: '사용자 권한(Role) 관리',
+            category: 'admin',
+            isRequired: false,
+            showInNav: false,
+            navLabel: '권한 관리',
+            isAdminSubMenu: true
         }
     ]
 };
@@ -205,7 +216,7 @@ function getDefaultMenusForRole(role) {
         ],
         'ADMIN': [
             '/', '/portfolio', '/projects', '/history', '/dating', '/dating_sys', '/todos', '/todos/create',
-            '/expense', '/admin', '/admin/users', '/admin/menu-management'
+            '/expense', '/admin', '/admin/users', '/admin/menu-management', '/admin/role-management'
         ]
     };
     

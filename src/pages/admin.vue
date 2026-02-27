@@ -18,14 +18,13 @@
               <button @click="filterByRole('')" :class="['stat-item', { active: searchFilters.role === '' }]">
                 전체: {{ users.length }}명
               </button>
-              <button @click="filterByRole('ADMIN')" :class="['stat-item', 'stat-admin', { active: searchFilters.role === 'ADMIN' }]">
-                관리자: {{ adminCount }}명
-              </button>
-              <button @click="filterByRole('PREMIUM')" :class="['stat-item', 'stat-premium', { active: searchFilters.role === 'PREMIUM' }]">
-                프리미엄: {{ premiumCount }}명
-              </button>
-              <button @click="filterByRole('USER')" :class="['stat-item', 'stat-user', { active: searchFilters.role === 'USER' }]">
-                일반: {{ userCount }}명
+              <button
+                v-for="roleInfo in roleInfos"
+                :key="roleInfo.roleName"
+                @click="filterByRole(roleInfo.roleName)"
+                :class="['stat-item', `stat-${roleInfo.roleName.toLowerCase()}`, { active: searchFilters.role === roleInfo.roleName }]"
+              >
+                {{ roleInfo.displayName }}: {{ countByRole(roleInfo.roleName) }}명
               </button>
             </div>
           </div>
@@ -38,9 +37,9 @@
               <label>회원분류:</label>
               <select v-model="searchFilters.role" class="filter-select">
                 <option value="">전체</option>
-                <option value="USER">일반회원</option>
-                <option value="PREMIUM">프리미엄회원</option>
-                <option value="ADMIN">관리자</option>
+                <option v-for="roleInfo in roleInfos" :key="roleInfo.roleName" :value="roleInfo.roleName">
+                  {{ roleInfo.displayName }}
+                </option>
               </select>
             </div>
             <div class="filter-group">
@@ -144,13 +143,12 @@
           <div class="form-group">
             <label>권한:</label>
             <select v-model="newUser.role" class="form-control">
-              <option value="USER">일반 사용자</option>
-              <option value="PREMIUM">프리미엄 사용자</option>
-              <option 
-                v-if="isAllowedAdmin(newUser.userId)" 
-                value="ADMIN"
+              <option
+                v-for="roleInfo in assignableRoles(newUser.userId)"
+                :key="roleInfo.roleName"
+                :value="roleInfo.roleName"
               >
-                관리자
+                {{ roleInfo.displayName }}
               </option>
             </select>
             <div v-if="newUser.role === 'ADMIN' && !isAllowedAdmin(newUser.userId)" class="error-message">
@@ -244,13 +242,12 @@
                     class="form-control-edit"
                     :disabled="selectedUser?.role === 'ADMIN' && !isAllowedAdmin(selectedUser?.userId)"
                   >
-                    <option value="USER">일반 사용자</option>
-                    <option value="PREMIUM">프리미엄 사용자</option>
-                    <option 
-                      v-if="isAllowedAdmin(selectedUser?.userId)" 
-                      value="ADMIN"
+                    <option
+                      v-for="roleInfo in assignableRoles(selectedUser?.userId)"
+                      :key="roleInfo.roleName"
+                      :value="roleInfo.roleName"
                     >
-                      관리자
+                      {{ roleInfo.displayName }}
                     </option>
                   </select>
                 </div>
@@ -491,6 +488,30 @@ export default {
     ]);
 
     const currentUser = computed(() => store.getters['auth/user']);
+    const roleInfos = ref([]);
+
+    const loadRoles = async () => {
+      try {
+        const res = await axios.get('/api/admin/role-infos');
+        roleInfos.value = res.data;
+      } catch (e) {
+        // 로드 실패 시 기본값 유지
+        roleInfos.value = [
+          { roleName: 'USER',    displayName: '일반 사용자',    isDefault: true },
+          { roleName: 'PREMIUM', displayName: '프리미엄 사용자', isDefault: true },
+          { roleName: 'ADMIN',   displayName: '관리자',         isDefault: true },
+        ];
+      }
+    };
+
+    const countByRole = (roleName) => users.value.filter(u => u.role === roleName).length;
+
+    const assignableRoles = (userId) => {
+      return roleInfos.value.filter(r => {
+        if (r.roleName === 'ADMIN') return isAllowedAdmin(userId);
+        return true;
+      });
+    };
 
     const adminCount = computed(() => users.value.filter(u => u.role === 'ADMIN').length);
     const premiumCount = computed(() => users.value.filter(u => u.role === 'PREMIUM').length);
@@ -684,12 +705,8 @@ export default {
     };
 
     const getRoleDisplayName = (role) => {
-      const roleNames = {
-        'USER': '일반 사용자',
-        'PREMIUM': '프리미엄 사용자',
-        'ADMIN': '관리자'
-      };
-      return roleNames[role] || role;
+      const found = roleInfos.value.find(r => r.roleName === role);
+      return found ? found.displayName : (role || '-');
     };
 
     const formatDate = (dateString) => {
@@ -968,6 +985,7 @@ export default {
     };
 
     onMounted(async () => {
+      await loadRoles();
       await fetchUsers();
     });
 
@@ -984,12 +1002,16 @@ export default {
       deleteConfirmation,
       searchFilters,
       currentUser,
+      roleInfos,
+      countByRole,
+      assignableRoles,
       adminCount,
       premiumCount,
       userCount,
       filteredUsers,
       isCreateFormValid,
       fetchUsers,
+      loadRoles,
       openCreateModal,
       closeCreateModal,
       createUser,
