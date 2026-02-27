@@ -54,7 +54,7 @@
           @click="closeSidebar"
         >
           <span class="link-icon">🔐</span>
-          <span class="link-text">메뉴 권한 관리</span>
+          <span class="link-text">권한별 접근메뉴관리</span>
         </router-link>
         <router-link
           to="/admin/role-management"
@@ -106,7 +106,7 @@ export default {
     const pageTitleMap = {
       '/admin': '대시보드',
       '/admin/users': '사용자 관리',
-      '/admin/menu-management': '메뉴 권한 관리',
+      '/admin/menu-management': '권한별 접근메뉴관리',
       '/admin/role-management': '권한 관리',
     };
     const pageTitle = computed(() => pageTitleMap[route.path] || '관리자');

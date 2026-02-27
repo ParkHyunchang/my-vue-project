@@ -114,13 +114,13 @@ const state = {
         },
         {
             path: '/admin/menu-management',
-            name: '메뉴 권한 관리',
+            name: '권한별 접근메뉴관리',
             icon: '🔐',
-            description: '메뉴 접근 권한 설정',
+            description: '권한별 메뉴 접근 권한 설정',
             category: 'admin',
             isRequired: false,
             showInNav: false,
-            navLabel: '메뉴 권한 관리',
+            navLabel: '권한별 접근메뉴관리',
             isAdminSubMenu: true
         },
         {

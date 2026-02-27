@@ -186,25 +186,7 @@
           </div>
           
           <!-- 탭 네비게이션 -->
-          <div class="tab-navigation">
-            <button 
-              :class="['tab-button', { active: activeTab === 'basic' }]"
-              @click="activeTab = 'basic'"
-            >
-              <i class="fas fa-user"></i>
-              기본 정보
-            </button>
-            <button 
-              :class="['tab-button', { active: activeTab === 'permissions' }]"
-              @click="activeTab = 'permissions'"
-            >
-              <i class="fas fa-shield-alt"></i>
-              CRUD 권한
-            </button>
-          </div>
-          
-          <!-- 기본 정보 탭 -->
-          <div v-if="activeTab === 'basic'" class="tab-content">
+          <div class="tab-content">
             <div class="info-section">
               <h5>기본 정보</h5>
               <div class="info-grid">
@@ -263,100 +245,6 @@
             </div>
           </div>
           
-          <!-- CRUD 권한 탭 -->
-          <div v-if="activeTab === 'permissions'" class="tab-content">
-            <div class="permissions-section">
-              <div class="permissions-header">
-                <h5>메뉴별 CRUD 권한 설정</h5>
-                <p class="permissions-description">
-                  {{ editingUserInfo.name }} 사용자의 메뉴별 CRUD 권한을 설정합니다.
-                </p>
-              </div>
-              
-              <div class="permissions-grid">
-                <div 
-                  v-for="menu in menuPermissions" 
-                  :key="menu.path"
-                  class="permission-card"
-                >
-                  <div class="permission-header">
-                    <div class="menu-info">
-                      <span class="menu-icon">{{ menu.icon }}</span>
-                      <div class="menu-details">
-                        <h6>{{ menu.name }}</h6>
-                        <span class="menu-path">{{ menu.path }}</span>
-                      </div>
-                    </div>
-                    <div class="permission-actions">
-                      <button 
-                        @click="toggleAllPermissions(menu.path)"
-                        class="btn btn-sm btn-toggle-all"
-                      >
-                        {{ isAllPermissionsEnabled(menu.path) ? '전체 해제' : '전체 선택' }}
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div class="permission-controls">
-                    <div class="permission-item">
-                      <label class="permission-label">
-                        <input 
-                          type="checkbox"
-                          :checked="getUserPermission(menu.path, 'canCreate')"
-                          @change="updateUserPermission(menu.path, 'canCreate', $event.target.checked)"
-                          class="permission-checkbox"
-                        />
-                        <span class="permission-text">생성 (Create)</span>
-                      </label>
-                    </div>
-                    <div class="permission-item">
-                      <label class="permission-label">
-                        <input 
-                          type="checkbox"
-                          :checked="getUserPermission(menu.path, 'canRead')"
-                          @change="updateUserPermission(menu.path, 'canRead', $event.target.checked)"
-                          class="permission-checkbox"
-                        />
-                        <span class="permission-text">조회 (Read)</span>
-                      </label>
-                    </div>
-                    <div class="permission-item">
-                      <label class="permission-label">
-                        <input 
-                          type="checkbox"
-                          :checked="getUserPermission(menu.path, 'canUpdate')"
-                          @change="updateUserPermission(menu.path, 'canUpdate', $event.target.checked)"
-                          class="permission-checkbox"
-                        />
-                        <span class="permission-text">수정 (Update)</span>
-                      </label>
-                    </div>
-                    <div class="permission-item">
-                      <label class="permission-label">
-                        <input 
-                          type="checkbox"
-                          :checked="getUserPermission(menu.path, 'canDelete')"
-                          @change="updateUserPermission(menu.path, 'canDelete', $event.target.checked)"
-                          class="permission-checkbox"
-                        />
-                        <span class="permission-text">삭제 (Delete)</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="permissions-actions">
-                <button 
-                  @click="saveUserCrudPermissions"
-                  class="btn btn-primary"
-                  :disabled="loading"
-                >
-                  {{ loading ? '저장 중...' : 'CRUD 권한 저장' }}
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       </template>
       <template #footer>
@@ -470,22 +358,6 @@ export default {
       role: 'USER'
     });
     
-    // CRUD 권한 관리 관련 변수들
-    const activeTab = ref('basic');
-    const userCrudPermissions = ref({});
-    const menuPermissions = ref([
-      { path: '/', name: '홈', icon: '🏠' },
-      { path: '/portfolio', name: '포트폴리오', icon: '💼' },
-      { path: '/projects', name: '프로젝트', icon: '🚀' },
-      { path: '/history', name: '히스토리', icon: '📚' },
-      { path: '/dating', name: '데이팅', icon: '💕' },
-      { path: '/todos', name: '할일 목록', icon: '📝' },
-      { path: '/todos/create', name: '할일 생성', icon: '➕' },
-      { path: '/expense', name: '지출 관리', icon: '💰' },
-      { path: '/admin', name: '관리자 대시보드', icon: '🎛️' },
-      { path: '/admin/users', name: '사용자 관리', icon: '👥' },
-      { path: '/admin/menu-management', name: '메뉴 권한 관리', icon: '🔐' }
-    ]);
 
     const currentUser = computed(() => store.getters['auth/user']);
     const roleInfos = ref([]);
@@ -733,11 +605,6 @@ export default {
         phone: user?.phone || '',
         role: user?.role || 'USER'
       };
-      activeTab.value = 'basic';
-      
-      // 사용자의 CRUD 권한 로드
-      await loadUserCrudPermissions(user.role);
-      
       showUserDetailModal.value = true;
     };
 
@@ -750,8 +617,6 @@ export default {
         phone: '',
         role: 'USER'
       };
-      userCrudPermissions.value = {};
-      activeTab.value = 'basic';
     };
 
     const updateUserInfo = async () => {
@@ -818,7 +683,6 @@ export default {
                 errorMessage = '이미 사용 중인 사용자ID입니다.';
               } else {
                 // 기타 제약 조건 위반
-                console.error('Database constraint error details:', data);
                 errorMessage = '입력한 정보에 문제가 있습니다. 다시 확인해주세요.';
               }
             } else {
@@ -853,136 +717,6 @@ export default {
       searchFilters.value.role = role;
     };
     
-    // CRUD 권한 관리 함수들
-    const loadUserCrudPermissions = async (userRole) => {
-      try {
-        // 서버에서 실제 CRUD 권한 조회
-        const response = await axios.get(`/api/admin/crud-permissions/${userRole}`);
-        const serverPermissions = response.data;
-        
-        // 서버 데이터를 프론트엔드 형식으로 변환
-        const permissions = {};
-        serverPermissions.forEach(perm => {
-          permissions[perm.menuPath] = {
-            canCreate: perm.canCreate,
-            canRead: perm.canRead,
-            canUpdate: perm.canUpdate,
-            canDelete: perm.canDelete
-          };
-        });
-        
-        userCrudPermissions.value = permissions;
-        
-      } catch (error) {
-        console.error('CRUD 권한 로드 실패:', error);
-        // 기본 권한으로 설정
-        userCrudPermissions.value = getDefaultCrudPermissions(userRole);
-      }
-    };
-    
-    const getDefaultCrudPermissions = (userRole) => {
-      const permissions = {};
-      
-      menuPermissions.value.forEach(menu => {
-        permissions[menu.path] = {
-          canCreate: false,
-          canRead: false,
-          canUpdate: false,
-          canDelete: false
-        };
-      });
-      
-      // 권한별 기본 설정
-      if (userRole === 'ADMIN') {
-        // 관리자는 모든 권한
-        menuPermissions.value.forEach(menu => {
-          permissions[menu.path] = {
-            canCreate: true,
-            canRead: true,
-            canUpdate: true,
-            canDelete: true
-          };
-        });
-      } else if (userRole === 'PREMIUM') {
-        // 프리미엄 사용자: 모든 메뉴 조회 가능, dating에서만 CRU 가능
-        menuPermissions.value.forEach(menu => {
-          permissions[menu.path] = {
-            canCreate: menu.path === '/dating',
-            canRead: true,
-            canUpdate: menu.path === '/dating',
-            canDelete: false
-          };
-        });
-      } else {
-        // 일반 사용자: 모든 메뉴 조회만 가능
-        menuPermissions.value.forEach(menu => {
-          permissions[menu.path] = {
-            canCreate: false,
-            canRead: true,
-            canUpdate: false,
-            canDelete: false
-          };
-        });
-      }
-      
-      return permissions;
-    };
-    
-    const getUserPermission = (menuPath, permissionType) => {
-      return userCrudPermissions.value[menuPath]?.[permissionType] || false;
-    };
-    
-    const updateUserPermission = (menuPath, permissionType, value) => {
-      if (!userCrudPermissions.value[menuPath]) {
-        userCrudPermissions.value[menuPath] = {
-          canCreate: false,
-          canRead: false,
-          canUpdate: false,
-          canDelete: false
-        };
-      }
-      userCrudPermissions.value[menuPath][permissionType] = value;
-    };
-    
-    const isAllPermissionsEnabled = (menuPath) => {
-      const permissions = userCrudPermissions.value[menuPath];
-      if (!permissions) return false;
-      return permissions.canCreate && permissions.canRead && 
-             permissions.canUpdate && permissions.canDelete;
-    };
-    
-    const toggleAllPermissions = (menuPath) => {
-      const allEnabled = isAllPermissionsEnabled(menuPath);
-      const newValue = !allEnabled;
-      
-      updateUserPermission(menuPath, 'canCreate', newValue);
-      updateUserPermission(menuPath, 'canRead', newValue);
-      updateUserPermission(menuPath, 'canUpdate', newValue);
-      updateUserPermission(menuPath, 'canDelete', newValue);
-    };
-    
-    const saveUserCrudPermissions = async () => {
-      try {
-        loading.value = true;
-        
-        // 서버에 CRUD 권한 저장
-        await axios.post(`/api/admin/crud-permissions/${selectedUser.value.role}`, userCrudPermissions.value);
-        
-        store.dispatch('toast/showToast', {
-          message: 'CRUD 권한이 성공적으로 저장되었습니다.',
-          type: 'success'
-        });
-        
-      } catch (error) {
-        console.error('CRUD 권한 저장 실패:', error);
-        store.dispatch('toast/showToast', {
-          message: 'CRUD 권한 저장에 실패했습니다.',
-          type: 'error'
-        });
-      } finally {
-        loading.value = false;
-      }
-    };
 
     onMounted(async () => {
       await loadRoles();
@@ -1028,16 +762,6 @@ export default {
       getRoleDisplayName,
       formatDate,
       isAllowedAdmin,
-      // CRUD 권한 관리 관련
-      activeTab,
-      userCrudPermissions,
-      menuPermissions,
-      loadUserCrudPermissions,
-      getUserPermission,
-      updateUserPermission,
-      isAllPermissionsEnabled,
-      toggleAllPermissions,
-      saveUserCrudPermissions
     };
   }
 };
@@ -1652,194 +1376,10 @@ export default {
     box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25);
   }
 
-/* 탭 네비게이션 스타일 */
-.tab-navigation {
-  display: flex;
-  border-bottom: 1px solid #e9ecef;
-  margin-bottom: 20px;
-}
-
-.tab-button {
-  flex: 1;
-  padding: 12px 20px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  color: #6c757d;
-  border-bottom: 2px solid transparent;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.tab-button:hover {
-  color: #007bff;
-  background: #f8f9fa;
-}
-
-.tab-button.active {
-  color: #007bff;
-  border-bottom-color: #007bff;
-  background: #f8f9fa;
-}
-
-.tab-button i {
-  font-size: 16px;
-}
-
 .tab-content {
   min-height: 400px;
 }
 
-/* CRUD 권한 관리 스타일 */
-.permissions-section {
-  padding: 20px 0;
-}
-
-.permissions-header {
-  margin-bottom: 30px;
-  text-align: center;
-}
-
-.permissions-header h5 {
-  color: #2c3e50;
-  margin: 0 0 10px 0;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.permissions-description {
-  color: #6c757d;
-  font-size: 14px;
-  margin: 0;
-}
-
-.permissions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.permission-card {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 20px;
-  transition: all 0.2s ease;
-}
-
-.permission-card:hover {
-  border-color: #007bff;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
-}
-
-.permission-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.menu-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.menu-icon {
-  font-size: 20px;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: white;
-  border-radius: 6px;
-  border: 1px solid #e9ecef;
-}
-
-.menu-details h6 {
-  margin: 0 0 4px 0;
-  color: #2c3e50;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.menu-path {
-  color: #6c757d;
-  font-size: 12px;
-  font-family: monospace;
-}
-
-.permission-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.btn-toggle-all {
-  background: #6c757d;
-  color: white;
-  padding: 4px 8px;
-  border: none;
-  border-radius: 4px;
-  font-size: 11px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.btn-toggle-all:hover {
-  background: #545b62;
-}
-
-.permission-controls {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.permission-item {
-  display: flex;
-  align-items: center;
-}
-
-.permission-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-size: 13px;
-  color: #495057;
-  font-weight: 500;
-}
-
-.permission-checkbox {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-}
-
-.permission-text {
-  user-select: none;
-}
-
-.permissions-actions {
-  text-align: center;
-  padding-top: 20px;
-  border-top: 1px solid #e9ecef;
-}
-
-.permissions-actions .btn {
-  padding: 10px 30px;
-  font-size: 14px;
-  font-weight: 600;
-}
 
 @media (max-width: 768px) {
   .admin-container {
@@ -2000,65 +1540,7 @@ export default {
     padding: 10px;
   }
   
-  /* ✅ 탭 네비게이션을 가로로 유지 (세로 제거) */
-  .tab-navigation {
-    flex-direction: row;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
   
-  .tab-button {
-    flex: 1;
-    min-width: 100px;
-    padding: 10px 8px;
-    font-size: 13px;
-    white-space: nowrap;
-  }
-  
-  /* CRUD 권한 관리 모바일 스타일 */
-  .permissions-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  
-  .permission-card {
-    padding: 12px;
-  }
-  
-  /* ✅ permission-header를 가로 유지하되 compact하게 */
-  .permission-header {
-    flex-direction: row;
-    gap: 8px;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-  
-  .menu-info {
-    flex: 1;
-    min-width: 0;
-  }
-  
-  .menu-details h6 {
-    font-size: 13px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  .permission-actions {
-    flex-shrink: 0;
-  }
-  
-  /* ✅ CRUD 체크박스를 2열 유지 */
-  .permission-controls {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  
-  .permissions-actions .btn {
-    width: 100%;
-    padding: 12px;
-  }
 }
 
 @media (max-width: 480px) {
