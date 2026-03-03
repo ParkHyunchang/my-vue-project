@@ -40,8 +40,9 @@ const actions = {
       commit("SET_TOKEN", token);
       commit("SET_USER", { username, email, role });
 
-      // 메뉴 권한 로드
+      // 메뉴 정의 및 권한 로드
       try {
+        await dispatch("menu/loadMenuDefinitions", null, { root: true });
         await dispatch("menu/loadUserMenus", null, { root: true });
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -72,8 +73,9 @@ const actions = {
       commit("SET_TOKEN", token);
       commit("SET_USER", { username, email, role });
 
-      // 메뉴 권한 로드
+      // 메뉴 정의 및 권한 로드
       try {
+        await dispatch("menu/loadMenuDefinitions", null, { root: true });
         await dispatch("menu/loadUserMenus", null, { root: true });
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -116,8 +118,9 @@ const actions = {
       const { username, email, role } = response.data;
       commit("SET_USER", { username, email, role });
 
-      // 메뉴 권한 로드
+      // 메뉴 정의 및 권한 로드
       try {
+        await dispatch("menu/loadMenuDefinitions", null, { root: true });
         await dispatch("menu/loadUserMenus", null, { root: true });
       } catch (error) {
         // eslint-disable-next-line no-console

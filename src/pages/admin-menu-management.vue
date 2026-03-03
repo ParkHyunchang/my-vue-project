@@ -200,32 +200,19 @@ export default {
       { key: 'canDelete', label: '삭제(D)' },
     ];
 
-    // ===== 메뉴 정의 =====
-    const allMenus = [
-      { path: '/', name: '홈', icon: '🏠', description: '메인 홈페이지', category: 'main', isRequired: true, defaultRoles: ['USER', 'PREMIUM', 'ADMIN'] },
-      { path: '/portfolio', name: '포트폴리오', icon: '💼', description: '개인 포트폴리오 페이지', category: 'main', isRequired: false, defaultRoles: ['USER', 'PREMIUM', 'ADMIN'] },
-      { path: '/projects', name: '프로젝트', icon: '🚀', description: '프로젝트 관리 및 조회', category: 'work', isRequired: false, defaultRoles: ['USER', 'PREMIUM', 'ADMIN'] },
-      { path: '/history', name: '히스토리', icon: '📚', description: '작업 이력 및 기록', category: 'work', isRequired: false, defaultRoles: ['PREMIUM', 'ADMIN'] },
-      { path: '/dating', name: '데이팅', icon: '💕', description: '데이팅 관련 기능', category: 'personal', isRequired: false, defaultRoles: ['PREMIUM', 'ADMIN'] },
-      { path: '/todos', name: '할일 목록', icon: '📝', description: '할일 관리', category: 'productivity', isRequired: false, defaultRoles: ['USER', 'PREMIUM', 'ADMIN'] },
-      { path: '/todos/create', name: '할일 생성', icon: '➕', description: '새로운 할일 추가', category: 'productivity', isRequired: false, defaultRoles: ['USER', 'PREMIUM', 'ADMIN'] },
-      { path: '/expense', name: '지출 관리', icon: '💰', description: '지출 내역 관리', category: 'finance', isRequired: false, defaultRoles: ['ADMIN'] },
-      { path: '/admin', name: '관리자 대시보드', icon: '🎛️', description: '관리자 메인 대시보드', category: 'admin', isRequired: false, defaultRoles: ['ADMIN'] },
-      { path: '/admin/users', name: '사용자 관리', icon: '👥', description: '사용자 계정 관리', category: 'admin', isRequired: false, defaultRoles: ['ADMIN'] },
-      { path: '/admin/menu-management', name: '권한별 접근메뉴관리', icon: '🔐', description: '메뉴 접근 권한 설정', category: 'admin', isRequired: false, defaultRoles: ['ADMIN'] },
-      { path: '/admin/role-management', name: '권한 관리', icon: '🛡️', description: '사용자 권한(Role) 관리', category: 'admin', isRequired: false, defaultRoles: ['ADMIN'] },
-    ];
+    // ===== 메뉴 정의 (DB에서 동적 로드) =====
+    const allMenus = ref([]);
 
     const menuCategories = computed(() => [
-      { key: 'main',         name: '메인',   icon: '🏠', menus: allMenus.filter(m => m.category === 'main') },
-      { key: 'work',         name: '업무',   icon: '💼', menus: allMenus.filter(m => m.category === 'work') },
-      { key: 'personal',     name: '개인',   icon: '👤', menus: allMenus.filter(m => m.category === 'personal') },
-      { key: 'productivity', name: '생산성', icon: '📋', menus: allMenus.filter(m => m.category === 'productivity') },
-      { key: 'finance',      name: '재정',   icon: '💰', menus: allMenus.filter(m => m.category === 'finance') },
-      { key: 'admin',        name: '관리자', icon: '⚙️', menus: allMenus.filter(m => m.category === 'admin') },
+      { key: 'main',         name: '메인',   icon: '🏠', menus: allMenus.value.filter(m => m.category === 'main') },
+      { key: 'work',         name: '업무',   icon: '💼', menus: allMenus.value.filter(m => m.category === 'work') },
+      { key: 'personal',     name: '개인',   icon: '👤', menus: allMenus.value.filter(m => m.category === 'personal') },
+      { key: 'productivity', name: '생산성', icon: '📋', menus: allMenus.value.filter(m => m.category === 'productivity') },
+      { key: 'finance',      name: '재정',   icon: '💰', menus: allMenus.value.filter(m => m.category === 'finance') },
+      { key: 'admin',        name: '관리자', icon: '⚙️', menus: allMenus.value.filter(m => m.category === 'admin') },
     ]);
 
-    const totalMenuCount = computed(() => allMenus.length);
+    const totalMenuCount = computed(() => allMenus.value.length);
 
     // ===== 권한 아이콘 =====
     const getRoleIcon = (key) => {
@@ -254,8 +241,8 @@ export default {
     const setActiveRole = async (key) => {
       activeRole.value = key;
       if (!menuPermissions.value[key]) {
-        menuPermissions.value[key] = allMenus
-          .filter(m => m.defaultRoles.includes(key))
+        menuPermissions.value[key] = allMenus.value
+          .filter(m => m.defaultRoles && m.defaultRoles.includes(key))
           .map(m => m.path);
       }
       // 해당 권한의 CRUD 권한 로딩
@@ -340,7 +327,7 @@ export default {
     // ===== 전체 선택/해제 =====
     const selectAllMenus = () => {
       if (!activeRole.value) return;
-      menuPermissions.value[activeRole.value] = allMenus
+      menuPermissions.value[activeRole.value] = allMenus.value
         .filter(m => !isMenuDisabledForRole(m, activeRole.value))
         .map(m => m.path);
     };
@@ -353,7 +340,7 @@ export default {
     // ===== 접근 가능/불가 수 =====
     const getAccessibleMenuCount = () => {
       if (!activeRole.value) return 0;
-      return allMenus.filter(m => isMenuSelectedForRole(m, activeRole.value)).length;
+      return allMenus.value.filter(m => isMenuSelectedForRole(m, activeRole.value)).length;
     };
 
     const getRestrictedMenuCount = () => totalMenuCount.value - getAccessibleMenuCount();
@@ -362,6 +349,18 @@ export default {
     const loadData = async () => {
       pageLoading.value = true;
       try {
+        // 메뉴 정의 DB에서 로딩
+        const menuDefsRes = await axios.get('/api/admin/menu-definitions');
+        allMenus.value = menuDefsRes.data.map(m => ({
+          path: m.path,
+          name: m.name,
+          icon: m.icon,
+          description: m.description,
+          category: m.category,
+          isRequired: m.required,
+          defaultRoles: m.defaultRoles || [],
+        }));
+
         // 권한 목록 동적 로딩
         const rolesRes = await axios.get('/api/admin/role-infos');
         roles.value = rolesRes.data.map(r => ({
@@ -370,16 +369,16 @@ export default {
           isDefault: r.isDefault,
         }));
 
-        // 메뉴 권한 초기값 설정
+        // 메뉴 권한 초기값 설정 (defaultRoles 기준)
         const initial = {};
         roles.value.forEach(r => {
-          initial[r.key] = allMenus
-            .filter(m => m.defaultRoles.includes(r.key))
+          initial[r.key] = allMenus.value
+            .filter(m => m.defaultRoles && m.defaultRoles.includes(r.key))
             .map(m => m.path);
         });
         menuPermissions.value = initial;
 
-        // 저장된 메뉴 권한 로딩
+        // 저장된 메뉴 권한 로딩 (DB 저장값이 있으면 덮어씀)
         const permRes = await axios.get('/api/admin/menu-permissions');
         if (permRes.data) {
           Object.keys(permRes.data).forEach(roleKey => {
@@ -392,6 +391,7 @@ export default {
         // 첫 번째 권한 선택
         if (roles.value.length > 0) {
           activeRole.value = roles.value[0].key;
+          await setActiveRole(roles.value[0].key);
         }
       } catch (_) {
         // 로드 실패 시 기본값 유지
