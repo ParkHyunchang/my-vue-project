@@ -228,7 +228,11 @@
                       playsinline
                       muted
                       @loadeddata="handlePreviewVideoLoaded"
+                      @play="handlePreviewVideoPlay"
                     ></video>
+                    <div v-if="isVideoMedia(image)" class="video-type-badge">
+                      <i class="fas fa-video"></i>
+                    </div>
                     <img
                       v-else
                       :src="getMediaUrl(image)"
@@ -940,6 +944,14 @@ export default {
       });
     };
 
+    const handlePreviewVideoPlay = (event) => {
+      const playingVideo = event?.target;
+      previewVideos.value.forEach((videoElement) => {
+        if (!videoElement || videoElement === playingVideo) return;
+        videoElement.pause();
+      });
+    };
+
     const handleImageError = (event) => {
       // 이미지 로드 실패 시 숨기기
       event.target.style.display = "none";
@@ -1108,6 +1120,7 @@ export default {
       handleImageError,
       handleImageLoad,
       handlePreviewVideoLoaded,
+      handlePreviewVideoPlay,
       // 파일 업로드 관련
       uploading,
       isSelectingFiles,
@@ -1358,6 +1371,37 @@ export default {
   transform: scale(1.05);
 }
 
+.image-preview-item video {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.image-preview-item video:hover {
+  transform: scale(1.05);
+}
+
+.video-type-badge {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  pointer-events: none;
+  z-index: 1;
+}
+
 .image-preview-item .remove-image {
   position: absolute;
   top: -8px;
@@ -1426,6 +1470,10 @@ export default {
   }
 
   .image-preview-item img {
+    height: 100px;
+  }
+
+  .image-preview-item video {
     height: 100px;
   }
 

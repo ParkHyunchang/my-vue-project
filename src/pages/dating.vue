@@ -271,7 +271,11 @@
                       playsinline
                       muted
                       @loadeddata="handlePreviewVideoLoaded"
+                      @play="handlePreviewVideoPlay"
                     ></video>
+                    <div v-if="isVideoMedia(image)" class="video-type-badge">
+                      <i class="fas fa-video"></i>
+                    </div>
                     <img
                       v-else
                       :src="getImageUrl(image)"
@@ -898,6 +902,14 @@ export default {
       });
     };
 
+    const handlePreviewVideoPlay = (event) => {
+      const playingVideo = event?.target;
+      previewVideos.value.forEach((videoElement) => {
+        if (!videoElement || videoElement === playingVideo) return;
+        videoElement.pause();
+      });
+    };
+
     const triggerFileInput = () => {
       if (!hasUploadPermission.value) {
         showToast("미디어 업로드 권한이 없습니다.", "danger");
@@ -1135,7 +1147,7 @@ export default {
       maxDate, validateDate, uploading, isSelectingFiles, postUploadSettling,
       isMobileLike, modalLock, fileInput, triggerFileInput, handleFileUpload,
       requestCloseMemoryModal, confirmRemoveImage, removeImage,
-      previewVideos, handlePreviewVideoLoaded, getImageUrl, isVideoMedia,
+      previewVideos, handlePreviewVideoLoaded, handlePreviewVideoPlay, getImageUrl, isVideoMedia,
       handleImageError, handleImageLoad, setMediaFilter,
       showImageDeleteModal, closeImageDeleteModal,
       canCreate, canRead, canUpdate, canDelete, hasUploadPermission,
@@ -1415,6 +1427,23 @@ export default {
 
 .image-preview-item .media-preview:hover { transform: scale(1.05); }
 .image-preview-item .media-preview-video { background: #000; }
+
+.video-type-badge {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  pointer-events: none;
+  z-index: 1;
+}
 
 .image-preview-item .remove-image {
   position: absolute;
