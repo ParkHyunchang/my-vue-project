@@ -350,7 +350,7 @@ export default {
       pageLoading.value = true;
       try {
         // 메뉴 정의 DB에서 로딩
-        const menuDefsRes = await axios.get('/api/admin/menu-definitions');
+        const menuDefsRes = await axios.get('/api/admin/menus');
         allMenus.value = menuDefsRes.data.map(m => ({
           path: m.path,
           name: m.name,

@@ -20,7 +20,7 @@ const actions = {
             if (!user) return;
 
             const axios = (await import('../../axios')).default;
-            const response = await axios.get('/api/auth/menu-definitions');
+            const response = await axios.get('/api/auth/menus');
             // DB 응답을 store 형식으로 변환
             const menus = response.data.map(m => ({
                 path: m.path,
