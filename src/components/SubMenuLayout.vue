@@ -1,5 +1,5 @@
 <template>
-  <div class="admin-layout">
+  <div class="subnav-layout">
     <!-- 모바일 오버레이 -->
     <transition name="fade">
       <div
@@ -10,77 +10,46 @@
     </transition>
 
     <!-- 사이드바 -->
-    <aside :class="['admin-sidebar', { open: sidebarOpen }]">
+    <aside :class="['subnav-sidebar', { open: sidebarOpen }]">
       <div class="sidebar-header">
         <div class="sidebar-brand">
-          <span class="brand-icon">⚙️</span>
-          <span class="brand-text">Admin</span>
+          <span class="brand-icon">{{ section.icon }}</span>
+          <span class="brand-text">{{ section.name }}</span>
         </div>
         <button class="sidebar-close-btn" @click="closeSidebar" aria-label="메뉴 닫기">✕</button>
       </div>
 
-      <div class="sidebar-user-info">
-        <div class="user-avatar">{{ userInitial }}</div>
-        <div class="user-meta">
-          <span class="user-name">{{ user?.username }}</span>
-          <span class="user-role-badge">관리자</span>
-        </div>
-      </div>
-
       <nav class="sidebar-nav">
         <p class="nav-section-label">메뉴</p>
+        <!-- 부모 메뉴 (최상단) -->
         <router-link
-          to="/admin"
+          :to="section.path"
           class="sidebar-link"
-          :class="{ active: $route.path === '/admin' }"
+          :class="{ active: $route.path === section.path }"
           @click="closeSidebar"
         >
-          <span class="link-icon">🎛️</span>
-          <span class="link-text">대시보드</span>
+          <span class="link-icon">{{ section.icon || '📄' }}</span>
+          <span class="link-text">{{ section.name }}</span>
         </router-link>
+        <!-- 자식 메뉴들 -->
         <router-link
-          to="/admin/users"
-          class="sidebar-link"
-          :class="{ active: $route.path === '/admin/users' }"
+          v-for="child in section.children"
+          :key="child.path"
+          :to="child.path"
+          class="sidebar-link sidebar-link-child"
+          :class="{ active: $route.path === child.path }"
           @click="closeSidebar"
         >
-          <span class="link-icon">👥</span>
-          <span class="link-text">사용자 관리</span>
-        </router-link>
-        <router-link
-          to="/admin/menu-management"
-          class="sidebar-link"
-          :class="{ active: $route.path === '/admin/menu-management' }"
-          @click="closeSidebar"
-        >
-          <span class="link-icon">🔐</span>
-          <span class="link-text">권한별 접근메뉴관리</span>
-        </router-link>
-        <router-link
-          to="/admin/role-management"
-          class="sidebar-link"
-          :class="{ active: $route.path === '/admin/role-management' }"
-          @click="closeSidebar"
-        >
-          <span class="link-icon">🛡️</span>
-          <span class="link-text">권한 관리</span>
-        </router-link>
-        <router-link
-          to="/admin/menu-definition"
-          class="sidebar-link"
-          :class="{ active: $route.path === '/admin/menu-definition' }"
-          @click="closeSidebar"
-        >
-          <span class="link-icon">📋</span>
-          <span class="link-text">메뉴 관리</span>
+          <span class="link-icon">{{ child.icon || '📄' }}</span>
+          <span class="link-text">{{ child.name }}</span>
         </router-link>
       </nav>
     </aside>
 
     <!-- 메인 콘텐츠 영역 -->
-    <div class="admin-content-area">
-      <!-- 모바일 전용 미니바 (햄버거 + 현재 페이지명) -->
-      <div class="admin-mobile-bar">
+    <div class="subnav-content-area">
+      <!-- 모바일 전용 미니바 -->
+      <div class="subnav-mobile-bar">
         <button class="mobile-hamburger" @click="toggleSidebar" aria-label="메뉴 열기">
           <span></span>
           <span></span>
@@ -90,8 +59,8 @@
       </div>
 
       <!-- 페이지 콘텐츠 -->
-      <main class="admin-page-content">
-        <router-view />
+      <main class="subnav-page-content">
+        <slot />
       </main>
     </div>
   </div>
@@ -99,27 +68,20 @@
 
 <script>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 
 export default {
-  name: 'AdminLayout',
-  setup() {
-    const store = useStore();
+  name: 'SubMenuLayout',
+  props: {
+    section: {
+      type: Object,
+      required: true,
+      // { path, name, icon, navLabel, children: [{ path, name, icon, navLabel }] }
+    },
+  },
+  setup(props) {
     const route = useRoute();
     const sidebarOpen = ref(false);
-
-    const user = computed(() => store.getters['auth/user']);
-    const userInitial = computed(() => user.value?.username?.charAt(0)?.toUpperCase() || 'A');
-
-    const pageTitleMap = {
-      '/admin': '대시보드',
-      '/admin/users': '사용자 관리',
-      '/admin/menu-management': '권한별 접근메뉴관리',
-      '/admin/role-management': '권한 관리',
-      '/admin/menu-definition': '메뉴 정의 관리',
-    };
-    const pageTitle = computed(() => pageTitleMap[route.path] || '관리자');
 
     const toggleSidebar = () => {
       sidebarOpen.value = !sidebarOpen.value;
@@ -129,45 +91,43 @@ export default {
       sidebarOpen.value = false;
     };
 
-    // 데스크탑 너비로 변경 시 오버레이 자동 닫기
+    // 현재 페이지 타이틀 (자식 중 현재 경로 매칭 → 부모 이름 폴백)
+    const pageTitle = computed(() => {
+      const child = props.section.children?.find(c => c.path === route.path);
+      if (child) return child.name;
+      if (props.section.path === route.path) return props.section.name;
+      return props.section.name;
+    });
+
     const handleResize = () => {
-      if (window.innerWidth > 800) {
-        sidebarOpen.value = false;
-      }
+      if (window.innerWidth > 800) sidebarOpen.value = false;
     };
 
     onMounted(() => window.addEventListener('resize', handleResize));
     onUnmounted(() => window.removeEventListener('resize', handleResize));
 
-    return {
-      sidebarOpen,
-      user,
-      userInitial,
-      pageTitle,
-      toggleSidebar,
-      closeSidebar,
-    };
-  }
+    return { sidebarOpen, pageTitle, toggleSidebar, closeSidebar };
+  },
 };
 </script>
 
 <style scoped>
 /* ===== 레이아웃 기본 ===== */
-.admin-layout {
+.subnav-layout {
   display: flex;
   min-height: calc(100vh - 68px);
   background: #f1f5f9;
 }
 
 /* ===== 사이드바 ===== */
-.admin-sidebar {
-  width: 240px;
-  min-width: 240px;
+.subnav-sidebar {
+  width: 220px;
+  min-width: 220px;
   background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
   display: flex;
   flex-direction: column;
   position: fixed;
-  top: 68px; /* Navbar 높이 */
+  top: 68px;
   left: 0;
   height: calc(100vh - 68px);
   z-index: 1001;
@@ -180,7 +140,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 16px;
+  padding: 18px 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
 }
@@ -197,9 +157,9 @@ export default {
 
 .brand-text {
   color: white;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
 }
 
 .sidebar-close-btn {
@@ -218,59 +178,6 @@ export default {
 .sidebar-close-btn:hover {
   color: white;
   background: rgba(255, 255, 255, 0.1);
-}
-
-/* ===== 사용자 정보 ===== */
-.sidebar-user-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px;
-  margin: 12px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
-  flex-shrink: 0;
-}
-
-.user-avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 16px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.user-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-
-.user-name {
-  color: white;
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.user-role-badge {
-  background: #3b82f6;
-  color: white;
-  font-size: 10px;
-  font-weight: 600;
-  padding: 2px 7px;
-  border-radius: 10px;
-  display: inline-block;
-  width: fit-content;
 }
 
 /* ===== 사이드바 네비게이션 ===== */
@@ -325,22 +232,45 @@ export default {
   flex: 1;
 }
 
+/* 자식 링크 들여쓰기 */
+.sidebar-link-child {
+  padding-left: 20px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.sidebar-link-child::before {
+  content: '└';
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+  flex-shrink: 0;
+  margin-right: -4px;
+}
+
+.sidebar-link-child:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.sidebar-link-child.active {
+  background: #2563eb;
+  color: white;
+}
+
 /* ===== 콘텐츠 영역 ===== */
-.admin-content-area {
+.subnav-content-area {
   flex: 1;
-  margin-left: 240px;
+  margin-left: 220px;
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-/* ===== 모바일 전용 미니바 ===== */
-.admin-mobile-bar {
+/* ===== 모바일 미니바 (기본 숨김) ===== */
+.subnav-mobile-bar {
   display: none;
 }
 
-/* ===== 페이지 콘텐츠 ===== */
-.admin-page-content {
+.subnav-page-content {
   flex: 1;
   overflow-x: hidden;
 }
@@ -370,47 +300,40 @@ export default {
 
 /* ===== 태블릿 (1024px 이하) ===== */
 @media (max-width: 1024px) and (min-width: 801px) {
-  .admin-sidebar {
-    width: 200px;
-    min-width: 200px;
+  .subnav-sidebar {
+    width: 190px;
+    min-width: 190px;
   }
 
-  .admin-content-area {
-    margin-left: 200px;
+  .subnav-content-area {
+    margin-left: 190px;
   }
 }
 
-/* ===== 모바일 (800px 이하, Navbar와 동일한 브레이크포인트) ===== */
+/* ===== 모바일 (800px 이하) ===== */
 @media (max-width: 800px) {
-  .admin-layout {
-    min-height: calc(100vh - 68px);
-  }
-
-  /* 사이드바 오프스크린 */
-  .admin-sidebar {
-    top: 68px; /* 모바일 Navbar 높이 */
+  .subnav-sidebar {
+    top: 68px;
     height: calc(100vh - 68px);
     transform: translateX(-100%);
     width: 260px;
     min-width: 260px;
   }
 
-  .admin-sidebar.open {
+  .subnav-sidebar.open {
     transform: translateX(0);
   }
 
-  /* 모바일에서 닫기 버튼 표시 */
   .sidebar-close-btn {
     display: block;
   }
 
-  /* 콘텐츠 전체 너비 */
-  .admin-content-area {
+  .subnav-content-area {
     margin-left: 0;
   }
 
   /* 모바일 미니바 표시 */
-  .admin-mobile-bar {
+  .subnav-mobile-bar {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -425,8 +348,7 @@ export default {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   }
 
-  /* fixed 미니바 높이만큼 콘텐츠 여백 보정 */
-  .admin-page-content {
+  .subnav-page-content {
     padding-top: 49px;
   }
 

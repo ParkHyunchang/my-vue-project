@@ -32,7 +32,8 @@ const actions = {
                 showInNav: m.showInNav,
                 navLabel: m.navLabel,
                 isAdminSubMenu: m.adminSubMenu,
-                defaultRoles: m.defaultRoles || []
+                defaultRoles: m.defaultRoles || [],
+                parentPath: m.parentPath || null
             }));
             commit('SET_ALL_MENUS', menus);
         } catch (error) {
@@ -76,7 +77,14 @@ const getters = {
     },
     
     navigationMenus: (state, getters) => {
-        return getters.accessibleMenus.filter(menu => menu.showInNav);
+        const accessible = getters.accessibleMenus;
+        // 최상위 네비 메뉴: showInNav=true이고 parentPath 없음
+        const topLevel = accessible.filter(m => m.showInNav && !m.parentPath);
+        // 각 최상위 메뉴에 접근 가능한 자식 메뉴 첨부 (showInNav 여부 무관)
+        return topLevel.map(menu => ({
+            ...menu,
+            children: accessible.filter(c => c.parentPath === menu.path)
+        }));
     },
     
     adminSubMenus: (state, getters) => {
@@ -98,19 +106,19 @@ const getters = {
 // API 실패 시 폴백용 기본 메뉴 정의
 function getDefaultMenuDefinitions() {
     return [
-        { path: '/', name: '홈', icon: '🏠', description: '메인 홈페이지', category: 'main', isRequired: true, showInNav: true, navLabel: 'HOME', isAdminSubMenu: false },
-        { path: '/portfolio', name: '포트폴리오', icon: '💼', description: '개인 포트폴리오 페이지', category: 'main', isRequired: false, showInNav: true, navLabel: 'PORTFOLIO', isAdminSubMenu: false },
-        { path: '/projects', name: '프로젝트', icon: '🚀', description: '프로젝트 관리 및 조회', category: 'work', isRequired: false, showInNav: true, navLabel: 'PROJECTS', isAdminSubMenu: false },
-        { path: '/history', name: '히스토리', icon: '📚', description: '작업 이력 및 기록', category: 'work', isRequired: false, showInNav: true, navLabel: 'HISTORY', isAdminSubMenu: false },
-        { path: '/dating', name: '데이팅', icon: '💕', description: '데이팅 관련 기능', category: 'personal', isRequired: false, showInNav: true, navLabel: 'DATING', isAdminSubMenu: false },
-        { path: '/dating_sys', name: '데이팅 추억', icon: '📸', description: '데이팅 추억 기록', category: 'personal', isRequired: false, showInNav: true, navLabel: 'DATING SYS', isAdminSubMenu: false },
-        { path: '/todos', name: '할일 목록', icon: '📝', description: '할일 관리', category: 'productivity', isRequired: false, showInNav: true, navLabel: 'TODOS', isAdminSubMenu: false },
-        { path: '/todos/create', name: '할일 생성', icon: '➕', description: '새로운 할일 추가', category: 'productivity', isRequired: false, showInNav: false, navLabel: '할일 생성', isAdminSubMenu: false },
-        { path: '/expense', name: '지출 관리', icon: '💰', description: '지출 내역 관리', category: 'finance', isRequired: false, showInNav: true, navLabel: '가계부', isAdminSubMenu: false },
-        { path: '/admin', name: '관리자 대시보드', icon: '🎛️', description: '관리자 메인 대시보드', category: 'admin', isRequired: false, showInNav: false, navLabel: '관리자 대시보드', isAdminSubMenu: false },
-        { path: '/admin/users', name: '사용자 관리', icon: '👥', description: '사용자 계정 관리', category: 'admin', isRequired: false, showInNav: false, navLabel: '사용자 관리', isAdminSubMenu: true },
-        { path: '/admin/menu-management', name: '권한별 접근메뉴관리', icon: '🔐', description: '메뉴 접근 권한 설정', category: 'admin', isRequired: false, showInNav: false, navLabel: '권한별 접근메뉴관리', isAdminSubMenu: true },
-        { path: '/admin/role-management', name: '권한 관리', icon: '🛡️', description: '사용자 권한(Role) 관리', category: 'admin', isRequired: false, showInNav: false, navLabel: '권한 관리', isAdminSubMenu: true }
+        { path: '/', name: '홈', icon: '🏠', description: '메인 홈페이지', category: 'main', isRequired: true, showInNav: true, navLabel: 'HOME', isAdminSubMenu: false, parentPath: null },
+        { path: '/portfolio', name: '포트폴리오', icon: '💼', description: '개인 포트폴리오 페이지', category: 'main', isRequired: false, showInNav: true, navLabel: 'PORTFOLIO', isAdminSubMenu: false, parentPath: null },
+        { path: '/projects', name: '프로젝트', icon: '🚀', description: '프로젝트 관리 및 조회', category: 'work', isRequired: false, showInNav: true, navLabel: 'PROJECTS', isAdminSubMenu: false, parentPath: null },
+        { path: '/history', name: '히스토리', icon: '📚', description: '작업 이력 및 기록', category: 'work', isRequired: false, showInNav: true, navLabel: 'HISTORY', isAdminSubMenu: false, parentPath: null },
+        { path: '/dating', name: '데이팅', icon: '💕', description: '데이팅 관련 기능', category: 'personal', isRequired: false, showInNav: true, navLabel: 'DATING', isAdminSubMenu: false, parentPath: null },
+        { path: '/dating_sys', name: '데이팅 추억', icon: '📸', description: '데이팅 추억 기록', category: 'personal', isRequired: false, showInNav: false, navLabel: 'DATING SYS', isAdminSubMenu: false, parentPath: '/dating' },
+        { path: '/todos', name: '할일 목록', icon: '📝', description: '할일 관리', category: 'productivity', isRequired: false, showInNav: true, navLabel: 'TODOS', isAdminSubMenu: false, parentPath: null },
+        { path: '/todos/create', name: '할일 생성', icon: '➕', description: '새로운 할일 추가', category: 'productivity', isRequired: false, showInNav: false, navLabel: '할일 생성', isAdminSubMenu: false, parentPath: null },
+        { path: '/expense', name: '지출 관리', icon: '💰', description: '지출 내역 관리', category: 'finance', isRequired: false, showInNav: true, navLabel: '가계부', isAdminSubMenu: false, parentPath: null },
+        { path: '/admin', name: '관리자 대시보드', icon: '🎛️', description: '관리자 메인 대시보드', category: 'admin', isRequired: false, showInNav: false, navLabel: '관리자 대시보드', isAdminSubMenu: false, parentPath: null },
+        { path: '/admin/users', name: '사용자 관리', icon: '👥', description: '사용자 계정 관리', category: 'admin', isRequired: false, showInNav: false, navLabel: '사용자 관리', isAdminSubMenu: true, parentPath: null },
+        { path: '/admin/menu-management', name: '권한별 접근메뉴관리', icon: '🔐', description: '메뉴 접근 권한 설정', category: 'admin', isRequired: false, showInNav: false, navLabel: '권한별 접근메뉴관리', isAdminSubMenu: true, parentPath: null },
+        { path: '/admin/role-management', name: '권한 관리', icon: '🛡️', description: '사용자 권한(Role) 관리', category: 'admin', isRequired: false, showInNav: false, navLabel: '권한 관리', isAdminSubMenu: true, parentPath: null }
     ];
 }
 
@@ -122,7 +130,7 @@ function getDefaultMenusForRole(role) {
         'ADMIN': [
             '/', '/portfolio', '/projects', '/history', '/dating', '/dating_sys',
             '/todos', '/todos/create', '/expense',
-            '/admin', '/admin/users', '/admin/menu-management', '/admin/role-management'
+            '/admin', '/admin/users', '/admin/menu-management', '/admin/role-management', '/admin/menu-definition'
         ]
     };
     return defaultPermissions[role] || [];

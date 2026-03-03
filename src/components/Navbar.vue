@@ -35,10 +35,15 @@
         aria-label="메인 메뉴"
       >
         <ul>
-          <li v-for="menu in navigationMenus" :key="menu.path">
+          <li
+            v-for="menu in navigationMenus"
+            :key="menu.path"
+            class="nav-item"
+          >
+            <!-- 모든 메뉴: 단순 링크 (자식 있는 섹션은 사이드바에서 서브메뉴 제공) -->
             <router-link :to="menu.path" @click="closeMenu">{{ menu.navLabel }}</router-link>
           </li>
-          <li v-if="hasAdminAccess">
+          <li v-if="hasAdminAccess" class="nav-item">
             <router-link to="/admin" @click="closeMenu">관리자</router-link>
           </li>
         </ul>
@@ -131,7 +136,7 @@ export default {
       showUserDropdown,
       toggleMenu,
       toggleUserDropdown,
-      closeMenu, 
+      closeMenu,
       handleLogout,
       isAuthenticated,
       user,
@@ -312,6 +317,11 @@ export default {
   background: #c82333;
 }
 
+/* ===== nav-item ===== */
+.nav-item {
+  display: inline-block;
+}
+
 @media (min-width: 768px) {
   .header__nav {
     display: flex;
@@ -367,6 +377,11 @@ export default {
   .desktop-login,
   .desktop-user {
     display: none;
+  }
+
+  /* 모바일 nav-item: block으로 */
+  .nav-item {
+    display: block !important;
   }
 }
 </style>
