@@ -1053,9 +1053,9 @@ export default {
         const imageToRemove = currentEvent.value.images[imageToDelete.value];
 
         try {
-          // 서버에서 이미지 파일 삭제
-          await axios.delete("/histories/image", {
-            params: { imagePath: imageToRemove },
+          // 서버에서 미디어 파일 삭제
+          await axios.delete("/histories/media", {
+            params: { mediaPath: imageToRemove },
           });
 
           // 프론트엔드에서 이미지 배열에서 제거
