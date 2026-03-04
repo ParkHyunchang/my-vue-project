@@ -89,8 +89,7 @@ const router = createRouter({
             children: [
                 {
                     path: '',
-                    name: 'AdminMain',
-                    component: () => import('../pages/admin-main.vue'),
+                    redirect: '/admin/users',
                 },
                 {
                     path: 'users',

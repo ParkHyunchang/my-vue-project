@@ -30,15 +30,6 @@
       <nav class="sidebar-nav">
         <p class="nav-section-label">메뉴</p>
         <router-link
-          to="/admin"
-          class="sidebar-link"
-          :class="{ active: $route.path === '/admin' }"
-          @click="closeSidebar"
-        >
-          <span class="link-icon">🎛️</span>
-          <span class="link-text">대시보드</span>
-        </router-link>
-        <router-link
           to="/admin/users"
           class="sidebar-link"
           :class="{ active: $route.path === '/admin/users' }"
@@ -113,7 +104,7 @@ export default {
     const userInitial = computed(() => user.value?.username?.charAt(0)?.toUpperCase() || 'A');
 
     const pageTitleMap = {
-      '/admin': '대시보드',
+      '/admin': '관리자',
       '/admin/users': '사용자 관리',
       '/admin/menu-management': '권한별 접근메뉴관리',
       '/admin/role-management': '권한 관리',

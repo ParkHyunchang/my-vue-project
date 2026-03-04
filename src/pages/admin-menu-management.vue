@@ -869,9 +869,93 @@ export default {
   }
 }
 
-@media (max-width: 600px) {
-  .page-container { padding: 16px; }
-  .panel-header { flex-direction: column; align-items: flex-start; }
-  .panel-actions { width: 100%; justify-content: flex-end; }
+@media (max-width: 768px) {
+  .page-container {
+    padding: 12px;
+  }
+
+  .page-header h1 {
+    font-size: 18px;
+  }
+
+  .panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .panel-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .panel-actions .btn {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+
+  .category-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .btn-category {
+    width: 100%;
+  }
+
+  .menu-access-row {
+    padding: 10px 10px;
+  }
+
+  .crud-row {
+    padding: 8px 10px 10px 10px;
+    gap: 12px;
+  }
+
+  .role-row {
+    padding: 10px 12px;
+  }
+
+  .menu-name {
+    font-size: 12px;
+  }
+
+  .menu-path {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-container {
+    padding: 8px;
+  }
+
+  .panel-actions .btn {
+    flex: none;
+    width: calc(50% - 3px);
+  }
+
+  .panel-actions .btn-primary {
+    width: 100%;
+  }
+
+  .status-pill {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  .crud-row {
+    gap: 10px;
+  }
+
+  .crud-label {
+    font-size: 11px;
+  }
 }
 </style>
