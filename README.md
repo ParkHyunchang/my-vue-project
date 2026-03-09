@@ -52,21 +52,6 @@ npm run lint
 
 PAT 발급: GitHub **프로필 우측 상단 → Settings → Developer settings → Personal access tokens**.
 
-### 수동 배포 (NAS에서 직접 pull 후 재시작)
-
-NAS에 SSH 접속 후:
-
-```bash
-cd /volume1/docker/my-vue-project
-
-# GHCR 로그인 (최초 1회 또는 토큰 갱신 시)
-export GHCR_PAT="ghp_xxxx"
-export GITHUB_ACTOR="ParkHyunchang"
-./vue_personal_project_deploy.sh
-```
-
-이미지 주소는 `ghcr.io/parkhyunchang/my-vue-project:latest` 입니다.
-
 ---
 
 ## 로컬 Docker 실행
@@ -99,28 +84,6 @@ npm install @studio-freight/lenis
 
 ---
 
-## 참고: 기존 수동 배포 방식 (tar + FileZilla)
-
-로컬에서 tar 생성 후 NAS로 업로드하는 방식은 아래 스크립트로 대체 가능합니다.  
-일반적으로는 **CI/CD(push 시 자동 배포)** 사용을 권장합니다.
-
-```bash
-# 1. 로컬 (Docker Desktop 실행 후)
-./build-and-package.ps1
-
-# 2. 생성된 frontEnd_deployment_*.tar 를 FileZilla 등으로
-#    NAS 경로 /volume1/docker/my-vue-project 에 업로드
-
-# 3. NAS SSH 접속 후
-cd /volume1/docker/my-vue-project
-docker load -i frontEnd_deployment_*.tar
-# 이후 vue_personal_project_deploy.sh 는 레지스트리 pull 방식이므로
-# 위 load 후에는 직접:
-docker stop vue_personal_project 2>/dev/null; docker rm vue_personal_project 2>/dev/null
-docker run -d --name vue_personal_project -p 3100:80 vue_personal_project:latest
-```
-
----
 
 ## 설정
 
