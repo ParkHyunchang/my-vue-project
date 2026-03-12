@@ -145,9 +145,15 @@
                 </div>
               </td>
               <td class="col-actions">
-                <button @click="openEditModal(menu)" class="btn-edit-def">
-                  ✏️ 수정
-                </button>
+                <div class="actions-cell">
+                  <button @click="openEditModal(menu)" class="btn-edit-def">
+                    ✏️ 수정
+                  </button>
+                  <span v-if="menu.required" class="protected-badge">🔒 보호됨</span>
+                  <button v-else @click="openDeleteModal(menu)" class="btn-delete-def">
+                    🗑️ 삭제
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -157,9 +163,41 @@
       <!-- 안내 문구 -->
       <div class="info-notice">
         <span class="notice-icon">ℹ️</span>
-        <span>메뉴 삭제는 지원하지 않습니다. 메뉴를 숨기려면 <strong>네비게이션 표시</strong>와 <strong>관리자 서브메뉴</strong>를 모두 해제하세요.</span>
+        <span><strong>🔒 보호됨</strong> 표시 메뉴는 시스템 필수 메뉴로 삭제할 수 없습니다. 메뉴를 숨기려면 <strong>네비게이션 표시</strong>와 <strong>관리자 서브메뉴</strong>를 모두 해제하세요.</span>
       </div>
     </template>
+
+    <!-- 삭제 확인 모달 -->
+    <Modal v-if="showDeleteModal" @close="closeDeleteModal" :close-on-backdrop="!deleting">
+      <template #header>
+        <h3>⚠️ 메뉴 삭제 확인</h3>
+      </template>
+      <template #body>
+        <div class="delete-warning-def">
+          <div class="delete-menu-info">
+            <span class="delete-menu-icon">{{ deletingMenu?.icon || '📄' }}</span>
+            <div>
+              <p class="delete-menu-name">{{ deletingMenu?.name }}</p>
+              <code class="path-code">{{ deletingMenu?.path }}</code>
+            </div>
+          </div>
+          <div class="delete-impact-box">
+            <p class="delete-impact-title">삭제 시 함께 제거되는 항목:</p>
+            <ul class="delete-impact-list">
+              <li>권한별 접근 설정 (메뉴 권한)</li>
+              <li>CRUD 권한 설정 (읽기/쓰기/수정/삭제 권한)</li>
+            </ul>
+            <p class="delete-irreversible">이 작업은 되돌릴 수 없습니다.</p>
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <button @click="closeDeleteModal" class="btn btn-outline" :disabled="deleting">취소</button>
+        <button @click="deleteMenu" class="btn btn-danger" :disabled="deleting">
+          {{ deleting ? '삭제 중...' : '삭제하기' }}
+        </button>
+      </template>
+    </Modal>
 
     <!-- 생성/수정 모달 -->
     <Modal v-if="showModal" @close="closeModal" :close-on-backdrop="!saving">
@@ -360,10 +398,13 @@ export default {
 
     const pageLoading = ref(true);
     const saving = ref(false);
+    const deleting = ref(false);
     const menus = ref([]);
     const searchQuery = ref('');
     const activeTab = ref('all');
     const showModal = ref(false);
+    const showDeleteModal = ref(false);
+    const deletingMenu = ref(null);
     const isEditing = ref(false);
     const editingId = ref(null);
 
@@ -559,17 +600,50 @@ export default {
       }
     };
 
+    // 삭제 모달 열기
+    const openDeleteModal = (menu) => {
+      deletingMenu.value = menu;
+      showDeleteModal.value = true;
+    };
+
+    // 삭제 모달 닫기
+    const closeDeleteModal = () => {
+      if (deleting.value) return;
+      showDeleteModal.value = false;
+      deletingMenu.value = null;
+    };
+
+    // 메뉴 삭제 실행
+    const deleteMenu = async () => {
+      if (!deletingMenu.value) return;
+      deleting.value = true;
+      try {
+        await axios.delete(`/api/admin/menus/${deletingMenu.value.id}`);
+        menus.value = menus.value.filter(m => m.id !== deletingMenu.value.id);
+        store.dispatch('toast/showToast', { message: `"${deletingMenu.value.name}" 메뉴가 삭제되었습니다.`, type: 'success' });
+        showDeleteModal.value = false;
+        deletingMenu.value = null;
+        try { await store.dispatch('menu/refreshUserMenus'); } catch (_) { /* ignore */ }
+      } catch (e) {
+        const msg = e.response?.data || '메뉴 삭제에 실패했습니다.';
+        store.dispatch('toast/showToast', { message: String(msg), type: 'error' });
+      } finally {
+        deleting.value = false;
+      }
+    };
+
     onMounted(loadMenus);
 
     return {
-      pageLoading, saving, menus, searchQuery, activeTab,
-      showModal, isEditing, form,
+      pageLoading, saving, deleting, menus, searchQuery, activeTab,
+      showModal, showDeleteModal, deletingMenu, isEditing, form,
       categories, availableRoles,
       navMenuCount, adminSubMenuCount, requiredMenuCount,
       tabs, filteredMenus,
       parentMenuOptions,
       getCategoryLabel, getMenuName,
       openCreateModal, openEditModal, closeModal, submitForm,
+      openDeleteModal, closeDeleteModal, deleteMenu,
     };
   },
 };

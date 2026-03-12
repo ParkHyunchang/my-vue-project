@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <header id="header" role="banner">
     <div class="header__inner">
       <div class="header__logo">
@@ -43,7 +43,7 @@
             <!-- 모든 메뉴: 단순 링크 (자식 있는 섹션은 사이드바에서 서브메뉴 제공) -->
             <router-link :to="menu.path" @click="closeMenu">{{ menu.navLabel }}</router-link>
           </li>
-          <li v-if="hasAdminAccess" class="nav-item">
+          <li v-if="isAdmin" class="nav-item">
             <router-link to="/admin" @click="closeMenu">관리자</router-link>
           </li>
         </ul>
@@ -101,7 +101,7 @@ export default {
     const user = computed(() => store.getters['auth/user']);
     const userInitial = computed(() => user.value?.username?.charAt(0)?.toUpperCase() || '?');
     const navigationMenus = computed(() => store.getters['menu/navigationMenus']);
-    const hasAdminAccess = computed(() => store.getters['menu/hasAdminAccess']);
+    const isAdmin = computed(() => store.getters['auth/isAdmin']);
     
     const hasRole = (role) => {
       return store.getters['auth/hasRole'](role);
@@ -142,7 +142,7 @@ export default {
       user,
       userInitial,
       navigationMenus,
-      hasAdminAccess,
+      isAdmin,
       hasRole
     };
   }
