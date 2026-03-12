@@ -147,18 +147,19 @@ export default {
 .admin-layout {
   display: flex;
   min-height: calc(100vh - 68px);
-  background: #f1f5f9;
+  background: var(--content-bg);
 }
 
 /* ===== 사이드바 ===== */
 .admin-sidebar {
   width: 240px;
   min-width: 240px;
-  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  background: linear-gradient(180deg, var(--sidebar-bg-start) 0%, var(--sidebar-bg-end) 100%);
+  border-right: 1px solid var(--sidebar-border);
   display: flex;
   flex-direction: column;
   position: fixed;
-  top: 68px; /* Navbar 높이 */
+  top: 68px;
   left: 0;
   height: calc(100vh - 68px);
   z-index: 1001;
@@ -172,7 +173,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 20px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--sidebar-border);
   flex-shrink: 0;
 }
 
@@ -183,22 +184,25 @@ export default {
 }
 
 .brand-icon {
-  font-size: 20px;
+  font-size: 18px;
+  filter: grayscale(0.3);
 }
 
 .brand-text {
-  color: white;
-  font-size: 17px;
+  color: var(--accent);
+  font-size: 15px;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-family: "Playfair Display", serif;
 }
 
 .sidebar-close-btn {
   display: none;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 18px;
+  color: var(--text-muted);
+  font-size: 16px;
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 4px;
@@ -207,8 +211,8 @@ export default {
 }
 
 .sidebar-close-btn:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  background: var(--sidebar-link-hover-bg);
 }
 
 /* ===== 사용자 정보 ===== */
@@ -216,25 +220,27 @@ export default {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px;
+  padding: 12px 14px;
   margin: 12px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
+  background: var(--accent-dim);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
   flex-shrink: 0;
 }
 
 .user-avatar {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, var(--accent), #8a6030);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 16px;
+  color: var(--text-on-accent);
+  font-size: 14px;
   font-weight: 700;
   flex-shrink: 0;
+  border: 1px solid var(--accent-glow);
 }
 
 .user-meta {
@@ -245,7 +251,7 @@ export default {
 }
 
 .user-name {
-  color: white;
+  color: var(--text-primary);
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
@@ -254,14 +260,17 @@ export default {
 }
 
 .user-role-badge {
-  background: #3b82f6;
-  color: white;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid var(--card-border);
   font-size: 10px;
-  font-weight: 600;
-  padding: 2px 7px;
+  font-weight: 700;
+  padding: 1px 7px;
   border-radius: 10px;
   display: inline-block;
   width: fit-content;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 /* ===== 사이드바 네비게이션 ===== */
@@ -271,12 +280,12 @@ export default {
 }
 
 .nav-section-label {
-  color: rgba(255, 255, 255, 0.35);
-  font-size: 11px;
-  font-weight: 600;
+  color: var(--sidebar-section-label);
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 8px 4px 6px;
+  letter-spacing: 0.12em;
+  padding: 10px 4px 6px;
   margin: 0;
 }
 
@@ -285,30 +294,33 @@ export default {
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  border-radius: 8px;
-  color: rgba(255, 255, 255, 0.65);
+  border-radius: 6px;
+  color: var(--sidebar-link-color);
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   transition: all 0.2s ease;
   margin-bottom: 2px;
+  border: 1px solid transparent;
 }
 
 .sidebar-link:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: white;
+  background: var(--sidebar-link-hover-bg);
+  color: var(--text-primary);
+  border-color: var(--card-border);
 }
 
 .sidebar-link.active {
-  background: #3b82f6;
-  color: white;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-active-color);
+  border-color: var(--card-border-strong);
+  box-shadow: 0 0 12px rgba(201, 169, 110, 0.15);
 }
 
 .link-icon {
-  font-size: 17px;
+  font-size: 16px;
   flex-shrink: 0;
-  width: 22px;
+  width: 20px;
   text-align: center;
 }
 
@@ -343,9 +355,9 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.65);
   z-index: 1000;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(3px);
 }
 
 /* ===== 트랜지션 ===== */
@@ -371,15 +383,14 @@ export default {
   }
 }
 
-/* ===== 모바일 (800px 이하, Navbar와 동일한 브레이크포인트) ===== */
+/* ===== 모바일 (800px 이하) ===== */
 @media (max-width: 800px) {
   .admin-layout {
     min-height: calc(100vh - 68px);
   }
 
-  /* 사이드바 오프스크린 */
   .admin-sidebar {
-    top: 68px; /* 모바일 Navbar 높이 */
+    top: 68px;
     height: calc(100vh - 68px);
     transform: translateX(-100%);
     width: 260px;
@@ -390,33 +401,29 @@ export default {
     transform: translateX(0);
   }
 
-  /* 모바일에서 닫기 버튼 표시 */
   .sidebar-close-btn {
     display: block;
   }
 
-  /* 콘텐츠 전체 너비 */
   .admin-content-area {
     margin-left: 0;
   }
 
-  /* 모바일 미니바 표시 */
   .admin-mobile-bar {
     display: flex;
     align-items: center;
     gap: 12px;
-    background: white;
+    background: var(--mobile-bar-bg);
     padding: 10px 16px;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--mobile-bar-border);
     position: fixed;
     top: 68px;
     left: 0;
     right: 0;
     z-index: 100;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
 
-  /* fixed 미니바 높이만큼 콘텐츠 여백 보정 */
   .admin-page-content {
     padding-top: 49px;
   }
@@ -435,21 +442,22 @@ export default {
   }
 
   .mobile-hamburger:hover {
-    background: #f1f5f9;
+    background: var(--sidebar-link-hover-bg);
   }
 
   .mobile-hamburger span {
     display: block;
     width: 20px;
-    height: 2px;
-    background: #475569;
+    height: 1px;
+    background: var(--accent);
     border-radius: 2px;
   }
 
   .mobile-page-title {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--text-primary);
+    letter-spacing: 0.05em;
   }
 }
 </style>

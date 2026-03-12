@@ -1148,27 +1148,33 @@ export default {
 </script>
 
 <style scoped>
+/* ===== 페이지 컨테이너 + 타임라인 변수 ===== */
 .history-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
-  --timeline-primary-color: #007bff;
-  --timeline-line-color: #e0e0e0;
-  --timeline-filter-bg: #f0f0f0;
-  --timeline-filter-color: #333333;
-  --timeline-active-bg: #007bff;
-  --timeline-active-color: #ffffff;
-  --timeline-date-bg: #f8f9fa;
-  --timeline-date-color: #333333;
-  --timeline-card-bg: #ffffff;
-  --timeline-card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --timeline-more-media-bg: rgba(0, 123, 255, 0.8);
-  --timeline-more-media-color: #ffffff;
-  --timeline-media-image-bg: rgba(0, 123, 255, 0.12);
-  --timeline-media-image-color: #0056b3;
-  --timeline-media-video-bg: rgba(40, 167, 69, 0.15);
-  --timeline-media-video-color: #1e7e34;
-  --timeline-icon-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+  padding: 24px;
+  /* 타임라인 컴포넌트 CSS 변수 – 다크 골드 */
+  --timeline-primary-color: var(--accent);
+  --timeline-line-color: rgba(201, 169, 110, 0.2);
+  --timeline-filter-bg: var(--card-bg);
+  --timeline-filter-color: var(--text-secondary);
+  --timeline-active-bg: var(--accent-dim);
+  --timeline-active-color: var(--accent);
+  --timeline-date-bg: var(--subBg300);
+  --timeline-date-color: var(--text-primary);
+  --timeline-date-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --timeline-card-bg: var(--card-bg);
+  --timeline-card-border: 1px solid var(--card-border);
+  --timeline-card-shadow: var(--card-shadow);
+  --timeline-heading-color: var(--text-primary);
+  --timeline-text-color: var(--text-secondary);
+  --timeline-more-media-bg: var(--accent-dim);
+  --timeline-more-media-color: var(--accent);
+  --timeline-media-image-bg: rgba(201, 169, 110, 0.1);
+  --timeline-media-image-color: var(--accent);
+  --timeline-media-video-bg: rgba(106, 173, 106, 0.12);
+  --timeline-media-video-color: var(--success-color);
+  --timeline-icon-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
   --timeline-icon-offset: 58px;
   --timeline-icon-offset-mobile: 26px;
   --timeline-icon-size: 42px;
@@ -1177,59 +1183,72 @@ export default {
   --timeline-icon-font-size-mobile: 0.68rem;
 }
 
+/* ===== 페이지 헤더 ===== */
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 50px;
+  margin-bottom: 40px;
 }
 
 .page-header h2 {
-  font-size: 2.5rem;
+  font-size: 2rem;
+  color: var(--text-primary);
+  font-family: "Playfair Display", serif;
+  letter-spacing: 0.04em;
 }
 
+/* ===== 검색 바 ===== */
 .search-bar {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 8px 14px;
   margin: 0 auto 30px;
   max-width: 400px;
-  background: #ffffff;
-  border: 1px solid #d6e4ff;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 999px;
-  box-shadow: 0 4px 10px rgba(0, 123, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: border-color 0.2s ease;
+}
+
+.search-bar:focus-within {
+  border-color: var(--accent-glow);
+  box-shadow: 0 0 0 2px var(--input-focus-shadow);
 }
 
 .search-input {
   flex: 1;
   border: none;
-  font-size: 1rem;
-  color: #333;
+  font-size: 14px;
+  color: var(--text-primary);
   background: transparent;
   outline: none;
 }
 
 .search-input::placeholder {
-  color: #93a3c1;
+  color: var(--text-muted);
 }
 
 .search-submit {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border: none;
   background: transparent;
   padding: 0;
   cursor: pointer;
   transition: transform 0.2s ease;
+  opacity: 0.6;
 }
 
 .search-submit:hover,
 .search-submit:focus {
-  transform: scale(1.05);
+  transform: scale(1.08);
+  opacity: 1;
 }
 
 .search-icon {
@@ -1238,11 +1257,11 @@ export default {
   object-fit: contain;
 }
 
-/* 타임라인에서도 설명 줄바꿈이 유지되도록 */
 .history-container :deep(.timeline-body p) {
   white-space: pre-line;
 }
 
+/* ===== 모달 폼 ===== */
 .event-form {
   display: flex;
   flex-direction: column;
@@ -1266,33 +1285,33 @@ export default {
   gap: 8px;
 }
 
-/* 이미지 업로드 스타일 */
+/* ===== 이미지 업로드 ===== */
 .image-upload-container {
   margin-top: 10px;
 }
 
 .image-upload-area {
-  border: 2px dashed #ddd;
+  border: 1px dashed var(--card-border-strong);
   border-radius: 8px;
   padding: 20px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: #fafafa;
+  background: var(--subBg400);
 }
 
 .image-upload-area:hover {
-  border-color: #007bff;
-  background: #f0f8ff;
+  border-color: var(--accent);
+  background: var(--accent-dim);
 }
 
 .upload-placeholder {
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .upload-placeholder i {
   font-size: 2rem;
-  color: #007bff;
+  color: var(--accent);
   margin-bottom: 10px;
   display: block;
 }
@@ -1300,10 +1319,11 @@ export default {
 .upload-placeholder p {
   margin: 10px 0 5px 0;
   font-weight: 500;
+  color: var(--text-primary);
 }
 
 .upload-placeholder small {
-  color: #999;
+  color: var(--text-muted);
 }
 
 .upload-progress {
@@ -1313,39 +1333,33 @@ export default {
 
 .progress-bar {
   width: 100%;
-  height: 4px;
-  background: #e0e0e0;
+  height: 3px;
+  background: var(--subBg500);
   border-radius: 2px;
   overflow: hidden;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
 
 .progress-fill {
   height: 100%;
-  background: #007bff;
+  background: var(--accent);
   border-radius: 2px;
   animation: progress 2s ease-in-out infinite;
 }
 
 @keyframes progress {
-  0% {
-    width: 0%;
-  }
-  50% {
-    width: 70%;
-  }
-  100% {
-    width: 100%;
-  }
+  0% { width: 0%; }
+  50% { width: 70%; }
+  100% { width: 100%; }
 }
 
 .upload-progress p {
   margin: 0;
-  color: #666;
-  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
 }
 
-/* 다중 이미지 업로드 스타일 */
+/* ===== 다중 이미지 업로드 ===== */
 .uploaded-images {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -1363,7 +1377,7 @@ export default {
   height: 120px;
   object-fit: cover;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease;
 }
 
@@ -1376,7 +1390,7 @@ export default {
   height: 120px;
   object-fit: cover;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   display: block;
   transition: transform 0.3s ease;
 }
@@ -1389,7 +1403,7 @@ export default {
   position: absolute;
   top: 5px;
   left: 5px;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.7);
   color: white;
   border-radius: 50%;
   width: 22px;
@@ -1406,7 +1420,7 @@ export default {
   position: absolute;
   top: -8px;
   right: -8px;
-  background: #ff4444;
+  background: var(--danger-color);
   color: white;
   border: none;
   border-radius: 50%;
@@ -1418,15 +1432,15 @@ export default {
   justify-content: center;
   font-size: 12px;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 }
 
 .image-preview-item .remove-image:hover {
-  background: #cc0000;
+  background: var(--danger-hover);
   transform: scale(1.1);
 }
 
-/* 타임라인 이미지 갤러리 스타일 */
+/* ===== 타임라인 이미지 갤러리 ===== */
 .timeline-images {
   margin: 20px 0;
 }
@@ -1443,7 +1457,7 @@ export default {
   height: 80px;
   object-fit: cover;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease;
 }
 
@@ -1452,46 +1466,31 @@ export default {
 }
 
 .more-images {
-  background: rgba(0, 123, 255, 0.8);
-  color: white;
-  padding: 8px 12px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  padding: 7px 12px;
   border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.85rem;
+  font-weight: 600;
   min-width: 40px;
   text-align: center;
+  border: 1px solid var(--card-border);
 }
 
-/* 모바일에서 이미지 업로드 조정 */
 @media (max-width: 768px) {
   .uploaded-images {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 10px;
   }
 
-  .image-preview-item img {
-    height: 100px;
-  }
-
-  .image-preview-item video {
-    height: 100px;
-  }
-
-  .image-gallery .memory-image {
-    width: 60px;
-    height: 60px;
-  }
-
-  .more-images {
-    padding: 6px 10px;
-    font-size: 0.8rem;
-  }
+  .image-preview-item img { height: 100px; }
+  .image-preview-item video { height: 100px; }
+  .image-gallery .memory-image { width: 60px; height: 60px; }
+  .more-images { padding: 6px 10px; font-size: 0.8rem; }
 }
 
-/* 날짜 선택 스타일 */
-.date-type-selection {
-  margin-top: 10px;
-}
+/* ===== 날짜 선택 ===== */
+.date-type-selection { margin-top: 10px; }
 
 .date-type-options {
   display: flex;
@@ -1505,46 +1504,38 @@ export default {
   gap: 8px;
   cursor: pointer;
   font-weight: 500;
-  color: #666;
-  transition: color 0.3s ease;
+  font-size: 14px;
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
 }
 
-.radio-option:hover {
-  color: #007bff;
-}
+.radio-option:hover { color: var(--accent); }
 
 .radio-option input[type="radio"] {
   margin: 0;
-  accent-color: #007bff;
+  accent-color: var(--accent);
 }
 
 .radio-option input[type="radio"]:checked + span {
-  color: #007bff;
+  color: var(--accent);
   font-weight: 600;
 }
 
-.single-date-input {
-  margin-top: 10px;
-}
-
-.range-date-inputs {
-  margin-top: 10px;
-}
-
-.date-input-group {
-  margin-bottom: 15px;
-}
+.single-date-input { margin-top: 10px; }
+.range-date-inputs { margin-top: 10px; }
+.date-input-group { margin-bottom: 14px; }
 
 .date-input-group label {
   display: block;
   margin-bottom: 5px;
-  font-weight: 500;
-  color: #666;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 .date-range-info {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
+  background: var(--accent-dim);
+  border: 1px solid var(--card-border-strong);
   border-radius: 8px;
   padding: 12px;
   margin-top: 10px;
@@ -1554,35 +1545,21 @@ export default {
 }
 
 .range-duration {
-  font-weight: 600;
-  color: #007bff;
-  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 1rem;
+  font-family: "Playfair Display", serif;
 }
 
 .range-period {
-  color: #666;
-  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
 }
 
-/* 모바일에서 날짜 선택 조정 */
 @media (max-width: 768px) {
-  .date-type-options {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .date-range-info {
-    flex-direction: column;
-    gap: 8px;
-    text-align: center;
-  }
-
-  .range-duration {
-    font-size: 1rem;
-  }
-
-  .range-period {
-    font-size: 0.8rem;
-  }
+  .date-type-options { flex-direction: column; gap: 10px; }
+  .date-range-info { flex-direction: column; gap: 8px; text-align: center; }
+  .range-duration { font-size: 0.95rem; }
+  .range-period { font-size: 0.8rem; }
 }
 </style>

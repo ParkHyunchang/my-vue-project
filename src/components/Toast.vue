@@ -45,23 +45,27 @@ export default {
 .alert {
   min-width: 200px;
   padding: 15px 20px;
-  border-radius: 4px;
-  background-color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
   animation: slideIn 0.3s ease-out;
-  pointer-events: auto; /* 알림 자체는 클릭 가능하도록 유지 */
+  pointer-events: auto;
+  font-weight: 500;
 }
 
 .alert-success {
-  color: #155724;
-  background-color: #d4edda;
-  border-color: #c3e6cb;
+  border-color: rgba(106, 173, 106, 0.4);
+  background-color: var(--success-bg);
+  color: var(--success-color);
 }
 
+.alert-danger,
 .alert-error {
-  color: #721c24;
-  background-color: #f8d7da;
-  border-color: #f5c6cb;
+  border-color: rgba(196, 90, 90, 0.4);
+  background-color: var(--danger-bg);
+  color: var(--danger-color);
 }
 
 .slide-enter-active,

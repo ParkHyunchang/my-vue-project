@@ -145,17 +145,17 @@ export default {
 <style scoped>
 .modal-wrapper {
     position: fixed;
-    z-index: 99999;  /* 매우 높은 z-index 값 */
+    z-index: 99999;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.65);
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
 
 .modal-dialog {
@@ -165,9 +165,10 @@ export default {
 }
 
 .modal-content {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
+    background: var(--subBg300);
+    border: 1px solid var(--card-border-strong);
+    border-radius: 10px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
     position: relative;
 }
 
@@ -175,27 +176,28 @@ export default {
     position: absolute;
     inset: 0;
     z-index: 3;
-    background: #ffffff;
+    background: var(--subBg300);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 12px;
     pointer-events: all;
+    border-radius: 10px;
 }
 
 .modal-busy-spinner {
     width: 44px;
     height: 44px;
     border-radius: 999px;
-    border: 4px solid rgba(0, 0, 0, 0.12);
-    border-top-color: rgba(233, 30, 99, 0.9);
+    border: 3px solid var(--card-border);
+    border-top-color: var(--accent);
     animation: modalBusySpin 0.9s linear infinite;
 }
 
 .modal-busy-text {
-    font-size: 0.95rem;
-    color: #444;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
     font-weight: 600;
 }
 
@@ -206,8 +208,8 @@ export default {
 
 
 .modal-header {
-    padding: 1rem;
-    border-bottom: 1px solid #dee2e6;
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid var(--card-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -215,16 +217,19 @@ export default {
 
 .modal-title {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    letter-spacing: 0.02em;
 }
 
 .close {
     background: none;
     border: none;
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     cursor: pointer;
     padding: 0.25rem;
-    color: #666;
+    color: var(--text-muted);
     min-width: 2rem;
     min-height: 2rem;
     display: flex;
@@ -235,46 +240,47 @@ export default {
 }
 
 .close:hover {
-    color: #333;
-    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--text-primary);
+    background-color: var(--sidebar-link-hover-bg);
 }
 
 .close:active {
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: var(--accent-dim);
 }
 
 .modal-body {
-    padding: 1rem;
+    padding: 1.2rem;
     max-height: 70vh;
     overflow-y: auto;
     overflow-x: hidden;
-    -webkit-overflow-scrolling: touch; /* iOS 스크롤 부드럽게 */
-    scrollbar-width: thin; /* Firefox */
-    scrollbar-color: #ccc #f1f1f1; /* Firefox */
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--subBg500) var(--subBg300);
+    color: var(--text-primary);
 }
 
-/* Webkit 브라우저용 스크롤바 스타일 */
+/* Webkit 스크롤바 */
 .modal-body::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
 }
 
 .modal-body::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: var(--subBg300);
     border-radius: 4px;
 }
 
 .modal-body::-webkit-scrollbar-thumb {
-    background: #ccc;
+    background: var(--subBg500);
     border-radius: 4px;
 }
 
 .modal-body::-webkit-scrollbar-thumb:hover {
-    background: #999;
+    background: var(--accent-glow);
 }
 
 .modal-footer {
-    padding: 1rem;
-    border-top: 1px solid #dee2e6;
+    padding: 0.9rem 1.2rem;
+    border-top: 1px solid var(--card-border);
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;

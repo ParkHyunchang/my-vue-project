@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="page-container">
         <div class="d-flex justify-content-between mb-3">
             <h2>To-Do List</h2>
             <button class="btn btn-primary" @click="moveToCreatePage">
@@ -36,6 +36,7 @@
         </template>
     </div>
 </template>
+
 
 <script>
 /* eslint-disable no-console */
@@ -146,9 +147,9 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .todo {
-    color: gray;
+    color: var(--text-muted);
     text-decoration: line-through;
 }
 </style>

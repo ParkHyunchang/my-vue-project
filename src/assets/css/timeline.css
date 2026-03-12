@@ -1,25 +1,26 @@
 :root {
-  --timeline-primary-color: #007bff;
-  --timeline-line-color: #e0e0e0;
-  --timeline-card-bg: #ffffff;
-  --timeline-card-border: none;
-  --timeline-card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --timeline-date-bg: #f8f9fa;
-  --timeline-date-color: #333333;
-  --timeline-date-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
-  --timeline-filter-bg: #f0f0f0;
-  --timeline-filter-color: #333333;
-  --timeline-active-bg: var(--timeline-primary-color);
-  --timeline-active-color: #ffffff;
-  --timeline-heading-color: inherit;
-  --timeline-text-color: #666666;
-  --timeline-media-image-bg: rgba(0, 123, 255, 0.12);
-  --timeline-media-image-color: #0056b3;
-  --timeline-media-video-bg: rgba(40, 167, 69, 0.15);
-  --timeline-media-video-color: #1e7e34;
-  --timeline-more-media-bg: rgba(0, 123, 255, 0.8);
-  --timeline-more-media-color: #ffffff;
-  --timeline-icon-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+  /* 다크 골드 테마 기본값 */
+  --timeline-primary-color: var(--accent, #c9a96e);
+  --timeline-line-color: rgba(201, 169, 110, 0.2);
+  --timeline-card-bg: var(--card-bg, #1c1c28);
+  --timeline-card-border: 1px solid var(--card-border, rgba(201, 169, 110, 0.12));
+  --timeline-card-shadow: var(--card-shadow, 0 2px 12px rgba(0, 0, 0, 0.35));
+  --timeline-date-bg: var(--subBg300, #252535);
+  --timeline-date-color: var(--text-primary, #f0ece4);
+  --timeline-date-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --timeline-filter-bg: var(--card-bg, #1c1c28);
+  --timeline-filter-color: var(--text-secondary, #c8c3bb);
+  --timeline-active-bg: var(--accent-dim, rgba(201, 169, 110, 0.15));
+  --timeline-active-color: var(--accent, #c9a96e);
+  --timeline-heading-color: var(--text-primary, #f0ece4);
+  --timeline-text-color: var(--text-secondary, #c8c3bb);
+  --timeline-media-image-bg: rgba(201, 169, 110, 0.1);
+  --timeline-media-image-color: var(--accent, #c9a96e);
+  --timeline-media-video-bg: rgba(106, 173, 106, 0.12);
+  --timeline-media-video-color: var(--success-color, #6aad6a);
+  --timeline-more-media-bg: var(--accent-dim, rgba(201, 169, 110, 0.15));
+  --timeline-more-media-color: var(--accent, #c9a96e);
+  --timeline-icon-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
   --timeline-filter-gap: 18px;
   --timeline-filter-row-gap: 15px;
   --timeline-max-width: 1000px;
@@ -52,18 +53,26 @@
 
 .filter-btn {
   padding: 10px 20px;
-  border: none;
+  border: 1px solid var(--card-border, rgba(201, 169, 110, 0.12));
   border-radius: 25px;
   background: var(--timeline-filter-bg);
   color: var(--timeline-filter-color);
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 1rem;
+  font-weight: 500;
+}
+
+.filter-btn:hover:not(.active) {
+  border-color: var(--timeline-primary-color);
+  color: var(--timeline-primary-color);
 }
 
 .filter-btn.active {
   background: var(--timeline-active-bg);
   color: var(--timeline-active-color);
+  border-color: var(--timeline-primary-color);
+  font-weight: 700;
 }
 
 .media-filter-btn {
@@ -182,7 +191,7 @@
   height: 80px;
   object-fit: cover;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
   transition: transform 0.3s ease;
 }
 
@@ -264,7 +273,7 @@
 }
 
 .location {
-  color: #666666;
+  color: var(--timeline-text-color);
   font-size: 1rem;
 }
 

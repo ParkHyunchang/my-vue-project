@@ -1159,31 +1159,33 @@ export default {
 </script>
 
 <style scoped>
+/* ===== 페이지 컨테이너 + 타임라인 변수 ===== */
 .dating-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
-  --timeline-primary-color: #e91e63;
-  --timeline-line-color: #ffc1cc;
-  --timeline-filter-bg: #f0f0f0;
-  --timeline-filter-color: #333333;
-  --timeline-active-bg: #e91e63;
-  --timeline-active-color: #ffffff;
-  --timeline-date-bg: #fce4ec;
-  --timeline-date-color: #e91e63;
-  --timeline-date-shadow: 0 6px 12px rgba(233, 30, 99, 0.1);
-  --timeline-card-bg: #ffffff;
-  --timeline-card-border: 1px solid #fce4ec;
-  --timeline-card-shadow: 0 4px 12px rgba(233, 30, 99, 0.1);
-  --timeline-heading-color: #e91e63;
-  --timeline-text-color: #666666;
-  --timeline-more-media-bg: rgba(233, 30, 99, 0.8);
-  --timeline-more-media-color: #ffffff;
-  --timeline-media-image-bg: rgba(233, 30, 99, 0.1);
-  --timeline-media-image-color: #c2185b;
-  --timeline-media-video-bg: rgba(103, 58, 183, 0.12);
-  --timeline-media-video-color: #5e35b1;
-  --timeline-icon-shadow: 0 2px 8px rgba(233, 30, 99, 0.3);
+  padding: 24px;
+  /* 타임라인 컴포넌트 CSS 변수 – 다크 골드 */
+  --timeline-primary-color: var(--accent);
+  --timeline-line-color: rgba(201, 169, 110, 0.25);
+  --timeline-filter-bg: var(--card-bg);
+  --timeline-filter-color: var(--text-secondary);
+  --timeline-active-bg: var(--accent-dim);
+  --timeline-active-color: var(--accent);
+  --timeline-date-bg: var(--subBg300);
+  --timeline-date-color: var(--accent);
+  --timeline-date-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --timeline-card-bg: var(--card-bg);
+  --timeline-card-border: 1px solid var(--card-border);
+  --timeline-card-shadow: var(--card-shadow);
+  --timeline-heading-color: var(--text-primary);
+  --timeline-text-color: var(--text-secondary);
+  --timeline-more-media-bg: var(--accent-dim);
+  --timeline-more-media-color: var(--accent);
+  --timeline-media-image-bg: rgba(201, 169, 110, 0.1);
+  --timeline-media-image-color: var(--accent);
+  --timeline-media-video-bg: rgba(138, 96, 48, 0.12);
+  --timeline-media-video-color: var(--accent-light);
+  --timeline-icon-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
   --timeline-icon-offset: 58px;
   --timeline-icon-offset-mobile: 26px;
   --timeline-icon-size: 42px;
@@ -1192,71 +1194,84 @@ export default {
   --timeline-icon-font-size-mobile: 0.7rem;
 }
 
+/* ===== 페이지 헤더 ===== */
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 50px;
+  margin-bottom: 40px;
 }
 
 .page-header h2 {
-  font-size: 2.5rem;
-  color: #e91e63;
+  font-size: 2rem;
+  color: var(--text-primary);
+  font-family: "Playfair Display", serif;
+  letter-spacing: 0.04em;
 }
 
+/* ===== 검색 바 ===== */
 .search-bar {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 8px 14px;
   margin: 0 auto 30px;
   max-width: 400px;
-  background: #ffffff;
-  border: 1px solid #f0c2d0;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 999px;
-  box-shadow: 0 4px 10px rgba(233, 30, 99, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: border-color 0.2s ease;
+}
+
+.search-bar:focus-within {
+  border-color: var(--accent-glow);
+  box-shadow: 0 0 0 2px var(--input-focus-shadow);
 }
 
 .search-input {
   flex: 1;
   border: none;
-  font-size: 1rem;
-  color: #444;
+  font-size: 14px;
+  color: var(--text-primary);
   background: transparent;
   outline: none;
 }
 
-.search-input::placeholder { color: #b999ab; }
+.search-input::placeholder { color: var(--text-muted); }
 
 .search-submit {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border: none;
   background: transparent;
   padding: 0;
   cursor: pointer;
   transition: transform 0.2s ease;
+  opacity: 0.6;
 }
 
 .search-submit:hover,
-.search-submit:focus { transform: scale(1.05); }
+.search-submit:focus { transform: scale(1.08); opacity: 1; }
 
 .search-icon { width: 100%; height: 100%; object-fit: contain; }
 
+/* ===== D-day 섹션 ===== */
 .dday-section {
-  margin-bottom: 40px;
+  margin-bottom: 36px;
   padding: 20px;
-  background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(233, 30, 99, 0.1);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border-strong);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
 .dday-container {
   display: flex;
-  gap: 30px;
+  gap: 24px;
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
@@ -1264,51 +1279,57 @@ export default {
 
 .dday-item {
   text-align: center;
-  padding: 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(233, 30, 99, 0.15);
-  min-width: 200px;
-  transition: transform 0.3s ease;
+  padding: 18px 20px;
+  background: var(--subBg400);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  min-width: 190px;
+  transition: transform 0.3s ease, border-color 0.2s ease;
 }
 
-.dday-item:hover { transform: translateY(-5px); }
+.dday-item:hover {
+  transform: translateY(-4px);
+  border-color: var(--card-border-strong);
+}
 
 .dday-label {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: #e91e63;
+  color: var(--accent);
   margin-bottom: 10px;
 }
 
-.dday-label i { font-size: 1.2rem; }
+.dday-label i { font-size: 1.1rem; }
 
 .dday-value {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #e91e63;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
   margin-bottom: 8px;
-  text-shadow: 0 2px 4px rgba(233, 30, 99, 0.2);
+  font-family: "Playfair Display", serif;
+  letter-spacing: 0.02em;
 }
 
-.dday-date { font-size: 0.9rem; color: #666; font-weight: 500; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.dday-date { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; display: flex; flex-direction: column; align-items: center; gap: 2px; }
 
 .dating-container :deep(.timeline-body p) { white-space: pre-line; }
 .dating-container :deep(.timeline-footer) { flex-wrap: wrap; gap: 10px; }
 
+/* ===== 태그 ===== */
 .memory-tags { display: flex; gap: 10px; }
 
 .partner-tag {
-  background: #fce4ec;
-  color: #e91e63;
-  padding: 4px 12px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  padding: 3px 12px;
   border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid var(--card-border);
 }
 
 .timeline-image { margin: 10px 0; }
@@ -1317,21 +1338,22 @@ export default {
   max-width: 100%;
   height: auto;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 @media (max-width: 768px) {
-  .page-header h2 { font-size: 1.5rem; }
-  .dday-section { margin-bottom: 25px; padding: 12px; }
-  .dday-container { gap: 15px; flex-direction: row; }
-  .dday-item { min-width: 120px; max-width: 140px; padding: 12px 8px; flex: 1; }
-  .dday-value { font-size: 1.8rem; margin-bottom: 5px; }
-  .dday-label { font-size: 0.9rem; margin-bottom: 8px; }
-  .dday-label i { font-size: 1rem; }
-  .dday-date { font-size: 0.75rem; }
+  .page-header h2 { font-size: 1.4rem; }
+  .dday-section { margin-bottom: 22px; padding: 12px; }
+  .dday-container { gap: 12px; flex-direction: row; }
+  .dday-item { min-width: 110px; max-width: 140px; padding: 12px 8px; flex: 1; }
+  .dday-value { font-size: 1.7rem; margin-bottom: 5px; }
+  .dday-label { font-size: 0.85rem; margin-bottom: 7px; }
+  .dday-label i { font-size: 0.95rem; }
+  .dday-date { font-size: 0.72rem; }
   .dating-container :deep(.timeline-footer) { flex-direction: column; align-items: flex-start; }
 }
 
+/* ===== 모달 폼 ===== */
 .memory-form { display: flex; flex-direction: column; gap: 15px; }
 
 .delete-btn { margin-left: 10px; padding: 2px 8px; float: right; }
@@ -1339,33 +1361,37 @@ export default {
 .modal-footer-buttons { display: flex; justify-content: space-between; width: 100%; }
 .modal-footer-buttons > div:last-child { display: flex; gap: 8px; }
 
+/* ===== 이미지 업로드 ===== */
 .image-upload-container { margin-top: 10px; }
 
 .image-upload-area {
-  border: 2px dashed #ddd;
+  border: 1px dashed var(--card-border-strong);
   border-radius: 8px;
   padding: 20px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: #fafafa;
+  background: var(--subBg400);
 }
 
-.image-upload-area:hover { border-color: #e91e63; background: #fef7f7; }
+.image-upload-area:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
 
-.upload-placeholder { color: #666; }
-.upload-placeholder i { font-size: 2rem; color: #e91e63; margin-bottom: 10px; display: block; }
-.upload-placeholder p { margin: 10px 0 5px 0; font-weight: 500; }
-.upload-placeholder small { color: #999; }
+.upload-placeholder { color: var(--text-secondary); }
+.upload-placeholder i { font-size: 2rem; color: var(--accent); margin-bottom: 10px; display: block; }
+.upload-placeholder p { margin: 10px 0 5px 0; font-weight: 500; color: var(--text-primary); }
+.upload-placeholder small { color: var(--text-muted); }
 
 .image-preview { position: relative; display: inline-block; }
-.image-preview img { max-width: 200px; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.image-preview img { max-width: 200px; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
 
 .remove-image {
   position: absolute;
   top: -8px;
   right: -8px;
-  background: #ff4444;
+  background: var(--danger-color);
   color: white;
   border: none;
   border-radius: 50%;
@@ -1379,22 +1405,22 @@ export default {
   transition: all 0.3s ease;
 }
 
-.remove-image:hover { background: #cc0000; transform: scale(1.1); }
+.remove-image:hover { background: var(--danger-hover); transform: scale(1.1); }
 
 .upload-progress { margin-top: 10px; text-align: center; }
 
 .progress-bar {
   width: 100%;
-  height: 4px;
-  background: #e0e0e0;
+  height: 3px;
+  background: var(--subBg500);
   border-radius: 2px;
   overflow: hidden;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
 
 .progress-fill {
   height: 100%;
-  background: #e91e63;
+  background: var(--accent);
   border-radius: 2px;
   animation: progress 2s ease-in-out infinite;
 }
@@ -1405,7 +1431,7 @@ export default {
   100% { width: 100%; }
 }
 
-.upload-progress p { margin: 0; color: #666; font-size: 0.9rem; }
+.upload-progress p { margin: 0; color: var(--text-muted); font-size: 0.85rem; }
 
 .uploaded-images {
   display: grid;
@@ -1421,7 +1447,7 @@ export default {
   height: 120px;
   object-fit: cover;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease;
 }
 
@@ -1432,7 +1458,7 @@ export default {
   position: absolute;
   top: 5px;
   left: 5px;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.7);
   color: white;
   border-radius: 50%;
   width: 22px;
@@ -1449,7 +1475,7 @@ export default {
   position: absolute;
   top: -8px;
   right: -8px;
-  background: #ff4444;
+  background: var(--danger-color);
   color: white;
   border: none;
   border-radius: 50%;
@@ -1461,10 +1487,10 @@ export default {
   justify-content: center;
   font-size: 12px;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 }
 
-.image-preview-item .remove-image:hover { background: #cc0000; transform: scale(1.1); }
+.image-preview-item .remove-image:hover { background: var(--danger-hover); transform: scale(1.1); }
 
 .timeline-images { margin: 20px 0; }
 
@@ -1475,7 +1501,7 @@ export default {
   height: 80px;
   object-fit: cover;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease;
 }
 
@@ -1488,8 +1514,8 @@ export default {
   position: absolute;
   bottom: 6px;
   right: 6px;
-  background: rgba(233, 30, 99, 0.85);
-  color: #fff;
+  background: rgba(201, 169, 110, 0.85);
+  color: var(--text-on-accent);
   border-radius: 50%;
   width: 28px;
   height: 28px;
@@ -1497,22 +1523,24 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 0.9rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
 }
 
 .video-overlay-indicator i { margin-left: 2px; }
 
 .more-media {
-  background: rgba(233, 30, 99, 0.8);
-  color: white;
-  padding: 8px 12px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  padding: 7px 12px;
   border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.85rem;
+  font-weight: 600;
   min-width: 40px;
   text-align: center;
+  border: 1px solid var(--card-border);
 }
 
+/* ===== 날짜 타입 선택 ===== */
 .date-type-selection { margin-top: 10px; }
 .date-type-options { display: flex; gap: 20px; margin-bottom: 20px; }
 
@@ -1522,23 +1550,24 @@ export default {
   gap: 8px;
   cursor: pointer;
   font-weight: 500;
-  color: #666;
-  transition: color 0.3s ease;
+  color: var(--text-secondary);
+  font-size: 14px;
+  transition: color 0.2s ease;
 }
 
-.radio-option:hover { color: #e91e63; }
-.radio-option input[type="radio"] { margin: 0; accent-color: #e91e63; }
-.radio-option input[type="radio"]:checked + span { color: #e91e63; font-weight: 600; }
+.radio-option:hover { color: var(--accent); }
+.radio-option input[type="radio"] { margin: 0; accent-color: var(--accent); }
+.radio-option input[type="radio"]:checked + span { color: var(--accent); font-weight: 600; }
 
 .single-date-input { margin-top: 10px; }
 .range-date-inputs { margin-top: 10px; }
-.date-input-group { margin-bottom: 15px; }
+.date-input-group { margin-bottom: 14px; }
 
-.date-input-group label { display: block; margin-bottom: 5px; font-weight: 500; color: #666; }
+.date-input-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: var(--text-secondary); }
 
 .date-range-info {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
+  background: var(--accent-dim);
+  border: 1px solid var(--card-border-strong);
   border-radius: 8px;
   padding: 12px;
   margin-top: 10px;
@@ -1547,13 +1576,13 @@ export default {
   align-items: center;
 }
 
-.range-duration { font-weight: 600; color: #e91e63; font-size: 1.1rem; }
-.range-period { color: #666; font-size: 0.9rem; }
+.range-duration { font-weight: 700; color: var(--accent); font-size: 1rem; font-family: "Playfair Display", serif; }
+.range-period { color: var(--text-secondary); font-size: 0.85rem; }
 
 @media (max-width: 768px) {
   .date-type-options { flex-direction: column; gap: 10px; }
   .date-range-info { flex-direction: column; gap: 8px; text-align: center; }
-  .range-duration { font-size: 1rem; }
+  .range-duration { font-size: 0.95rem; }
   .range-period { font-size: 0.8rem; }
   .uploaded-images { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
   .image-preview-item .media-preview { height: 100px; }

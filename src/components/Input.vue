@@ -39,6 +39,8 @@ export default {
 
 <style scoped>
 .text-red {
-    color: red;
+    color: var(--danger-color);
+    font-size: 13px;
+    margin-top: 4px;
 }
 </style>

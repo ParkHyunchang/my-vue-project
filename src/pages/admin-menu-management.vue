@@ -462,13 +462,14 @@ export default {
 .page-header h1 {
   font-size: 22px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--accent);
   margin: 0 0 4px;
+  letter-spacing: 0.02em;
 }
 
 .page-header p {
-  font-size: 14px;
-  color: #64748b;
+  font-size: 13px;
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -480,12 +481,13 @@ export default {
   align-items: start;
 }
 
-/* ===== 좌측 패널 ===== */
+/* ===== 패널 공통 ===== */
 .left-panel,
 .right-panel {
-  background: white;
-  border-radius: 14px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.25);
   overflow: hidden;
 }
 
@@ -493,30 +495,32 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--card-border);
   flex-wrap: wrap;
   gap: 10px;
+  background: var(--subBg300);
 }
 
 .panel-header h2 {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .panel-count {
-  font-size: 12px;
-  color: #94a3b8;
-  background: #f1f5f9;
+  font-size: 11px;
+  color: var(--accent);
+  background: var(--accent-dim);
   padding: 2px 8px;
   border-radius: 10px;
+  font-weight: 600;
 }
 
 .panel-desc {
   font-size: 12px;
-  color: #64748b;
+  color: var(--text-muted);
   margin: 2px 0 0;
 }
 
@@ -528,7 +532,7 @@ export default {
 
 /* ===== 권한 리스트 ===== */
 .role-list {
-  padding: 8px 0;
+  padding: 6px 0;
 }
 
 .role-row {
@@ -542,18 +546,18 @@ export default {
 }
 
 .role-row:hover {
-  background: #f8fafc;
+  background: var(--subBg300);
 }
 
 .role-row.active {
-  background: #eff6ff;
-  border-left-color: #3b82f6;
+  background: var(--accent-dim);
+  border-left-color: var(--accent);
 }
 
 .role-row-icon {
-  font-size: 20px;
+  font-size: 18px;
   flex-shrink: 0;
-  width: 28px;
+  width: 26px;
   text-align: center;
 }
 
@@ -566,7 +570,7 @@ export default {
   display: block;
   font-size: 13px;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -575,7 +579,7 @@ export default {
 .role-row-key {
   display: block;
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
@@ -595,30 +599,30 @@ export default {
 }
 
 .badge-default {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: var(--accent-dim);
+  color: var(--accent);
 }
 
 .badge-custom {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(201, 169, 110, 0.08);
+  color: var(--accent-light);
 }
 
 .menu-count-badge {
   font-size: 11px;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 /* ===== 우측 패널 ===== */
 .menu-categories {
-  padding: 16px 20px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 .category-block {
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--card-border);
   border-radius: 10px;
   overflow: hidden;
 }
@@ -628,8 +632,8 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background: #f8fafc;
-  border-bottom: 1px solid #f1f5f9;
+  background: var(--subBg300);
+  border-bottom: 1px solid var(--card-border);
 }
 
 .category-title {
@@ -638,17 +642,17 @@ export default {
   gap: 6px;
 }
 
-.category-icon { font-size: 16px; }
+.category-icon { font-size: 15px; }
 
 .category-name {
   font-size: 13px;
   font-weight: 700;
-  color: #374151;
+  color: var(--text-primary);
 }
 
 .category-count {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 /* ===== 메뉴 아이템 ===== */
@@ -658,13 +662,13 @@ export default {
 }
 
 .menu-item {
-  border-bottom: 1px solid #f8fafc;
+  border-bottom: 1px solid var(--card-border);
   transition: background 0.1s;
 }
 
 .menu-item:last-child { border-bottom: none; }
-.menu-item.is-checked { background: #f0fdf4; }
-.menu-item.is-disabled { background: #f8fafc; opacity: 0.7; }
+.menu-item.is-checked { background: rgba(201, 169, 110, 0.06); }
+.menu-item.is-disabled { background: var(--subBg300); opacity: 0.65; }
 
 .menu-access-row {
   display: flex;
@@ -678,8 +682,8 @@ export default {
   display: flex;
   gap: 20px;
   padding: 8px 14px 10px 44px;
-  background: #f8faff;
-  border-top: 1px solid #e0eaff;
+  background: var(--subBg300);
+  border-top: 1px solid var(--card-border);
   flex-wrap: wrap;
 }
 
@@ -688,7 +692,7 @@ export default {
   align-items: center;
   gap: 5px;
   font-size: 12px;
-  color: #374151;
+  color: var(--text-secondary);
   cursor: pointer;
   font-weight: 500;
 }
@@ -696,7 +700,7 @@ export default {
 .crud-label input[type="checkbox"] {
   width: 14px;
   height: 14px;
-  accent-color: #6366f1;
+  accent-color: var(--accent);
   cursor: pointer;
 }
 
@@ -711,7 +715,7 @@ export default {
 .menu-label input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: #3b82f6;
+  accent-color: var(--accent);
   flex-shrink: 0;
   cursor: pointer;
 }
@@ -735,19 +739,19 @@ export default {
 .menu-name {
   font-size: 13px;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .menu-path {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-family: monospace;
 }
 
 .required-badge {
   font-size: 10px;
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--danger-bg);
+  color: var(--danger-color);
   padding: 1px 6px;
   border-radius: 8px;
   font-weight: 600;
@@ -762,9 +766,9 @@ export default {
   flex-shrink: 0;
 }
 
-.pill-allow { background: #dcfce7; color: #16a34a; }
-.pill-deny  { background: #fee2e2; color: #dc2626; }
-.pill-locked{ background: #e2e8f0; color: #475569; }
+.pill-allow { background: var(--success-bg); color: var(--success-color); }
+.pill-deny  { background: var(--danger-bg);  color: var(--danger-color); }
+.pill-locked{ background: var(--subBg400);   color: var(--text-muted); }
 
 /* ===== 빈 화면 ===== */
 .empty-right {
@@ -773,7 +777,7 @@ export default {
   align-items: center;
   justify-content: center;
   padding: 80px 20px;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 14px;
   gap: 10px;
 }
@@ -787,20 +791,41 @@ export default {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  border: none;
+  border: 1px solid transparent;
   transition: all 0.15s;
   white-space: nowrap;
 }
 
-.btn-primary { background: #3b82f6; color: white; }
-.btn-primary:hover:not(:disabled) { background: #2563eb; }
-.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), #b8924a);
+  color: var(--text-on-accent);
+  box-shadow: 0 2px 6px rgba(201, 169, 110, 0.2);
+}
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--accent-light), var(--accent));
+}
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.btn-outline { background: white; color: #374151; border: 1px solid #e2e8f0; }
-.btn-outline:hover { background: #f1f5f9; }
+.btn-outline {
+  background: var(--subBg400);
+  color: var(--text-secondary);
+  border-color: var(--card-border);
+}
+.btn-outline:hover {
+  background: var(--subBg500);
+  color: var(--text-primary);
+}
 
-.btn-outline-red { background: white; color: #dc2626; border: 1px solid #fca5a5; }
-.btn-outline-red:hover { background: #fef2f2; }
+.btn-outline-red {
+  background: var(--danger-bg);
+  color: var(--danger-color);
+  border-color: rgba(196, 90, 90, 0.3);
+}
+.btn-outline-red:hover {
+  background: var(--danger-color);
+  color: #fff;
+  border-color: transparent;
+}
 
 .btn-sm {
   padding: 4px 10px;
@@ -808,12 +833,15 @@ export default {
 }
 
 .btn-category {
-  background: white;
-  color: #374151;
-  border: 1px solid #e2e8f0;
+  background: var(--subBg400);
+  color: var(--text-secondary);
+  border-color: var(--card-border);
 }
-
-.btn-category:hover { background: #f1f5f9; }
+.btn-category:hover {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: rgba(201, 169, 110, 0.3);
+}
 
 /* ===== 로딩 ===== */
 .loading-state {
@@ -823,15 +851,15 @@ export default {
   justify-content: center;
   padding: 80px;
   gap: 12px;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 14px;
 }
 
 .spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid #e2e8f0;
-  border-top-color: #3b82f6;
+  border: 3px solid var(--subBg400);
+  border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -852,13 +880,13 @@ export default {
   margin: 10px 0;
   padding-left: 20px;
   font-size: 14px;
-  color: #374151;
+  color: var(--text-secondary);
   line-height: 1.8;
 }
 
 .warn-text {
   font-size: 13px;
-  color: #dc2626;
+  color: var(--warning-color);
   margin-top: 10px;
 }
 

@@ -1325,7 +1325,7 @@ export default {
 .expense-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 24px;
 }
 
 .page-header {
@@ -1334,7 +1334,10 @@ export default {
 
 .page-header h2 {
   margin: 0;
-  color: #333;
+  color: var(--text-primary);
+  font-family: "Playfair Display", serif;
+  font-size: 1.6rem;
+  letter-spacing: 0.04em;
 }
 
 .filter-toolbar {
@@ -1372,29 +1375,30 @@ export default {
 }
 
 .period-button {
-  padding: 10px 18px;
-  border: 1px solid #d0d7ff;
-  background: #ffffff;
+  padding: 8px 16px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
   border-radius: 999px;
-  color: #3b4cc0;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
   font-weight: 600;
-  min-width: 110px;
+  font-size: 13px;
+  min-width: 90px;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(59, 76, 192, 0.1);
 }
 
 .period-button:hover {
-  background: #eef1ff;
-  border-color: #3b4cc0;
+  background: var(--card-bg-hover);
+  border-color: var(--accent-glow);
+  color: var(--text-primary);
 }
 
 .period-button.active {
-  background: #3b4cc0;
-  color: #fff;
-  border-color: #3b4cc0;
-  box-shadow: 0 3px 6px rgba(59, 76, 192, 0.3);
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--card-border-strong);
+  box-shadow: 0 0 10px rgba(201, 169, 110, 0.15);
 }
 
 .period-inputs {
@@ -1405,26 +1409,35 @@ export default {
 }
 
 .period-input {
-  padding: 8px 10px;
-  border: 1px solid #ddd;
+  padding: 7px 10px;
+  border: 1px solid var(--input-border);
   border-radius: 5px;
+  background: var(--input-bg);
+  color: var(--input-text);
+  font-size: 13px;
+}
+
+.period-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--input-focus-shadow);
 }
 
 .period-label-text {
-  font-size: 14px;
-  color: #555;
+  font-size: 13px;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .period-label {
-  font-size: 14px;
-  color: #555;
+  font-size: 13px;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .period-error {
   font-size: 13px;
-  color: #dc3545;
+  color: var(--danger-color);
 }
 
 .range-inputs {
@@ -1439,7 +1452,7 @@ export default {
 }
 
 .range-separator {
-  color: #666;
+  color: var(--text-muted);
   font-size: 14px;
 }
 
@@ -1451,50 +1464,56 @@ export default {
 }
 
 .summary-card {
-  background: white;
+  background: var(--card-bg);
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid;
+  box-shadow: var(--card-shadow);
+  border-left: 3px solid;
+  border: 1px solid var(--card-border);
+  border-left-width: 3px;
 }
 
 .summary-card.income {
-  border-left-color: #28a745;
+  border-left-color: var(--success-color);
 }
 
 .summary-card.expense {
-  border-left-color: #dc3545;
+  border-left-color: var(--danger-color);
 }
 
 .summary-card.balance {
-  border-left-color: #007bff;
+  border-left-color: var(--accent);
 }
 
 .summary-card.balance.negative {
-  border-left-color: #dc3545;
+  border-left-color: var(--danger-color);
 }
 
 .summary-card.fixed {
-  border-left-color: #6f42c1;
+  border-left-color: var(--accent-light);
 }
 
 .summary-card h3 {
   margin: 0 0 10px 0;
-  font-size: 16px;
-  color: #666;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
 }
 
 .summary-card .amount {
   margin: 0;
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: "Playfair Display", serif;
 }
 
 .fixed-section {
-  background: #f9fbff;
-  border: 1px solid #e3e8ff;
-  border-radius: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
   padding: 20px;
   margin-bottom: 30px;
   transition: all 0.3s ease;
@@ -1507,18 +1526,21 @@ export default {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 12px;
+  padding: 7px 12px;
   border-radius: 20px;
-  border: 1px solid #d0d7ff;
-  background: #fff;
-  color: #4b5fd4;
+  border: 1px solid var(--card-border);
+  background: var(--subBg400);
+  color: var(--text-secondary);
   font-weight: 600;
+  font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .collapse-toggle:hover {
-  background: #EEF1FF;
+  background: var(--subBg500);
+  color: var(--text-primary);
+  border-color: var(--accent-glow);
 }
 
 .collapse-icon {
@@ -1534,12 +1556,14 @@ export default {
 .fixed-collapsed-summary {
   margin-top: 15px;
   padding: 12px 15px;
-  border-radius: 10px;
-  background: rgba(224, 231, 255, 0.6);
-  color: #3b4cc0;
+  border-radius: 8px;
+  background: var(--accent-dim);
+  color: var(--accent);
   font-weight: 500;
+  font-size: 13px;
   display: flex;
   justify-content: space-between;
+  border: 1px solid var(--card-border);
 }
 
 .fixed-toolbar {
@@ -1562,22 +1586,22 @@ export default {
 
 .section-subtitle {
   margin: 4px 0 0;
-  font-size: 13px;
-  color: #666;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 .fixed-loading {
   text-align: center;
   padding: 20px 0;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .fixed-summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 14px;
-  color: #555;
+  font-size: 13px;
+  color: var(--text-secondary);
   margin-bottom: 15px;
 }
 
@@ -1588,14 +1612,19 @@ export default {
 }
 
 .fixed-item {
-  background: white;
-  border: 1px solid #e5e8f0;
-  border-radius: 10px;
-  padding: 16px;
+  background: var(--subBg400);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 14px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  transition: border-color 0.2s ease;
+}
+
+.fixed-item:hover {
+  border-color: var(--card-border-strong);
 }
 
 .fixed-item-main {
@@ -1611,27 +1640,30 @@ export default {
 
 .fixed-item-title h4 {
   margin: 0;
-  color: #333;
+  color: var(--text-primary);
+  font-size: 14px;
 }
 
 .fixed-item .description {
   margin: 0 0 8px;
-  font-size: 14px;
-  color: #666;
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 .fixed-item-main .meta {
   display: flex;
   gap: 12px;
-  font-size: 12px;
-  color: #888;
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
 .fixed-item-amount {
-  font-weight: 600;
-  color: #dc3545;
+  font-weight: 700;
+  color: var(--danger-color);
   min-width: 120px;
   text-align: right;
+  font-family: "Playfair Display", serif;
+  font-size: 15px;
 }
 
 .fixed-item-actions {
@@ -1656,24 +1688,26 @@ export default {
 }
 
 .toggle-btn {
-  padding: 8px 14px;
-  border: 1px solid #ddd;
+  padding: 7px 14px;
+  border: 1px solid var(--card-border);
   border-radius: 6px;
-  background: white;
-  color: #333;
+  background: var(--card-bg);
+  color: var(--text-secondary);
   cursor: pointer;
+  font-size: 13px;
   transition: all 0.2s ease;
 }
 
 .toggle-btn:hover {
-  background: #f0f5ff;
-  border-color: #007bff;
+  background: var(--card-bg-hover);
+  border-color: var(--accent-glow);
+  color: var(--text-primary);
 }
 
 .toggle-btn.active {
-  background: #007bff;
-  color: #fff;
-  border-color: #007bff;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--card-border-strong);
 }
 
 .filters {
@@ -1684,31 +1718,46 @@ export default {
 }
 
 .filter-select {
-  padding: 10px;
-  border: 1px solid #ddd;
+  padding: 8px 10px;
+  border: 1px solid var(--input-border);
   border-radius: 5px;
-  background: white;
-  min-width: 150px;
+  background: var(--input-bg);
+  color: var(--input-text);
+  min-width: 140px;
+  font-size: 13px;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c9a96e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 12px;
+  padding-right: 28px;
+}
+
+.filter-select option {
+  background: var(--subBg300);
+  color: var(--text-primary);
 }
 
 .loading {
   text-align: center;
   padding: 40px;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .error-message {
-  background: #f8d7da;
-  color: #721c24;
-  padding: 15px;
-  border-radius: 5px;
+  background: var(--danger-bg);
+  color: var(--danger-color);
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 1px solid rgba(196, 90, 90, 0.3);
   margin-bottom: 20px;
+  font-size: 14px;
 }
 
 .empty-state {
   text-align: center;
   padding: 40px;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .expense-list {
@@ -1718,13 +1767,19 @@ export default {
 }
 
 .expense-item {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background: var(--card-bg);
+  padding: 16px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: border-color 0.2s ease;
+}
+
+.expense-item:hover {
+  border-color: var(--card-border-strong);
 }
 
 .expense-info {
@@ -1739,8 +1794,9 @@ export default {
 }
 
 .expense-info h4 {
-  margin: 0 0 5px 0;
-  color: #333;
+  margin: 0 0 4px 0;
+  color: var(--text-primary);
+  font-size: 14px;
 }
 
 .expense-tags {
@@ -1750,16 +1806,16 @@ export default {
 }
 
 .expense-info .description {
-  margin: 0 0 10px 0;
-  color: #666;
-  font-size: 14px;
+  margin: 0 0 8px 0;
+  color: var(--text-secondary);
+  font-size: 13px;
 }
 
 .expense-info .meta {
   display: flex;
   gap: 15px;
-  font-size: 12px;
-  color: #999;
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
 .badge {
@@ -1767,37 +1823,39 @@ export default {
   align-items: center;
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .badge-income {
-  background: rgba(40, 167, 69, 0.12);
-  color: #1e7e34;
+  background: var(--success-bg);
+  color: var(--success-color);
 }
 
 .badge-expense {
-  background: rgba(220, 53, 69, 0.12);
-  color: #b21f2d;
+  background: var(--danger-bg);
+  color: var(--danger-color);
 }
 
 .badge-fixed {
-  background: rgba(111, 66, 193, 0.12);
-  color: #6f42c1;
+  background: var(--accent-dim);
+  color: var(--accent);
 }
 
 .expense-amount {
-  font-size: 18px;
-  font-weight: bold;
+  font-size: 16px;
+  font-weight: 700;
   margin: 0 20px;
+  font-family: "Playfair Display", serif;
 }
 
 .expense-amount.income {
-  color: #28a745;
+  color: var(--success-color);
 }
 
 .expense-amount.expense {
-  color: #dc3545;
+  color: var(--danger-color);
 }
 
 .expense-actions {
@@ -1826,44 +1884,45 @@ export default {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 8px;
-  padding: 8px 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 7px 12px;
 }
 
 .page-label {
-  font-size: 14px;
-  color: #666;
+  font-size: 13px;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .page-input {
   width: 50px;
   padding: 4px 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--input-border);
   border-radius: 4px;
   text-align: center;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   outline: none;
+  background: var(--input-bg);
+  color: var(--input-text);
   transition: border-color 0.2s ease;
 }
 
 .page-input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--input-focus-shadow);
 }
 
 .page-input.error {
-  border-color: #dc3545;
-  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25);
+  border-color: var(--danger-color);
+  box-shadow: 0 0 0 2px var(--danger-bg);
 }
 
 .page-total {
-  font-size: 14px;
-  color: #666;
+  font-size: 13px;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -1873,51 +1932,52 @@ export default {
 }
 
 .pagination-btn {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  background: white;
-  color: #333;
+  padding: 7px 11px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text-secondary);
   border-radius: 5px;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 40px;
+  min-width: 38px;
   text-align: center;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .pagination-btn.nav-btn {
-  padding: 8px 16px;
+  padding: 7px 14px;
   font-weight: 500;
   min-width: auto;
 }
 
 .pagination-btn.page-btn {
-  min-width: 35px;
+  min-width: 34px;
 }
 
 .pagination-btn:hover:not(:disabled) {
-  background: #f8f9fa;
-  border-color: #007bff;
+  background: var(--card-bg-hover);
+  border-color: var(--accent-glow);
+  color: var(--text-primary);
   transform: translateY(-1px);
 }
 
 .pagination-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.35;
   cursor: not-allowed;
   transform: none;
 }
 
 .pagination-btn.active {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
-  font-weight: 600;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--card-border-strong);
+  font-weight: 700;
 }
 
 .page-info {
   text-align: center;
-  color: #666;
-  font-size: 14px;
+  color: var(--text-muted);
+  font-size: 13px;
   margin-bottom: 20px;
 }
 
@@ -1944,51 +2004,56 @@ export default {
   align-items: center;
   gap: 8px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
+  font-size: 14px;
 }
 
 .checkbox-label input {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent);
 }
 
 .form-hint {
   font-size: 12px;
-  color: #777;
+  color: var(--text-muted);
 }
 
 .form-group label {
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
 }
 
 .category-option {
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background: #fff;
-  color: #333;
-  font-size: 14px;
+  padding: 9px 10px;
+  border: 1px solid var(--card-border);
+  border-radius: 7px;
+  background: var(--subBg400);
+  color: var(--text-secondary);
+  font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
+  text-align: center;
 }
 
 .category-option:hover {
-  border-color: #007bff;
-  background: #f0f5ff;
+  border-color: var(--accent-glow);
+  background: var(--card-bg-hover);
+  color: var(--text-primary);
 }
 
 .category-option.active {
-  border-color: #007bff;
-  background: #007bff;
-  color: #fff;
-  font-weight: 600;
+  border-color: var(--card-border-strong);
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-weight: 700;
 }
 
 .modal-footer-buttons {

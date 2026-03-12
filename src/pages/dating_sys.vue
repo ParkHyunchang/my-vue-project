@@ -1366,28 +1366,29 @@ export default {
 .dating-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
-  --timeline-primary-color: #e91e63;
-  --timeline-line-color: #ffc1cc;
-  --timeline-filter-bg: #f0f0f0;
-  --timeline-filter-color: #333333;
-  --timeline-active-bg: #e91e63;
-  --timeline-active-color: #ffffff;
-  --timeline-date-bg: #fce4ec;
-  --timeline-date-color: #e91e63;
-  --timeline-date-shadow: 0 6px 12px rgba(233, 30, 99, 0.1);
-  --timeline-card-bg: #ffffff;
-  --timeline-card-border: 1px solid #fce4ec;
-  --timeline-card-shadow: 0 4px 12px rgba(233, 30, 99, 0.1);
-  --timeline-heading-color: #e91e63;
-  --timeline-text-color: #666666;
-  --timeline-more-media-bg: rgba(233, 30, 99, 0.8);
-  --timeline-more-media-color: #ffffff;
-  --timeline-media-image-bg: rgba(233, 30, 99, 0.1);
-  --timeline-media-image-color: #c2185b;
-  --timeline-media-video-bg: rgba(103, 58, 183, 0.12);
-  --timeline-media-video-color: #5e35b1;
-  --timeline-icon-shadow: 0 2px 8px rgba(233, 30, 99, 0.3);
+  padding: 24px;
+  /* 타임라인 컴포넌트 CSS 변수 – 다크 골드 */
+  --timeline-primary-color: var(--accent);
+  --timeline-line-color: rgba(201, 169, 110, 0.25);
+  --timeline-card-bg: var(--card-bg);
+  --timeline-card-border: 1px solid var(--card-border);
+  --timeline-card-shadow: var(--card-shadow);
+  --timeline-date-bg: var(--subBg300);
+  --timeline-date-color: var(--text-primary);
+  --timeline-date-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --timeline-filter-bg: var(--subBg300);
+  --timeline-filter-color: var(--text-secondary);
+  --timeline-active-bg: var(--accent-dim);
+  --timeline-active-color: var(--accent);
+  --timeline-heading-color: var(--text-primary);
+  --timeline-text-color: var(--text-secondary);
+  --timeline-more-media-bg: var(--accent-dim);
+  --timeline-more-media-color: var(--accent);
+  --timeline-media-image-bg: rgba(201, 169, 110, 0.1);
+  --timeline-media-image-color: var(--accent);
+  --timeline-media-video-bg: rgba(106, 173, 106, 0.12);
+  --timeline-media-video-color: var(--success-color);
+  --timeline-icon-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
   --timeline-icon-offset: 58px;
   --timeline-icon-offset-mobile: 26px;
   --timeline-icon-size: 42px;
@@ -1405,7 +1406,9 @@ export default {
 
 .page-header h2 {
   font-size: 2.5rem;
-  color: #e91e63;
+  color: var(--accent);
+  font-family: "Playfair Display", serif;
+  letter-spacing: 0.03em;
 }
 
 .search-bar {
@@ -1415,23 +1418,29 @@ export default {
   padding: 8px 12px;
   margin: 0 auto 30px;
   max-width: 400px;
-  background: #ffffff;
-  border: 1px solid #f0c2d0;
+  background: var(--subBg300);
+  border: 1px solid var(--card-border);
   border-radius: 999px;
-  box-shadow: 0 4px 10px rgba(233, 30, 99, 0.08);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: border-color 0.2s ease;
+}
+
+.search-bar:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .search-input {
   flex: 1;
   border: none;
   font-size: 1rem;
-  color: #444;
+  color: var(--text-primary);
   background: transparent;
   outline: none;
 }
 
 .search-input::placeholder {
-  color: #b999ab;
+  color: var(--text-muted);
 }
 
 .search-submit {
@@ -1456,15 +1465,17 @@ export default {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  filter: brightness(0.8) sepia(1) saturate(3) hue-rotate(5deg);
 }
 
 /* 디데이 섹션 스타일 */
 .dday-section {
   margin-bottom: 40px;
   padding: 20px;
-  background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+  background: linear-gradient(135deg, var(--subBg300) 0%, var(--subBg400) 100%);
+  border: 1px solid var(--card-border-strong);
   border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(233, 30, 99, 0.1);
+  box-shadow: var(--card-shadow);
 }
 
 .dday-container {
@@ -1478,15 +1489,17 @@ export default {
 .dday-item {
   text-align: center;
   padding: 20px;
-  background: white;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(233, 30, 99, 0.15);
+  box-shadow: var(--card-shadow);
   min-width: 200px;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, border-color 0.3s ease;
 }
 
 .dday-item:hover {
   transform: translateY(-5px);
+  border-color: var(--card-border-strong);
 }
 
 .dday-label {
@@ -1496,25 +1509,27 @@ export default {
   gap: 8px;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #e91e63;
+  color: var(--text-secondary);
   margin-bottom: 10px;
 }
 
 .dday-label i {
   font-size: 1.2rem;
+  color: var(--accent);
 }
 
 .dday-value {
   font-size: 2.5rem;
   font-weight: bold;
-  color: #e91e63;
+  color: var(--accent);
   margin-bottom: 8px;
-  text-shadow: 0 2px 4px rgba(233, 30, 99, 0.2);
+  font-family: "Playfair Display", serif;
+  text-shadow: 0 2px 8px var(--accent-glow);
 }
 
 .dday-date {
   font-size: 0.9rem;
-  color: #666;
+  color: var(--text-muted);
   font-weight: 500;
   display: flex;
   flex-direction: column;
@@ -1538,8 +1553,9 @@ export default {
 }
 
 .partner-tag {
-  background: #fce4ec;
-  color: #e91e63;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid var(--card-border);
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.9rem;
@@ -1558,11 +1574,15 @@ export default {
   max-width: 100%;
   height: auto;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 /* 모바일 스타일 */
 @media (max-width: 768px) {
+  .dating-container {
+    padding: 16px;
+  }
+
   .page-header h2 {
     font-size: 1.5rem;
   }
@@ -1637,27 +1657,27 @@ export default {
 }
 
 .image-upload-area {
-  border: 2px dashed #ddd;
+  border: 2px dashed var(--card-border);
   border-radius: 8px;
   padding: 20px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: #fafafa;
+  background: var(--subBg300);
 }
 
 .image-upload-area:hover {
-  border-color: #e91e63;
-  background: #fef7f7;
+  border-color: var(--accent);
+  background: var(--accent-dim);
 }
 
 .upload-placeholder {
-  color: #666;
+  color: var(--text-muted);
 }
 
 .upload-placeholder i {
   font-size: 2rem;
-  color: #e91e63;
+  color: var(--accent);
   margin-bottom: 10px;
   display: block;
 }
@@ -1665,10 +1685,11 @@ export default {
 .upload-placeholder p {
   margin: 10px 0 5px 0;
   font-weight: 500;
+  color: var(--text-secondary);
 }
 
 .upload-placeholder small {
-  color: #999;
+  color: var(--text-muted);
 }
 
 .image-preview {
@@ -1687,7 +1708,7 @@ export default {
   position: absolute;
   top: -8px;
   right: -8px;
-  background: #ff4444;
+  background: var(--danger-color);
   color: white;
   border: none;
   border-radius: 50%;
@@ -1702,7 +1723,7 @@ export default {
 }
 
 .remove-image:hover {
-  background: #cc0000;
+  background: var(--danger-hover);
   transform: scale(1.1);
 }
 
@@ -1714,7 +1735,7 @@ export default {
 .progress-bar {
   width: 100%;
   height: 4px;
-  background: #e0e0e0;
+  background: var(--subBg400);
   border-radius: 2px;
   overflow: hidden;
   margin-bottom: 5px;
@@ -1722,7 +1743,7 @@ export default {
 
 .progress-fill {
   height: 100%;
-  background: #e91e63;
+  background: var(--accent);
   border-radius: 2px;
   animation: progress 2s ease-in-out infinite;
 }
@@ -1741,7 +1762,7 @@ export default {
 
 .upload-progress p {
   margin: 0;
-  color: #666;
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
@@ -1779,7 +1800,7 @@ export default {
   position: absolute;
   top: -8px;
   right: -8px;
-  background: #ff4444;
+  background: var(--danger-color);
   color: white;
   border: none;
   border-radius: 50%;
@@ -1791,11 +1812,11 @@ export default {
   justify-content: center;
   font-size: 12px;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .image-preview-item .remove-image:hover {
-  background: #cc0000;
+  background: var(--danger-hover);
   transform: scale(1.1);
 }
 
@@ -1837,7 +1858,7 @@ export default {
   position: absolute;
   bottom: 6px;
   right: 6px;
-  background: rgba(233, 30, 99, 0.85);
+  background: var(--success-color);
   color: #fff;
   border-radius: 50%;
   width: 28px;
@@ -1846,7 +1867,7 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 0.9rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .video-overlay-indicator i {
@@ -1854,8 +1875,9 @@ export default {
 }
 
 .more-media {
-  background: rgba(233, 30, 99, 0.8);
-  color: white;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid var(--card-border);
   padding: 8px 12px;
   border-radius: 20px;
   font-size: 0.9rem;
@@ -1881,21 +1903,21 @@ export default {
   gap: 8px;
   cursor: pointer;
   font-weight: 500;
-  color: #666;
+  color: var(--text-secondary);
   transition: color 0.3s ease;
 }
 
 .radio-option:hover {
-  color: #e91e63;
+  color: var(--accent);
 }
 
 .radio-option input[type="radio"] {
   margin: 0;
-  accent-color: #e91e63;
+  accent-color: var(--accent);
 }
 
 .radio-option input[type="radio"]:checked + span {
-  color: #e91e63;
+  color: var(--accent);
   font-weight: 600;
 }
 
@@ -1915,12 +1937,12 @@ export default {
   display: block;
   margin-bottom: 5px;
   font-weight: 500;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .date-range-info {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
+  background: var(--subBg300);
+  border: 1px solid var(--card-border);
   border-radius: 8px;
   padding: 12px;
   margin-top: 10px;
@@ -1931,12 +1953,12 @@ export default {
 
 .range-duration {
   font-weight: 600;
-  color: #e91e63;
+  color: var(--accent);
   font-size: 1.1rem;
 }
 
 .range-period {
-  color: #666;
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 

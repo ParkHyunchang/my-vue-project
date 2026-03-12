@@ -374,15 +374,16 @@ export default {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--mainBg-color);
   padding: 20px;
 }
 
 .form-container {
-  background: white;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border-strong);
   padding: 40px;
-  border-radius: 10px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
   width: 100%;
   max-width: 400px;
 }
@@ -390,8 +391,10 @@ export default {
 h2 {
   text-align: center;
   margin-bottom: 30px;
-  color: #333;
+  color: var(--accent);
   font-size: 28px;
+  font-family: "Playfair Display", serif;
+  letter-spacing: 0.04em;
 }
 
 .form-group {
@@ -401,44 +404,58 @@ h2 {
 label {
   display: block;
   margin-bottom: 8px;
-  color: #555;
-  font-weight: 500;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 input {
   width: 100%;
-  padding: 12px;
-  border: 2px solid #e1e5e9;
+  padding: 12px 14px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--input-text);
   border-radius: 6px;
-  font-size: 16px;
-  transition: border-color 0.3s ease;
+  font-size: 15px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   box-sizing: border-box;
 }
 
 input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 3px var(--input-focus-shadow);
+}
+
+input::placeholder {
+  color: var(--input-placeholder);
 }
 
 .login-btn {
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--accent) 0%, #b8924a 100%);
+  color: var(--text-on-accent);
   border: none;
   border-radius: 6px;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: all 0.2s ease;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .login-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 100%);
+  box-shadow: 0 4px 14px var(--accent-glow);
+  transform: translateY(-1px);
 }
 
 .login-btn:disabled {
-  opacity: 0.7;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -448,17 +465,18 @@ input:focus {
 }
 
 .form-footer p {
-  color: #666;
+  color: var(--text-muted);
   margin: 0;
 }
 
 .form-footer a {
-  color: #667eea;
+  color: var(--accent);
   text-decoration: none;
   font-weight: 500;
 }
 
 .form-footer a:hover {
+  color: var(--accent-light);
   text-decoration: underline;
 }
 
@@ -468,24 +486,26 @@ input:focus {
   justify-content: center;
   align-items: center;
   gap: 8px;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .link-btn {
   background: none;
   border: none;
-  color: #667eea;
+  color: var(--accent);
   cursor: pointer;
   font-weight: 500;
   padding: 0;
+  font-size: inherit;
 }
 
 .link-btn:hover {
+  color: var(--accent-light);
   text-decoration: underline;
 }
 
 .divider {
-  color: #ccc;
+  color: var(--card-border);
 }
 
 .modal-form .form-group label {
@@ -500,21 +520,32 @@ input:focus {
   font-weight: 600;
   cursor: pointer;
   border: none;
+  transition: all 0.2s ease;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--accent) 0%, #b8924a 100%);
+  color: var(--text-on-accent);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 100%);
 }
 
 .btn-secondary {
-  background: #f2f2f2;
-  color: #555;
+  background: var(--subBg400);
+  color: var(--text-secondary);
+  border: 1px solid var(--card-border);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--subBg500);
+  color: var(--text-primary);
 }
 
 .btn-primary:disabled,
 .btn-secondary:disabled {
-  opacity: 0.7;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -522,8 +553,9 @@ input:focus {
   margin-top: 15px;
   padding: 12px;
   border-radius: 6px;
-  background: #f3f6ff;
-  color: #334;
+  background: var(--accent-dim);
+  border: 1px solid var(--card-border);
+  color: var(--text-secondary);
   text-align: center;
 }
 

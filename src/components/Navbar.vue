@@ -162,18 +162,23 @@ export default {
   gap: 10px;
 }
 
+/* ===== 로그인 버튼 ===== */
 .login-btn {
-  padding: 8px 16px;
-  background: #667eea;
-  color: white;
+  padding: 7px 16px;
+  background: linear-gradient(135deg, var(--accent) 0%, #b8924a 100%);
+  color: var(--text-on-accent);
   text-decoration: none;
   border-radius: 4px;
-  font-size: 14px;
-  transition: background 0.3s ease;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(201, 169, 110, 0.2);
 }
 
 .login-btn:hover {
-  background: #5a6fd8;
+  background: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 100%);
+  box-shadow: 0 4px 14px rgba(201, 169, 110, 0.3);
 }
 
 /* ===== 모바일 아바타 + 드롭다운 ===== */
@@ -184,34 +189,36 @@ export default {
 }
 
 .mobile-avatar {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  font-size: 15px;
+  background: linear-gradient(135deg, var(--accent), #8a6030);
+  color: var(--text-on-accent);
+  font-size: 14px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   user-select: none;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, box-shadow 0.2s ease;
   flex-shrink: 0;
+  border: 1px solid var(--accent-glow);
 }
 
 .mobile-avatar:hover {
   opacity: 0.85;
+  box-shadow: 0 0 12px var(--accent-glow);
 }
 
 .mobile-user-dropdown {
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-  border: 1px solid #e2e8f0;
+  background: var(--surface);
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--card-border-strong);
   min-width: 220px;
   z-index: 20000;
   overflow: hidden;
@@ -222,21 +229,23 @@ export default {
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background: #f8fafc;
+  background: var(--subBg300);
+  border-bottom: 1px solid var(--card-border);
 }
 
 .dropdown-avatar-lg {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  font-size: 18px;
+  background: linear-gradient(135deg, var(--accent), #8a6030);
+  color: var(--text-on-accent);
+  font-size: 17px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  border: 1px solid var(--accent-glow);
 }
 
 .dropdown-user-meta {
@@ -249,38 +258,40 @@ export default {
 .dropdown-username {
   font-size: 14px;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .dropdown-role {
-  font-size: 12px;
-  color: #64748b;
-  font-weight: 500;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .dropdown-divider {
   height: 1px;
-  background: #e2e8f0;
+  background: var(--card-border);
 }
 
 .dropdown-logout-btn {
   width: 100%;
-  padding: 13px 16px;
+  padding: 12px 16px;
   background: none;
   border: none;
   text-align: left;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  color: #dc3545;
+  color: var(--danger-color);
   cursor: pointer;
   transition: background 0.15s ease;
 }
 
 .dropdown-logout-btn:hover {
-  background: #fff5f5;
+  background: var(--danger-bg);
 }
 
 /* 드롭다운 트랜지션 */
@@ -295,26 +306,29 @@ export default {
   transform: translateY(-6px);
 }
 
-/* ===== 데스크탑: 아바타 숨기고 desktop-user 표시 ===== */
+/* ===== 데스크탑: user info & logout ===== */
 .user-info {
-  font-size: 14px;
-  color: #666;
+  font-size: 13px;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .logout-btn {
-  padding: 8px 16px;
-  background: #dc3545;
-  color: white;
-  border: none;
+  padding: 6px 14px;
+  background: var(--danger-bg);
+  color: var(--danger-color);
+  border: 1px solid rgba(196, 90, 90, 0.3);
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .logout-btn:hover {
-  background: #c82333;
+  background: var(--danger-color);
+  color: #fff;
+  border-color: transparent;
 }
 
 /* ===== nav-item ===== */
@@ -352,13 +366,13 @@ export default {
 }
 
 .desktop-user .user-info {
-  color: white;
-  font-size: 14px;
+  color: var(--text-muted);
+  font-size: 13px;
 }
 
 .desktop-user .logout-btn {
   font-size: 12px;
-  padding: 6px 12px;
+  padding: 5px 12px;
 }
 
 

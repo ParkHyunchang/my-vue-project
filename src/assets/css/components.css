@@ -1,164 +1,308 @@
-/* 버튼 스타일 */
+/* =============================================
+   버튼 스타일
+   ============================================= */
 .btn {
     display: inline-block;
-    padding: 12px 20px;
-    font-size: 16px;
-    font-weight: 500;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
     text-align: center;
     text-decoration: none;
-    border: none;
+    border: 1px solid transparent;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
     box-sizing: border-box;
-    min-height: 44px; /* 모바일 터치 최소 크기 */
+    min-height: 40px;
+    letter-spacing: 0.03em;
 }
 
 .btn:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    box-shadow: 0 0 0 2px var(--input-focus-shadow);
 }
 
 .btn:disabled {
-    opacity: 0.6;
+    opacity: 0.45;
     cursor: not-allowed;
 }
 
+/* Primary – 골드 */
 .btn-primary {
-    background-color: #007bff;
-    color: white;
+    background: linear-gradient(135deg, var(--accent) 0%, #b8924a 100%);
+    color: var(--text-on-accent);
+    border-color: transparent;
+    box-shadow: 0 2px 8px rgba(201, 169, 110, 0.25);
 }
 
-.btn-primary:hover {
-    background-color: #0056b3;
+.btn-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 100%);
+    box-shadow: 0 4px 14px rgba(201, 169, 110, 0.35);
+    transform: translateY(-1px);
 }
 
+.btn-primary:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(201, 169, 110, 0.25);
+}
+
+/* Secondary – 어두운 서피스 */
 .btn-secondary {
-    background-color: #6c757d;
-    color: white;
+    background: var(--subBg400);
+    color: var(--text-secondary);
+    border-color: var(--card-border);
 }
 
-.btn-secondary:hover {
-    background-color: #545b62;
+.btn-secondary:hover:not(:disabled) {
+    background: var(--subBg500);
+    color: var(--text-primary);
+    border-color: var(--accent-glow);
 }
 
+/* Danger – 뮤트 레드 */
 .btn-danger {
-    background-color: #dc3545;
-    color: white;
+    background: var(--danger-bg);
+    color: var(--danger-color);
+    border-color: rgba(196, 90, 90, 0.3);
 }
 
-.btn-danger:hover {
-    background-color: #c82333;
+.btn-danger:hover:not(:disabled) {
+    background: var(--danger-color);
+    color: #fff;
+    border-color: transparent;
 }
 
+/* Size variant */
 .btn-sm {
-    padding: 8px 16px;
-    font-size: 14px;
-    min-height: 36px;
+    padding: 6px 14px;
+    font-size: 13px;
+    min-height: 32px;
 }
 
-/* 폼 컨트롤 스타일 */
+/* =============================================
+   폼 컨트롤
+   ============================================= */
 .form-control {
     display: block;
     width: 100%;
-    padding: 12px 16px;
-    font-size: 16px;
+    padding: 10px 14px;
+    font-size: 14px;
     line-height: 1.5;
-    color: #000;
-    -webkit-text-fill-color: #000; /* 일부 모바일(WebKit)에서 텍스트가 회색으로 렌더링되는 케이스 보정 */
-    background-color: #fff;
-    border: 1px solid #ced4da;
+    color: var(--input-text);
+    -webkit-text-fill-color: var(--input-text);
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
     border-radius: 6px;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
     box-sizing: border-box;
-    min-height: 44px; /* 모바일 터치 최소 크기 */
+    min-height: 40px;
 }
 
 .form-control:focus {
-    color: #000;
-    -webkit-text-fill-color: #000;
-    background-color: #fff;
-    border-color: #80bdff;
+    color: var(--input-text);
+    -webkit-text-fill-color: var(--input-text);
+    background-color: var(--input-bg);
+    border-color: var(--input-focus-border);
     outline: 0;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    box-shadow: 0 0 0 3px var(--input-focus-shadow);
 }
 
 .form-control::placeholder {
-    color: #6c757d;
+    color: var(--input-placeholder);
     opacity: 1;
 }
 
-/* 자동완성(autofill)로 글씨가 연하게 바뀌는 케이스 보정 (주로 WebKit) */
+/* 자동완성 보정 */
 .form-control:-webkit-autofill,
 .form-control:-webkit-autofill:hover,
 .form-control:-webkit-autofill:focus {
-    -webkit-text-fill-color: #000;
+    -webkit-text-fill-color: var(--input-text);
+    box-shadow: 0 0 0 40px var(--input-bg) inset !important;
+    caret-color: var(--input-text);
 }
 
-/* 드롭다운 스타일 */
+/* 드롭다운 */
 select.form-control {
     appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c9a96e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat;
     background-position: right 12px center;
-    background-size: 16px;
-    padding-right: 40px;
+    background-size: 14px;
+    padding-right: 38px;
 }
 
-/* 모바일 반응형 */
+select.form-control option {
+    background-color: var(--subBg300);
+    color: var(--text-primary);
+}
+
+/* =============================================
+   페이지네이션
+   ============================================= */
+.page-item .page-link {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.page-item.active .page-link {
+    background: var(--accent);
+    color: var(--text-on-accent);
+    border-color: var(--accent);
+    font-weight: 600;
+}
+
+.page-item .page-link:hover {
+    background: var(--card-bg-hover);
+    color: var(--text-primary);
+    border-color: var(--accent-glow);
+}
+
+/* =============================================
+   카드 (Bootstrap 호환)
+   ============================================= */
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    box-shadow: var(--card-shadow);
+    color: var(--text-primary);
+    overflow: hidden;
+}
+
+.card-body {
+    padding: 16px;
+}
+
+.card-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--card-border);
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--subBg300);
+}
+
+/* =============================================
+   기타 버튼 변형
+   ============================================= */
+.btn-success {
+    background: var(--success-bg);
+    color: var(--success-color);
+    border-color: rgba(106, 173, 106, 0.3);
+}
+
+.btn-success:hover:not(:disabled) {
+    background: var(--success-color);
+    color: #fff;
+    border-color: transparent;
+}
+
+.btn-outline-dark {
+    background: transparent;
+    color: var(--text-secondary);
+    border-color: var(--card-border);
+}
+
+.btn-outline-dark:hover:not(:disabled) {
+    background: var(--subBg400);
+    color: var(--text-primary);
+    border-color: var(--accent-glow);
+}
+
+/* =============================================
+   폼 그룹
+   ============================================= */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label,
+.form-group > label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+/* =============================================
+   구분선
+   ============================================= */
+hr {
+    border: none;
+    border-top: 1px solid var(--card-border);
+    margin: 16px 0;
+}
+
+/* =============================================
+   간격 유틸리티
+   ============================================= */
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 1rem; }
+.mb-3 { margin-bottom: 1rem; }
+.ml-2 { margin-left: 0.5rem; }
+.mr-2 { margin-right: 0.5rem; }
+.p-2  { padding: 0.5rem; }
+
+/* Flex 유틸리티 */
+.d-flex              { display: flex; }
+.flex-grow-1         { flex: 1; }
+.justify-content-between { justify-content: space-between; }
+.align-items-center  { align-items: center; }
+
+/* 그리드 유틸리티 */
+.row { display: flex; flex-wrap: wrap; margin: 0 -8px; }
+.col-6  { flex: 0 0 50%; max-width: 50%; padding: 0 8px; box-sizing: border-box; }
+.col-12 { flex: 0 0 100%; max-width: 100%; padding: 0 8px; box-sizing: border-box; }
+
+/* =============================================
+   페이지 컨테이너 (Todo/기본 페이지용)
+   ============================================= */
+.page-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px 24px;
+}
+
+.page-container h1,
+.page-container h2 {
+    color: var(--text-primary);
+    margin-bottom: 24px;
+    font-family: "Playfair Display", serif;
+}
+
+.page-container h1 { font-size: 2rem; }
+.page-container h2 { font-size: 1.6rem; }
+
+/* =============================================
+   모바일 반응형
+   ============================================= */
 @media (max-width: 768px) {
     .btn {
         padding: 10px 16px;
-        font-size: 16px; /* iOS에서 줌 방지 */
-        min-height: 44px;
+        font-size: 14px;
+        min-height: 40px;
     }
     
     .btn-sm {
-        padding: 8px 12px;
-        font-size: 14px;
-        min-height: 36px;
+        padding: 7px 12px;
+        font-size: 13px;
+        min-height: 32px;
     }
     
     .form-control {
-        font-size: 16px; /* iOS에서 줌 방지 */
+        font-size: 16px; /* iOS zoom 방지 */
         padding: 10px 12px;
         min-height: 44px;
     }
     
     select.form-control {
         padding-right: 35px;
-        background-size: 14px;
+        background-size: 12px;
     }
 }
-
-/* 다크모드 지원 */
-@media (prefers-color-scheme: dark) {
-    .form-control {
-        background-color: #2b2b2b;
-        border-color: #444;
-        color: #e0e0e0;
-        -webkit-text-fill-color: #e0e0e0;
-    }
-    
-    .form-control:focus {
-        background-color: #2b2b2b;
-        border-color: #007bff;
-        color: #e0e0e0;
-        -webkit-text-fill-color: #e0e0e0;
-    }
-    
-    .form-control::placeholder {
-        color: #888;
-    }
-    
-    select.form-control option {
-        background-color: #2b2b2b;
-        color: #e0e0e0;
-    }
-
-    .form-control:-webkit-autofill,
-    .form-control:-webkit-autofill:hover,
-    .form-control:-webkit-autofill:focus {
-        -webkit-text-fill-color: #e0e0e0;
-    }
-} 

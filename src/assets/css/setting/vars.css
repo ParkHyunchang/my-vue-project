@@ -1,15 +1,19 @@
 :root {
+    /* ========== 폰트 ========== */
     --mainEng-font: "DM Sans", "Montserrat";
     --mainKor-font: "nanumSquareNeo";
     --mainNum-font: "Playfair Display", "gmarket";
 
+    /* ========== 핵심 팔레트 ========== */
     --primary:       #0b0b10;
     --surface:       #13131a;
     --surface-2:     #1c1c28;
     --accent:        #c9a96e;
     --accent-light:  #e8d5b0;
     --accent-dim:    rgba(201, 169, 110, 0.15);
+    --accent-glow:   rgba(201, 169, 110, 0.25);
 
+    /* ========== 배경 계층 ========== */
     --mainBg-color:  #0b0b10;
     --subBg100:      #13131a;
     --subBg200:      #1c1c28;
@@ -17,13 +21,66 @@
     --subBg400:      #2e2e3e;
     --subBg500:      #3a3a4e;
 
+    /* ========== 텍스트 ========== */
     --white:    #f0ece4;
     --black:    #0b0b10;
-    --black100: #f0ece4;
-    --black200: #c8c3bb;
-    --black300: #8a8580;
+    --black100: #f0ece4;   /* 기본 텍스트 (밝은) */
+    --black200: #c8c3bb;   /* 보조 텍스트 */
+    --black300: #8a8580;   /* 희미한 텍스트 */
     --black400: #1c1c28;
 
+    /* ========== 시맨틱 텍스트 ========== */
+    --text-primary:    #f0ece4;
+    --text-secondary:  #c8c3bb;
+    --text-muted:      #8a8580;
+    --text-on-accent:  #0b0b10;
+
+    /* ========== 레이아웃 – 내비게이션 바 ========== */
+    --nav-bg:          rgba(5, 5, 10, 0.97);
+    --nav-border:      rgba(201, 169, 110, 0.18);
+    --nav-shadow:      0 1px 24px rgba(0, 0, 0, 0.5);
+
+    /* ========== 레이아웃 – 사이드바 ========== */
+    --sidebar-bg-start:      #13131a;
+    --sidebar-bg-end:        #0b0b10;
+    --sidebar-border:        rgba(201, 169, 110, 0.08);
+    --sidebar-link-color:    rgba(240, 236, 228, 0.55);
+    --sidebar-link-hover-bg: rgba(201, 169, 110, 0.08);
+    --sidebar-active-bg:     rgba(201, 169, 110, 0.18);
+    --sidebar-active-color:  #c9a96e;
+    --sidebar-section-label: rgba(201, 169, 110, 0.4);
+
+    /* ========== 레이아웃 – 콘텐츠 영역 ========== */
+    --content-bg:      #1c1c28;
+    --mobile-bar-bg:   #13131a;
+    --mobile-bar-border: rgba(201, 169, 110, 0.1);
+
+    /* ========== 카드 / 서피스 ========== */
+    --card-bg:         #252535;
+    --card-bg-2:       #2e2e3e;
+    --card-bg-hover:   #2e2e3e;
+    --card-border:     rgba(201, 169, 110, 0.12);
+    --card-border-strong: rgba(201, 169, 110, 0.28);
+    --card-shadow:     0 2px 12px rgba(0, 0, 0, 0.35);
+
+    /* ========== 입력 컨트롤 ========== */
+    --input-bg:          #1c1c28;
+    --input-border:      rgba(201, 169, 110, 0.2);
+    --input-text:        #f0ece4;
+    --input-placeholder: #8a8580;
+    --input-focus-border: #c9a96e;
+    --input-focus-shadow: rgba(201, 169, 110, 0.25);
+
+    /* ========== 상태 색상 ========== */
+    --danger-color:  #c45a5a;
+    --danger-bg:     rgba(196, 90, 90, 0.15);
+    --danger-hover:  #b04848;
+    --success-color: #6aad6a;
+    --success-bg:    rgba(106, 173, 106, 0.15);
+    --warning-color: #c9a96e;
+    --warning-bg:    rgba(201, 169, 110, 0.15);
+
+    /* ========== 기본 폰트 설정 ========== */
     font-family: var(--mainEng-font), var(--mainKor-font);
     font-size: 16px;
     line-height: 1.5;
@@ -44,6 +101,6 @@
 }
 
 body {
-    color: var(--black100);
+    color: var(--text-primary);
     background-color: var(--mainBg-color);
 }

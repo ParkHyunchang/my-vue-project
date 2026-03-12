@@ -67,7 +67,7 @@ export default {
 
 <style>
 body {
-  background: #f1f5f9;
+  background: var(--mainBg-color);
   margin: 0;
 }
 
@@ -79,6 +79,6 @@ body {
   padding-right: 0;
   overflow-x: hidden;
   min-height: 100vh;
-  background: #f1f5f9;
+  background: var(--mainBg-color);
 }
 </style>

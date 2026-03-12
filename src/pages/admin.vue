@@ -771,33 +771,37 @@ export default {
 .admin-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 24px;
 }
 
 .admin-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 36px;
 }
 
 .admin-header h1 {
-  color: #2c3e50;
-  margin-bottom: 10px;
+  color: var(--text-primary);
+  font-family: "Playfair Display", serif;
+  font-size: 1.6rem;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
 }
 
 .admin-header p {
-  color: #7f8c8d;
-  font-size: 16px;
+  color: var(--text-muted);
+  font-size: 14px;
 }
 
 .admin-content {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  box-shadow: var(--card-shadow);
   overflow: hidden;
 }
 
 .users-section {
-  padding: 30px;
+  padding: 28px;
 }
 
 .section-header {
@@ -817,65 +821,71 @@ export default {
 }
 
 .section-header h2 {
-  color: #2c3e50;
+  color: var(--text-primary);
   margin: 0;
+  font-size: 1.1rem;
 }
 
 .stats {
   display: flex;
-  gap: 20px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .stat-item {
-  background: #f8f9fa;
-  padding: 8px 16px;
+  background: var(--subBg400);
+  padding: 6px 14px;
   border-radius: 20px;
-  font-size: 14px;
-  color: #495057;
-  border: 1px solid #e9ecef;
+  font-size: 13px;
+  color: var(--text-secondary);
+  border: 1px solid var(--card-border);
   cursor: pointer;
   transition: all 0.2s ease;
   font-weight: 500;
 }
 
 .stat-item:hover {
-  background: #e9ecef;
-  border-color: #adb5bd;
+  background: var(--subBg500);
+  border-color: var(--accent-glow);
+  color: var(--text-primary);
 }
 
 .stat-item.active {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--card-border-strong);
 }
 
 .stat-item.stat-admin.active {
-  background: #d32f2f;
-  border-color: #d32f2f;
+  background: var(--danger-bg);
+  color: var(--danger-color);
+  border-color: rgba(196, 90, 90, 0.3);
 }
 
 .stat-item.stat-premium.active {
-  background: #f57c00;
-  border-color: #f57c00;
+  background: rgba(201, 169, 110, 0.2);
+  color: var(--accent-light);
+  border-color: var(--card-border-strong);
 }
 
 .stat-item.stat-user.active {
-  background: #1976d2;
-  border-color: #1976d2;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--card-border-strong);
 }
 
 /* 검색 섹션 스타일 */
 .search-section {
-  background: #f8f9fa;
-  padding: 20px;
+  background: var(--subBg300);
+  padding: 18px;
   border-radius: 8px;
+  border: 1px solid var(--card-border);
   margin-bottom: 20px;
 }
 
 .search-filters {
   display: flex;
-  gap: 20px;
+  gap: 16px;
   align-items: end;
   flex-wrap: wrap;
 }
@@ -884,28 +894,32 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  min-width: 150px;
+  min-width: 140px;
 }
 
 .filter-group label {
-  font-weight: 500;
-  color: #495057;
-  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .filter-select,
 .filter-input {
-  padding: 8px 12px;
-  border: 1px solid #ced4da;
+  padding: 8px 10px;
+  border: 1px solid var(--input-border);
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
+  background: var(--input-bg);
+  color: var(--input-text);
 }
 
 .filter-select:focus,
 .filter-input:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--input-focus-shadow);
 }
 
 .search-actions {
@@ -915,11 +929,13 @@ export default {
 
 .search-results-info {
   margin-bottom: 15px;
-  padding: 10px 15px;
-  background: #e3f2fd;
-  border-radius: 4px;
-  color: #1976d2;
+  padding: 9px 14px;
+  background: var(--accent-dim);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  color: var(--accent);
   font-weight: 500;
+  font-size: 13px;
 }
 
 /* 사용자 카드 스타일 */
@@ -930,20 +946,19 @@ export default {
 }
 
 .user-card {
-  background: white;
-  border: 1px solid #e9ecef;
+  background: var(--subBg400);
+  border: 1px solid var(--card-border);
   border-radius: 8px;
-  padding: 20px;
+  padding: 16px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .user-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-color: #007bff;
+  border-color: var(--card-border-strong);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
 }
 
 .user-info {
@@ -960,13 +975,13 @@ export default {
 
 .user-id {
   font-weight: 600;
-  color: #2c3e50;
-  font-size: 16px;
+  color: var(--text-primary);
+  font-size: 15px;
 }
 
 .user-name {
-  color: #6c757d;
-  font-size: 14px;
+  color: var(--text-muted);
+  font-size: 13px;
 }
 
 .user-details {
@@ -983,12 +998,14 @@ export default {
 
 .detail-label {
   font-weight: 500;
-  color: #6c757d;
+  color: var(--text-muted);
   min-width: 70px;
+  font-size: 12px;
 }
 
 .detail-value {
-  color: #495057;
+  color: var(--text-secondary);
+  font-size: 13px;
 }
 
 .user-actions {
@@ -997,26 +1014,31 @@ export default {
 }
 
 .role-badge {
-  padding: 4px 12px;
+  padding: 3px 10px;
   border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid;
 }
 
 .role-badge.user {
-  background: #e3f2fd;
-  color: #1976d2;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--card-border);
 }
 
 .role-badge.premium {
-  background: #fff3e0;
-  color: #f57c00;
+  background: rgba(232, 213, 176, 0.15);
+  color: var(--accent-light);
+  border-color: rgba(232, 213, 176, 0.25);
 }
 
 .role-badge.admin {
-  background: #ffebee;
-  color: #d32f2f;
+  background: var(--danger-bg);
+  color: var(--danger-color);
+  border-color: rgba(196, 90, 90, 0.3);
 }
 
 /* 사용자 상세 모달 스타일 */
@@ -1029,61 +1051,67 @@ export default {
   display: flex;
   align-items: center;
   gap: 20px;
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 28px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--card-border);
 }
 
 .user-avatar {
-  width: 60px;
-  height: 60px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background: #007bff;
+  background: linear-gradient(135deg, var(--accent), #8a6030);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  border: 1px solid var(--accent-glow);
 }
 
 .avatar-text {
-  color: white;
-  font-size: 24px;
-  font-weight: 600;
+  color: var(--text-on-accent);
+  font-size: 22px;
+  font-weight: 700;
 }
 
 .user-basic-info h4 {
   margin: 0 0 5px 0;
-  color: #2c3e50;
-  font-size: 20px;
+  color: var(--text-primary);
+  font-size: 18px;
 }
 
 .user-id-text {
-  color: #6c757d;
-  font-size: 14px;
+  color: var(--text-muted);
+  font-size: 13px;
   margin-bottom: 10px;
 }
 
 .role-badge-large {
-  padding: 6px 16px;
+  padding: 4px 14px;
   border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid;
 }
 
 .role-badge-large.user {
-  background: #e3f2fd;
-  color: #1976d2;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--card-border);
 }
 
 .role-badge-large.premium {
-  background: #fff3e0;
-  color: #f57c00;
+  background: rgba(232, 213, 176, 0.15);
+  color: var(--accent-light);
+  border-color: rgba(232, 213, 176, 0.25);
 }
 
 .role-badge-large.admin {
-  background: #ffebee;
-  color: #d32f2f;
+  background: var(--danger-bg);
+  color: var(--danger-color);
+  border-color: rgba(196, 90, 90, 0.3);
 }
 
 .user-detail-info {
@@ -1091,32 +1119,36 @@ export default {
 }
 
 .info-section h5 {
-  color: #2c3e50;
-  margin-bottom: 15px;
-  font-size: 16px;
-  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
 .info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 15px;
+  gap: 14px;
 }
 
 .info-item {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 
 .info-item label {
-  font-weight: 500;
-  color: #6c757d;
-  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .info-item span {
-  color: #495057;
+  color: var(--text-primary);
   font-size: 14px;
 }
 
@@ -1142,134 +1174,152 @@ export default {
 
 /* 편집 가능한 폼 컨트롤 */
 .form-control-edit {
-  padding: 8px 12px;
-  border: 1px solid #ced4da;
+  padding: 8px 10px;
+  border: 1px solid var(--input-border);
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
   width: 100%;
+  background: var(--input-bg);
+  color: var(--input-text);
   transition: border-color 0.2s ease;
 }
 
 .form-control-edit:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--input-focus-shadow);
 }
 
 .form-control-edit:disabled {
-  background-color: #f8f9fa;
-  color: #6c757d;
+  background-color: var(--subBg300);
+  color: var(--text-muted);
   cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .readonly-info {
-  color: #6c757d;
-  font-size: 14px;
-  padding: 8px 12px;
-  background-color: #f8f9fa;
+  color: var(--text-secondary);
+  font-size: 13px;
+  padding: 8px 10px;
+  background-color: var(--subBg300);
   border-radius: 4px;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--card-border);
 }
 
 /* 공통 버튼 스타일 */
 .btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
+  padding: 7px 14px;
+  border: 1px solid transparent;
+  border-radius: 5px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   transition: all 0.2s ease;
+  letter-spacing: 0.03em;
 }
 
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 /* 버튼 색상 변형 */
 .btn-edit,
 .btn-primary {
-  background: #007bff;
-  color: white;
+  background: linear-gradient(135deg, var(--accent), #b8924a);
+  color: var(--text-on-accent);
+  box-shadow: 0 2px 6px rgba(201, 169, 110, 0.2);
 }
 
 .btn-edit:hover:not(:disabled),
 .btn-primary:hover:not(:disabled) {
-  background: #0056b3;
+  background: linear-gradient(135deg, var(--accent-light), var(--accent));
 }
 
 .btn-delete,
 .btn-danger {
-  background: #dc3545;
-  color: white;
+  background: var(--danger-bg);
+  color: var(--danger-color);
+  border-color: rgba(196, 90, 90, 0.3);
 }
 
 .btn-delete:hover:not(:disabled),
 .btn-danger:hover:not(:disabled) {
-  background: #c82333;
+  background: var(--danger-color);
+  color: #fff;
+  border-color: transparent;
 }
 
 .btn-secondary {
-  background: #6c757d;
-  color: white;
+  background: var(--subBg400);
+  color: var(--text-secondary);
+  border-color: var(--card-border);
 }
 
 .btn-secondary:hover {
-  background: #545b62;
+  background: var(--subBg500);
+  color: var(--text-primary);
 }
 
 .btn-create {
-  background: #28a745;
-  color: white;
+  background: var(--success-bg);
+  color: var(--success-color);
+  border-color: rgba(106, 173, 106, 0.3);
 }
 
 .btn-create:hover:not(:disabled) {
-  background: #218838;
+  background: var(--success-color);
+  color: #fff;
+  border-color: transparent;
 }
 
 .btn-search {
-  background: #007bff;
-  color: white;
-  padding: 8px 20px;
+  background: linear-gradient(135deg, var(--accent), #b8924a);
+  color: var(--text-on-accent);
+  padding: 7px 18px;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 13px;
 }
 
 .btn-search:hover {
-  background: #0056b3;
+  background: linear-gradient(135deg, var(--accent-light), var(--accent));
 }
 
 .btn-reset {
-  background: #6c757d;
-  color: white;
-  padding: 8px 20px;
-  border: none;
-  border-radius: 4px;
+  background: var(--subBg400);
+  color: var(--text-secondary);
+  padding: 7px 18px;
+  border: 1px solid var(--card-border);
+  border-radius: 5px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 13px;
 }
 
 .btn-reset:hover {
-  background: #545b62;
+  background: var(--subBg500);
+  color: var(--text-primary);
 }
 
 .btn-detail {
-  background: #007bff;
-  color: white;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  padding: 7px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: 5px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background 0.2s ease;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
 }
 
 .btn-detail:hover {
-  background: #0056b3;
+  background: var(--accent);
+  color: var(--text-on-accent);
+  border-color: transparent;
 }
 
 .create-form {
@@ -1285,31 +1335,37 @@ export default {
 }
 
 .form-group label {
-  font-weight: 500;
-  color: #495057;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .form-control {
-  padding: 10px;
-  border: 1px solid #ced4da;
+  padding: 9px 10px;
+  border: 1px solid var(--input-border);
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
+  background: var(--input-bg);
+  color: var(--input-text);
 }
 
 .form-control:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--input-focus-shadow);
 }
 
 .warning-text {
-  color: #dc3545;
+  color: var(--danger-color);
   font-weight: 500;
   margin-top: 10px;
+  font-size: 13px;
 }
 
 .error-message {
-  color: #dc3545;
+  color: var(--danger-color);
   font-size: 12px;
   margin-top: 4px;
   font-weight: 500;
@@ -1331,14 +1387,14 @@ export default {
 }
 
 .warning-content h4 {
-  color: #dc3545;
+  color: var(--danger-color);
   margin: 0 0 10px 0;
   font-size: 1.2rem;
 }
 
 .warning-details {
-  background: #fff5f5;
-  border: 1px solid #fed7d7;
+  background: var(--danger-bg);
+  border: 1px solid rgba(196, 90, 90, 0.3);
   border-radius: 6px;
   padding: 15px;
   margin: 15px 0;
@@ -1352,9 +1408,9 @@ export default {
 .confirmation-input {
   margin-top: 20px;
   padding: 15px;
-  background: #f8f9fa;
+  background: var(--subBg300);
   border-radius: 6px;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--card-border);
 }
 
 .confirmation-input label {

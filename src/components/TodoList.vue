@@ -102,7 +102,7 @@ export default {
   
 <style scoped>
 .todo {
-    color: gray;
+    color: var(--text-muted);
     text-decoration: line-through;
 }
 </style>

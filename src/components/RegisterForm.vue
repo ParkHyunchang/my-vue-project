@@ -257,15 +257,16 @@ export default {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--mainBg-color);
   padding: 20px;
 }
 
 .form-container {
-  background: white;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border-strong);
   padding: 40px;
-  border-radius: 10px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
   width: 100%;
   max-width: 400px;
 }
@@ -273,8 +274,10 @@ export default {
 h2 {
   text-align: center;
   margin-bottom: 30px;
-  color: #333;
+  color: var(--accent);
   font-size: 28px;
+  font-family: "Playfair Display", serif;
+  letter-spacing: 0.04em;
 }
 
 .form-group {
@@ -284,42 +287,48 @@ h2 {
 label {
   display: block;
   margin-bottom: 8px;
-  color: #555;
-  font-weight: 500;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 input, select {
   width: 100%;
-  padding: 12px;
-  border: 2px solid #e1e5e9;
+  padding: 12px 14px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--input-text);
   border-radius: 6px;
-  font-size: 16px;
-  transition: border-color 0.3s ease;
+  font-size: 15px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   box-sizing: border-box;
 }
 
 input:focus, select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 3px var(--input-focus-shadow);
 }
 
 input.error {
-  border-color: #dc3545;
+  border-color: var(--danger-color);
 }
 
 input.success {
-  border-color: #28a745;
+  border-color: var(--success-color);
 }
 
 .error-message {
-  color: #dc3545;
+  color: var(--danger-color);
   font-size: 12px;
   margin-top: 4px;
   font-weight: 500;
 }
 
 .success-message {
-  color: #28a745;
+  color: var(--success-color);
   font-size: 12px;
   margin-top: 4px;
   font-weight: 500;
@@ -328,22 +337,26 @@ input.success {
 .register-btn {
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--accent) 0%, #b8924a 100%);
+  color: var(--text-on-accent);
   border: none;
   border-radius: 6px;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: all 0.2s ease;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .register-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 100%);
+  box-shadow: 0 4px 14px var(--accent-glow);
+  transform: translateY(-1px);
 }
 
 .register-btn:disabled {
-  opacity: 0.7;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -353,23 +366,18 @@ input.success {
 }
 
 .form-footer p {
-  color: #666;
+  color: var(--text-muted);
   margin: 0;
 }
 
 .form-footer a {
-  color: #667eea;
+  color: var(--accent);
   text-decoration: none;
   font-weight: 500;
 }
 
 .form-footer a:hover {
+  color: var(--accent-light);
   text-decoration: underline;
-}
-
-.error-message {
-  color: #dc3545;
-  font-size: 14px;
-  margin-top: 5px;
 }
 </style>
