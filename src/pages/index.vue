@@ -1,13 +1,13 @@
 <template>
   <div>
     <div id="skip">
-      <a href="#header">헤더 영역 바로가기</a>
-      <a href="#intro">소개 영역 바로가기</a>
-      <a href="#skill">경력 영역 바로가기</a>
-      <a href="#site">사이트 영역 바로가기</a>
-      <a href="#port">포트폴리오 영역 바로가기</a>
-      <a href="#contact">연락처 영역 바로가기</a>
-      <a href="#footer">푸터 영역 바로가기</a>
+      <a href="#header" @click.prevent="scrollToSection('header')">헤더 영역 바로가기</a>
+      <a href="#intro" @click.prevent="scrollToSection('intro')">소개 영역 바로가기</a>
+      <a href="#skill" @click.prevent="scrollToSection('skill')">경력 영역 바로가기</a>
+      <a href="#site" @click.prevent="scrollToSection('site')">사이트 영역 바로가기</a>
+      <a href="#port" @click.prevent="scrollToSection('port')">포트폴리오 영역 바로가기</a>
+      <a href="#contact" @click.prevent="scrollToSection('contact')">연락처 영역 바로가기</a>
+      <a href="#footer" @click.prevent="scrollToSection('footer')">푸터 영역 바로가기</a>
     </div>
 
     <main id="main" role="main">
@@ -17,8 +17,8 @@
           <h1 class="hero__title">안녕하세요, <span class="highlight">현창</span>입니다</h1>
           <p class="hero__subtitle">AI 웹 개발자 현창입니다.</p>
           <div class="hero__buttons">
-            <a href="#skill" class="btn btn-primary">경력 보기</a>
-            <a href="#contact" class="btn btn-secondary">연락하기</a>
+            <a href="#skill" class="btn btn-primary" @click.prevent="scrollToSection('skill')">경력 보기</a>
+            <a href="#contact" class="btn btn-secondary" @click.prevent="scrollToSection('contact')">연락하기</a>
           </div>
         </div>
       </section>
@@ -357,6 +357,14 @@ export default {
   name: 'HomePage',
   mounted() {
     port();
+  },
+  methods: {
+    scrollToSection(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
   }
 };
 </script>

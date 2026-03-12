@@ -32,13 +32,13 @@ const router = createRouter({
             path: '/portfolio',
             name: 'Portfolio',
             component: Portfolio,
-            meta: { requiresAuth: true }
+            meta: { requiresAuth: false }
         },
         {
             path: '/projects',
             name: 'Projects',
             component: Projects,
-            meta: { requiresAuth: true }
+            meta: { requiresAuth: false }
         },
         {
             path: '/history',
@@ -154,8 +154,9 @@ router.beforeEach(async (to, from, next) => {
         }
     }
 
-    // DB 기반 메뉴 접근 권한 확인 (admin 이외 경로)
-    if (isAuthenticated && !isAdminRoute) {
+    // DB 기반 메뉴 접근 권한 확인 (인증 필요 경로 + admin 이외 경로만 체크)
+    // requiresAuth: false 경로(공개 경로)는 메뉴 권한 체크를 건너뜀
+    if (isAuthenticated && !isAdminRoute && requiresAuth) {
         const canAccessMenu = store.getters['menu/canAccessMenu'](to.path);
         if (!canAccessMenu) {
             store.dispatch('toast/showToast', { message: '해당 메뉴에 접근할 권한이 없습니다.', type: 'error' });
