@@ -1237,18 +1237,92 @@
 .loading-state-def { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px; gap: 12px; color: var(--text-muted); font-size: 14px; }
 
 /* §4 반응형 */
-@media (max-width: 1100px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
 
-@media (max-width: 900px) {
-  .menu-table .col-category,
-  .menu-table .col-roles { display: none; }
+/* 태블릿 (관리자 사이드바 포함 1024px 이하) */
+@media (max-width: 1100px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
 }
 
-@media (max-width: 700px) {
-  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .filter-bar { flex-direction: column; align-items: stretch; }
-  .search-box { max-width: none; }
+/* 사이드바 없어지는 시점 (≤800px) */
+@media (max-width: 800px) {
+  .menu-def-page { padding: 20px 16px; }
+  .menu-def-page .page-header { margin-bottom: 16px; }
+  .menu-def-page .header-text h1 { font-size: 1.2rem; }
+
+  .filter-bar { flex-direction: column; align-items: stretch; gap: 10px; }
+  .search-box { max-width: none; min-width: 0; }
+  .filter-tabs { justify-content: flex-start; }
+  .tab-btn { padding: 5px 10px; font-size: 12px; }
+}
+
+/* 모바일: 테이블 → 카드 변환 (≤640px) */
+@media (max-width: 640px) {
+  .menu-def-page { padding: 14px 12px; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .stat-card { padding: 12px 14px; }
+  .stat-num { font-size: 22px; }
+
+  /* 테이블 헤더 숨기고 카드 레이아웃으로 전환 */
+  .table-wrapper-def { border-radius: 8px; overflow: visible; background: transparent; border: none; box-shadow: none; }
+  .menu-table { display: block; }
+  .menu-table thead { display: none; }
+  .menu-table tbody { display: flex; flex-direction: column; gap: 10px; }
+
+  /* 빈 상태 행 유지 */
+  .menu-table .empty-row-tr { display: block; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; }
+  .menu-table .empty-row-tr td { display: block; }
+
+  /* 각 행 = 카드 */
+  .menu-row {
+    display: grid !important;
+    grid-template-columns: 40px 1fr;
+    grid-template-rows: auto auto auto auto;
+    grid-template-areas:
+      "icon  name"
+      "icon  path"
+      "status status"
+      "actions actions";
+    gap: 4px 10px;
+    padding: 14px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .menu-row.row-required { border-left: 3px solid var(--accent); }
+
+  /* 각 셀 = 블록 */
+  .menu-row td { display: block !important; padding: 0; border: none; vertical-align: top; }
+
+  /* 카드 영역 배치 */
+  .col-order   { display: none !important; }
+  .col-icon    { grid-area: icon; display: flex !important; align-items: flex-start; justify-content: center; padding-top: 2px; }
+  .col-name    { grid-area: name; }
+  .col-path    { grid-area: path; }
+  .col-category { display: none !important; }
+  .col-status  { grid-area: status; display: block !important; padding-top: 6px; }
+  .col-roles   { display: none !important; }
+  .col-actions { grid-area: actions; padding-top: 8px; border-top: 1px solid var(--card-border); margin-top: 4px; }
+
+  /* 카드 내 요소 스타일 조정 */
+  .menu-icon-cell { font-size: 22px; }
+  .menu-name-text { font-size: 14px; }
+  .path-code { font-size: 11px; }
+  .actions-cell { justify-content: flex-start; gap: 8px; }
+  .btn-edit-def, .btn-delete-def { padding: 6px 12px; font-size: 12px; }
+  .protected-badge { font-size: 11px; }
+
+  /* 폼 모달 */
   .form-grid { grid-template-columns: 1fr; }
   .form-full { grid-column: 1; }
-  .menu-table .col-status { display: none; }
+}
+
+/* 초소형 화면 (≤400px) */
+@media (max-width: 400px) {
+  .menu-def-page { padding: 10px 8px; }
+  .stats-row { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .stat-card { padding: 10px 12px; }
+  .stat-num { font-size: 20px; }
+  .stat-label { font-size: 11px; }
+  .tab-btn { padding: 4px 8px; font-size: 11px; }
 }

@@ -94,13 +94,13 @@
               class="menu-row"
               :class="{ 'row-required': menu.required }"
             >
-              <td class="col-order">
+              <td class="col-order" data-label="순서">
                 <span class="sort-order-badge">{{ menu.sortOrder }}</span>
               </td>
-              <td class="col-icon">
+              <td class="col-icon" data-label="아이콘">
                 <span class="menu-icon-cell">{{ menu.icon || '📄' }}</span>
               </td>
-              <td class="col-name">
+              <td class="col-name" data-label="메뉴명">
                 <div class="name-cell">
                   <span class="menu-name-text">{{ menu.name }}</span>
                   <span
@@ -109,15 +109,15 @@
                   >{{ menu.navLabel }}</span>
                 </div>
               </td>
-              <td class="col-path">
+              <td class="col-path" data-label="경로">
                 <code class="path-code">{{ menu.path }}</code>
               </td>
-              <td class="col-category">
+              <td class="col-category" data-label="카테고리">
                 <span :class="['cat-badge', `cat-${menu.category}`]">
                   {{ getCategoryLabel(menu.category) }}
                 </span>
               </td>
-              <td class="col-status">
+              <td class="col-status" data-label="표시 유형">
                 <div class="status-chips">
                   <span v-if="menu.required" class="chip chip-required">필수</span>
                   <span v-if="menu.showInNav" class="chip chip-nav">상단 네비</span>
@@ -131,7 +131,7 @@
                   >숨김</span>
                 </div>
               </td>
-              <td class="col-roles">
+              <td class="col-roles" data-label="기본 권한">
                 <div class="role-chips">
                   <span
                     v-for="role in menu.defaultRoles"
@@ -144,7 +144,7 @@
                   >없음</span>
                 </div>
               </td>
-              <td class="col-actions">
+              <td class="col-actions" data-label="관리">
                 <div class="actions-cell">
                   <button @click="openEditModal(menu)" class="btn-edit-def">
                     ✏️ 수정
