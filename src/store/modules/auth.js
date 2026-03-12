@@ -1,3 +1,17 @@
+import { syncDynamicRoutes } from '../../router/index.js';
+
+// 메뉴 정의 로드 완료 후 동적 라우트 동기화 헬퍼
+async function applyDynamicRoutes(rootGetters) {
+    try {
+        const allMenus = rootGetters['menu/allMenus'] ?? [];
+        const paths = allMenus.map(m => m.path);
+        syncDynamicRoutes(paths);
+    } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('동적 라우트 동기화 실패:', e);
+    }
+}
+
 const state = {
   user: null,
   token: localStorage.getItem("token") || null,
@@ -31,7 +45,7 @@ const mutations = {
 };
 
 const actions = {
-  async login({ commit, dispatch }, credentials) {
+  async login({ commit, dispatch, rootGetters }, credentials) {
     try {
       const axios = (await import("../../axios")).default;
       const response = await axios.post("/api/auth/login", credentials);
@@ -44,6 +58,7 @@ const actions = {
       try {
         await dispatch("menu/loadMenuDefinitions", null, { root: true });
         await dispatch("menu/loadUserMenus", null, { root: true });
+        await applyDynamicRoutes(rootGetters);
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("메뉴 권한 로드 실패:", error);
@@ -64,7 +79,7 @@ const actions = {
     }
   },
 
-  async register({ commit, dispatch }, userData) {
+  async register({ commit, dispatch, rootGetters }, userData) {
     try {
       const axios = (await import("../../axios")).default;
       const response = await axios.post("/api/auth/register", userData);
@@ -77,6 +92,7 @@ const actions = {
       try {
         await dispatch("menu/loadMenuDefinitions", null, { root: true });
         await dispatch("menu/loadUserMenus", null, { root: true });
+        await applyDynamicRoutes(rootGetters);
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("메뉴 권한 로드 실패:", error);
@@ -102,7 +118,7 @@ const actions = {
     commit("LOGOUT");
   },
 
-  async checkAuth({ commit, dispatch, state }) {
+  async checkAuth({ commit, dispatch, state, rootGetters }) {
     if (!state.token) {
       return false;
     }
@@ -122,6 +138,7 @@ const actions = {
       try {
         await dispatch("menu/loadMenuDefinitions", null, { root: true });
         await dispatch("menu/loadUserMenus", null, { root: true });
+        await applyDynamicRoutes(rootGetters);
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("메뉴 권한 로드 실패:", error);

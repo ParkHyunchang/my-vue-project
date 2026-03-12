@@ -71,6 +71,9 @@ const actions = {
 };
 
 const getters = {
+    // 전체 메뉴 정의 (동적 라우트 동기화에 사용)
+    allMenus: (state) => state.allMenus,
+
     accessibleMenus: (state) => {
         return state.allMenus.filter(menu => 
             state.userMenus.includes(menu.path) || menu.isRequired
@@ -105,11 +108,10 @@ const getters = {
 };
 
 // API 실패 시 폴백용 기본 메뉴 정의
+// portfolio / projects는 DB에서 제거됐으므로 폴백에도 포함하지 않음
 function getDefaultMenuDefinitions() {
     return [
         { path: '/', name: '홈', icon: '🏠', description: '메인 홈페이지', category: 'main', isRequired: true, showInNav: true, navLabel: 'HOME', isAdminSubMenu: false, parentPath: null },
-        { path: '/portfolio', name: '포트폴리오', icon: '💼', description: '개인 포트폴리오 페이지', category: 'main', isRequired: true, showInNav: false, navLabel: 'PORTFOLIO', isAdminSubMenu: false, parentPath: null },
-        { path: '/projects', name: '프로젝트', icon: '🚀', description: '프로젝트 관리 및 조회', category: 'work', isRequired: true, showInNav: false, navLabel: 'PROJECTS', isAdminSubMenu: false, parentPath: null },
         { path: '/history', name: '히스토리', icon: '📚', description: '작업 이력 및 기록', category: 'work', isRequired: false, showInNav: true, navLabel: 'HISTORY', isAdminSubMenu: false, parentPath: null },
         { path: '/dating', name: '데이팅', icon: '💕', description: '데이팅 관련 기능', category: 'personal', isRequired: false, showInNav: true, navLabel: 'DATING', isAdminSubMenu: false, parentPath: null },
         { path: '/dating_sys', name: '데이팅 추억', icon: '📸', description: '데이팅 추억 기록', category: 'personal', isRequired: false, showInNav: false, navLabel: 'DATING SYS', isAdminSubMenu: false, parentPath: '/dating' },
@@ -124,12 +126,13 @@ function getDefaultMenuDefinitions() {
 }
 
 // 기본 권한 설정 함수 (폴백용)
+// portfolio / projects는 DB에서 제거됐으므로 폴백에도 포함하지 않음
 function getDefaultMenusForRole(role) {
     const defaultPermissions = {
-        'USER': ['/', '/portfolio', '/projects', '/todos', '/todos/create'],
-        'PREMIUM': ['/', '/portfolio', '/projects', '/history', '/dating', '/dating_sys', '/todos', '/todos/create'],
+        'USER': ['/', '/todos', '/todos/create'],
+        'PREMIUM': ['/', '/history', '/dating', '/dating_sys', '/todos', '/todos/create'],
         'ADMIN': [
-            '/', '/portfolio', '/projects', '/history', '/dating', '/dating_sys',
+            '/', '/history', '/dating', '/dating_sys',
             '/todos', '/todos/create', '/expense',
             '/admin', '/admin/users', '/admin/menu-management', '/admin/role-management', '/admin/menu-definition'
         ]

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="admin-layout">
     <!-- 모바일 오버레이 -->
     <transition name="fade">

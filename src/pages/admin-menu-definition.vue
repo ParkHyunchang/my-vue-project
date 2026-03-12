@@ -1,5 +1,5 @@
-﻿<template>
-  <div class="page-container">
+<template>
+  <div class="menu-def-page">
     <!-- 헤더 -->
     <div class="page-header">
       <div class="header-text">
@@ -42,12 +42,12 @@
       <!-- 필터/검색 바 -->
       <div class="filter-bar">
         <div class="search-box">
-          <span class="search-icon">🔍</span>
+          <span class="search-icon-inner">🔍</span>
           <input
             v-model="searchQuery"
             type="text"
             placeholder="메뉴명 또는 경로로 검색..."
-            class="search-input"
+            class="search-input-def"
           />
           <button v-if="searchQuery" @click="searchQuery = ''" class="search-clear">✕</button>
         </div>
@@ -65,7 +65,7 @@
       </div>
 
       <!-- 메뉴 테이블 -->
-      <div class="table-wrapper">
+      <div class="table-wrapper-def">
         <table class="menu-table">
           <thead>
             <tr>
@@ -145,7 +145,7 @@
                 </div>
               </td>
               <td class="col-actions">
-                <button @click="openEditModal(menu)" class="btn-edit">
+                <button @click="openEditModal(menu)" class="btn-edit-def">
                   ✏️ 수정
                 </button>
               </td>
@@ -169,42 +169,42 @@
       <template #body>
         <div class="form-grid">
           <!-- 메뉴명 -->
-          <div class="form-group">
+          <div class="form-group-def">
             <label class="form-label required-label">메뉴명</label>
             <input
               v-model="form.name"
               type="text"
-              class="form-input"
+              class="form-input-def"
               placeholder="예: 대시보드"
               maxlength="100"
             />
           </div>
 
           <!-- 경로 -->
-          <div class="form-group">
+          <div class="form-group-def">
             <label class="form-label required-label">경로 (Path)</label>
             <input
               v-model="form.path"
               type="text"
-              :class="['form-input', { 'form-input-disabled': isEditing }]"
+              :class="['form-input-def', { 'form-input-disabled': isEditing }]"
               :disabled="isEditing"
               placeholder="예: /dashboard"
               maxlength="255"
             />
-            <span v-if="isEditing" class="form-hint">
+            <span v-if="isEditing" class="form-hint-def">
               🔒 경로는 고유 식별자로 수정할 수 없습니다
             </span>
           </div>
 
           <!-- 아이콘 -->
-          <div class="form-group">
+          <div class="form-group-def">
             <label class="form-label">아이콘 (이모지)</label>
             <div class="icon-input-wrap">
               <span class="icon-preview">{{ form.icon || '📄' }}</span>
               <input
                 v-model="form.icon"
                 type="text"
-                class="form-input"
+                class="form-input-def"
                 placeholder="예: 📋"
                 maxlength="10"
               />
@@ -212,21 +212,21 @@
           </div>
 
           <!-- 네비 표시명 -->
-          <div class="form-group">
+          <div class="form-group-def">
             <label class="form-label">네비게이션 표시명</label>
             <input
               v-model="form.navLabel"
               type="text"
-              class="form-input"
+              class="form-input-def"
               placeholder="비워두면 메뉴명 사용"
               maxlength="100"
             />
           </div>
 
           <!-- 카테고리 -->
-          <div class="form-group">
+          <div class="form-group-def">
             <label class="form-label">카테고리</label>
-            <select v-model="form.category" class="form-select">
+            <select v-model="form.category" class="form-select-def">
               <option v-for="cat in categories" :key="cat.key" :value="cat.key">
                 {{ cat.icon }} {{ cat.label }}
               </option>
@@ -234,9 +234,9 @@
           </div>
 
           <!-- 상위 메뉴 (드롭다운 부모) -->
-          <div class="form-group">
+          <div class="form-group-def">
             <label class="form-label">상위 메뉴 (드롭다운 부모)</label>
-            <select v-model="form.parentPath" class="form-select">
+            <select v-model="form.parentPath" class="form-select-def">
               <option value="">없음 (최상위 독립 메뉴)</option>
               <option
                 v-for="parent in parentMenuOptions"
@@ -247,27 +247,27 @@
                 {{ parent.icon || '📄' }} {{ parent.name }} ({{ parent.path }})
               </option>
             </select>
-            <span class="form-hint">상위 메뉴 선택 시 해당 메뉴 hover 드롭다운에 표시됩니다</span>
+            <span class="form-hint-def">상위 메뉴 선택 시 해당 메뉴 hover 드롭다운에 표시됩니다</span>
           </div>
 
           <!-- 정렬 순서 -->
-          <div class="form-group">
+          <div class="form-group-def">
             <label class="form-label">정렬 순서</label>
             <input
               v-model.number="form.sortOrder"
               type="number"
-              class="form-input"
+              class="form-input-def"
               min="0"
               max="999"
             />
           </div>
 
           <!-- 설명 -->
-          <div class="form-group form-full">
+          <div class="form-group-def form-full">
             <label class="form-label">설명</label>
             <textarea
               v-model="form.description"
-              class="form-textarea"
+              class="form-textarea-def"
               rows="2"
               placeholder="메뉴에 대한 간략한 설명 (선택사항)"
               maxlength="500"
@@ -275,7 +275,7 @@
           </div>
 
           <!-- 기본 접근 권한 -->
-          <div class="form-group form-full">
+          <div class="form-group-def form-full">
             <label class="form-label">기본 접근 권한</label>
             <p class="form-hint-inline">신규 사용자 권한 할당 시 기본으로 포함될 권한을 선택하세요</p>
             <div class="checkbox-group">
@@ -288,7 +288,7 @@
           </div>
 
           <!-- 표시 옵션 토글 -->
-          <div class="form-group form-full">
+          <div class="form-group-def form-full">
             <label class="form-label">표시 옵션</label>
             <div class="toggle-group">
               <div class="toggle-item">
@@ -298,7 +298,7 @@
                 </div>
                 <button
                   type="button"
-                  :class="['toggle-switch', { on: form.showInNav }]"
+                  :class="['toggle-switch-def', { on: form.showInNav }]"
                   @click="form.showInNav = !form.showInNav"
                 >
                   <div class="toggle-thumb"></div>
@@ -312,7 +312,7 @@
                 </div>
                 <button
                   type="button"
-                  :class="['toggle-switch', { on: form.isRequired }]"
+                  :class="['toggle-switch-def', { on: form.isRequired }]"
                   @click="form.isRequired = !form.isRequired"
                 >
                   <div class="toggle-thumb"></div>
@@ -326,7 +326,7 @@
                 </div>
                 <button
                   type="button"
-                  :class="['toggle-switch', { on: form.isAdminSubMenu }]"
+                  :class="['toggle-switch-def', { on: form.isAdminSubMenu }]"
                   @click="form.isAdminSubMenu = !form.isAdminSubMenu"
                 >
                   <div class="toggle-thumb"></div>

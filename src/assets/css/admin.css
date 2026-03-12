@@ -955,6 +955,35 @@
    §4. ADMIN-MENU-DEFINITION.VUE — 메뉴 정의 관리
    ============================================================ */
 
+/* §4 페이지 컨테이너 (전체 화면 풀 너비) */
+.menu-def-page {
+  padding: 28px 32px;
+  min-height: 100%;
+}
+
+.menu-def-page .page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.menu-def-page .header-text h1 {
+  color: var(--text-primary);
+  font-family: "Playfair Display", serif;
+  font-size: 1.5rem;
+  letter-spacing: 0.04em;
+  margin: 0 0 4px;
+}
+
+.menu-def-page .header-text p {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 0;
+}
+
 /* §4 통계 카드 */
 .stats-row {
   display: grid;

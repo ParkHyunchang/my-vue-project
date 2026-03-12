@@ -2,20 +2,27 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 import store from '../store';
 import Home from '../pages/index.vue';
 import Portfolio from '../pages/portfolio.vue';
-import Todos from '../pages/todos/index.vue';
-import Todo from '../pages/todos/_id.vue';
-import TodoCreate from '../pages/todos/create/index.vue';
-import Expense from '../pages/expense.vue';
 import Projects from '../pages/projects.vue';
-import History from '../pages/history.vue';
-import Dating from '../pages/dating.vue';
-import DatingSys from '../pages/dating_sys.vue';
 import Auth from '../pages/auth.vue';
-import Admin from '../pages/admin.vue';
+
+// ──────────────────────────────────────────────────────────────────
+// DB 메뉴 경로 → Vue 컴포넌트 레지스트리
+// DB에 새 메뉴를 추가할 때 여기에 경로와 컴포넌트를 함께 등록하면
+// 라우터에 자동으로 등록됩니다.
+// ──────────────────────────────────────────────────────────────────
+const ROUTE_COMPONENTS = {
+    '/history':       { component: () => import('../pages/history.vue'),               requiresAuth: true  },
+    '/dating':        { component: () => import('../pages/dating.vue'),                requiresAuth: true  },
+    '/dating_sys':    { component: () => import('../pages/dating_sys.vue'),            requiresAuth: true  },
+    '/todos':         { component: () => import('../pages/todos/index.vue'),           requiresAuth: true  },
+    '/todos/create':  { component: () => import('../pages/todos/create/index.vue'),   requiresAuth: true  },
+    '/expense':       { component: () => import('../pages/expense.vue'),              requiresAuth: true  },
+};
 
 const router = createRouter({
     history: createWebHashHistory(),
     routes: [
+        // ── 항상 존재하는 정적 라우트 ──
         {
             path: '/',
             name: 'Home',
@@ -28,6 +35,7 @@ const router = createRouter({
             component: Auth,
             meta: { requiresAuth: false, guestOnly: true }
         },
+        // portfolio / projects: DB에서 제거됐지만 메인화면에서 직접 링크로 사용
         {
             path: '/portfolio',
             name: 'Portfolio',
@@ -40,48 +48,14 @@ const router = createRouter({
             component: Projects,
             meta: { requiresAuth: false }
         },
-        {
-            path: '/history',
-            name: 'History',
-            component: History,
-            meta: { requiresAuth: true }
-        },
-        {
-            path: '/dating',
-            name: 'Dating',
-            component: Dating,
-            meta: { requiresAuth: true }
-        },
-        {
-            path: '/dating_sys',
-            name: 'DatingSys',
-            component: DatingSys,
-            meta: { requiresAuth: true }
-        },
-        {
-            path: '/todos',
-            name: 'Todos',
-            component: Todos,
-            meta: { requiresAuth: true }
-        },
-        {
-            path: '/todos/create',
-            name: 'TodoCreate',
-            component: TodoCreate,
-            meta: { requiresAuth: true }
-        },
+        // 동적 파라미터 라우트 (DB 경로로 표현 불가)
         {
             path: '/todos/:id',
             name: 'Todo',
-            component: Todo,
+            component: () => import('../pages/todos/_id.vue'),
             meta: { requiresAuth: true }
         },
-        {
-            path: '/expense',
-            name: 'Expense',
-            component: Expense,
-            meta: { requiresAuth: true }
-        },
+        // ── 어드민 (AdminLayout 중첩 라우트, DB 권한과 별도로 ADMIN 역할 고정) ──
         {
             path: '/admin',
             component: () => import('../components/AdminLayout.vue'),
@@ -94,7 +68,7 @@ const router = createRouter({
                 {
                     path: 'users',
                     name: 'AdminUsers',
-                    component: Admin,
+                    component: () => import('../pages/admin.vue'),
                 },
                 {
                     path: 'menu-management',
@@ -115,6 +89,29 @@ const router = createRouter({
         }
     ]
 });
+
+// ──────────────────────────────────────────────────────────────────
+// DB 메뉴 데이터를 기반으로 동적 라우트 등록
+// - 로그인 / checkAuth 완료 후 호출
+// - 이미 등록된 라우트는 건너뜀 (중복 방지)
+// - ROUTE_COMPONENTS에 등록되지 않은 경로는 무시
+// ──────────────────────────────────────────────────────────────────
+export function syncDynamicRoutes(menuPaths) {
+    menuPaths.forEach(path => {
+        const entry = ROUTE_COMPONENTS[path];
+        if (!entry) return;
+
+        const routeName = 'dynamic:' + path;
+        if (router.hasRoute(routeName)) return;
+
+        router.addRoute({
+            path,
+            name: routeName,
+            component: entry.component,
+            meta: { requiresAuth: entry.requiresAuth ?? true }
+        });
+    });
+}
 
 // 라우트 가드
 router.beforeEach(async (to, from, next) => {
@@ -154,8 +151,7 @@ router.beforeEach(async (to, from, next) => {
         }
     }
 
-    // DB 기반 메뉴 접근 권한 확인 (인증 필요 경로 + admin 이외 경로만 체크)
-    // requiresAuth: false 경로(공개 경로)는 메뉴 권한 체크를 건너뜀
+    // DB 기반 메뉴 접근 권한 확인
     if (isAuthenticated && !isAdminRoute && requiresAuth) {
         const canAccessMenu = store.getters['menu/canAccessMenu'](to.path);
         if (!canAccessMenu) {
