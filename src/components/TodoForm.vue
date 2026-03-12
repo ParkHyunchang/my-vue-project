@@ -42,6 +42,7 @@
   
 <script>
 import { useRoute, useRouter } from 'vue-router';
+/* eslint-disable no-console */
 import axios from '@/axios';
 import { ref, computed } from 'vue';
 import _ from 'lodash';

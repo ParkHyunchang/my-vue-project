@@ -1,35 +1,38 @@
 :root {
-    --mainEng-font: "Montserrat";
+    --mainEng-font: "DM Sans", "Montserrat";
     --mainKor-font: "nanumSquareNeo";
-    --mainNum-font: "gmarket";
-  
-    --mainBg-color: #f3ede8;
-    --subBg100: #cdc0b1;
-    --subBg200: #afa395;
-    --subBg300: #81887c;
-    --subBg400: #afa7a2;
-    --subBg500: #a6afa2;
-  
-    --white: #fff;
-    --black: #000;
-    --black100: #2b2b2b;
-    --black200: #434343;
-    --black300: #686868;
-    --black400: #e0e0e0;
-  
-    /* 기본 폰트 설정 */
+    --mainNum-font: "Playfair Display", "gmarket";
+
+    --primary:       #0b0b10;
+    --surface:       #13131a;
+    --surface-2:     #1c1c28;
+    --accent:        #c9a96e;
+    --accent-light:  #e8d5b0;
+    --accent-dim:    rgba(201, 169, 110, 0.15);
+
+    --mainBg-color:  #0b0b10;
+    --subBg100:      #13131a;
+    --subBg200:      #1c1c28;
+    --subBg300:      #252535;
+    --subBg400:      #2e2e3e;
+    --subBg500:      #3a3a4e;
+
+    --white:    #f0ece4;
+    --black:    #0b0b10;
+    --black100: #f0ece4;
+    --black200: #c8c3bb;
+    --black300: #8a8580;
+    --black400: #1c1c28;
+
     font-family: var(--mainEng-font), var(--mainKor-font);
     font-size: 16px;
     line-height: 1.5;
     font-weight: 400;
-  
-    /* 폰트를 부드럽게 렌더링하기 위한 속성  */
+
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  
-    /* 아이폰 가로 모드에서 글씨 확대 금지 */
     -webkit-text-size-adjust: 100%;
 }
 
@@ -43,22 +46,4 @@
 body {
     color: var(--black100);
     background-color: var(--mainBg-color);
-}
-
-/* 모바일 다크모드 설정 */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --mainBg-color: #23201c;   /* 기존보다 밝은 다크 배경 */
-    --subBg100: #3a332a;
-    --subBg200: #4a4238;
-    --subBg300: #686056;
-    --subBg400: #7a726a;
-    --subBg500: #8a827a;
-
-    --white: #f5f0ea;          /* 완전 흰색 대신 아이보리 */
-    --black100: #e0e0e0;       /* 텍스트 색상도 밝게 */
-    --black200: #b0b0b0;
-    --black300: #888888;
-    --black400: #444444;
-  }
 }

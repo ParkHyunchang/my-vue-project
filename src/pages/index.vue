@@ -14,8 +14,9 @@
       <!-- Hero Section -->
       <section id="intro" class="hero-section">
         <div class="hero__inner">
-          <h1 class="hero__title">안녕하세요, <span class="highlight">현창</span>입니다</h1>
-          <p class="hero__subtitle">AI 웹 개발자 현창입니다.</p>
+          <span class="hero__eyebrow">AI Web Developer</span>
+          <h1 class="hero__title">안녕하세요,<br><span class="highlight">현창</span>입니다</h1>
+          <p class="hero__subtitle">Full Stack · AI Specialist · Builder</p>
           <div class="hero__buttons">
             <a href="#skill" class="btn btn-primary" @click.prevent="scrollToSection('skill')">경력 보기</a>
             <a href="#contact" class="btn btn-secondary" @click.prevent="scrollToSection('contact')">연락하기</a>
@@ -27,6 +28,8 @@
       <section id="about" class="about-section">
         <div class="about__inner">
           <h2 class="about__title">About Me</h2>
+          <div class="section-divider"></div>
+          <span class="section-sub">개발자 소개</span>
           <div class="about__content">
             <div class="about__philosophy">
               <h3>개발자로서의 철학</h3>
@@ -58,11 +61,12 @@
       <section id="skill" class="career-section">
         <div class="career__inner">
           <h2 class="career__title">Career <em>경력 및 프로젝트</em></h2>
+          <div class="section-divider"></div>
           <div class="career__list">
 
             <div class="career__item">
               <div class="career__header">
-                <div class="career__icon">🤖</div>
+                <div class="career__icon">AI</div>
                 <div class="career__meta">
                   <h3 class="career__company">(주)포니링크</h3>
                   <span class="career__period">2025.04.21 ~ 재직중</span>
@@ -83,7 +87,7 @@
 
             <div class="career__item">
               <div class="career__header">
-                <div class="career__icon">💬</div>
+                <div class="career__icon">NLP</div>
                 <div class="career__meta">
                   <h3 class="career__company">(주)NHN다이퀘스트</h3>
                   <span class="career__period">2021.11.29 ~ 2024.10.18 (35개월)</span>
@@ -105,7 +109,7 @@
 
             <div class="career__item">
               <div class="career__header">
-                <div class="career__icon">🗺️</div>
+                <div class="career__icon">NAV</div>
                 <div class="career__meta">
                   <h3 class="career__company">(주)아이나비모빌리티</h3>
                   <span class="career__period">2021.10.05 ~ 2021.11.09 (1개월)</span>
@@ -124,7 +128,7 @@
 
             <div class="career__item">
               <div class="career__header">
-                <div class="career__icon">🔒</div>
+                <div class="career__icon">SEC</div>
                 <div class="career__meta">
                   <h3 class="career__company">(주)나일소프트</h3>
                   <span class="career__period">2017.09.04 ~ 2021.09.24 (49개월)</span>
@@ -145,7 +149,7 @@
 
             <div class="career__item">
               <div class="career__header">
-                <div class="career__icon">⚙️</div>
+                <div class="career__icon">EMB</div>
                 <div class="career__meta">
                   <h3 class="career__company">칼라세븐</h3>
                   <span class="career__period">2016.11.02 ~ 2017.02.01 (3개월)</span>
@@ -170,13 +174,15 @@
       <section id="experience" class="experience-section">
         <div class="experience__inner">
           <h2 class="experience__title">Experience</h2>
+          <div class="section-divider"></div>
+          <span class="section-sub">교육 및 경험</span>
           <div class="experience__timeline">
             <div class="timeline__item">
               <div class="timeline__dot"></div>
               <div class="timeline__content">
                 <h3>IT 융복합기기 회로설계 전문가과정</h3>
                 <p class="timeline__subtitle">대한상공회의소</p>
-                <p class="timeline__desc">PCB 설계, 회로 설계 및및 프로토타입 제작 등을 하며 실무 경험을 쌓았습니다.</p>
+                <p class="timeline__desc">PCB 설계, 회로 설계 및 프로토타입 제작 등을 하며 실무 경험을 쌓았습니다.</p>
                 <span class="timeline__period">2016.03.02 ~ 2016.06.01</span>
               </div>
             </div>
@@ -186,7 +192,7 @@
               <div class="timeline__content">
                 <h3>멀티프레임워크기반 웹 전문 개발자</h3>
                 <p class="timeline__subtitle">에이콘아카데미</p>
-                <p class="timeline__desc">프론트엔드와 백엔드 전반에 걸친 웹 개발 기술을 체계적으로 학습하고 실무 프로젝트를 통해 실전 경험을 쌓았습니다..</p>
+                <p class="timeline__desc">프론트엔드와 백엔드 전반에 걸친 웹 개발 기술을 체계적으로 학습하고 실무 프로젝트를 통해 실전 경험을 쌓았습니다.</p>
                 <span class="timeline__period">2017.03.09 ~ 2017.09.12</span>
               </div>
             </div>
@@ -195,8 +201,8 @@
               <div class="timeline__dot"></div>
               <div class="timeline__content">
                 <h3>회사 웹 개발자</h3>
-                <p class="timeline__subtitle">회사</p>
-                <p class="timeline__desc">여러 회사의 솔루션 및 개발 프로젝트를 수행하며 폭넓은 기술 경험과 프로젝트 관리 능력을 키워가고고 있습니다.</p>
+                <p class="timeline__subtitle">다수 기업</p>
+                <p class="timeline__desc">여러 회사의 솔루션 및 개발 프로젝트를 수행하며 폭넓은 기술 경험과 프로젝트 관리 능력을 키워가고 있습니다.</p>
                 <span class="timeline__period">2017.09 ~ 현재</span>
               </div>
             </div>
@@ -291,6 +297,8 @@
       <section id="contact" class="contact-section">
         <div class="contact__inner">
           <h2 class="contact__title">Contact</h2>
+          <div class="section-divider"></div>
+          <span class="section-sub">함께 일해요</span>
           <div class="contact__content">
             <div class="contact__message">
               <h3>함께 일하고 싶으시다면</h3>
@@ -298,19 +306,13 @@
             </div>
             <div class="contact__methods">
               <div class="contact__method">
-                <span class="contact__icon">📧</span>
+                <span class="contact__icon">Email</span>
                 <a href="mailto:hyunchang1234@hanmail.net">hyunchang1234@hanmail.net</a>
               </div>
               <div class="contact__method">
-                <span class="contact__icon">🐙</span>
+                <span class="contact__icon">Github</span>
                 <a href="https://github.com/hyunchang" target="_blank">github.com/hyunchang</a>
               </div>
-              <!-- 
-              <div class="contact__method">
-                <span class="contact__icon">💼</span>
-                <a href="https://linkedin.com/in/hyunchang" target="_blank">linkedin.com/in/hyunchang</a>
-              </div>
-               -->
             </div>
             <div class="contact__button">
               <a href="mailto:hyunchang1234@hanmail.net" class="btn btn-primary">이메일 보내기</a>
@@ -343,7 +345,7 @@
         </div>
         <div class="footer__right">
           © 2025 hyunchang<br />
-          이 사이트는 뷰3, springboot를 이용하여 제작하였습니다.
+          이 사이트는 Vue3, Spring Boot를 이용하여 제작하였습니다.
         </div>
       </div>
     </footer>
@@ -372,7 +374,7 @@ export default {
 <style src="@/assets/css/style.css"></style>
 
 <style>
-/* 전체 페이지 스크롤바 문제 해결 */
+/* 전체 페이지 */
 html, body {
   overflow-x: hidden;
   width: 100%;
@@ -385,7 +387,6 @@ html, body {
   box-sizing: border-box;
 }
 
-/* 전체 컨테이너 제거 */
 #main {
   width: 100%;
   margin: 0;
@@ -393,13 +394,32 @@ html, body {
   overflow-x: hidden;
 }
 
-/* Hero Section */
+/* ========================
+   Animations
+   ======================== */
+@keyframes heroFadeUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(201, 169, 110, 0.3); }
+  50%       { box-shadow: 0 0 16px rgba(201, 169, 110, 0.5); }
+}
+
+/* ========================
+   Hero Section
+   ======================== */
 .hero-section {
   min-height: 100vh;
   display: flex;
   align-items: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background-color: #07070d;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 15% 40%, rgba(201, 169, 110, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 85% 65%, rgba(100, 80, 180, 0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 50% at 50% 5%, rgba(201, 169, 110, 0.04) 0%, transparent 50%);
+  color: #f0ece4;
   text-align: center;
   width: 100vw;
   margin-left: calc(-50vw + 50%);
@@ -408,71 +428,157 @@ html, body {
   overflow: hidden;
 }
 
+.hero-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.8;
+}
+
 .hero__inner {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 6rem 2rem 4rem;
   width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.hero__eyebrow {
+  display: inline-block;
+  font-size: 0.7rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: #c9a96e;
+  margin-bottom: 2.5rem;
+  animation: heroFadeUp 0.8s ease both;
+  opacity: 0.9;
 }
 
 .hero__title {
-  font-size: clamp(2.5rem, 8vw, 4rem);
-  font-weight: bold;
-  margin-bottom: 1rem;
-  line-height: 1.2;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(3.5rem, 10vw, 7rem);
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  animation: heroFadeUp 0.8s ease 0.1s both;
+  color: #f0ece4;
 }
 
 .hero__title .highlight {
-  color: #ffd700;
+  color: #c9a96e;
+  font-style: italic;
+  display: inline-block;
 }
 
 .hero__subtitle {
-  font-size: 1.2rem;
-  margin-bottom: 2rem;
-  opacity: 0.9;
+  font-size: 0.8rem;
+  margin-bottom: 3.5rem;
+  color: rgba(240, 236, 228, 0.4);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-weight: 300;
+  animation: heroFadeUp 0.8s ease 0.2s both;
 }
 
 .hero__buttons {
   display: flex;
-  gap: 1rem;
+  gap: 1.2rem;
   justify-content: center;
   flex-wrap: wrap;
+  animation: heroFadeUp 0.8s ease 0.3s both;
 }
 
-.btn {
-  padding: 12px 24px;
-  border-radius: 25px;
+/* ========================
+   Buttons (홈 페이지 스코프)
+   ======================== */
+#main .btn {
+  padding: 14px 36px;
+  border-radius: 1px;
   text-decoration: none;
-  font-weight: bold;
-  transition: all 0.3s ease;
+  font-weight: 400;
+  transition: color 0.35s ease;
   display: inline-block;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+  min-height: auto;
+  background-color: transparent;
 }
 
-.btn-primary {
-  background: white;
-  color: #667eea;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.btn-secondary {
+#main .btn-primary {
   background: transparent;
-  color: white;
-  border: 2px solid white;
+  color: #c9a96e;
+  border: 1px solid #c9a96e;
 }
 
-.btn-secondary:hover {
-  background: white;
-  color: #667eea;
+#main .btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #c9a96e;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s ease;
+  z-index: -1;
 }
 
-/* About Section */
+#main .btn-primary:hover {
+  color: #0b0b10;
+  background-color: transparent;
+}
+
+#main .btn-primary:hover::before {
+  transform: scaleX(1);
+}
+
+#main .btn-secondary {
+  background: transparent;
+  color: rgba(240, 236, 228, 0.6);
+  border: 1px solid rgba(240, 236, 228, 0.2);
+}
+
+#main .btn-secondary:hover {
+  color: #f0ece4;
+  border-color: rgba(240, 236, 228, 0.5);
+  background: rgba(240, 236, 228, 0.04);
+  transform: none;
+  box-shadow: none;
+}
+
+/* ========================
+   Section Shared Styles
+   ======================== */
+.section-divider {
+  width: 30px;
+  height: 1px;
+  background: #c9a96e;
+  margin: 0.8rem auto 0.8rem;
+}
+
+.section-sub {
+  display: block;
+  text-align: center;
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #c9a96e;
+  margin-bottom: 4.5rem;
+  opacity: 0.8;
+}
+
+/* ========================
+   About Section
+   ======================== */
 .about-section {
-  padding: 5rem 0;
-  background: white;
+  padding: 7rem 0;
+  background: #161626;
+  border-top: 1px solid rgba(201, 169, 110, 0.1);
   width: 100vw;
   margin-left: calc(-50vw + 50%);
   margin-right: calc(-50vw + 50%);
@@ -488,64 +594,77 @@ html, body {
 }
 
 .about__title {
-  font-size: 2.5rem;
-  font-weight: bold;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 400;
   text-align: center;
-  margin-bottom: 3rem;
-  position: relative;
+  margin-bottom: 0.6rem;
+  color: #f0ece4;
+  letter-spacing: -0.01em;
 }
 
 .about__title::after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 3px;
-  background: #667eea;
+  display: none;
 }
 
 .about__content {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4rem;
+  gap: 5rem;
   align-items: start;
 }
 
 .about__philosophy h3,
 .about__skills h3 {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  color: #333;
+  font-family: "Playfair Display", serif;
+  font-size: 1.25rem;
+  font-weight: 400;
+  margin-bottom: 1.2rem;
+  color: #f0ece4;
+  border-bottom: 1px solid rgba(201, 169, 110, 0.15);
+  padding-bottom: 0.75rem;
+  letter-spacing: 0.01em;
 }
 
 .about__philosophy p {
-  line-height: 1.6;
-  color: #666;
+  line-height: 1.9;
+  color: #8a8580;
   margin-bottom: 1rem;
+  font-size: 0.92rem;
 }
 
 .skills__list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 .skill__tag {
-  background: #667eea;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 500;
+  background: transparent;
+  color: #c9a96e;
+  padding: 5px 13px;
+  border-radius: 0;
+  font-size: 0.72rem;
+  font-weight: 400;
+  border: 1px solid rgba(201, 169, 110, 0.25);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
 }
 
-/* Career & Projects Section */
+.skill__tag:hover {
+  background: rgba(201, 169, 110, 0.07);
+  border-color: rgba(201, 169, 110, 0.6);
+}
+
+/* ========================
+   Career Section
+   ======================== */
 .career-section {
-  padding: 5rem 0;
-  background: linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  color: white;
+  padding: 7rem 0;
+  background: #0a0a12;
+  border-top: 1px solid rgba(201, 169, 110, 0.08);
+  color: #f0ece4;
   width: 100vw;
   margin-left: calc(-50vw + 50%);
   margin-right: calc(-50vw + 50%);
@@ -561,71 +680,77 @@ html, body {
 }
 
 .career__title {
-  font-size: 2.5rem;
-  font-weight: bold;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 400;
   text-align: center;
-  margin-bottom: 3.5rem;
-  position: relative;
+  margin-bottom: 0.6rem;
+  color: #f0ece4;
+  letter-spacing: -0.01em;
+}
+
+.career__title::after {
+  display: none;
 }
 
 .career__title em {
   display: block;
-  font-size: 1rem;
+  font-size: 0.68rem;
   font-weight: 400;
-  opacity: 0.7;
+  opacity: 0.55;
   font-style: normal;
-  margin-top: 0.4rem;
-  letter-spacing: 0.1em;
+  margin-top: 0.6rem;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
-}
-
-.career__title::after {
-  content: '';
-  position: absolute;
-  bottom: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 3px;
-  background: #667eea;
+  font-family: "DM Sans", "Montserrat", sans-serif;
+  color: #c9a96e;
 }
 
 .career__list {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 10px;
 }
 
 .career__item {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: #151524;
+  border: 1px solid rgba(201, 169, 110, 0.08);
+  border-left: 2px solid rgba(201, 169, 110, 0.25);
+  border-radius: 0;
+  overflow: visible;
+  transition: background 0.3s ease, border-color 0.3s ease, transform 0.25s ease;
+  padding: 1.75rem 1.5rem;
 }
 
 .career__item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.2);
+  background: #1a1a2e;
+  border-left-color: #c9a96e;
+  transform: translateX(4px);
+  box-shadow: none;
 }
 
 .career__header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1.5rem 1.5rem 1rem;
+  gap: 1.2rem;
+  padding: 0 0 0.75rem;
 }
 
 .career__icon {
-  font-size: 1.8rem;
-  width: 52px;
-  height: 52px;
-  background: rgba(102, 126, 234, 0.2);
-  border-radius: 12px;
+  font-size: 0.6rem;
+  font-weight: 500;
+  width: 46px;
+  height: 46px;
+  background: transparent;
+  border: 1px solid rgba(201, 169, 110, 0.25);
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  color: #c9a96e;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .career__meta {
@@ -634,43 +759,48 @@ html, body {
 }
 
 .career__company {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin: 0 0 0.25rem;
-  color: #fff;
+  font-family: "Playfair Display", serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.2rem;
+  color: #f0ece4;
 }
 
 .career__period {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.75rem;
+  color: #8a8580;
+  letter-spacing: 0.05em;
 }
 
 .career__badge {
   padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  border-radius: 0;
+  font-size: 0.65rem;
+  font-weight: 400;
   flex-shrink: 0;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
 }
 
 .career__badge.current {
-  background: rgba(102, 234, 139, 0.2);
-  color: #6eea8b;
-  border: 1px solid rgba(102, 234, 139, 0.3);
+  background: transparent;
+  color: #c9a96e;
+  border: 1px solid rgba(201, 169, 110, 0.35);
 }
 
 .career__body {
-  padding: 0 1.5rem 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  margin-top: 0;
-  padding-top: 1rem;
+  padding: 0;
+  border-top: none;
+  padding-top: 0.25rem;
+  padding-left: 58px;
 }
 
 .career__role {
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.75);
-  margin-bottom: 1rem;
-  line-height: 1.5;
+  font-size: 0.88rem;
+  color: #8a8580;
+  margin-bottom: 0.9rem;
+  line-height: 1.6;
+  font-style: italic;
 }
 
 .career__projects {
@@ -679,46 +809,58 @@ html, body {
   margin: 0 0 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 
 .career__projects li {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.87rem;
+  color: #c8c3bb;
   padding-left: 1.2rem;
   position: relative;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .career__projects li::before {
-  content: '›';
+  content: '—';
   position: absolute;
   left: 0;
-  color: #667eea;
-  font-weight: bold;
+  color: rgba(201, 169, 110, 0.5);
+  font-size: 0.7rem;
+  top: 0.3em;
 }
 
 .career__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.75rem;
+  gap: 0;
+  margin-top: 0.9rem;
 }
 
 .career__tags span {
-  background: rgba(102, 126, 234, 0.2);
-  color: #a5b4fc;
-  border: 1px solid rgba(102, 126, 234, 0.3);
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-size: 0.78rem;
-  font-weight: 500;
+  background: transparent;
+  color: #8a8580;
+  border: none;
+  border-left: 1px solid rgba(201, 169, 110, 0.2);
+  padding: 2px 10px;
+  border-radius: 0;
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-/* Experience Section */
+.career__tags span:first-child {
+  border-left: none;
+  padding-left: 0;
+}
+
+/* ========================
+   Experience Section
+   ======================== */
 .experience-section {
-  padding: 5rem 0;
-  background: #f8f9fa;
+  padding: 7rem 0;
+  background: #1a1a2a;
+  border-top: 1px solid rgba(201, 169, 110, 0.1);
   width: 100vw;
   margin-left: calc(-50vw + 50%);
   margin-right: calc(-50vw + 50%);
@@ -734,22 +876,17 @@ html, body {
 }
 
 .experience__title {
-  font-size: 2.5rem;
-  font-weight: bold;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 400;
   text-align: center;
-  margin-bottom: 3rem;
-  position: relative;
+  margin-bottom: 0.6rem;
+  color: #f0ece4;
+  letter-spacing: -0.01em;
 }
 
 .experience__title::after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 3px;
-  background: #667eea;
+  display: none;
 }
 
 .experience__timeline {
@@ -759,66 +896,98 @@ html, body {
 .experience__timeline::before {
   content: '';
   position: absolute;
-  left: 20px;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: #667eea;
+  left: 5px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: linear-gradient(to bottom, rgba(201, 169, 110, 0.5), rgba(201, 169, 110, 0.05));
 }
 
 .timeline__item {
   position: relative;
-  margin-bottom: 2rem;
-  padding-left: 60px;
+  margin-bottom: 0;
+  padding-left: 48px;
+  padding-bottom: 3rem;
+}
+
+.timeline__item:last-child {
+  padding-bottom: 0;
+}
+
+.timeline__item:last-child .timeline__content {
+  border-bottom: 1px solid rgba(201, 169, 110, 0.07);
 }
 
 .timeline__dot {
   position: absolute;
-  left: 11px;
-  top: 0;
-  width: 20px;
-  height: 20px;
-  background: #667eea;
+  left: 0;
+  top: 14px;
+  width: 11px;
+  height: 11px;
+  background: #1a1a2a;
   border-radius: 50%;
-  border: 4px solid white;
-  box-shadow: 0 0 0 2px #667eea;
+  border: 1px solid #c9a96e;
+  animation: glowPulse 3s ease-in-out infinite;
+  z-index: 1;
 }
 
 .timeline__content {
-  background: white;
+  background: #111121;
   padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 0;
+  box-shadow: none;
+  border: 1px solid rgba(201, 169, 110, 0.07);
+  border-left: 2px solid rgba(201, 169, 110, 0.2);
+  transition: border-color 0.3s ease;
+  margin-bottom: 0;
+}
+
+.timeline__item:last-child .timeline__content {
+  margin-bottom: 0;
+}
+
+.timeline__item:hover .timeline__content {
+  border-left-color: rgba(201, 169, 110, 0.5);
 }
 
 .timeline__content h3 {
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-  color: #333;
+  font-family: "Playfair Display", serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  color: #f0ece4;
 }
 
 .timeline__subtitle {
-  color: #667eea;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
+  color: #c9a96e;
+  font-weight: 400;
+  margin-bottom: 0.6rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
 }
 
 .timeline__desc {
-  color: #666;
-  line-height: 1.5;
-  margin-bottom: 1rem;
+  color: #8a8580;
+  line-height: 1.8;
+  margin-bottom: 0.8rem;
+  font-size: 0.9rem;
 }
 
 .timeline__period {
-  font-size: 0.9rem;
-  color: #6c757d;
+  font-size: 0.75rem;
+  color: #8a8580;
+  letter-spacing: 0.06em;
+  display: inline-block;
 }
 
-/* Site Section */
+/* ========================
+   Site Section
+   ======================== */
 .site-section {
-  padding: 5rem 0;
-  background: white;
+  padding: 7rem 0 0;
+  background: #0b0b14;
+  border-top: 1px solid rgba(201, 169, 110, 0.08);
   width: 100vw;
   margin-left: calc(-50vw + 50%);
   margin-right: calc(-50vw + 50%);
@@ -834,23 +1003,19 @@ html, body {
 }
 
 .site__title {
-  font-size: 2.5rem;
-  font-weight: bold;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 400;
   text-align: center;
-  margin-bottom: 3rem;
-  position: relative;
+  margin-bottom: 0.6rem;
+  color: #f0ece4;
+  letter-spacing: -0.01em;
+  text-transform: none;
 }
 
-.port__title {
-  text-align: center;
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin-bottom: 3rem;
-  position: relative;
-  padding-top: 2rem;
-}
-
-/* Portfolio Section */
+/* ========================
+   Portfolio Section
+   ======================== */
 .port-section {
   position: relative;
   height: 100vh;
@@ -858,7 +1023,8 @@ html, body {
   margin-left: calc(-50vw + 50%);
   margin-right: calc(-50vw + 50%);
   overflow: hidden;
-  background: #f8f9fa;
+  background: #0e0e1c;
+  border-top: 1px solid rgba(201, 169, 110, 0.08);
 }
 
 .port__wrap-sticky {
@@ -871,30 +1037,37 @@ html, body {
 }
 
 .port__title {
+  font-family: "Playfair Display", serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 400;
   text-align: center;
-  font-size: 2.5rem;
-  font-weight: bold;
   margin-bottom: 3rem;
   position: relative;
   padding-top: 2rem;
+  color: #f0ece4;
+  letter-spacing: -0.01em;
+  text-transform: none;
 }
 
 .port__title::after {
   content: '';
   position: absolute;
-  bottom: -10px;
+  bottom: -8px;
   left: 50%;
   transform: translateX(-50%);
-  width: 60px;
-  height: 3px;
-  background: #667eea;
+  width: 30px;
+  height: 1px;
+  background: #c9a96e;
 }
 
-/* Contact Section */
+/* ========================
+   Contact Section
+   ======================== */
 .contact-section {
-  padding: 5rem 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  padding: 7rem 0;
+  background: #161626;
+  border-top: 1px solid rgba(201, 169, 110, 0.1);
+  color: #f0ece4;
   width: 100vw;
   margin-left: calc(-50vw + 50%);
   margin-right: calc(-50vw + 50%);
@@ -911,79 +1084,93 @@ html, body {
 }
 
 .contact__title {
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin-bottom: 3rem;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 400;
+  margin-bottom: 0.6rem;
   position: relative;
+  color: #f0ece4;
+  letter-spacing: -0.01em;
+  text-transform: none;
 }
 
 .contact__title::after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 3px;
-  background: white;
+  display: none;
 }
 
 .contact__content {
-  background: rgba(255,255,255,0.1);
-  border-radius: 12px;
-  padding: 2rem;
-  backdrop-filter: blur(10px);
+  background: #111121;
+  border: 1px solid rgba(201, 169, 110, 0.1);
+  border-top: 2px solid rgba(201, 169, 110, 0.3);
+  border-radius: 0;
+  padding: 3rem 3.5rem;
+  backdrop-filter: none;
 }
 
 .contact__message h3 {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
+  font-family: "Playfair Display", serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+  margin-bottom: 0.9rem;
+  color: #f0ece4;
 }
 
 .contact__message p {
-  margin-bottom: 2rem;
-  opacity: 0.9;
+  margin-bottom: 2.5rem;
+  color: #8a8580;
+  font-size: 0.9rem;
+  line-height: 1.9;
 }
 
 .contact__methods {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 1.2rem;
+  margin-bottom: 2.5rem;
 }
 
 .contact__method {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
   justify-content: center;
 }
 
 .contact__icon {
-  font-size: 1.2rem;
+  font-size: 0.65rem;
+  color: #c9a96e;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  min-width: 48px;
+  text-align: right;
 }
 
 .contact__method a {
-  color: white;
+  color: #c8c3bb;
   text-decoration: none;
-  transition: opacity 0.3s ease;
+  transition: color 0.3s ease;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
 }
 
 .contact__method a:hover {
-  opacity: 0.8;
+  color: #c9a96e;
 }
 
 .contact__button {
-  margin-top: 2rem;
+  margin-top: 2.5rem;
 }
 
-/* 반응형 디자인 */
+/* ========================
+   Responsive
+   ======================== */
 @media (max-width: 768px) {
   .about__content {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 3rem;
   }
-  
+
   .career__header {
     flex-wrap: wrap;
   }
@@ -991,40 +1178,47 @@ html, body {
   .career__badge {
     margin-left: auto;
   }
-  
-  .contact__methods {
-    align-items: center;
+
+  .career__body {
+    padding-left: 0;
+    padding-top: 0.5rem;
   }
-  
+
+  .contact__content {
+    padding: 2rem 1.5rem;
+  }
+
   .contact__method {
     flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .contact__icon {
     text-align: center;
   }
-  
-  /* 모바일에서 패딩 조정 */
+
   .about__inner,
   .career__inner,
   .experience__inner,
   .site__inner,
   .contact__inner {
-    padding: 0 1rem;
+    padding: 0 1.2rem;
   }
 }
 
-/* 800px 이상에서 왼쪽 공간 제거 */
 @media (min-width: 800px) {
   html, body {
     margin: 0;
     padding: 0;
     overflow-x: hidden;
   }
-  
+
   #main {
     margin: 0;
     padding: 0;
     width: 100%;
   }
-  
+
   .hero-section,
   .about-section,
   .career-section,
@@ -1038,7 +1232,7 @@ html, body {
   }
 }
 
-/* 기존 스타일 유지 */
+/* Legacy */
 .skill__title {
   margin-bottom: 2rem;
   word-break: keep-all;
@@ -1048,24 +1242,5 @@ html, body {
 }
 .skill__desc > div:first-child {
   margin-top: 0;
-}
-
-/* 모바일 다크모드 설정 */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --mainBg-color: #23201c;
-    --subBg100: #3a332a;
-    --subBg200: #4a4238;
-    --subBg300: #686056;
-    --subBg400: #7a726a;
-    --subBg500: #8a827a;
-
-    --white: #f5f0ea;
-    --black: #23201c;
-    --black100: #e0e0e0;
-    --black200: #b0b0b0;
-    --black300: #888888;
-    --black400: #444444;
-  }
 }
 </style>

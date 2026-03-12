@@ -11,15 +11,16 @@
     text-align: center;
     height: auto;
     font-size: clamp(1.2rem, 4vw, 2.5rem);
-    font-weight: 900;
+    font-weight: 400;
     line-height: 1.6;
-    font-family: var(--mainKor-font);
-    text-transform: uppercase;
-    color: var(--black100);
+    font-family: "Playfair Display", serif;
+    text-transform: none;
+    color: #f0ece4;
     margin-top: 2rem;
     margin-bottom: 3rem;
     text-indent: 0;
     position: relative;
+    letter-spacing: -0.01em;
 }
 .port__title em {
     font-size: 1.25rem;
@@ -32,9 +33,9 @@
     bottom: -10px;
     left: 50%;
     transform: translateX(-50%);
-    width: 60px;
-    height: 3px;
-    background: #667eea;
+    width: 30px;
+    height: 1px;
+    background: #c9a96e;
 }
 .port__wrap {
     display: flex;
@@ -52,44 +53,51 @@
 .port__item {
     width: 500px;
     height: 70vh;
-    background-color: #667eea;
+    background-color: #13131a;
+    border-left: 2px solid #c9a96e;
     padding: 2.5rem;
-    margin-right: 20px;
-    color: white;
+    margin-right: 1px;
+    color: #f0ece4;
 }
 .port__item.p1 {
-    background-color: #667eea;
+    background-color: #13131a;
+    border-left-color: #c9a96e;
 }
 .port__item.p2 {
-    background-color: #28a745;
+    background-color: #0e1a1a;
+    border-left-color: #5fb3a8;
 }
 .port__item.p3 {
-    background-color: #6f42c1;
+    background-color: #1a0e14;
+    border-left-color: #b35f7a;
 }
 .port__item.p4 {
-    background-color: #fd7e14;
+    background-color: #0e1020;
+    border-left-color: #6a82c9;
 }
 .port__item.p5 {
-    background-color: #20c997;
+    background-color: #0a1510;
+    border-left-color: #5fa878;
 }
 .port__item.p6 {
-    background-color: #e83e8c;
+    background-color: #1a0e1a;
+    border-left-color: #b35fb3;
 }
 .port__item.p7 {
-    background-color: #6f42c1;
+    background-color: #150e20;
+    border-left-color: #9a7abf;
 }
 .port__item.p8 {
-    background-color: #fd7e14;
+    background-color: #1a1208;
+    border-left-color: #b08a3a;
 }
 .port__item.p9 {
-    background-color: #20c997;
+    background-color: #081a10;
+    border-left-color: #4da870;
 }
 .port__item.p10 {
-    background-color: #e83e8c;
-}
-.port__item .num {
-    font-size: 2rem;
-    font-family: var(--mainNum-font);
+    background-color: #1a0810;
+    border-left-color: #c95f80;
 }
 .port__item .img {
     display: block;
@@ -100,26 +108,42 @@
     margin-top: 0;
 }
 .port__item .img img {
-    border-radius: 5px;
+    border-radius: 2px;
     filter: saturate(0%);
     transition: all 0.3s;
 }
 .port__item .img:hover img {
-    filter: saturate(100%)
+    filter: saturate(100%);
+}
+.port__item .num {
+    font-size: 2rem;
+    font-family: "Playfair Display", serif;
+    font-weight: 400;
+    font-style: italic;
+    color: rgba(201, 169, 110, 0.3);
+    margin-bottom: 0.5rem;
 }
 .port__item .title {
-    font-size: clamp(1.1rem, 3vw, 2rem);
-    font-family: var(--mainKor-font);
-    margin-bottom: 1rem;
+    font-size: clamp(1.1rem, 3vw, 1.8rem);
+    font-family: "Playfair Display", serif;
+    font-weight: 600;
+    margin-bottom: 1.2rem;
+    color: #f0ece4;
 }
 .port__item .desc {
-    font-size: 1rem;
-    line-height: 1.6;
-    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    margin-bottom: 0.6rem;
+    color: #8a8580;
 }
 .port__item .site {
-    text-decoration: underline;
-    text-underline-position: under;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(201, 169, 110, 0.4);
+    color: #c9a96e;
+    transition: border-color 0.3s ease;
+}
+.port__item .site:hover {
+    border-color: #c9a96e;
 }
 
 /* 새로운 섹션 기반 디자인 스타일 */
@@ -127,6 +151,7 @@
     width: 100%;
     margin-top: 0;
     overflow: hidden;
+    background: #0e0e1c;
 }
 .port-section .port__inner {
     padding: 16px;
@@ -136,15 +161,16 @@
     text-align: center;
     height: auto;
     font-size: clamp(1.2rem, 4vw, 2.5rem);
-    font-weight: 900;
+    font-weight: 400;
     line-height: 1.6;
-    font-family: var(--mainKor-font);
-    text-transform: uppercase;
-    color: var(--black100);
+    font-family: "Playfair Display", serif;
+    text-transform: none;
+    color: #f0ece4;
     margin-top: 2rem;
     margin-bottom: 3rem;
     text-indent: 0;
     position: relative;
+    letter-spacing: -0.01em;
 }
 .port-section .port__title em {
     font-size: 1.25rem;
@@ -157,9 +183,9 @@
     bottom: -10px;
     left: 50%;
     transform: translateX(-50%);
-    width: 60px;
-    height: 3px;
-    background: #667eea;
+    width: 30px;
+    height: 1px;
+    background: #c9a96e;
 }
 .port-section .port__wrap {
     display: flex;
@@ -177,44 +203,25 @@
 .port-section .port__item {
     width: 500px;
     height: 70vh;
-    background-color: #667eea;
+    background-color: #13131a;
+    border-left: 2px solid #c9a96e;
     padding: 2.5rem;
-    margin-right: 20px;
-    color: white;
+    margin-right: 1px;
+    color: #f0ece4;
 }
-.port-section .port__item.p1 {
-    background-color: #667eea;
-}
-.port-section .port__item.p2 {
-    background-color: #28a745;
-}
-.port-section .port__item.p3 {
-    background-color: #6f42c1;
-}
-.port-section .port__item.p4 {
-    background-color: #fd7e14;
-}
-.port-section .port__item.p5 {
-    background-color: #20c997;
-}
-.port-section .port__item.p6 {
-    background-color: #e83e8c;
-}
-.port-section .port__item.p7 {
-    background-color: #6f42c1;
-}
-.port-section .port__item.p8 {
-    background-color: #fd7e14;
-}
-.port-section .port__item.p9 {
-    background-color: #20c997;
-}
-.port-section .port__item.p10 {
-    background-color: #e83e8c;
-}
+.port-section .port__item.p1 { background-color: #13131a; border-left-color: #c9a96e; }
+.port-section .port__item.p2 { background-color: #0e1a1a; border-left-color: #5fb3a8; }
+.port-section .port__item.p3 { background-color: #1a0e14; border-left-color: #b35f7a; }
+.port-section .port__item.p4 { background-color: #0e1020; border-left-color: #6a82c9; }
+.port-section .port__item.p5 { background-color: #0a1510; border-left-color: #5fa878; }
+
 .port-section .port__item .num {
     font-size: 2rem;
-    font-family: var(--mainNum-font);
+    font-family: "Playfair Display", serif;
+    font-weight: 400;
+    font-style: italic;
+    color: rgba(201, 169, 110, 0.25);
+    margin-bottom: 0.5rem;
 }
 .port-section .port__item .img {
     display: block;
@@ -225,26 +232,31 @@
     margin-top: 0;
 }
 .port-section .port__item .img img {
-    border-radius: 5px;
+    border-radius: 2px;
     filter: saturate(0%);
     transition: all 0.3s;
 }
 .port-section .port__item .img:hover img {
-    filter: saturate(100%)
+    filter: saturate(100%);
 }
 .port-section .port__item .title {
-    font-size: clamp(1.1rem, 3vw, 2rem);
-    font-family: var(--mainKor-font);
-    margin-bottom: 1rem;
+    font-size: clamp(1.1rem, 3vw, 1.8rem);
+    font-family: "Playfair Display", serif;
+    font-weight: 600;
+    margin-bottom: 1.2rem;
+    color: #f0ece4;
 }
 .port-section .port__item .desc {
-    font-size: 1rem;
-    line-height: 1.6;
-    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    margin-bottom: 0.6rem;
+    color: #8a8580;
 }
 .port-section .port__item .site {
-    text-decoration: underline;
-    text-underline-position: under;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(201, 169, 110, 0.4);
+    color: #c9a96e;
+    transition: border-color 0.3s ease;
 }
 
 @media (max-width: 800px){
@@ -265,8 +277,7 @@
     .port__item .title {
         font-size: clamp(1rem, 4vw, 1.5rem);
     }
-    
-    /* 새로운 섹션 기반 디자인 모바일 스타일 */
+
     .port-section .port__title {
         width: 100%;
         margin-bottom: 10vw;
@@ -274,7 +285,7 @@
         height: auto;
         top: 68px;
         z-index: 1000;
-        background-color: #f8f9fa;
+        background-color: #0e0e1c;
     }
     .port-section .port__item {
         width: 300px;

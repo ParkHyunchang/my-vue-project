@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const state = {
     userMenus: [],
     allMenus: []  // DB에서 로드 (초기 빈 배열, loadMenuDefinitions 액션으로 채워짐)

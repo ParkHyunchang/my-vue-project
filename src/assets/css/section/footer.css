@@ -1,71 +1,92 @@
 #footer {
     font-family: var(--mainKor-font);
+    background-color: #030308;
+    border-top: 1px solid rgba(201, 169, 110, 0.12);
 }
 .footer__inner {
-    padding: 16px;
+    padding: 40px 24px 24px;
 }
 .footer__text {
-    font-size: 12px;
+    font-size: 11px;
     text-transform: uppercase;
-    border-top: 1px solid var(--black);
-    border-bottom: 1px solid var(--black);
+    letter-spacing: 0.2em;
+    border-top: 1px solid rgba(201, 169, 110, 0.15);
+    border-bottom: 1px solid rgba(201, 169, 110, 0.08);
     display: flex;
     justify-content: space-between;
+    color: #8a8580;
+    padding: 10px 0;
 }
 .footer__info {
     display: flex;
     justify-content: space-between;
-    margin: 100px 0;
+    margin: 60px 0;
 }
 .footer__info .left {
     width: 40%;
 }
 .footer__info .left .title {
-    border-top: 2px solid var(--black);
-    border-bottom: 1px solid var(--black);
-    padding: 20px 0;
+    border-top: 1px solid rgba(201, 169, 110, 0.2);
+    border-bottom: 1px solid rgba(201, 169, 110, 0.1);
+    padding: 16px 0;
     text-transform: uppercase;
-    font-weight: 700;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    font-size: 0.85rem;
+    color: #f0ece4;
     background: url(../../img/arrow.svg) no-repeat right 20px;
     transition: all 0.3s;
+    filter: invert(1) opacity(0.4);
 }
 .footer__info .left .title:hover {
-    background-color: var(--black400);
+    background-color: rgba(201, 169, 110, 0.05);
     padding-left: 10px;
     border-color: transparent;
+    color: #c9a96e;
 }
 .footer__info .left .desc {
     font-size: 12px;
     padding-top: 20px;
+    color: #8a8580;
+    line-height: 1.7;
 }
-
 
 .footer__info .right {
     width: 50%;
 }
 .footer__info .right h3 {
-    border-top: 2px solid var(--black);
+    border-top: 1px solid rgba(201, 169, 110, 0.2);
     font-size: 10px;
     margin-bottom: 40px;
     padding-top: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #c9a96e;
 }
 .footer__info .right ul {
-    border-top: 1px solid var(--black);
+    border-top: 1px solid rgba(201, 169, 110, 0.1);
 }
 .footer__info .right li {
-    border-bottom: 1px solid var(--black);
+    border-bottom: 1px solid rgba(201, 169, 110, 0.08);
 }
 .footer__info .right li a {
     padding: 14px 0;
     font-size: 14px;
     display: inline-block;
     text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #8a8580;
+    transition: color 0.3s ease;
+}
+.footer__info .right li a:hover {
+    color: #c9a96e;
 }
 .footer__info .right li em {
     font-size: 12px;
     padding-left: 10px;
     opacity: 0;
     transition: all 0.3s;
+    color: #8a8580;
 }
 .footer__info .right li:hover em {
     opacity: 1;
@@ -73,38 +94,49 @@
 .footer__right {
     text-align: center;
     text-transform: uppercase;
-    font-size: 12px;
+    font-size: 11px;
     margin-bottom: 20px;
+    letter-spacing: 0.15em;
+    color: #8a8580;
+    line-height: 1.8;
 }
-
-
 
 .footer__info .center {
     width: 100%;
 }
 .footer__info .center h3 {
-    border-top: 2px solid var(--black);
+    border-top: 1px solid rgba(201, 169, 110, 0.2);
     font-size: 10px;
     margin-bottom: 40px;
     padding-top: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #c9a96e;
 }
 .footer__info .center ul {
-    border-top: 1px solid var(--black);
+    border-top: 1px solid rgba(201, 169, 110, 0.1);
 }
 .footer__info .center li {
-    border-bottom: 1px solid var(--black);
+    border-bottom: 1px solid rgba(201, 169, 110, 0.08);
 }
 .footer__info .center li a {
     padding: 14px 0;
     font-size: 14px;
     display: inline-block;
     text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #8a8580;
+    transition: color 0.3s ease;
+}
+.footer__info .center li a:hover {
+    color: #c9a96e;
 }
 .footer__info .center li em {
     font-size: 12px;
     padding-left: 10px;
     opacity: 0;
     transition: all 0.3s;
+    color: #8a8580;
 }
 .footer__info .center li:hover em {
     opacity: 1;
@@ -112,10 +144,11 @@
 .footer__center {
     text-align: center;
     text-transform: uppercase;
-    font-size: 12px;
+    font-size: 11px;
     margin-bottom: 20px;
+    letter-spacing: 0.15em;
+    color: #8a8580;
 }
-
 
 @media (max-width: 800px){
     .footer__info {

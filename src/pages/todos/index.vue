@@ -38,6 +38,7 @@
 </template>
 
 <script>
+/* eslint-disable no-console */
 import { ref, computed, watch, onMounted } from 'vue';
 import TodoList from '@/components/TodoList.vue';
 import axios from '@/axios';

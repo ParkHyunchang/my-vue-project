@@ -31,29 +31,35 @@
     left: 0;
 }
 .site__item.s1 {
-    background-color: #667eea;
-    color: white;
+    background-color: #13131a;
+    border-top: 2px solid #c9a96e;
+    color: #f0ece4;
 }
 .site__item.s2 {
-    background-color: #28a745;
-    color: white;
+    background-color: #0e1620;
+    border-top: 2px solid #7a9ebf;
+    color: #f0ece4;
 }
 .site__item.s3 {
-    background-color: #6f42c1;
-    color: white;
+    background-color: #150f20;
+    border-top: 2px solid #9a7abf;
+    color: #f0ece4;
 }
 .site__item.s4 {
-    background-color: #fd7e14;
-    color: white;
+    background-color: #1a1208;
+    border-top: 2px solid #b08a3a;
+    color: #f0ece4;
 }
 .site__item .num {
     font-size: 5vw;
     line-height: 1;
-    font-weight: 900;
-    font-family: var(--mainNum-font);
+    font-weight: 400;
+    font-family: "Playfair Display", serif;
+    font-style: italic;
     position: absolute;
     left: 1vw;
     top: 1vw;
+    color: rgba(201, 169, 110, 0.25);
 }
 .site__item .text {
     text-align: center;
@@ -62,24 +68,34 @@
 .site__item .text > div {
     font-size: clamp(1rem, 3vw, 1.8rem);
     line-height: 1;
-    font-weight: 900;
+    font-weight: 700;
     text-transform: uppercase;
-    text-decoration: underline;
+    text-decoration: none;
     font-family: var(--mainEng-font);
+    letter-spacing: 0.05em;
 }
 .site__item .title {
     font-family: var(--mainKor-font);
     margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: rgba(240, 236, 228, 0.6);
+    font-weight: 400;
 }
 .site__item .btn a {
-    text-decoration: underline;
+    text-decoration: none;
     text-transform: uppercase;
-    color: inherit;
-    font-size: 1rem;
+    color: #c9a96e;
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
     transition: all 0.3s;
+    border: 1px solid rgba(201, 169, 110, 0.4);
+    padding: 6px 16px;
+    margin: 4px;
+    display: inline-block;
 }
 .site__item .btn a:hover {
-    opacity: 0.8;
+    background: rgba(201, 169, 110, 0.1);
+    border-color: #c9a96e;
 }
 .site__item .info {
     position: absolute;
@@ -87,16 +103,18 @@
     bottom: 3%;
     width: 98%;
     margin-left: 1%;
-    border-top: 1px solid currentColor;
-    border-bottom: 1px solid currentColor;
+    border-top: 1px solid rgba(201, 169, 110, 0.15);
+    border-bottom: 1px solid rgba(201, 169, 110, 0.08);
     display: flex;
     justify-content: space-between;
 }
 .site__item .info span {
     font-family: var(--mainKor-font);
-    font-size: 12px;
-    padding: 3px 0;
+    font-size: 11px;
+    padding: 4px 0;
     text-transform: uppercase;
+    color: rgba(240, 236, 228, 0.4);
+    letter-spacing: 0.05em;
 }
 
 /* 새로운 섹션 기반 디자인 스타일 */
@@ -104,19 +122,14 @@
     padding: 16px;
 }
 .site-section .site__title {
-    position: sticky;
-    top: 70px;
-    left: 0;
-    width: 70%;
-    height: 5vw;
+    font-family: "Playfair Display", serif;
+    font-weight: 400;
     font-size: clamp(1.2rem, 4vw, 2.5rem);
-    font-weight: 900;
-    line-height: 1.6;
-    font-family: var(--mainKor-font);
-    text-transform: uppercase;
-    color: var(--black100);
-    border-bottom: 0.4vw solid var(--black100);
+    color: #f0ece4;
+    letter-spacing: -0.01em;
+    border-bottom: 1px solid rgba(201, 169, 110, 0.15);
     margin-bottom: 100px;
+    text-transform: none;
 }
 .site-section .site__title em {
     font-size: 1.25rem;
@@ -133,29 +146,35 @@
     left: 0;
 }
 .site-section .site__item.s1 {
-    background-color: #667eea;
-    color: white;
+    background-color: #13131a;
+    border-top: 2px solid #c9a96e;
+    color: #f0ece4;
 }
 .site-section .site__item.s2 {
-    background-color: #28a745;
-    color: white;
+    background-color: #0e1620;
+    border-top: 2px solid #7a9ebf;
+    color: #f0ece4;
 }
 .site-section .site__item.s3 {
-    background-color: #6f42c1;
-    color: white;
+    background-color: #150f20;
+    border-top: 2px solid #9a7abf;
+    color: #f0ece4;
 }
 .site-section .site__item.s4 {
-    background-color: #fd7e14;
-    color: white;
+    background-color: #1a1208;
+    border-top: 2px solid #b08a3a;
+    color: #f0ece4;
 }
 .site-section .site__item .num {
     font-size: 5vw;
     line-height: 1;
-    font-weight: 900;
-    font-family: var(--mainNum-font);
+    font-weight: 400;
+    font-family: "Playfair Display", serif;
+    font-style: italic;
     position: absolute;
     left: 1vw;
     top: 1vw;
+    color: rgba(201, 169, 110, 0.2);
 }
 .site-section .site__item .text {
     text-align: center;
@@ -164,24 +183,34 @@
 .site-section .site__item .text > div {
     font-size: clamp(1rem, 3vw, 1.8rem);
     line-height: 1;
-    font-weight: 900;
+    font-weight: 700;
     text-transform: uppercase;
-    text-decoration: underline;
+    text-decoration: none;
     font-family: var(--mainEng-font);
+    letter-spacing: 0.05em;
 }
 .site-section .site__item .title {
     font-family: var(--mainKor-font);
     margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: rgba(240, 236, 228, 0.55);
+    font-weight: 400;
 }
 .site-section .site__item .btn a {
-    text-decoration: underline;
+    text-decoration: none;
     text-transform: uppercase;
-    color: inherit;
-    font-size: 1rem;
+    color: #c9a96e;
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
     transition: all 0.3s;
+    border: 1px solid rgba(201, 169, 110, 0.35);
+    padding: 6px 16px;
+    margin: 4px;
+    display: inline-block;
 }
 .site-section .site__item .btn a:hover {
-    opacity: 0.8;
+    background: rgba(201, 169, 110, 0.1);
+    border-color: #c9a96e;
 }
 .site-section .site__item .info {
     position: absolute;
@@ -189,16 +218,18 @@
     bottom: 3%;
     width: 98%;
     margin-left: 1%;
-    border-top: 1px solid currentColor;
-    border-bottom: 1px solid currentColor;
+    border-top: 1px solid rgba(201, 169, 110, 0.12);
+    border-bottom: none;
     display: flex;
     justify-content: space-between;
 }
 .site-section .site__item .info span {
     font-family: var(--mainKor-font);
-    font-size: 12px;
-    padding: 3px 0;
+    font-size: 11px;
+    padding: 4px 0;
     text-transform: uppercase;
+    color: rgba(240, 236, 228, 0.35);
+    letter-spacing: 0.05em;
 }
 
 @media (max-width: 800px){
@@ -211,18 +242,10 @@
         z-index: 1000;
         background-color: var(--mainBg-color);
     }
-    .site__item.s1 {
-        top: 180px;
-    }
-    .site__item.s2 {
-        top: 200px;
-    }
-    .site__item.s3 {
-        top: 220px;
-    }
-    .site__item.s4 {
-        top: 240px;
-    }
+    .site__item.s1 { top: 180px; }
+    .site__item.s2 { top: 200px; }
+    .site__item.s3 { top: 220px; }
+    .site__item.s4 { top: 240px; }
     .site__item .num {
         font-size: 26px;
     }
@@ -233,8 +256,7 @@
         flex-direction: column;
         gap: 10px;
     }
-    
-    /* 새로운 섹션 기반 디자인 모바일 스타일 */
+
     .site-section .site__title {
         width: 100%;
         margin-bottom: 10vw;
@@ -242,20 +264,12 @@
         height: auto;
         top: 68px;
         z-index: 1000;
-        background-color: white;
+        background-color: #0b0b14;
     }
-    .site-section .site__item.s1 {
-        top: 180px;
-    }
-    .site-section .site__item.s2 {
-        top: 200px;
-    }
-    .site-section .site__item.s3 {
-        top: 220px;
-    }
-    .site-section .site__item.s4 {
-        top: 240px;
-    }
+    .site-section .site__item.s1 { top: 180px; }
+    .site-section .site__item.s2 { top: 200px; }
+    .site-section .site__item.s3 { top: 220px; }
+    .site-section .site__item.s4 { top: 240px; }
     .site-section .site__item .num {
         font-size: 26px;
     }

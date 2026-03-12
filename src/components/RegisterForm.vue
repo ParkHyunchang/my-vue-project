@@ -218,7 +218,8 @@ export default {
       this.loading = true;
       
       try {
-        const { confirmPassword, ...registerData } = this.form;
+        const registerData = { ...this.form };
+        delete registerData.confirmPassword;
         const result = await this.register(registerData);
         
         if (result.success) {
