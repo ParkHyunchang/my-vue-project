@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <List :items="todos">
         <template #default="{ item }">
             <div class="card-body p-2 d-flex align-items-center" style="cursor: pointer" @click="moveToPage(item.id)">
@@ -100,9 +100,4 @@ export default {
 }
 </script>
   
-<style scoped>
-.todo {
-    color: var(--text-muted);
-    text-decoration: line-through;
-}
-</style>
+<style src="@/assets/css/todos.css" scoped></style>

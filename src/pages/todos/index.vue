@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div class="page-container">
         <div class="d-flex justify-content-between mb-3">
             <h2>To-Do List</h2>
@@ -147,9 +147,4 @@ export default {
 }
 </script>
 
-<style scoped>
-.todo {
-    color: var(--text-muted);
-    text-decoration: line-through;
-}
-</style>
+<style src="@/assets/css/todos.css" scoped></style>

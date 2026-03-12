@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <Modal @close="onClose">
     <template #header>
       <h3>{{ title || "삭제 확인" }}</h3>
@@ -53,19 +53,4 @@ export default {
 };
 </script>
 
-<style scoped>
-.modal-footer {
-  display: flex !important;
-  justify-content: flex-end !important;
-  gap: 0.5rem !important;
-  padding: 0.9rem 1.2rem !important;
-  border-top: 1px solid var(--card-border) !important;
-}
-
-@media (max-width: 768px) {
-  .modal-footer {
-    flex-direction: column !important;
-    gap: 0.75rem !important;
-  }
-}
-</style>
+<style src="@/assets/css/modal.css" scoped></style>

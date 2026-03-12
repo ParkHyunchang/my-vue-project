@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div v-if="loading">
         Loading..
     </div>
@@ -158,29 +158,4 @@ export default {
 }
 </script>
 
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-    transition: all 0.5s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
-    transform: translateY(-30px);
-}
-
-.fade-enter-to,
-.fade-leave-from {
-    opacity: 1;
-    transform: translateY(0px);
-}
-
-.mt-3 {
-    margin-top: 1rem;
-}
-
-.ml-2 {
-    margin-left: 0.5rem;
-}
-</style>
+<style src="@/assets/css/todos.css" scoped></style>

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div class="form-group">
         <label>{{ label }}</label>
         <input :value="title" @input="onInput" type="text" class="form-control">
@@ -37,10 +37,4 @@ export default {
 }
 </script>
 
-<style scoped>
-.text-red {
-    color: var(--danger-color);
-    font-size: 13px;
-    margin-top: 4px;
-}
-</style>
+<style src="@/assets/css/todos.css" scoped></style>

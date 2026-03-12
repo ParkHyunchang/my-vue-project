@@ -1,0 +1,45 @@
+/* ==========================================================
+   todos.css
+   todos/index.vue / todos/_id.vue / todos/create/index.vue /
+   TodoForm.vue / TodoList.vue / Input.vue 스타일
+   ========================================================== */
+
+/* =============================================
+   TodoList — 완료된 할 일 취소선
+   ============================================= */
+.todo {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+/* =============================================
+   Input — 에러 메시지
+   ============================================= */
+.text-red {
+  color: var(--danger-color);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* =============================================
+   TodoForm — 트랜지션 + 간격 유틸리티
+   ============================================= */
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
+  transform: translateY(0px);
+}
+
+.mt-3 { margin-top: 1rem; }
+.ml-2 { margin-left: 0.5rem; }

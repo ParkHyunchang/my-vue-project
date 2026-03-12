@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div class="page-container">
         <h1>To-Do Page</h1>
         <TodoForm :editing="true" />
@@ -15,4 +15,4 @@ export default {
 }
 </script>
   
-<style></style>
+<style src="@/assets/css/todos.css" scoped></style>

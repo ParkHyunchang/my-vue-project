@@ -1,0 +1,231 @@
+/* ==========================================================
+   modal.css
+   Modal.vue / DeleteModal.vue 스타일
+   ========================================================== */
+
+/* =============================================
+   MODAL (Modal.vue)
+   ============================================= */
+.modal-wrapper {
+  position: fixed;
+  z-index: 99999;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.modal-dialog {
+  width: 90%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.modal-content {
+  background: var(--subBg300);
+  border: 1px solid var(--card-border-strong);
+  border-radius: 10px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+.modal-busy-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: var(--subBg300);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  pointer-events: all;
+  border-radius: 10px;
+}
+
+.modal-busy-spinner {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 3px solid var(--card-border);
+  border-top-color: var(--accent);
+  animation: modalBusySpin 0.9s linear infinite;
+}
+
+.modal-busy-text {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+@keyframes modalBusySpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.modal-header {
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  color: var(--text-muted);
+  min-width: 2rem;
+  min-height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.close:hover {
+  color: var(--text-primary);
+  background-color: var(--sidebar-link-hover-bg);
+}
+
+.close:active {
+  background-color: var(--accent-dim);
+}
+
+.modal-body {
+  padding: 1.2rem;
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--subBg500) var(--subBg300);
+  color: var(--text-primary);
+}
+
+.modal-body::-webkit-scrollbar { width: 6px; }
+.modal-body::-webkit-scrollbar-track { background: var(--subBg300); border-radius: 4px; }
+.modal-body::-webkit-scrollbar-thumb { background: var(--subBg500); border-radius: 4px; }
+.modal-body::-webkit-scrollbar-thumb:hover { background: var(--accent-glow); }
+
+.modal-footer {
+  padding: 0.9rem 1.2rem;
+  border-top: 1px solid var(--card-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* =============================================
+   DELETE MODAL (DeleteModal.vue) 푸터 override
+   ============================================= */
+.modal-footer-delete {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 0.5rem !important;
+  padding: 0.9rem 1.2rem !important;
+  border-top: 1px solid var(--card-border) !important;
+}
+
+/* =============================================
+   모바일 반응형
+   ============================================= */
+@media (max-width: 768px) {
+  .modal-wrapper {
+    padding: 0;
+    align-items: stretch;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+  }
+
+  .modal-dialog {
+    width: 100vw;
+    margin: 0;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    display: flex;
+    align-items: stretch;
+  }
+
+  .modal-content {
+    border-radius: 0;
+    height: 100dvh;
+    min-height: 0;
+    max-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-header {
+    padding: 0.75rem;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .modal-title {
+    font-size: 1.1rem;
+    padding-right: 3rem;
+  }
+
+  .close {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.25rem;
+    padding: 0.5rem;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+  }
+
+  .modal-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    max-height: none;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modal-footer {
+    padding: 0.75rem;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .modal-footer > div {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  .modal-footer-delete {
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+  }
+}

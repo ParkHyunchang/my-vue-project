@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div class="page-container">
         <h1>Create Todo</h1>
         <TodoForm />
@@ -15,4 +15,4 @@ export default {
 }
 </script>
 
-<style></style>
+<style src="@/assets/css/todos.css" scoped></style>
