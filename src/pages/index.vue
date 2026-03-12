@@ -3,7 +3,7 @@
     <div id="skip">
       <a href="#header">헤더 영역 바로가기</a>
       <a href="#intro">소개 영역 바로가기</a>
-      <a href="#skill">스킬 영역 바로가기</a>
+      <a href="#skill">경력 영역 바로가기</a>
       <a href="#site">사이트 영역 바로가기</a>
       <a href="#port">포트폴리오 영역 바로가기</a>
       <a href="#contact">연락처 영역 바로가기</a>
@@ -17,7 +17,7 @@
           <h1 class="hero__title">안녕하세요, <span class="highlight">현창</span>입니다</h1>
           <p class="hero__subtitle">AI 웹 개발자 현창입니다.</p>
           <div class="hero__buttons">
-            <a href="#port" class="btn btn-primary">프로젝트 보기</a>
+            <a href="#skill" class="btn btn-primary">경력 보기</a>
             <a href="#contact" class="btn btn-secondary">연락하기</a>
           </div>
         </div>
@@ -54,84 +54,114 @@
         </div>
       </section>
 
-      <!-- Challenge Section -->
-      <section id="skill" class="challenge-section">
-        <div class="challenge__inner">
-          <h2 class="challenge__title">Challenge <em>나의 경력</em></h2>
-          <div class="challenge__desc">
-            <div class="challenge__item">
-              <span class="challenge__period">2017.09.04 ~ 2021.09.24</span>
-              <h3 class="challenge__company">(주)나일소프트</h3>
-              <p class="challenge__work">웹 취약점점검 솔루션 개발 및 유지보수</p>
-              <p class="challenge__work">JAVA 웹 개발</p>
-              <p class="challenge__work">clireport 보고서 개발</p>
+      <!-- Career & Projects Section -->
+      <section id="skill" class="career-section">
+        <div class="career__inner">
+          <h2 class="career__title">Career <em>경력 및 프로젝트</em></h2>
+          <div class="career__list">
+
+            <div class="career__item">
+              <div class="career__header">
+                <div class="career__icon">🤖</div>
+                <div class="career__meta">
+                  <h3 class="career__company">(주)포니링크</h3>
+                  <span class="career__period">2025.04.21 ~ 재직중</span>
+                </div>
+                <span class="career__badge current">재직중</span>
+              </div>
+              <div class="career__body">
+                <p class="career__role">LLM 개발운영 — 대규모 언어 모델 프로젝트</p>
+                <ul class="career__projects">
+                  <li>SKT — LLM 서비스 개발 및 운영</li>
+                  <li>H사 — 대규모 언어 모델 개발</li>
+                </ul>
+                <div class="career__tags">
+                  <span>Python</span><span>LLM</span><span>Spring Boot</span><span>Docker</span>
+                </div>
+              </div>
             </div>
-            <div class="challenge__item">
-              <span class="challenge__period">2021.10.05 ~ 2021.11.09</span>
-              <h3 class="challenge__company">(주)아이나비모빌리티</h3>
-              <p class="challenge__work">서버개발</p>
+
+            <div class="career__item">
+              <div class="career__header">
+                <div class="career__icon">💬</div>
+                <div class="career__meta">
+                  <h3 class="career__company">(주)NHN다이퀘스트</h3>
+                  <span class="career__period">2021.11.29 ~ 2024.10.18 (35개월)</span>
+                </div>
+              </div>
+              <div class="career__body">
+                <p class="career__role">AI 콜봇·챗봇 개발 및 유지보수 / 딥러닝 CI/CD 구축</p>
+                <ul class="career__projects">
+                  <li>국민은행 — 챗봇/콜봇 SI 1차</li>
+                  <li>법률구조공단 — 챗봇 백엔드 개발</li>
+                  <li>국민은행 — 챗봇/콜봇 SI 고도화</li>
+                  <li>한전, 신한은행, 흥국화재, 하나손보, 신한라이프, 신한투자증권, 삼성카드 등 SM</li>
+                </ul>
+                <div class="career__tags">
+                  <span>Java</span><span>Spring</span><span>AI/NLP</span><span>Docker</span><span>Jenkins</span>
+                </div>
+              </div>
             </div>
-            <div class="challenge__item">
-              <span class="challenge__period">2021.11.29 ~ 2024.10.18</span>
-              <h3 class="challenge__company">(주)NHN다이퀘스트</h3>
-              <p class="challenge__work">AI 콜봇 개발 및 유지보수</p>
-              <p class="challenge__work">엔진 및 딥러닝 패치</p>
-              <p class="challenge__work">딥러닝 CI/CD 구축 (docker, 젠킨스, 깃)</p>
+
+            <div class="career__item">
+              <div class="career__header">
+                <div class="career__icon">🗺️</div>
+                <div class="career__meta">
+                  <h3 class="career__company">(주)아이나비모빌리티</h3>
+                  <span class="career__period">2021.10.05 ~ 2021.11.09 (1개월)</span>
+                </div>
+              </div>
+              <div class="career__body">
+                <p class="career__role">서버 개발</p>
+                <ul class="career__projects">
+                  <li>네비게이션 로그 개발</li>
+                </ul>
+                <div class="career__tags">
+                  <span>Java</span><span>서버 개발</span>
+                </div>
+              </div>
             </div>
-            <div class="challenge__item">
-              <span class="challenge__period">2025.04.21 ~ 재직중</span>
-              <h3 class="challenge__company">(주)포니링크</h3>
-              <p class="challenge__work">LLM 개발운영 - 대규모 언어 모델 프로젝트</p>
+
+            <div class="career__item">
+              <div class="career__header">
+                <div class="career__icon">🔒</div>
+                <div class="career__meta">
+                  <h3 class="career__company">(주)나일소프트</h3>
+                  <span class="career__period">2017.09.04 ~ 2021.09.24 (49개월)</span>
+                </div>
+              </div>
+              <div class="career__body">
+                <p class="career__role">웹 취약점 점검 솔루션 개발 및 유지보수 / Java 웹 개발</p>
+                <ul class="career__projects">
+                  <li>교통안전공단, 아산병원 — 웹 취약점 점검 프로젝트 SI</li>
+                  <li>국민카드 — 웹 취약점 점검 프로젝트 SM</li>
+                  <li>KB국민은행 등 다수 기업 SM</li>
+                </ul>
+                <div class="career__tags">
+                  <span>Java</span><span>JSP</span><span>Oracle DB</span><span>보안 솔루션</span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
-      
-      <!-- Projects Section -->
-      <section id="projects" class="projects-section">
-        <div class="projects__inner">
-          <h2 class="projects__title">Projects</h2>
-          <div class="projects__wrap">
-            <article class="project__item">
-              <div class="project__icon graduation">
-                <i class="icon">🎓</i>
+
+            <div class="career__item">
+              <div class="career__header">
+                <div class="career__icon">⚙️</div>
+                <div class="career__meta">
+                  <h3 class="career__company">칼라세븐</h3>
+                  <span class="career__period">2016.11.02 ~ 2017.02.01 (3개월)</span>
+                </div>
               </div>
-              <h3 class="project__title">웹 취약점점검 솔루션 개발</h3>
-              <p class="project__desc">나일소프트</p>
-              <div class="project__tech">
-                <span class="tech__tag">도로교통공단</span>
-                <span class="tech__tag">아산병원</span>
-                <span class="tech__tag">KB국민은행</span>
+              <div class="career__body">
+                <p class="career__role">임베디드 개발</p>
+                <ul class="career__projects">
+                  <li>생리통 치료기기 임베디드 개발</li>
+                </ul>
+                <div class="career__tags">
+                  <span>Embedded</span><span>C/C++</span>
+                </div>
               </div>
-              <div class="project__period">2017.09 ~ 2021.09</div>
-            </article>
-            
-            <article class="project__item">
-              <div class="project__icon shopping">
-                <i class="icon">🛒</i>
-              </div>
-              <h3 class="project__title">챗봇 콜봇 솔루션 개발</h3>
-              <p class="project__desc">NHN다이퀘스트</p>
-              <div class="project__tech">
-                <span class="tech__tag">KB국민은행</span>
-                <span class="tech__tag">신한라이프</span>
-                <span class="tech__tag">하나은행</span>
-              </div>
-              <div class="project__period">2021.11 ~ 2024.10</div>
-            </article>
-            
-            <article class="project__item">
-              <div class="project__icon dashboard">
-                <i class="icon">📊</i>
-              </div>
-              <h3 class="project__title">LLM 개발</h3>
-              <p class="project__desc">포니링크</p>
-              <div class="project__tech">
-                <span class="tech__tag">SKT</span>
-                <span class="tech__tag">H사</span>
-              </div>
-              <div class="project__period">2025.04 ~ 재직중</div>
-            </article>
+            </div>
+
           </div>
         </div>
       </section>
@@ -503,10 +533,10 @@ html, body {
   font-weight: 500;
 }
 
-/* Challenge Section */
-.challenge-section {
+/* Career & Projects Section */
+.career-section {
   padding: 5rem 0;
-  background: #667eea;
+  background: linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
   color: white;
   width: 100vw;
   margin-left: calc(-50vw + 50%);
@@ -515,93 +545,36 @@ html, body {
   overflow: hidden;
 }
 
-.challenge__inner {
-  max-width: 1200px;
+.career__inner {
+  max-width: 900px;
   margin: 0 auto;
   padding: 0 2rem;
   width: 100%;
 }
 
-.challenge__title {
+.career__title {
   font-size: 2.5rem;
   font-weight: bold;
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 3.5rem;
   position: relative;
 }
 
-.challenge__title::after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 3px;
-  background: white;
-}
-
-.challenge__desc {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-}
-
-.challenge__item {
-  background: rgba(255,255,255,0.1);
-  padding: 2rem;
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-}
-
-.challenge__period {
-  font-size: 0.9rem;
-  opacity: 0.8;
-  margin-bottom: 0.5rem;
+.career__title em {
   display: block;
+  font-size: 1rem;
+  font-weight: 400;
+  opacity: 0.7;
+  font-style: normal;
+  margin-top: 0.4rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-.challenge__company {
-  font-size: 1.3rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-}
-
-.challenge__work {
-  margin-bottom: 0.5rem;
-  opacity: 0.9;
-}
-
-/* Projects Section */
-.projects-section {
-  padding: 5rem 0;
-  background: white;
-  width: 100vw;
-  margin-left: calc(-50vw + 50%);
-  margin-right: calc(-50vw + 50%);
-  position: relative;
-  overflow: hidden;
-}
-
-.projects__inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
-  width: 100%;
-}
-
-.projects__title {
-  font-size: 2.5rem;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 3rem;
-  position: relative;
-}
-
-.projects__title::after {
+.career__title::after {
   content: '';
   position: absolute;
-  bottom: -10px;
+  bottom: -12px;
   left: 50%;
   transform: translateX(-50%);
   width: 60px;
@@ -609,79 +582,129 @@ html, body {
   background: #667eea;
 }
 
-.projects__wrap {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
+.career__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.project__item {
-  background: white;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  transition: transform 0.3s ease;
+.career__item {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.project__item:hover {
-  transform: translateY(-5px);
+.career__item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.2);
 }
 
-.project__icon {
-  width: 60px;
-  height: 60px;
+.career__header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 1.5rem 1rem;
+}
+
+.career__icon {
+  font-size: 1.8rem;
+  width: 52px;
+  height: 52px;
+  background: rgba(102, 126, 234, 0.2);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+
+.career__meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.career__company {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+  color: #fff;
+}
+
+.career__period {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.career__badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.career__badge.current {
+  background: rgba(102, 234, 139, 0.2);
+  color: #6eea8b;
+  border: 1px solid rgba(102, 234, 139, 0.3);
+}
+
+.career__body {
+  padding: 0 1.5rem 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 0;
+  padding-top: 1rem;
+}
+
+.career__role {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.75);
   margin-bottom: 1rem;
-  font-size: 1.5rem;
-}
-
-.project__icon.graduation {
-  background: #667eea;
-}
-
-.project__icon.shopping {
-  background: #28a745;
-}
-
-.project__icon.dashboard {
-  background: #6f42c1;
-}
-
-.project__title {
-  font-size: 1.3rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-  color: #333;
-}
-
-.project__desc {
-  color: #666;
   line-height: 1.5;
-  margin-bottom: 1rem;
 }
 
-.project__tech {
+.career__projects {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.career__projects li {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+  padding-left: 1.2rem;
+  position: relative;
+  line-height: 1.5;
+}
+
+.career__projects li::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  color: #667eea;
+  font-weight: bold;
+}
+
+.career__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
 }
 
-.tech__tag {
-  background: #e9ecef;
-  color: #495057;
-  padding: 4px 12px;
-  border-radius: 15px;
-  font-size: 0.8rem;
-}
-
-.project__period {
-  font-size: 0.9rem;
-  color: #6c757d;
-  font-style: italic;
+.career__tags span {
+  background: rgba(102, 126, 234, 0.2);
+  color: #a5b4fc;
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 500;
 }
 
 /* Experience Section */
@@ -953,12 +976,12 @@ html, body {
     gap: 2rem;
   }
   
-  .challenge__desc {
-    grid-template-columns: 1fr;
+  .career__header {
+    flex-wrap: wrap;
   }
-  
-  .projects__wrap {
-    grid-template-columns: 1fr;
+
+  .career__badge {
+    margin-left: auto;
   }
   
   .contact__methods {
@@ -972,8 +995,7 @@ html, body {
   
   /* 모바일에서 패딩 조정 */
   .about__inner,
-  .challenge__inner,
-  .projects__inner,
+  .career__inner,
   .experience__inner,
   .site__inner,
   .contact__inner {
@@ -997,8 +1019,7 @@ html, body {
   
   .hero-section,
   .about-section,
-  .challenge-section,
-  .projects-section,
+  .career-section,
   .experience-section,
   .site-section,
   .port-section,
