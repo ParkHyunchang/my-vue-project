@@ -162,6 +162,20 @@ router.beforeEach(async (to, from, next) => {
         }
     }
 
+    // ─────────────────────────────────────────────────────────────
+    // 새로고침 시 동적 라우트가 아직 등록되기 전에 진입하면
+    // to.matched 가 비어 있어 화면이 비는 문제가 발생할 수 있음.
+    // checkAuth 과정에서 syncDynamicRoutes 가 실행된 뒤 한 번 더
+    // 현재 경로를 resolve 해서 매칭되는 라우트가 생겼다면 거기로 재진입.
+    // ─────────────────────────────────────────────────────────────
+    if (to.matched.length === 0) {
+        const resolved = router.resolve(to.fullPath);
+        if (resolved.matched.length > 0) {
+            next({ ...resolved, replace: true });
+            return;
+        }
+    }
+
     next();
 });
 
