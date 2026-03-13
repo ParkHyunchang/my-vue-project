@@ -625,6 +625,18 @@
          📰 주식 뉴스
     ══════════════════════════════════════════ -->
     <div v-show="activeTab === 'news'" class="tab-content">
+      <!-- 국내 / 해외 토글 -->
+      <div class="news-market-toggle">
+        <button
+          :class="['news-market-btn', newsMarket === 'KR' && 'active']"
+          @click="switchNewsMarket('KR')"
+        >🇰🇷 국내</button>
+        <button
+          :class="['news-market-btn', newsMarket === 'US' && 'active']"
+          @click="switchNewsMarket('US')"
+        >🌐 해외</button>
+      </div>
+
       <!-- 로딩 -->
       <div v-if="newsLoading" class="loading-state">
         <div class="spinner"></div>
@@ -634,7 +646,7 @@
       <!-- 에러 -->
       <div v-else-if="newsError" class="error-state">
         <span>⚠️ {{ newsError }}</span>
-        <button class="retry-btn" @click="loadNews">다시 시도</button>
+        <button class="retry-btn" @click="loadNews(newsMarket)">다시 시도</button>
       </div>
 
       <!-- 뉴스 목록 -->
@@ -649,6 +661,7 @@
         >
           <div class="news-meta">
             <span class="news-source">{{ news.source }}</span>
+            <span v-if="newsMarket === 'US'" class="news-translated-badge">번역됨</span>
             <span class="news-date">{{ formatNewsDate(news.pubDate) }}</span>
           </div>
           <h4 class="news-title">{{ news.title }}</h4>
@@ -756,6 +769,7 @@ export default {
     const newsData = ref([]);
     const newsLoading = ref(false);
     const newsError = ref("");
+    const newsMarket = ref("KR");
 
     const tabs = [
       { id: "balance", icon: "💰", label: "내 잔고" },
@@ -786,7 +800,7 @@ export default {
         loadTop10();
       }
       if (id === "news" && newsData.value.length === 0) {
-        loadNews();
+        loadNews(newsMarket.value);
       }
       if (id === "balance") {
         fetchPrices(); // fetchPrices 내부에서 환율도 함께 조회
@@ -1369,11 +1383,11 @@ export default {
     }
 
     // ─── 뉴스 ────────────────────────────────────────
-    async function loadNews() {
+    async function loadNews(market = "KR") {
       newsLoading.value = true;
       newsError.value = "";
       try {
-        const res = await axios.get("/api/stock/news");
+        const res = await axios.get("/api/stock/news", { params: { market } });
         newsData.value = res.data;
       } catch (e) {
         newsError.value =
@@ -1381,6 +1395,13 @@ export default {
       } finally {
         newsLoading.value = false;
       }
+    }
+
+    async function switchNewsMarket(market) {
+      if (newsMarket.value === market) return;
+      newsMarket.value = market;
+      newsData.value = [];
+      await loadNews(market);
     }
 
     // ─── 포맷 헬퍼 ──────────────────────────────────
@@ -1523,6 +1544,8 @@ export default {
       newsData,
       newsLoading,
       newsError,
+      newsMarket,
+      switchNewsMarket,
       switchTab,
       switchHeatmap,
       switchTop10,

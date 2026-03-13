@@ -877,6 +877,36 @@
 /* ─────────────────────────────────────────────────────
    📰 뉴스
 ───────────────────────────────────────────────────── */
+.news-market-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.news-market-btn {
+  padding: 7px 20px;
+  border-radius: 20px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
+}
+
+.news-market-btn:hover {
+  background: var(--card-bg-hover);
+  border-color: var(--accent-glow);
+  color: var(--text-primary);
+}
+
+.news-market-btn.active {
+  background: var(--accent-dim);
+  border-color: var(--accent-glow);
+  color: var(--accent);
+  font-weight: 600;
+}
+
 .news-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -918,6 +948,17 @@
   border-radius: 999px;
   font-size: 0.72rem;
   font-weight: 700;
+  white-space: nowrap;
+}
+
+.news-translated-badge {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #22c55e;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
   white-space: nowrap;
 }
 
