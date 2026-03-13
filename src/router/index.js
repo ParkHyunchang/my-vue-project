@@ -17,6 +17,7 @@ const ROUTE_COMPONENTS = {
     '/todos':         { component: () => import('../pages/todos/index.vue'),           requiresAuth: true  },
     '/todos/create':  { component: () => import('../pages/todos/create/index.vue'),   requiresAuth: true  },
     '/expense':       { component: () => import('../pages/expense.vue'),              requiresAuth: true  },
+    '/stock':         { component: () => import('../pages/stock.vue'),                requiresAuth: true  },
 };
 
 const router = createRouter({
