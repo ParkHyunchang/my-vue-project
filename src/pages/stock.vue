@@ -259,16 +259,36 @@
           @click="switchHeatmap('kr')"
         >🇰🇷 국내 (KOSPI)</button>
         <button
-          :class="['market-btn', { active: heatmapMarket === 'us' }]"
-          @click="switchHeatmap('us')"
-        >🇺🇸 미국 (S&P 500)</button>
+          :class="['market-btn', { active: heatmapMarket === 'sp500' }]"
+          @click="switchHeatmap('sp500')"
+        >🇺🇸 S&amp;P 500</button>
+        <button
+          :class="['market-btn', { active: heatmapMarket === 'nasdaq' }]"
+          @click="switchHeatmap('nasdaq')"
+        >🇺🇸 NASDAQ 100</button>
       </div>
-      <div class="heatmap-wrapper">
+
+      <!-- 국내 히트맵 (ECharts) -->
+      <div v-if="heatmapMarket === 'kr'" class="heatmap-wrapper">
+        <div v-if="!krHeatmapLoading && !krHeatmapError && krUpdatedAt" class="kr-heatmap-header">
+          📅 {{ krUpdatedAt }} 기준 데이터
+          <span class="kr-sync-note">(매 30분마다 자동 동기화)</span>
+        </div>
+        <div v-if="krHeatmapLoading" class="heatmap-loading">
+          <span class="loading-spinner"></span> 데이터 로딩 중…
+        </div>
+        <div v-else-if="krHeatmapError" class="heatmap-error">{{ krHeatmapError }}</div>
+        <div v-else ref="krChartEl" class="kr-heatmap-chart"></div>
+        <p class="widget-credit">국내 데이터 제공: Yahoo Finance</p>
+      </div>
+
+      <!-- 해외 히트맵 (TradingView) -->
+      <div v-else class="heatmap-wrapper">
         <div id="tv-heatmap" class="tradingview-widget-container">
           <div class="tradingview-widget-container__widget"></div>
         </div>
+        <p class="widget-credit">데이터 제공: <a href="https://www.tradingview.com" target="_blank">TradingView</a></p>
       </div>
-      <p class="widget-credit">히트맵 데이터 제공: <a href="https://www.tradingview.com" target="_blank">TradingView</a></p>
     </div>
 
     <!-- ══════════════════════════════════════════
@@ -416,8 +436,9 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, nextTick } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import axios from '@/axios';
+import * as echarts from 'echarts';
 
 // 하드코딩 종목 목록 제거 — 백엔드 Yahoo Finance 검색으로 대체
 
@@ -435,6 +456,13 @@ export default {
     const activeTab     = ref('balance');
     const heatmapMarket = ref('kr');
     const top10Market   = ref('kr');
+
+    // ── 국내 히트맵 (ECharts) 상태 ─────────────────────────────
+    const krChartEl        = ref(null);
+    const krHeatmapLoading = ref(false);
+    const krHeatmapError   = ref('');
+    const krUpdatedAt      = ref('');
+    let   krChartInstance  = null;
 
     // ── 포트폴리오 상태 ──────────────────────────────────────
     const holdings      = ref([]);
@@ -475,7 +503,10 @@ export default {
     function switchTab(id) {
       activeTab.value = id;
       if (id === 'heatmap') {
-        nextTick(() => initHeatmap(heatmapMarket.value));
+        nextTick(() => {
+          if (heatmapMarket.value === 'kr') loadKrHeatmap();
+          else initHeatmap(heatmapMarket.value);
+        });
       }
       if (id === 'top10' && top10Data.value.length === 0) {
         loadTop10();
@@ -716,7 +747,114 @@ export default {
     // ─── 히트맵 ──────────────────────────────────────
     function switchHeatmap(market) {
       heatmapMarket.value = market;
-      nextTick(() => initHeatmap(market));
+      // 국내→해외 전환 시 ECharts 인스턴스 정리
+      if (market !== 'kr' && krChartInstance) {
+        krChartInstance.dispose();
+        krChartInstance = null;
+      }
+      nextTick(() => {
+        if (market === 'kr') loadKrHeatmap();
+        else initHeatmap(market);
+      });
+    }
+
+    async function loadKrHeatmap() {
+      krHeatmapLoading.value = true;
+      krHeatmapError.value   = '';
+      try {
+        const res = await axios.get('/api/stock/heatmap/kr');
+        krUpdatedAt.value = res.data.updatedAt || '';
+
+        // loading을 false로 먼저 바꿔야 v-else 차트 div가 DOM에 생성됨
+        krHeatmapLoading.value = false;
+        await nextTick();
+
+        const el = krChartEl.value;
+        if (!el) return;
+
+        if (krChartInstance) krChartInstance.dispose();
+        krChartInstance = echarts.init(el, 'dark');
+        krChartInstance.setOption(buildKrOption(res.data.sectors));
+      } catch (e) {
+        krHeatmapError.value = '국내 히트맵 데이터를 불러올 수 없습니다.';
+        krHeatmapLoading.value = false;
+      }
+    }
+
+    function heatColor(pct) {
+      if (pct >=  4) return '#0ecb81';
+      if (pct >=  2) return '#1a9e64';
+      if (pct >=  0.5) return '#0d7a4e';
+      if (pct >=  0) return '#1a4a35';
+      if (pct > -0.5) return '#5e1a1a';
+      if (pct > -2)   return '#b03030';
+      if (pct > -4)   return '#d94040';
+      return '#ff4d4d';
+    }
+
+    function buildKrOption(sectors) {
+      const treeData = sectors.map(sector => ({
+        name: sector.sector,
+        children: sector.stocks.map(s => ({
+          name: s.name,
+          value: s.marketCap,
+          changePct: s.changePercent,
+          price: s.price,
+          symbol: s.symbol,
+          itemStyle: { color: heatColor(s.changePercent) },
+        })),
+      }));
+
+      return {
+        backgroundColor: 'transparent',
+        tooltip: {
+          formatter(info) {
+            const d = info.data;
+            if (!d.changePct && d.changePct !== 0) return d.name;
+            const sign = d.changePct >= 0 ? '+' : '';
+            return `<b>${d.name}</b><br/>
+                    ${d.price?.toLocaleString('ko-KR')}원<br/>
+                    ${sign}${d.changePct.toFixed(2)}%`;
+          },
+        },
+        series: [{
+          type: 'treemap',
+          roam: false,
+          nodeClick: false,
+          breadcrumb: { show: true, itemStyle: { color: '#2a2a3e' } },
+          label: {
+            show: true,
+            formatter(p) {
+              const d = p.data;
+              if (!d.changePct && d.changePct !== 0) return p.name;
+              const sign = d.changePct >= 0 ? '+' : '';
+              return `{name|${d.name}}\n{pct|${sign}${d.changePct.toFixed(2)}%}`;
+            },
+            rich: {
+              name: { fontSize: 12, fontWeight: 'bold', color: '#fff' },
+              pct:  { fontSize: 11, color: 'rgba(255,255,255,0.85)' },
+            },
+          },
+          upperLabel: {
+            show: true,
+            height: 28,
+            color: '#fff',
+            fontWeight: 'bold',
+            fontSize: 13,
+            backgroundColor: 'rgba(0,0,0,0.35)',
+          },
+          itemStyle: { borderColor: '#1a1a2e', borderWidth: 2, gapWidth: 2 },
+          levels: [
+            { itemStyle: { borderColor: '#555', borderWidth: 3, gapWidth: 3 } },
+            { itemStyle: { borderWidth: 2, gapWidth: 2 } },
+          ],
+          data: treeData,
+        }],
+      };
+    }
+
+    function onResizeKrChart() {
+      if (krChartInstance) krChartInstance.resize();
     }
 
     function initHeatmap(market) {
@@ -731,12 +869,12 @@ export default {
       script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js';
       script.async = true;
       script.textContent = JSON.stringify({
-        exchanges:          [],
-        dataSource:         market === 'kr' ? 'KOSPI' : 'SPX500',
+        exchanges:          market === 'nasdaq' ? ['NASDAQ'] : [],
+        dataSource:         market === 'nasdaq' ? 'NDX100' : 'SPX500',
         grouping:           'sector',
         blockSize:          'market_cap_basic',
         blockColor:         'change',
-        locale:             market === 'kr' ? 'kr' : 'en',
+        locale:             'en',
         symbolUrl:          '',
         colorTheme:         'dark',
         hasTopBar:          false,
@@ -835,10 +973,17 @@ export default {
     onMounted(() => {
       loadHoldings();
       fetchPrices();
+      window.addEventListener('resize', onResizeKrChart);
+    });
+
+    onBeforeUnmount(() => {
+      window.removeEventListener('resize', onResizeKrChart);
+      if (krChartInstance) { krChartInstance.dispose(); krChartInstance = null; }
     });
 
     return {
       activeTab, heatmapMarket, top10Market, tabs,
+      krChartEl, krHeatmapLoading, krHeatmapError, krUpdatedAt,
       // 포트폴리오
       holdings, prices, priceLoading, portfolioView,
       showAddModal, searchQ, showDropdown, searchResults, searchLoading, newHolding,

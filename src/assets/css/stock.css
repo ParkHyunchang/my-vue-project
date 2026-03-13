@@ -497,6 +497,9 @@
   font-size: 0.84rem;
   font-weight: 600;
   transition: all 0.18s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
 }
 
 .market-btn:hover {
@@ -516,6 +519,40 @@
   border-radius: 12px;
   overflow: hidden;
   min-height: 580px;
+}
+
+.kr-heatmap-chart {
+  width: 100%;
+  height: 580px;
+}
+
+.kr-heatmap-header {
+  padding: 10px 16px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--card-border);
+  background: rgba(255,255,255,0.03);
+}
+
+.kr-sync-note {
+  margin-left: 8px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.heatmap-loading,
+.heatmap-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 580px;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  gap: 10px;
+}
+
+.heatmap-error {
+  color: #e74c3c;
 }
 
 .tradingview-widget-container {
