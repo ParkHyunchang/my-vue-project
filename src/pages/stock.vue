@@ -22,13 +22,17 @@
          💰 내 잔고 (포트폴리오)
     ══════════════════════════════════════════ -->
     <div v-show="activeTab === 'balance'" class="tab-content">
-
       <!-- 빈 상태 -->
       <div v-if="holdings.length === 0" class="portfolio-empty">
         <div class="portfolio-empty-icon">📊</div>
         <h3>보유 종목이 없습니다</h3>
-        <p>보유 중인 주식을 추가하면 평가금액과 종목 비중을 한눈에 확인할 수 있습니다.</p>
-        <button class="btn-add-primary" @click="openAddModal">＋ 종목 추가</button>
+        <p>
+          보유 중인 주식을 추가하면 평가금액과 종목 비중을 한눈에 확인할 수
+          있습니다.
+        </p>
+        <button class="btn-add-primary" @click="openAddModal">
+          ＋ 종목 추가
+        </button>
       </div>
 
       <template v-else>
@@ -37,16 +41,20 @@
           <div class="ps-left">
             <span class="ps-count">총 {{ holdings.length }}종목</span>
             <div class="ps-totals">
-              <span v-if="krTotal > 0" class="ps-total-val">🇰🇷 {{ fmtKRW(krTotal) }}</span>
+              <span v-if="krTotal > 0" class="ps-total-val"
+                >🇰🇷 {{ fmtKRW(krTotal) }}</span
+              >
               <span v-if="krTotal > 0 && usTotal > 0" class="ps-sep">·</span>
-              <span v-if="usTotal > 0" class="ps-total-val">🇺🇸 {{ fmtUSD(usTotal) }}</span>
+              <span v-if="usTotal > 0" class="ps-total-val"
+                >🇺🇸 {{ fmtUSD(usTotal) }}</span
+              >
             </div>
             <div v-if="hasAvgPrice" class="ps-pnl">
               <span :class="['ps-pnl-val', pnlCls(totalPnl)]">
-                {{ totalPnl >= 0 ? '▲' : '▼' }} {{ fmtAbsPnl(totalPnl) }}
+                {{ totalPnl >= 0 ? "▲" : "▼" }} {{ fmtAbsPnl(totalPnl) }}
               </span>
               <span :class="['ps-pnl-pct', pnlCls(totalPnl)]">
-                ({{ totalPnlPct >= 0 ? '+' : '' }}{{ totalPnlPct.toFixed(2) }}%)
+                ({{ totalPnlPct >= 0 ? "+" : "" }}{{ totalPnlPct.toFixed(2) }}%)
               </span>
             </div>
           </div>
@@ -55,17 +63,24 @@
 
         <!-- 목록 / 차트 전환 탭 -->
         <div class="portfolio-view-tabs">
-          <button :class="['pv-tab', { active: portfolioView === 'grid' }]" @click="portfolioView = 'grid'">
+          <button
+            :class="['pv-tab', { active: portfolioView === 'grid' }]"
+            @click="portfolioView = 'grid'"
+          >
             ≡ 목록
           </button>
-          <button :class="['pv-tab', { active: portfolioView === 'chart' }]" @click="portfolioView = 'chart'">
+          <button
+            :class="['pv-tab', { active: portfolioView === 'chart' }]"
+            @click="portfolioView = 'chart'"
+          >
             ◎ 차트
           </button>
         </div>
 
         <!-- 현재가 로딩 -->
-        <div v-if="priceLoading" class="loading-state" style="padding:24px 0">
-          <div class="spinner"></div><span>현재가 조회 중...</span>
+        <div v-if="priceLoading" class="loading-state" style="padding: 24px 0">
+          <div class="spinner"></div>
+          <span>현재가 조회 중...</span>
         </div>
 
         <!-- 목록 뷰 -->
@@ -88,38 +103,83 @@
                 <!-- 편집 모드 -->
                 <template v-if="editingId === h.id">
                   <td class="hname-cell">
-                    <span class="mkt-flag">{{ h.market === 'KR' ? '🇰🇷' : '🇺🇸' }}</span>
-                    <div><div class="h-name">{{ h.name }}</div><div class="h-sym">{{ h.symbol }}</div></div>
+                    <span class="mkt-flag">{{
+                      h.market === "KR" ? "🇰🇷" : "🇺🇸"
+                    }}</span>
+                    <div>
+                      <div class="h-name">{{ h.name }}</div>
+                      <div class="h-sym">{{ h.symbol }}</div>
+                    </div>
                   </td>
-                  <td class="td-r"><input v-model.number="editForm.quantity" type="number" min="1" class="inline-inp" /></td>
+                  <td class="td-r">
+                    <input
+                      v-model.number="editForm.quantity"
+                      type="number"
+                      min="1"
+                      class="inline-inp"
+                    />
+                  </td>
                   <td class="td-r">{{ fmtCurPrice(h) }}</td>
                   <td class="td-r">{{ fmtHoldVal(h) }}</td>
-                  <td class="td-r"><input v-model.number="editForm.avgPrice" type="number" min="0" class="inline-inp" placeholder="미입력" /></td>
+                  <td class="td-r">
+                    <input
+                      v-model.number="editForm.avgPrice"
+                      type="number"
+                      min="0"
+                      class="inline-inp"
+                      placeholder="미입력"
+                    />
+                  </td>
                   <td class="td-r">—</td>
                   <td class="td-r">—</td>
                   <td class="td-act">
-                    <button class="act-btn act-save" @click="saveEdit(h)">저장</button>
-                    <button class="act-btn act-cancel" @click="editingId = null">취소</button>
+                    <button class="act-btn act-save" @click="saveEdit(h)">
+                      저장
+                    </button>
+                    <button
+                      class="act-btn act-cancel"
+                      @click="editingId = null"
+                    >
+                      취소
+                    </button>
                   </td>
                 </template>
                 <!-- 일반 모드 -->
                 <template v-else>
                   <td class="hname-cell">
-                    <span class="mkt-flag">{{ h.market === 'KR' ? '🇰🇷' : '🇺🇸' }}</span>
-                    <div><div class="h-name">{{ h.name }}</div><div class="h-sym">{{ h.symbol }}</div></div>
+                    <span class="mkt-flag">{{
+                      h.market === "KR" ? "🇰🇷" : "🇺🇸"
+                    }}</span>
+                    <div>
+                      <div class="h-name">{{ h.name }}</div>
+                      <div class="h-sym">{{ h.symbol }}</div>
+                    </div>
                   </td>
                   <td class="td-r">{{ h.quantity.toLocaleString() }}</td>
                   <td class="td-r">{{ fmtCurPrice(h) }}</td>
                   <td class="td-r">{{ fmtHoldVal(h) }}</td>
                   <td class="td-r">
-                    <span v-if="h.avgPrice">{{ fmtByMkt(h.avgPrice, h.market) }}</span>
+                    <span v-if="h.avgPrice">{{
+                      fmtByMkt(h.avgPrice, h.market)
+                    }}</span>
                     <span v-else class="txt-muted">—</span>
                   </td>
-                  <td :class="['td-r', pnlCls(holdPnl(h))]">{{ fmtHoldPnl(h) }}</td>
-                  <td :class="['td-r', pnlCls(holdPnlPct(h))]">{{ fmtHoldPnlPct(h) }}</td>
+                  <td :class="['td-r', pnlCls(holdPnl(h))]">
+                    {{ fmtHoldPnl(h) }}
+                  </td>
+                  <td :class="['td-r', pnlCls(holdPnlPct(h))]">
+                    {{ fmtHoldPnlPct(h) }}
+                  </td>
                   <td class="td-act">
-                    <button class="act-btn act-edit" @click="startEdit(h)">수정</button>
-                    <button class="act-btn act-del" @click="removeHolding(h.id)">삭제</button>
+                    <button class="act-btn act-edit" @click="startEdit(h)">
+                      수정
+                    </button>
+                    <button
+                      class="act-btn act-del"
+                      @click="removeHolding(h.id)"
+                    >
+                      삭제
+                    </button>
                   </td>
                 </template>
               </tr>
@@ -139,8 +199,39 @@
                   :fill="seg.color"
                   class="donut-seg"
                 />
-                <text class="donut-lbl1" y="-10" text-anchor="middle" font-size="9" fill="var(--text-muted)">총 평가</text>
-                <text class="donut-lbl2" y="8" text-anchor="middle" font-size="15" font-weight="600" fill="var(--text-primary)">{{ holdings.length }}종목</text>
+                <template v-for="seg in chartSegments" :key="'lbl-' + seg.id">
+                  <text
+                    v-if="seg.pct >= 0.05"
+                    :x="seg.labelX"
+                    :y="seg.labelY"
+                    text-anchor="middle"
+                    dominant-baseline="middle"
+                    font-size="7"
+                    font-weight="700"
+                    fill="white"
+                  >
+                    {{ (seg.pct * 100).toFixed(1) }}%
+                  </text>
+                </template>
+                <text
+                  class="donut-lbl1"
+                  y="-10"
+                  text-anchor="middle"
+                  font-size="9"
+                  fill="var(--text-muted)"
+                >
+                  총 평가
+                </text>
+                <text
+                  class="donut-lbl2"
+                  y="8"
+                  text-anchor="middle"
+                  font-size="15"
+                  font-weight="600"
+                  fill="var(--text-primary)"
+                >
+                  {{ holdings.length }}종목
+                </text>
               </svg>
             </div>
             <div class="chart-legend">
@@ -162,7 +253,11 @@
          종목 추가 모달
     ══════════════════════════════════════════ -->
     <teleport to="body">
-      <div v-if="showAddModal" class="modal-overlay" @click.self="closeAddModal">
+      <div
+        v-if="showAddModal"
+        class="modal-overlay"
+        @click.self="closeAddModal"
+      >
         <div class="modal-box">
           <div class="modal-hdr">
             <h3>종목 추가</h3>
@@ -171,7 +266,7 @@
 
           <!-- 종목 검색 (Yahoo Finance 실시간) -->
           <div class="mform-row">
-            <label>종목 검색</label>
+            <label>종목 검색 ( 종목코드 )</label>
             <div class="stock-search-box">
               <input
                 v-model="searchQ"
@@ -186,23 +281,38 @@
               <!-- 로딩 -->
               <div v-if="searchLoading" class="search-loading">검색 중...</div>
               <!-- 결과 드롭다운 -->
-              <div v-else-if="showDropdown && searchResults.length > 0" class="stock-dropdown">
+              <div
+                v-else-if="showDropdown && searchResults.length > 0"
+                class="stock-dropdown"
+              >
                 <div
                   v-for="s in searchResults"
                   :key="s.symbol"
                   class="stock-drop-item"
                   @mousedown.prevent="selectStock(s)"
                 >
-                  <span class="sdi-flag">{{ s.market === 'KR' ? '🇰🇷' : '🇺🇸' }}</span>
+                  <span class="sdi-flag">{{
+                    s.market === "KR" ? "🇰🇷" : "🇺🇸"
+                  }}</span>
                   <div class="sdi-info">
                     <span class="sdi-name">{{ s.name }}</span>
-                    <span class="sdi-meta">{{ s.symbol }} · {{ s.exchange }}</span>
+                    <span class="sdi-meta"
+                      >{{ s.symbol }} · {{ s.exchange }}</span
+                    >
                   </div>
                   <span class="sdi-type">{{ s.type }}</span>
                 </div>
               </div>
               <!-- 결과 없음 -->
-              <div v-else-if="showDropdown && searchQ.length > 1 && !searchLoading && searchResults.length === 0" class="search-empty">
+              <div
+                v-else-if="
+                  showDropdown &&
+                  searchQ.length > 1 &&
+                  !searchLoading &&
+                  searchResults.length === 0
+                "
+                class="search-empty"
+              >
                 검색 결과가 없습니다
               </div>
             </div>
@@ -211,38 +321,67 @@
           <!-- 선택된 종목 표시 (검색 후 자동 입력됨) -->
           <div class="mform-row">
             <label>종목명</label>
-            <input v-model="newHolding.name" type="text" placeholder="위에서 종목을 검색하세요" readonly class="inp-readonly" />
+            <input
+              v-model="newHolding.name"
+              type="text"
+              placeholder="위에서 종목을 검색하세요"
+              readonly
+              class="inp-readonly"
+            />
           </div>
           <div class="mform-row">
             <label>심볼</label>
-            <input v-model="newHolding.symbol" type="text" placeholder="위에서 종목을 검색하세요" readonly class="inp-readonly" />
+            <input
+              v-model="newHolding.symbol"
+              type="text"
+              placeholder="위에서 종목을 검색하세요"
+              readonly
+              class="inp-readonly"
+            />
           </div>
 
           <!-- 감지된 시장 표시 -->
           <div v-if="newHolding.symbol" class="detected-market">
             <span>감지된 시장:</span>
             <span class="dm-badge">
-              {{ (newHolding.symbol.toUpperCase().endsWith('.KS') || newHolding.symbol.toUpperCase().endsWith('.KQ'))
-                  ? '🇰🇷 국내 (KRW)'
-                  : (newHolding.market === 'KR' ? '🇰🇷 국내 (KRW)' : '🇺🇸 미국 (USD)') }}
+              {{
+                newHolding.symbol.toUpperCase().endsWith(".KS") ||
+                newHolding.symbol.toUpperCase().endsWith(".KQ")
+                  ? "🇰🇷 국내 (KRW)"
+                  : newHolding.market === "KR"
+                  ? "🇰🇷 국내 (KRW)"
+                  : "🇺🇸 미국 (USD)"
+              }}
             </span>
           </div>
 
           <!-- 보유수량 -->
           <div class="mform-row">
             <label>보유수량</label>
-            <input v-model.number="newHolding.quantity" type="number" min="1" placeholder="0" />
+            <input
+              v-model.number="newHolding.quantity"
+              type="number"
+              min="1"
+              placeholder="0"
+            />
           </div>
 
           <!-- 평단가 (선택) -->
           <div class="mform-row">
             <label>평단가 <span class="opt-label">(선택)</span></label>
-            <input v-model.number="newHolding.avgPrice" type="number" min="0" :placeholder="newHolding.market === 'KR' ? '원 단위' : 'USD'" />
+            <input
+              v-model.number="newHolding.avgPrice"
+              type="number"
+              min="0"
+              :placeholder="newHolding.market === 'KR' ? '원 단위' : 'USD'"
+            />
           </div>
 
           <div class="modal-actions">
             <button class="mbtn-cancel" @click="closeAddModal">취소</button>
-            <button class="mbtn-submit" @click="addHolding" :disabled="!canAdd">추가</button>
+            <button class="mbtn-submit" @click="addHolding" :disabled="!canAdd">
+              추가
+            </button>
           </div>
         </div>
       </div>
@@ -256,27 +395,38 @@
         <button
           :class="['market-btn', { active: heatmapMarket === 'kr' }]"
           @click="switchHeatmap('kr')"
-        >🇰🇷 국내 (KOSPI)</button>
+        >
+          🇰🇷 국내 (KOSPI)
+        </button>
         <button
           :class="['market-btn', { active: heatmapMarket === 'sp500' }]"
           @click="switchHeatmap('sp500')"
-        >🇺🇸 S&amp;P 500</button>
+        >
+          🇺🇸 S&amp;P 500
+        </button>
         <button
           :class="['market-btn', { active: heatmapMarket === 'nasdaq' }]"
           @click="switchHeatmap('nasdaq')"
-        >🇺🇸 NASDAQ 100</button>
+        >
+          🇺🇸 NASDAQ 100
+        </button>
       </div>
 
       <!-- 국내 히트맵 (ECharts) -->
       <div v-if="heatmapMarket === 'kr'" class="heatmap-wrapper">
-        <div v-if="!krHeatmapLoading && !krHeatmapError && krUpdatedAt" class="kr-heatmap-header">
+        <div
+          v-if="!krHeatmapLoading && !krHeatmapError && krUpdatedAt"
+          class="kr-heatmap-header"
+        >
           📅 {{ krUpdatedAt }} 기준 데이터
           <span class="kr-sync-note">(매 30분마다 자동 동기화)</span>
         </div>
         <div v-if="krHeatmapLoading" class="heatmap-loading">
           <span class="loading-spinner"></span> 데이터 로딩 중…
         </div>
-        <div v-else-if="krHeatmapError" class="heatmap-error">{{ krHeatmapError }}</div>
+        <div v-else-if="krHeatmapError" class="heatmap-error">
+          {{ krHeatmapError }}
+        </div>
         <div v-else ref="krChartEl" class="kr-heatmap-chart"></div>
         <p class="widget-credit">국내 데이터 제공: Yahoo Finance</p>
       </div>
@@ -285,17 +435,26 @@
       <div v-else class="heatmap-wrapper">
         <div v-if="tvUpdatedAt" class="kr-heatmap-header">
           📅 {{ tvUpdatedAt }} 로드
-          <span :class="['tv-market-status', isUsMarketOpen() ? 'market-open' : 'market-closed']">
-            {{ isUsMarketOpen() ? '🟢 장중' : '🔴 장외' }}
+          <span
+            :class="[
+              'tv-market-status',
+              isUsMarketOpen() ? 'market-open' : 'market-closed',
+            ]"
+          >
+            {{ isUsMarketOpen() ? "🟢 장중" : "🔴 장외" }}
           </span>
           <span class="kr-sync-note">
-            (TradingView 실시간 위젯 · 장중 자동 업데이트 · NYSE/NASDAQ 22:30~05:00 KST)
+            (TradingView 실시간 위젯 · 장중 자동 업데이트 · NYSE/NASDAQ
+            22:30~05:00 KST)
           </span>
         </div>
         <div id="tv-heatmap" class="tradingview-widget-container">
           <div class="tradingview-widget-container__widget"></div>
         </div>
-        <p class="widget-credit">데이터 제공: <a href="https://www.tradingview.com" target="_blank">TradingView</a></p>
+        <p class="widget-credit">
+          데이터 제공:
+          <a href="https://www.tradingview.com" target="_blank">TradingView</a>
+        </p>
       </div>
     </div>
 
@@ -307,13 +466,21 @@
         <button
           :class="['market-btn', { active: top10Market === 'kr' }]"
           @click="switchTop10('kr')"
-        >🇰🇷 국내 (KOSPI)</button>
+        >
+          🇰🇷 국내 (KOSPI)
+        </button>
         <button
           :class="['market-btn', { active: top10Market === 'us' }]"
           @click="switchTop10('us')"
-        >🇺🇸 미국</button>
-        <span class="last-updated" v-if="top10UpdateTime">기준: {{ top10UpdateTime }}</span>
-        <span class="auto-refresh-info">🕐 자동 갱신: 🇰🇷 09:00 · 🇺🇸 23:30 (KST)</span>
+        >
+          🇺🇸 미국
+        </button>
+        <span class="last-updated" v-if="top10UpdateTime"
+          >기준: {{ top10UpdateTime }}</span
+        >
+        <span class="auto-refresh-info"
+          >🕐 자동 갱신: 🇰🇷 09:00 · 🇺🇸 23:30 (KST)</span
+        >
       </div>
 
       <!-- 로딩 -->
@@ -349,9 +516,17 @@
           <tbody>
             <tr v-for="stock in top10Data" :key="stock.symbol">
               <td class="col-rank">
-                <span :class="['rank-badge', rankClass(stock.rank)]">{{ stock.rank }}</span>
-                <span v-if="stock.rankChange > 0"  class="rank-chg rank-up">▲{{ stock.rankChange }}</span>
-                <span v-else-if="stock.rankChange < 0" class="rank-chg rank-down">▼{{ Math.abs(stock.rankChange) }}</span>
+                <span :class="['rank-badge', rankClass(stock.rank)]">{{
+                  stock.rank
+                }}</span>
+                <span v-if="stock.rankChange > 0" class="rank-chg rank-up"
+                  >▲{{ stock.rankChange }}</span
+                >
+                <span
+                  v-else-if="stock.rankChange < 0"
+                  class="rank-chg rank-down"
+                  >▼{{ Math.abs(stock.rankChange) }}</span
+                >
                 <span v-else class="rank-chg rank-neutral">—</span>
               </td>
               <td class="col-name">
@@ -360,17 +535,25 @@
                   <span class="stock-symbol">{{ stock.symbol }}</span>
                 </div>
               </td>
-              <td class="col-price">{{ formatPrice(stock.price, stock.currency) }}</td>
+              <td class="col-price">
+                {{ formatPrice(stock.price, stock.currency) }}
+              </td>
               <td :class="['col-change', changeClass(stock.change)]">
-                {{ stock.change >= 0 ? '+' : '' }}{{ formatPrice(stock.change, stock.currency) }}
+                {{ stock.change >= 0 ? "+" : ""
+                }}{{ formatPrice(stock.change, stock.currency) }}
               </td>
               <td :class="['col-change-pct', changeClass(stock.changePercent)]">
-                <span class="change-badge" :class="changeClass(stock.changePercent)">
-                  {{ stock.changePercent >= 0 ? '▲' : '▼' }}
+                <span
+                  class="change-badge"
+                  :class="changeClass(stock.changePercent)"
+                >
+                  {{ stock.changePercent >= 0 ? "▲" : "▼" }}
                   {{ Math.abs(stock.changePercent).toFixed(2) }}%
                 </span>
               </td>
-              <td class="col-mcap">{{ formatMarketCap(stock.marketCap, stock.currency) }}</td>
+              <td class="col-mcap">
+                {{ formatMarketCap(stock.marketCap, stock.currency) }}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -384,7 +567,10 @@
             <span class="schedule-flag">🇰🇷</span>
             <div class="schedule-detail">
               <strong>국내 (KOSPI)</strong>
-              <span>매일 09:00 KST — KRX 시총 순위 기반, 한국 장 개장 직전 갱신</span>
+              <span
+                >매일 09:00 KST — KRX 시총 순위 기반, 한국 장 개장 직전
+                갱신</span
+              >
             </div>
             <span class="schedule-time">09:00</span>
           </div>
@@ -397,7 +583,10 @@
             <span class="schedule-time">23:30</span>
           </div>
         </div>
-        <p class="schedule-note">🇰🇷 KRX 공식 API 기반 실제 KOSPI 시총 순위 · 🇺🇸 Yahoo Finance v8 기반 · 캐시 유효 시간 6시간 · 순위 변동(▲▼)은 직전 갱신 대비</p>
+        <p class="schedule-note">
+          🇰🇷 KRX 공식 API 기반 실제 KOSPI 시총 순위 · 🇺🇸 Yahoo Finance v8 기반 ·
+          캐시 유효 시간 6시간 · 순위 변동(▲▼)은 직전 갱신 대비
+        </p>
       </div>
 
       <p class="data-credit">시세 데이터: Alpha Vantage</p>
@@ -434,7 +623,9 @@
             <span class="news-date">{{ formatNewsDate(news.pubDate) }}</span>
           </div>
           <h4 class="news-title">{{ news.title }}</h4>
-          <p v-if="news.description" class="news-desc">{{ news.description }}</p>
+          <p v-if="news.description" class="news-desc">
+            {{ news.description }}
+          </p>
         </a>
       </div>
 
@@ -444,105 +635,126 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
-import axios from '@/axios';
-import * as echarts from 'echarts';
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
+import axios from "@/axios";
+import * as echarts from "echarts";
 
 // 하드코딩 종목 목록 제거 — 백엔드 Yahoo Finance 검색으로 대체
 
 const CHART_COLORS = [
-  '#6366f1','#f59e0b','#10b981','#3b82f6','#ec4899',
-  '#8b5cf6','#ef4444','#14b8a6','#f97316','#a78bfa',
-  '#34d399','#fb923c',
+  "#6366f1",
+  "#f59e0b",
+  "#10b981",
+  "#3b82f6",
+  "#ec4899",
+  "#8b5cf6",
+  "#ef4444",
+  "#14b8a6",
+  "#f97316",
+  "#a78bfa",
+  "#34d399",
+  "#fb923c",
 ];
 
-const PORTFOLIO_KEY = 'stock_portfolio';
+const PORTFOLIO_KEY = "stock_portfolio";
 
 export default {
-  name: 'StockPage',
+  name: "StockPage",
   setup() {
-    const activeTab     = ref('balance');
-    const heatmapMarket = ref('kr');
-    const top10Market   = ref('kr');
+    const activeTab = ref("balance");
+    const heatmapMarket = ref("kr");
+    const top10Market = ref("kr");
 
     // ── 국내 히트맵 (ECharts) 상태 ─────────────────────────────
-    const krChartEl        = ref(null);
+    const krChartEl = ref(null);
     const krHeatmapLoading = ref(false);
-    const krHeatmapError   = ref('');
-    const krUpdatedAt      = ref('');
-    let   krChartInstance  = null;
+    const krHeatmapError = ref("");
+    const krUpdatedAt = ref("");
+    let krChartInstance = null;
 
     // ── 해외 히트맵 (TradingView) 상태 ──────────────────────────
-    const tvUpdatedAt = ref('');
+    const tvUpdatedAt = ref("");
 
     function isUsMarketOpen() {
       // NYSE/NASDAQ: 월~금 22:30~05:00 KST
       const now = new Date();
-      const kst = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+      const kst = new Date(
+        now.toLocaleString("en-US", { timeZone: "Asia/Seoul" }),
+      );
       const day = kst.getDay(); // 0=일, 6=토
-      const h = kst.getHours(), m = kst.getMinutes();
+      const h = kst.getHours(),
+        m = kst.getMinutes();
       const minutes = h * 60 + m;
       if (day === 0 || day === 6) return false;
       return minutes >= 22 * 60 + 30 || minutes < 5 * 60;
     }
 
     // ── 포트폴리오 상태 ──────────────────────────────────────
-    const holdings      = ref([]);
-    const prices        = ref({});  // { symbol: StockPriceDto }
-    const priceLoading  = ref(false);
-    const portfolioView = ref('grid');
+    const holdings = ref([]);
+    const prices = ref({}); // { symbol: StockPriceDto }
+    const priceLoading = ref(false);
+    const portfolioView = ref("grid");
 
     // ── 종목 추가 모달 ────────────────────────────────────────
-    const showAddModal  = ref(false);
-    const searchQ       = ref('');
-    const showDropdown  = ref(false);
-    const searchResults = ref([]);   // 백엔드 검색 결과
+    const showAddModal = ref(false);
+    const searchQ = ref("");
+    const showDropdown = ref(false);
+    const searchResults = ref([]); // 백엔드 검색 결과
     const searchLoading = ref(false);
-    const newHolding    = ref({ market: 'US', name: '', symbol: '', quantity: null, avgPrice: null });
-    let   searchTimer   = null;      // debounce 타이머
+    const newHolding = ref({
+      market: "US",
+      name: "",
+      symbol: "",
+      quantity: null,
+      avgPrice: null,
+    });
+    let searchTimer = null; // debounce 타이머
 
     // ── 인라인 편집 ───────────────────────────────────────────
     const editingId = ref(null);
-    const editForm  = ref({ quantity: null, avgPrice: null });
+    const editForm = ref({ quantity: null, avgPrice: null });
 
-    const top10Data       = ref([]);
-    const top10Loading    = ref(false);
-    const top10Error      = ref('');
-    const top10UpdateTime = ref('');
+    const top10Data = ref([]);
+    const top10Loading = ref(false);
+    const top10Error = ref("");
+    const top10UpdateTime = ref("");
 
-    const newsData    = ref([]);
+    const newsData = ref([]);
     const newsLoading = ref(false);
-    const newsError   = ref('');
+    const newsError = ref("");
 
     const tabs = [
-      { id: 'balance', icon: '💰', label: '내 잔고' },
-      { id: 'heatmap', icon: '🗺️', label: '히트맵' },
-      { id: 'top10',   icon: '🏆', label: '시총 Top 10' },
-      { id: 'news',    icon: '📰', label: '주식 뉴스' },
+      { id: "balance", icon: "💰", label: "내 잔고" },
+      { id: "heatmap", icon: "🗺️", label: "히트맵" },
+      { id: "top10", icon: "🏆", label: "시총 Top 10" },
+      { id: "news", icon: "📰", label: "주식 뉴스" },
     ];
 
     // ─── 탭 전환 ─────────────────────────────────────
     function switchTab(id) {
       activeTab.value = id;
-      if (id === 'heatmap') {
-        if (heatmapMarket.value !== 'kr') {
-          tvUpdatedAt.value = new Date().toLocaleString('ko-KR', {
-            year: 'numeric', month: 'numeric', day: 'numeric',
-            hour: '2-digit', minute: '2-digit',
+      if (id === "heatmap") {
+        if (heatmapMarket.value !== "kr") {
+          tvUpdatedAt.value = new Date().toLocaleString("ko-KR", {
+            year: "numeric",
+            month: "numeric",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
           });
         }
         nextTick(() => {
-          if (heatmapMarket.value === 'kr') loadKrHeatmap();
+          if (heatmapMarket.value === "kr") loadKrHeatmap();
           else initHeatmap(heatmapMarket.value);
         });
       }
-      if (id === 'top10' && top10Data.value.length === 0) {
+      if (id === "top10" && top10Data.value.length === 0) {
         loadTop10();
       }
-      if (id === 'news' && newsData.value.length === 0) {
+      if (id === "news" && newsData.value.length === 0) {
         loadNews();
       }
-      if (id === 'balance') {
+      if (id === "balance") {
         fetchPrices();
       }
     }
@@ -560,7 +772,7 @@ export default {
       }
       const localData = [...holdings.value];
       try {
-        const res = await axios.get('/api/portfolio/holdings');
+        const res = await axios.get("/api/portfolio/holdings");
         const serverData = res.data || [];
 
         if (serverData.length > 0) {
@@ -568,7 +780,7 @@ export default {
           localStorage.removeItem(PORTFOLIO_KEY);
         } else if (localData.length > 0) {
           for (const h of localData) {
-            await axios.post('/api/portfolio/holdings', {
+            await axios.post("/api/portfolio/holdings", {
               market: h.market,
               name: h.name,
               symbol: h.symbol,
@@ -576,7 +788,7 @@ export default {
               avgPrice: h.avgPrice,
             });
           }
-          const refreshed = await axios.get('/api/portfolio/holdings');
+          const refreshed = await axios.get("/api/portfolio/holdings");
           holdings.value = refreshed.data || [];
           localStorage.removeItem(PORTFOLIO_KEY);
         }
@@ -589,33 +801,45 @@ export default {
       if (holdings.value.length === 0) return;
       priceLoading.value = true;
       const results = {};
-      await Promise.all(holdings.value.map(async h => {
-        try {
-          const res = await axios.get('/api/stock/quote', {
-            params: { symbol: h.symbol, market: h.market.toLowerCase() }
-          });
-          results[h.symbol] = res.data;
-        } catch { /* 가격 조회 실패 시 무시 */ }
-      }));
+      await Promise.all(
+        holdings.value.map(async (h) => {
+          try {
+            const res = await axios.get("/api/stock/quote", {
+              params: { symbol: h.symbol, market: h.market.toLowerCase() },
+            });
+            results[h.symbol] = res.data;
+          } catch {
+            /* 가격 조회 실패 시 무시 */
+          }
+        }),
+      );
       prices.value = results;
       priceLoading.value = false;
     }
 
     // ─── 모달 ────────────────────────────────────────
-    function openAddModal() { showAddModal.value = true; }
+    function openAddModal() {
+      showAddModal.value = true;
+    }
     function closeAddModal() {
-      showAddModal.value  = false;
-      searchQ.value       = '';
-      showDropdown.value  = false;
+      showAddModal.value = false;
+      searchQ.value = "";
+      showDropdown.value = false;
       searchResults.value = [];
-      newHolding.value    = { market: 'US', name: '', symbol: '', quantity: null, avgPrice: null };
+      newHolding.value = {
+        market: "US",
+        name: "",
+        symbol: "",
+        quantity: null,
+        avgPrice: null,
+      };
     }
     function onMarketChange(mkt) {
       newHolding.value.market = mkt;
-      newHolding.value.name   = '';
-      newHolding.value.symbol = '';
-      searchQ.value           = '';
-      searchResults.value     = [];
+      newHolding.value.name = "";
+      newHolding.value.symbol = "";
+      searchQ.value = "";
+      searchResults.value = [];
     }
 
     // 검색어 입력 → 300ms debounce → 백엔드 호출
@@ -630,7 +854,9 @@ export default {
       searchLoading.value = true;
       searchTimer = setTimeout(async () => {
         try {
-          const res = await axios.get('/api/stock/search', { params: { q: searchQ.value.trim() } });
+          const res = await axios.get("/api/stock/search", {
+            params: { q: searchQ.value.trim() },
+          });
           searchResults.value = res.data;
         } catch {
           searchResults.value = [];
@@ -641,21 +867,26 @@ export default {
     }
 
     function selectStock(s) {
-      newHolding.value.name   = s.name;
+      newHolding.value.name = s.name;
       newHolding.value.symbol = s.symbol;
-      newHolding.value.market = s.market;   // 백엔드에서 자동 감지된 시장
-      searchQ.value           = s.name;
-      showDropdown.value      = false;
+      newHolding.value.market = s.market; // 백엔드에서 자동 감지된 시장
+      searchQ.value = s.name;
+      showDropdown.value = false;
     }
-    function onSearchBlur() { setTimeout(() => { showDropdown.value = false; }, 200); }
+    function onSearchBlur() {
+      setTimeout(() => {
+        showDropdown.value = false;
+      }, 200);
+    }
 
     async function addHolding() {
       const h = newHolding.value;
       // symbol에서 market 자동 감지 (직접 입력한 경우 대비)
       const sym = h.symbol.trim().toUpperCase();
-      const market = h.market || (sym.endsWith('.KS') || sym.endsWith('.KQ') ? 'KR' : 'US');
+      const market =
+        h.market || (sym.endsWith(".KS") || sym.endsWith(".KQ") ? "KR" : "US");
       try {
-        const res = await axios.post('/api/portfolio/holdings', {
+        const res = await axios.post("/api/portfolio/holdings", {
           market,
           name: h.name.trim(),
           symbol: sym,
@@ -673,15 +904,15 @@ export default {
     async function removeHolding(id) {
       try {
         await axios.delete(`/api/portfolio/holdings/${id}`);
-        holdings.value = holdings.value.filter(h => h.id !== id);
+        holdings.value = holdings.value.filter((h) => h.id !== id);
       } catch {
         // noop
       }
     }
 
     function startEdit(h) {
-      editingId.value      = h.id;
-      editForm.value       = { quantity: h.quantity, avgPrice: h.avgPrice };
+      editingId.value = h.id;
+      editForm.value = { quantity: h.quantity, avgPrice: h.avgPrice };
     }
     async function saveEdit(h) {
       const payload = {
@@ -690,7 +921,7 @@ export default {
       };
       try {
         const res = await axios.put(`/api/portfolio/holdings/${h.id}`, payload);
-        const idx = holdings.value.findIndex(x => x.id === h.id);
+        const idx = holdings.value.findIndex((x) => x.id === h.id);
         if (idx !== -1) {
           holdings.value[idx] = res.data;
         }
@@ -703,87 +934,136 @@ export default {
 
     // ─── Computed ─────────────────────────────────────
 
-    const canAdd = computed(() =>
-      newHolding.value.name.trim() && newHolding.value.symbol.trim() && newHolding.value.quantity > 0);
+    const canAdd = computed(
+      () =>
+        newHolding.value.name.trim() &&
+        newHolding.value.symbol.trim() &&
+        newHolding.value.quantity > 0,
+    );
 
-    const krTotal = computed(() => holdings.value
-      .filter(h => h.market === 'KR')
-      .reduce((s, h) => s + (prices.value[h.symbol]?.price || 0) * h.quantity, 0));
+    const krTotal = computed(() =>
+      holdings.value
+        .filter((h) => h.market === "KR")
+        .reduce(
+          (s, h) => s + (prices.value[h.symbol]?.price || 0) * h.quantity,
+          0,
+        ),
+    );
 
-    const usTotal = computed(() => holdings.value
-      .filter(h => h.market === 'US')
-      .reduce((s, h) => s + (prices.value[h.symbol]?.price || 0) * h.quantity, 0));
+    const usTotal = computed(() =>
+      holdings.value
+        .filter((h) => h.market === "US")
+        .reduce(
+          (s, h) => s + (prices.value[h.symbol]?.price || 0) * h.quantity,
+          0,
+        ),
+    );
 
-    const hasAvgPrice = computed(() => holdings.value.some(h => h.avgPrice));
+    const hasAvgPrice = computed(() => holdings.value.some((h) => h.avgPrice));
 
-    const totalPnl = computed(() => holdings.value.reduce((s, h) => {
-      if (!h.avgPrice) return s;
-      const p = prices.value[h.symbol]?.price;
-      return p ? s + (p - h.avgPrice) * h.quantity : s;
-    }, 0));
+    const totalPnl = computed(() =>
+      holdings.value.reduce((s, h) => {
+        if (!h.avgPrice) return s;
+        const p = prices.value[h.symbol]?.price;
+        return p ? s + (p - h.avgPrice) * h.quantity : s;
+      }, 0),
+    );
 
-    const totalCost = computed(() => holdings.value.reduce((s, h) =>
-      h.avgPrice ? s + h.avgPrice * h.quantity : s, 0));
+    const totalCost = computed(() =>
+      holdings.value.reduce(
+        (s, h) => (h.avgPrice ? s + h.avgPrice * h.quantity : s),
+        0,
+      ),
+    );
 
     const totalPnlPct = computed(() =>
-      totalCost.value === 0 ? 0 : (totalPnl.value / totalCost.value) * 100);
+      totalCost.value === 0 ? 0 : (totalPnl.value / totalCost.value) * 100,
+    );
 
     // ─── 차트 세그먼트 ────────────────────────────────
     const chartSegments = computed(() => {
       const total = krTotal.value + usTotal.value;
       if (total === 0) return [];
+
+      // 평가금액 계산 후 내림차순 정렬
+      const items = holdings.value
+        .map((h) => {
+          const p = prices.value[h.symbol]?.price || 0;
+          return { h, val: p * h.quantity };
+        })
+        .filter((item) => item.val > 0)
+        .sort((a, b) => b.val - a.val);
+
       const segs = [];
       let cum = -Math.PI / 2;
-      holdings.value.forEach((h, i) => {
-        const p = prices.value[h.symbol]?.price || 0;
-        const val = p * h.quantity;
-        if (val <= 0) return;
-        const pct   = val / total;
+      const gap = items.length > 1 ? 0.025 : 0;
+      const TEXT_R = 63;
+
+      items.forEach(({ h, val }, idx) => {
+        const pct = val / total;
         const angle = pct * 2 * Math.PI;
-        const gap   = holdings.value.length > 1 ? 0.025 : 0;
-        const end   = cum + angle;
+        const start = cum + gap / 2;
+        const end = cum + angle - gap / 2;
+        const mid = (start + end) / 2;
         segs.push({
-          id:     h.id,
-          name:   h.name,
-          value:  val,
+          id: h.id,
+          name: h.name,
+          value: val,
           pct,
-          color:  CHART_COLORS[i % CHART_COLORS.length],
-          path:   arcPath(cum + gap / 2, end - gap / 2, 78, 48),
-          currency: h.market === 'KR' ? 'KRW' : 'USD',
+          color: CHART_COLORS[idx % CHART_COLORS.length],
+          path: arcPath(start, end, 78, 48),
+          currency: h.market === "KR" ? "KRW" : "USD",
+          labelX: TEXT_R * Math.cos(mid),
+          labelY: TEXT_R * Math.sin(mid),
         });
-        cum = end;
+        cum += angle;
       });
       return segs;
     });
 
     function arcPath(s, e, ro, ri) {
-      const cos = Math.cos, sin = Math.sin;
-      const large = (e - s) > Math.PI ? 1 : 0;
+      const cos = Math.cos,
+        sin = Math.sin;
+      const large = e - s > Math.PI ? 1 : 0;
       return [
-        `M ${ro*cos(s)} ${ro*sin(s)}`,
-        `A ${ro} ${ro} 0 ${large} 1 ${ro*cos(e)} ${ro*sin(e)}`,
-        `L ${ri*cos(e)} ${ri*sin(e)}`,
-        `A ${ri} ${ri} 0 ${large} 0 ${ri*cos(s)} ${ri*sin(s)}`,
-        'Z',
-      ].join(' ');
+        `M ${ro * cos(s)} ${ro * sin(s)}`,
+        `A ${ro} ${ro} 0 ${large} 1 ${ro * cos(e)} ${ro * sin(e)}`,
+        `L ${ri * cos(e)} ${ri * sin(e)}`,
+        `A ${ri} ${ri} 0 ${large} 0 ${ri * cos(s)} ${ri * sin(s)}`,
+        "Z",
+      ].join(" ");
     }
 
     // ─── 포맷 헬퍼 (포트폴리오 전용) ──────────────────
-    function fmtKRW(v)  { return new Intl.NumberFormat('ko-KR').format(Math.round(v)) + '원'; }
-    function fmtUSD(v)  { return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-    function fmtByMkt(v, mkt) { return mkt === 'KR' ? fmtKRW(v) : fmtUSD(v); }
+    function fmtKRW(v) {
+      return new Intl.NumberFormat("ko-KR").format(Math.round(v)) + "원";
+    }
+    function fmtUSD(v) {
+      return (
+        "$" +
+        v.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
+      );
+    }
+    function fmtByMkt(v, mkt) {
+      return mkt === "KR" ? fmtKRW(v) : fmtUSD(v);
+    }
     function fmtAbsPnl(v) {
       const abs = Math.abs(v);
-      const krPart = holdings.value.filter(h => h.market === 'KR' && h.avgPrice).length;
+      const krPart = holdings.value.filter(
+        (h) => h.market === "KR" && h.avgPrice,
+      ).length;
       return krPart > 0 ? fmtKRW(abs) : fmtUSD(abs);
     }
     function fmtCurPrice(h) {
       const p = prices.value[h.symbol];
-      return p ? fmtByMkt(p.price, h.market) : '—';
+      return p ? fmtByMkt(p.price, h.market) : "—";
     }
     function fmtHoldVal(h) {
       const p = prices.value[h.symbol];
-      return p ? fmtByMkt(p.price * h.quantity, h.market) : '—';
+      return p ? fmtByMkt(p.price * h.quantity, h.market) : "—";
     }
     function holdPnl(h) {
       if (!h.avgPrice) return null;
@@ -792,52 +1072,61 @@ export default {
     }
     function fmtHoldPnl(h) {
       const v = holdPnl(h);
-      if (v === null) return '—';
-      return (v >= 0 ? '+' : '') + fmtByMkt(v, h.market);
+      if (v === null) return "—";
+      return (v >= 0 ? "+" : "") + fmtByMkt(v, h.market);
     }
     function holdPnlPct(h) {
       if (!h.avgPrice) return null;
       const p = prices.value[h.symbol]?.price;
-      return (p != null && h.avgPrice !== 0) ? (p - h.avgPrice) / h.avgPrice * 100 : null;
+      return p != null && h.avgPrice !== 0
+        ? ((p - h.avgPrice) / h.avgPrice) * 100
+        : null;
     }
     function fmtHoldPnlPct(h) {
       const v = holdPnlPct(h);
-      if (v === null) return '—';
-      return (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+      if (v === null) return "—";
+      return (v >= 0 ? "+" : "") + v.toFixed(2) + "%";
     }
     function fmtLegVal(seg) {
-      if (seg.currency === 'KRW') {
-        return seg.value >= 1e8 ? (seg.value / 1e8).toFixed(1) + '억' : fmtKRW(seg.value);
+      if (seg.currency === "KRW") {
+        return seg.value >= 1e8
+          ? (seg.value / 1e8).toFixed(1) + "억"
+          : fmtKRW(seg.value);
       }
-      return '$' + Math.round(seg.value).toLocaleString('en-US');
+      return "$" + Math.round(seg.value).toLocaleString("en-US");
     }
-    function pnlCls(v) { return v == null ? '' : v > 0 ? 'positive' : v < 0 ? 'negative' : ''; }
+    function pnlCls(v) {
+      return v == null ? "" : v > 0 ? "positive" : v < 0 ? "negative" : "";
+    }
 
     // ─── 히트맵 ──────────────────────────────────────
     function switchHeatmap(market) {
       heatmapMarket.value = market;
-      if (market !== 'kr' && krChartInstance) {
+      if (market !== "kr" && krChartInstance) {
         krChartInstance.dispose();
         krChartInstance = null;
       }
-      if (market !== 'kr') {
-        tvUpdatedAt.value = new Date().toLocaleString('ko-KR', {
-          year: 'numeric', month: 'numeric', day: 'numeric',
-          hour: '2-digit', minute: '2-digit',
+      if (market !== "kr") {
+        tvUpdatedAt.value = new Date().toLocaleString("ko-KR", {
+          year: "numeric",
+          month: "numeric",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
         });
       }
       nextTick(() => {
-        if (market === 'kr') loadKrHeatmap();
+        if (market === "kr") loadKrHeatmap();
         else initHeatmap(market);
       });
     }
 
     async function loadKrHeatmap() {
       krHeatmapLoading.value = true;
-      krHeatmapError.value   = '';
+      krHeatmapError.value = "";
       try {
-        const res = await axios.get('/api/stock/heatmap/kr');
-        krUpdatedAt.value = res.data.updatedAt || '';
+        const res = await axios.get("/api/stock/heatmap/kr");
+        krUpdatedAt.value = res.data.updatedAt || "";
 
         // loading을 false로 먼저 바꿔야 v-else 차트 div가 DOM에 생성됨
         krHeatmapLoading.value = false;
@@ -847,29 +1136,29 @@ export default {
         if (!el) return;
 
         if (krChartInstance) krChartInstance.dispose();
-        krChartInstance = echarts.init(el, 'dark');
+        krChartInstance = echarts.init(el, "dark");
         krChartInstance.setOption(buildKrOption(res.data.sectors));
       } catch (e) {
-        krHeatmapError.value = '국내 히트맵 데이터를 불러올 수 없습니다.';
+        krHeatmapError.value = "국내 히트맵 데이터를 불러올 수 없습니다.";
         krHeatmapLoading.value = false;
       }
     }
 
     function heatColor(pct) {
-      if (pct >=  4) return '#0ecb81';
-      if (pct >=  2) return '#1a9e64';
-      if (pct >=  0.5) return '#0d7a4e';
-      if (pct >=  0) return '#1a4a35';
-      if (pct > -0.5) return '#5e1a1a';
-      if (pct > -2)   return '#b03030';
-      if (pct > -4)   return '#d94040';
-      return '#ff4d4d';
+      if (pct >= 4) return "#0ecb81";
+      if (pct >= 2) return "#1a9e64";
+      if (pct >= 0.5) return "#0d7a4e";
+      if (pct >= 0) return "#1a4a35";
+      if (pct > -0.5) return "#5e1a1a";
+      if (pct > -2) return "#b03030";
+      if (pct > -4) return "#d94040";
+      return "#ff4d4d";
     }
 
     function buildKrOption(sectors) {
-      const treeData = sectors.map(sector => ({
+      const treeData = sectors.map((sector) => ({
         name: sector.sector,
-        children: sector.stocks.map(s => ({
+        children: sector.stocks.map((s) => ({
           name: s.name,
           value: s.marketCap,
           changePct: s.changePercent,
@@ -880,50 +1169,56 @@ export default {
       }));
 
       return {
-        backgroundColor: 'transparent',
+        backgroundColor: "transparent",
         tooltip: {
           formatter(info) {
             const d = info.data;
             if (!d.changePct && d.changePct !== 0) return d.name;
-            const sign = d.changePct >= 0 ? '+' : '';
+            const sign = d.changePct >= 0 ? "+" : "";
             return `<b>${d.name}</b><br/>
-                    ${d.price?.toLocaleString('ko-KR')}원<br/>
+                    ${d.price?.toLocaleString("ko-KR")}원<br/>
                     ${sign}${d.changePct.toFixed(2)}%`;
           },
         },
-        series: [{
-          type: 'treemap',
-          roam: false,
-          nodeClick: false,
-          breadcrumb: { show: true, itemStyle: { color: '#2a2a3e' } },
-          label: {
-            show: true,
-            formatter(p) {
-              const d = p.data;
-              if (!d.changePct && d.changePct !== 0) return p.name;
-              const sign = d.changePct >= 0 ? '+' : '';
-              return `{name|${d.name}}\n{pct|${sign}${d.changePct.toFixed(2)}%}`;
+        series: [
+          {
+            type: "treemap",
+            roam: false,
+            nodeClick: false,
+            breadcrumb: { show: true, itemStyle: { color: "#2a2a3e" } },
+            label: {
+              show: true,
+              formatter(p) {
+                const d = p.data;
+                if (!d.changePct && d.changePct !== 0) return p.name;
+                const sign = d.changePct >= 0 ? "+" : "";
+                return `{name|${d.name}}\n{pct|${sign}${d.changePct.toFixed(
+                  2,
+                )}%}`;
+              },
+              rich: {
+                name: { fontSize: 12, fontWeight: "bold", color: "#fff" },
+                pct: { fontSize: 11, color: "rgba(255,255,255,0.85)" },
+              },
             },
-            rich: {
-              name: { fontSize: 12, fontWeight: 'bold', color: '#fff' },
-              pct:  { fontSize: 11, color: 'rgba(255,255,255,0.85)' },
+            upperLabel: {
+              show: true,
+              height: 28,
+              color: "#fff",
+              fontWeight: "bold",
+              fontSize: 13,
+              backgroundColor: "rgba(0,0,0,0.35)",
             },
+            itemStyle: { borderColor: "#1a1a2e", borderWidth: 2, gapWidth: 2 },
+            levels: [
+              {
+                itemStyle: { borderColor: "#555", borderWidth: 3, gapWidth: 3 },
+              },
+              { itemStyle: { borderWidth: 2, gapWidth: 2 } },
+            ],
+            data: treeData,
           },
-          upperLabel: {
-            show: true,
-            height: 28,
-            color: '#fff',
-            fontWeight: 'bold',
-            fontSize: 13,
-            backgroundColor: 'rgba(0,0,0,0.35)',
-          },
-          itemStyle: { borderColor: '#1a1a2e', borderWidth: 2, gapWidth: 2 },
-          levels: [
-            { itemStyle: { borderColor: '#555', borderWidth: 3, gapWidth: 3 } },
-            { itemStyle: { borderWidth: 2, gapWidth: 2 } },
-          ],
-          data: treeData,
-        }],
+        ],
       };
     }
 
@@ -932,32 +1227,34 @@ export default {
     }
 
     function initHeatmap(market) {
-      const container = document.querySelector('#tv-heatmap');
+      const container = document.querySelector("#tv-heatmap");
       if (!container) return;
 
       // 이전 위젯 제거
-      container.innerHTML = '<div class="tradingview-widget-container__widget"></div>';
+      container.innerHTML =
+        '<div class="tradingview-widget-container__widget"></div>';
 
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js';
+      const script = document.createElement("script");
+      script.type = "text/javascript";
+      script.src =
+        "https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js";
       script.async = true;
       script.textContent = JSON.stringify({
-        exchanges:          market === 'nasdaq' ? ['NASDAQ'] : [],
-        dataSource:         market === 'nasdaq' ? 'NDX100' : 'SPX500',
-        grouping:           'sector',
-        blockSize:          'market_cap_basic',
-        blockColor:         'change',
-        locale:             'en',
-        symbolUrl:          '',
-        colorTheme:         'dark',
-        hasTopBar:          false,
-        isDataSetEnabled:   false,
-        isZoomEnabled:      true,
-        hasSymbolTooltip:   true,
-        isMonoSize:         false,
-        width:              '100%',
-        height:             '560',
+        exchanges: market === "nasdaq" ? ["NASDAQ"] : [],
+        dataSource: market === "nasdaq" ? "NDX100" : "SPX500",
+        grouping: "sector",
+        blockSize: "market_cap_basic",
+        blockColor: "change",
+        locale: "en",
+        symbolUrl: "",
+        colorTheme: "dark",
+        hasTopBar: false,
+        isDataSetEnabled: false,
+        isZoomEnabled: true,
+        hasSymbolTooltip: true,
+        isMonoSize: false,
+        width: "100%",
+        height: "560",
       });
       container.appendChild(script);
     }
@@ -970,14 +1267,18 @@ export default {
 
     async function loadTop10() {
       top10Loading.value = true;
-      top10Error.value   = '';
+      top10Error.value = "";
       try {
-        const endpoint = top10Market.value === 'kr' ? '/api/stock/top10/kr' : '/api/stock/top10/us';
+        const endpoint =
+          top10Market.value === "kr"
+            ? "/api/stock/top10/kr"
+            : "/api/stock/top10/us";
         const res = await axios.get(endpoint);
         top10Data.value = res.data;
-        top10UpdateTime.value = new Date().toLocaleTimeString('ko-KR');
+        top10UpdateTime.value = new Date().toLocaleTimeString("ko-KR");
       } catch (e) {
-        top10Error.value = '시세 데이터를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.';
+        top10Error.value =
+          "시세 데이터를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.";
       } finally {
         top10Loading.value = false;
       }
@@ -986,12 +1287,13 @@ export default {
     // ─── 뉴스 ────────────────────────────────────────
     async function loadNews() {
       newsLoading.value = true;
-      newsError.value   = '';
+      newsError.value = "";
       try {
-        const res = await axios.get('/api/stock/news');
+        const res = await axios.get("/api/stock/news");
         newsData.value = res.data;
       } catch (e) {
-        newsError.value = '뉴스를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.';
+        newsError.value =
+          "뉴스를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.";
       } finally {
         newsLoading.value = false;
       }
@@ -999,32 +1301,40 @@ export default {
 
     // ─── 포맷 헬퍼 ──────────────────────────────────
     function formatPrice(price, currency) {
-      if (price == null) return '-';
+      if (price == null) return "-";
       const abs = Math.abs(price);
-      if (currency === 'KRW') {
-        return new Intl.NumberFormat('ko-KR').format(Math.round(price)) + '원';
+      if (currency === "KRW") {
+        return new Intl.NumberFormat("ko-KR").format(Math.round(price)) + "원";
       }
-      return '$' + abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return (
+        "$" +
+        abs.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
+      );
     }
 
     function formatMarketCap(cap, currency) {
-      if (!cap) return '-';
-      if (currency === 'KRW') {
+      if (!cap) return "-";
+      if (currency === "KRW") {
         const jo = cap / 1e12;
-        return jo >= 1 ? jo.toFixed(1) + '조' : (cap / 1e8).toFixed(0) + '억';
+        return jo >= 1 ? jo.toFixed(1) + "조" : (cap / 1e8).toFixed(0) + "억";
       }
       const t = cap / 1e12;
-      if (t >= 1) return '$' + t.toFixed(2) + 'T';
+      if (t >= 1) return "$" + t.toFixed(2) + "T";
       const b = cap / 1e9;
-      return '$' + b.toFixed(1) + 'B';
+      return "$" + b.toFixed(1) + "B";
     }
 
     function formatNewsDate(pubDate) {
-      if (!pubDate) return '';
+      if (!pubDate) return "";
       try {
-        return new Date(pubDate).toLocaleString('ko-KR', {
-          month: 'numeric', day: 'numeric',
-          hour: '2-digit', minute: '2-digit',
+        return new Date(pubDate).toLocaleString("ko-KR", {
+          month: "numeric",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
         });
       } catch {
         return pubDate.substring(0, 16);
@@ -1032,51 +1342,107 @@ export default {
     }
 
     function changeClass(val) {
-      if (val > 0) return 'positive';
-      if (val < 0) return 'negative';
-      return 'neutral';
+      if (val > 0) return "positive";
+      if (val < 0) return "negative";
+      return "neutral";
     }
 
     function rankClass(rank) {
-      if (rank === 1) return 'rank-gold';
-      if (rank === 2) return 'rank-silver';
-      if (rank === 3) return 'rank-bronze';
-      return '';
+      if (rank === 1) return "rank-gold";
+      if (rank === 2) return "rank-silver";
+      if (rank === 3) return "rank-bronze";
+      return "";
     }
 
     onMounted(async () => {
       await initPortfolio();
       fetchPrices();
-      window.addEventListener('resize', onResizeKrChart);
+      window.addEventListener("resize", onResizeKrChart);
     });
 
     onBeforeUnmount(() => {
-      window.removeEventListener('resize', onResizeKrChart);
-      if (krChartInstance) { krChartInstance.dispose(); krChartInstance = null; }
+      window.removeEventListener("resize", onResizeKrChart);
+      if (krChartInstance) {
+        krChartInstance.dispose();
+        krChartInstance = null;
+      }
     });
 
     return {
-      activeTab, heatmapMarket, top10Market, tabs,
-      krChartEl, krHeatmapLoading, krHeatmapError, krUpdatedAt,
-      tvUpdatedAt, isUsMarketOpen,
+      activeTab,
+      heatmapMarket,
+      top10Market,
+      tabs,
+      krChartEl,
+      krHeatmapLoading,
+      krHeatmapError,
+      krUpdatedAt,
+      tvUpdatedAt,
+      isUsMarketOpen,
       // 포트폴리오
-      holdings, prices, priceLoading, portfolioView,
-      showAddModal, searchQ, showDropdown, searchResults, searchLoading, newHolding,
-      editingId, editForm,
+      holdings,
+      prices,
+      priceLoading,
+      portfolioView,
+      showAddModal,
+      searchQ,
+      showDropdown,
+      searchResults,
+      searchLoading,
+      newHolding,
+      editingId,
+      editForm,
       canAdd,
-      krTotal, usTotal, hasAvgPrice, totalPnl, totalPnlPct, chartSegments,
+      krTotal,
+      usTotal,
+      hasAvgPrice,
+      totalPnl,
+      totalPnlPct,
+      chartSegments,
       // 포트폴리오 함수
-      openAddModal, closeAddModal, onMarketChange, onSearchInput, selectStock, onSearchBlur,
-      addHolding, removeHolding, startEdit, saveEdit, fetchPrices,
-      fmtKRW, fmtUSD, fmtByMkt, fmtAbsPnl, fmtCurPrice, fmtHoldVal,
-      fmtHoldPnl, fmtHoldPnlPct, fmtLegVal, holdPnl, holdPnlPct, pnlCls,
+      openAddModal,
+      closeAddModal,
+      onMarketChange,
+      onSearchInput,
+      selectStock,
+      onSearchBlur,
+      addHolding,
+      removeHolding,
+      startEdit,
+      saveEdit,
+      fetchPrices,
+      fmtKRW,
+      fmtUSD,
+      fmtByMkt,
+      fmtAbsPnl,
+      fmtCurPrice,
+      fmtHoldVal,
+      fmtHoldPnl,
+      fmtHoldPnlPct,
+      fmtLegVal,
+      holdPnl,
+      holdPnlPct,
+      pnlCls,
       // Top10 / 뉴스
-      top10Data, top10Loading, top10Error, top10UpdateTime,
-      newsData, newsLoading, newsError,
-      switchTab, switchHeatmap, switchTop10, loadTop10, loadNews,
-      formatPrice, formatMarketCap, formatNewsDate, changeClass, rankClass,
+      top10Data,
+      top10Loading,
+      top10Error,
+      top10UpdateTime,
+      newsData,
+      newsLoading,
+      newsError,
+      switchTab,
+      switchHeatmap,
+      switchTop10,
+      loadTop10,
+      loadNews,
+      formatPrice,
+      formatMarketCap,
+      formatNewsDate,
+      changeClass,
+      rankClass,
     };
-  }
+  },
 };
 </script>
 
