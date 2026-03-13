@@ -146,6 +146,102 @@
 }
 .btn-add-sm:hover { border-color: var(--accent-glow); color: var(--accent); }
 
+/* 마켓 필터 바 */
+.balance-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.bfb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.bfb-btn:hover {
+  border-color: var(--accent-glow);
+  color: var(--text-primary);
+}
+.bfb-btn.active {
+  background: var(--accent-dim);
+  border-color: var(--card-border-strong);
+  color: var(--accent);
+}
+.bfb-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.07);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.bfb-btn.active .bfb-count {
+  background: rgba(201,169,110,0.18);
+}
+
+/* 환율 정보 */
+.exrate-info {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.exrate-val {
+  font-size: 0.79rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.exrate-at {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* 요약 바 - 미국 주식 원화 환산 */
+.ps-us-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.ps-us-krw {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* 필터 결과 없음 */
+.filter-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+}
+
+/* 테이블 - 미국 주식 원화 소자 */
+.td-krw-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
 /* 목록/차트 탭 */
 .portfolio-view-tabs {
   display: flex;

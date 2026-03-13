@@ -39,15 +39,17 @@
         <!-- 요약 바 -->
         <div class="portfolio-summary">
           <div class="ps-left">
-            <span class="ps-count">총 {{ holdings.length }}종목</span>
+            <span class="ps-count">
+              {{ marketFilter === 'all' ? '전체' : marketFilter === 'kr' ? '🇰🇷 한국' : '🇺🇸 미국' }}
+              {{ filteredHoldings.length }}종목
+            </span>
             <div class="ps-totals">
-              <span v-if="krTotal > 0" class="ps-total-val"
-                >🇰🇷 {{ fmtKRW(krTotal) }}</span
-              >
+              <span v-if="krTotal > 0" class="ps-total-val">🇰🇷 {{ fmtKRW(krTotal) }}</span>
               <span v-if="krTotal > 0 && usTotal > 0" class="ps-sep">·</span>
-              <span v-if="usTotal > 0" class="ps-total-val"
-                >🇺🇸 {{ fmtUSD(usTotal) }}</span
-              >
+              <div v-if="usTotal > 0" class="ps-us-wrap">
+                <span class="ps-total-val">🇺🇸 {{ fmtUSD(usTotal) }}</span>
+                <span v-if="usTotalKRW > 0" class="ps-us-krw">≈ {{ fmtKRW(usTotalKRW) }}</span>
+              </div>
             </div>
             <div v-if="hasAvgPrice" class="ps-pnl">
               <span :class="['ps-pnl-val', pnlCls(totalPnl)]">
@@ -59,6 +61,23 @@
             </div>
           </div>
           <button class="btn-add-sm" @click="openAddModal">＋ 추가</button>
+        </div>
+
+        <!-- 마켓 필터 바 -->
+        <div class="balance-filter-bar">
+          <button :class="['bfb-btn', { active: marketFilter === 'all' }]" @click="marketFilter = 'all'">
+            전체 <span class="bfb-count">{{ holdings.length }}</span>
+          </button>
+          <button :class="['bfb-btn', { active: marketFilter === 'kr' }]" @click="marketFilter = 'kr'">
+            🇰🇷 한국 <span class="bfb-count">{{ krHoldingsCount }}</span>
+          </button>
+          <button :class="['bfb-btn', { active: marketFilter === 'us' }]" @click="marketFilter = 'us'">
+            🇺🇸 미국 <span class="bfb-count">{{ usHoldingsCount }}</span>
+          </button>
+          <div v-if="exchangeRate > 0" class="exrate-info">
+            <span class="exrate-val">1$ = {{ fmtKRW(exchangeRate) }}</span>
+            <span v-if="exRateAt" class="exrate-at">{{ exRateAt }} 기준</span>
+          </div>
         </div>
 
         <!-- 목록 / 차트 전환 탭 -->
@@ -83,6 +102,11 @@
           <span>현재가 조회 중...</span>
         </div>
 
+        <!-- 필터 결과 없음 -->
+        <div v-else-if="filteredHoldings.length === 0" class="filter-empty">
+          <span>{{ marketFilter === 'kr' ? '🇰🇷 국내' : '🇺🇸 미국' }} 보유 종목이 없습니다</span>
+        </div>
+
         <!-- 목록 뷰 -->
         <div v-else-if="portfolioView === 'grid'" class="holdings-table-wrap">
           <table class="holdings-table">
@@ -99,7 +123,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="h in holdings" :key="h.id">
+              <tr v-for="h in filteredHoldings" :key="h.id">
                 <!-- 편집 모드 -->
                 <template v-if="editingId === h.id">
                   <td class="hname-cell">
@@ -157,7 +181,12 @@
                   </td>
                   <td class="td-r">{{ h.quantity.toLocaleString() }}</td>
                   <td class="td-r">{{ fmtCurPrice(h) }}</td>
-                  <td class="td-r">{{ fmtHoldVal(h) }}</td>
+                  <td class="td-r">
+                    {{ fmtHoldVal(h) }}
+                    <div v-if="h.market === 'US' && holdValKRW(h) > 0" class="td-krw-sub">
+                      ≈ {{ fmtKRW(holdValKRW(h)) }}
+                    </div>
+                  </td>
                   <td class="td-r">
                     <span v-if="h.avgPrice">{{
                       fmtByMkt(h.avgPrice, h.market)
@@ -230,7 +259,7 @@
                   font-weight="600"
                   fill="var(--text-primary)"
                 >
-                  {{ holdings.length }}종목
+                  {{ filteredHoldings.length }}종목
                 </text>
               </svg>
             </div>
@@ -694,6 +723,11 @@ export default {
     const prices = ref({}); // { symbol: StockPriceDto }
     const priceLoading = ref(false);
     const portfolioView = ref("grid");
+    const marketFilter = ref("all"); // 'all' | 'kr' | 'us'
+
+    // ── 환율 ─────────────────────────────────────────────
+    const exchangeRate = ref(0);  // USD → KRW
+    const exRateAt = ref("");
 
     // ── 종목 추가 모달 ────────────────────────────────────────
     const showAddModal = ref(false);
@@ -755,7 +789,7 @@ export default {
         loadNews();
       }
       if (id === "balance") {
-        fetchPrices();
+        fetchPrices(); // fetchPrices 내부에서 환율도 함께 조회
       }
     }
 
@@ -801,20 +835,34 @@ export default {
       if (holdings.value.length === 0) return;
       priceLoading.value = true;
       const results = {};
-      await Promise.all(
-        holdings.value.map(async (h) => {
-          try {
-            const res = await axios.get("/api/stock/quote", {
-              params: { symbol: h.symbol, market: h.market.toLowerCase() },
-            });
-            results[h.symbol] = res.data;
-          } catch {
-            /* 가격 조회 실패 시 무시 */
-          }
-        }),
-      );
+      const tasks = holdings.value.map(async (h) => {
+        try {
+          const res = await axios.get("/api/stock/quote", {
+            params: { symbol: h.symbol, market: h.market.toLowerCase() },
+          });
+          results[h.symbol] = res.data;
+        } catch { /* 가격 조회 실패 시 무시 */ }
+      });
+      // 미국 주식이 있으면 환율도 함께 조회
+      const hasUs = holdings.value.some(h => h.market === "US");
+      if (hasUs) tasks.push(fetchExchangeRate());
+      await Promise.all(tasks);
       prices.value = results;
       priceLoading.value = false;
+    }
+
+    async function fetchExchangeRate() {
+      try {
+        const res = await axios.get("/api/stock/quote", {
+          params: { symbol: "USDKRW=X", market: "us" },
+        });
+        if (res.data?.price) {
+          exchangeRate.value = res.data.price;
+          exRateAt.value = new Date().toLocaleTimeString("ko-KR", {
+            hour: "2-digit", minute: "2-digit",
+          });
+        }
+      } catch { /* 환율 조회 실패 시 무시 */ }
     }
 
     // ─── 모달 ────────────────────────────────────────
@@ -941,28 +989,38 @@ export default {
         newHolding.value.quantity > 0,
     );
 
+    // 마켓 필터가 적용된 보유 목록
+    const filteredHoldings = computed(() => {
+      if (marketFilter.value === "kr") return holdings.value.filter(h => h.market === "KR");
+      if (marketFilter.value === "us") return holdings.value.filter(h => h.market === "US");
+      return holdings.value;
+    });
+
+    // 각 마켓 종목 수 (필터 버튼 뱃지용)
+    const krHoldingsCount = computed(() => holdings.value.filter(h => h.market === "KR").length);
+    const usHoldingsCount = computed(() => holdings.value.filter(h => h.market === "US").length);
+
     const krTotal = computed(() =>
-      holdings.value
+      filteredHoldings.value
         .filter((h) => h.market === "KR")
-        .reduce(
-          (s, h) => s + (prices.value[h.symbol]?.price || 0) * h.quantity,
-          0,
-        ),
+        .reduce((s, h) => s + (prices.value[h.symbol]?.price || 0) * h.quantity, 0),
     );
 
     const usTotal = computed(() =>
-      holdings.value
+      filteredHoldings.value
         .filter((h) => h.market === "US")
-        .reduce(
-          (s, h) => s + (prices.value[h.symbol]?.price || 0) * h.quantity,
-          0,
-        ),
+        .reduce((s, h) => s + (prices.value[h.symbol]?.price || 0) * h.quantity, 0),
     );
 
-    const hasAvgPrice = computed(() => holdings.value.some((h) => h.avgPrice));
+    // 미국 주식 원화 환산 합계
+    const usTotalKRW = computed(() =>
+      exchangeRate.value > 0 ? usTotal.value * exchangeRate.value : 0,
+    );
+
+    const hasAvgPrice = computed(() => filteredHoldings.value.some((h) => h.avgPrice));
 
     const totalPnl = computed(() =>
-      holdings.value.reduce((s, h) => {
+      filteredHoldings.value.reduce((s, h) => {
         if (!h.avgPrice) return s;
         const p = prices.value[h.symbol]?.price;
         return p ? s + (p - h.avgPrice) * h.quantity : s;
@@ -970,7 +1028,7 @@ export default {
     );
 
     const totalCost = computed(() =>
-      holdings.value.reduce(
+      filteredHoldings.value.reduce(
         (s, h) => (h.avgPrice ? s + h.avgPrice * h.quantity : s),
         0,
       ),
@@ -982,25 +1040,36 @@ export default {
 
     // ─── 차트 세그먼트 ────────────────────────────────
     const chartSegments = computed(() => {
-      const total = krTotal.value + usTotal.value;
-      if (total === 0) return [];
+      // USD는 원화로 환산하여 동일 기준으로 비율 계산
+      const toKRW = (h, price) => {
+        const raw = price * h.quantity;
+        if (h.market === "KR") return raw;
+        // 환율 미로드 시: 미국 주식 단독 필터면 그대로 USD 기준 사용
+        if (exchangeRate.value > 0) return raw * exchangeRate.value;
+        // 환율 없음 + 혼합 포트폴리오면 US 종목 제외
+        const hasKR = filteredHoldings.value.some(x => x.market === "KR");
+        return hasKR ? 0 : raw;
+      };
 
-      // 평가금액 계산 후 내림차순 정렬
-      const items = holdings.value
+      const items = filteredHoldings.value
         .map((h) => {
           const p = prices.value[h.symbol]?.price || 0;
-          return { h, val: p * h.quantity };
+          const valKRW = toKRW(h, p);
+          return { h, val: p * h.quantity, valKRW, currency: h.market === "KR" ? "KRW" : "USD" };
         })
-        .filter((item) => item.val > 0)
-        .sort((a, b) => b.val - a.val);
+        .filter((item) => item.valKRW > 0)
+        .sort((a, b) => b.valKRW - a.valKRW);
+
+      const totalKRW = items.reduce((s, item) => s + item.valKRW, 0);
+      if (totalKRW === 0) return [];
 
       const segs = [];
       let cum = -Math.PI / 2;
       const gap = items.length > 1 ? 0.025 : 0;
       const TEXT_R = 63;
 
-      items.forEach(({ h, val }, idx) => {
-        const pct = val / total;
+      items.forEach(({ h, val, valKRW, currency }, idx) => {
+        const pct = valKRW / totalKRW;
         const angle = pct * 2 * Math.PI;
         const start = cum + gap / 2;
         const end = cum + angle - gap / 2;
@@ -1008,11 +1077,12 @@ export default {
         segs.push({
           id: h.id,
           name: h.name,
-          value: val,
+          value: val,      // 원래 통화 (범례 금액 표시용)
+          valKRW,          // 원화 환산 값 (비율 계산 기준)
           pct,
           color: CHART_COLORS[idx % CHART_COLORS.length],
           path: arcPath(start, end, 78, 48),
-          currency: h.market === "KR" ? "KRW" : "USD",
+          currency,
           labelX: TEXT_R * Math.cos(mid),
           labelY: TEXT_R * Math.sin(mid),
         });
@@ -1093,8 +1163,22 @@ export default {
           ? (seg.value / 1e8).toFixed(1) + "억"
           : fmtKRW(seg.value);
       }
-      return "$" + Math.round(seg.value).toLocaleString("en-US");
+      // USD: 달러 + 원화 환산
+      const usdStr = "$" + seg.value.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+      if (seg.valKRW > 0) {
+        const krwStr = seg.valKRW >= 1e8
+          ? (seg.valKRW / 1e8).toFixed(1) + "억"
+          : fmtKRW(seg.valKRW);
+        return `${usdStr} ≈ ${krwStr}`;
+      }
+      return usdStr;
     }
+    function holdValKRW(h) {
+      if (h.market !== "US" || !exchangeRate.value) return 0;
+      const p = prices.value[h.symbol]?.price;
+      return p ? p * h.quantity * exchangeRate.value : 0;
+    }
+
     function pnlCls(v) {
       return v == null ? "" : v > 0 ? "positive" : v < 0 ? "negative" : "";
     }
@@ -1384,6 +1468,12 @@ export default {
       prices,
       priceLoading,
       portfolioView,
+      marketFilter,
+      exchangeRate,
+      exRateAt,
+      filteredHoldings,
+      krHoldingsCount,
+      usHoldingsCount,
       showAddModal,
       searchQ,
       showDropdown,
@@ -1395,6 +1485,7 @@ export default {
       canAdd,
       krTotal,
       usTotal,
+      usTotalKRW,
       hasAvgPrice,
       totalPnl,
       totalPnlPct,
@@ -1422,6 +1513,7 @@ export default {
       fmtLegVal,
       holdPnl,
       holdPnlPct,
+      holdValKRW,
       pnlCls,
       // Top10 / 뉴스
       top10Data,
