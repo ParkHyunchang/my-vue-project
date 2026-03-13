@@ -376,7 +376,7 @@
             <span class="schedule-flag">🇰🇷</span>
             <div class="schedule-detail">
               <strong>국내 (KOSPI)</strong>
-              <span>매일 09:00 KST — 한국 장 개장 직전 갱신</span>
+              <span>매일 09:00 KST — KRX 시총 순위 기반, 한국 장 개장 직전 갱신</span>
             </div>
             <span class="schedule-time">09:00</span>
           </div>
@@ -389,7 +389,7 @@
             <span class="schedule-time">23:30</span>
           </div>
         </div>
-        <p class="schedule-note">Alpha Vantage 무료 플랜 기준 하루 25 calls · 자동 갱신 20 calls 소모 · 캐시 유효 시간 6시간</p>
+        <p class="schedule-note">🇰🇷 KRX 공식 API 기반 실제 KOSPI 시총 순위 · 🇺🇸 Yahoo Finance v8 기반 · 캐시 유효 시간 6시간 · 순위 변동(▲▼)은 직전 갱신 대비</p>
       </div>
 
       <p class="data-credit">시세 데이터: Alpha Vantage</p>
