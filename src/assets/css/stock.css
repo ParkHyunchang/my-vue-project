@@ -338,6 +338,13 @@
   transition: border-color 0.15s;
 }
 .mform-row input:focus { border-color: var(--accent-glow); }
+.mform-row input.inp-readonly {
+  background: rgba(255,255,255,0.03);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  border-color: rgba(255,255,255,0.08);
+}
+.mform-row input.inp-readonly:focus { border-color: rgba(255,255,255,0.08); }
 .mform-hint { font-size: 0.72rem; color: var(--text-muted); }
 .opt-label  { color: var(--text-muted); font-weight: 400; font-size: 0.75rem; }
 
@@ -539,6 +546,16 @@
   color: var(--text-muted);
   font-size: 0.78rem;
 }
+.tv-market-status {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 10px;
+}
+.tv-market-status.market-open  { background: rgba(16,185,129,0.15); color: #10b981; }
+.tv-market-status.market-closed { background: rgba(239,68,68,0.12);  color: #ef4444; }
 
 .heatmap-loading,
 .heatmap-error {

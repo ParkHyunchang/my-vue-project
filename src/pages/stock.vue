@@ -208,15 +208,14 @@
             </div>
           </div>
 
-          <!-- 선택된 종목 표시 (검색 후 자동 입력됨, 직접 수정 가능) -->
+          <!-- 선택된 종목 표시 (검색 후 자동 입력됨) -->
           <div class="mform-row">
             <label>종목명</label>
-            <input v-model="newHolding.name" type="text" placeholder="검색 후 자동 입력 또는 직접 입력" />
+            <input v-model="newHolding.name" type="text" placeholder="위에서 종목을 검색하세요" readonly class="inp-readonly" />
           </div>
           <div class="mform-row">
             <label>심볼</label>
-            <input v-model="newHolding.symbol" type="text" placeholder="TSLA / 005930.KS" />
-            <span class="mform-hint">국내: 종목코드.KS (예: 005930.KS) · 미국: 티커 (예: TSLA)</span>
+            <input v-model="newHolding.symbol" type="text" placeholder="위에서 종목을 검색하세요" readonly class="inp-readonly" />
           </div>
 
           <!-- 감지된 시장 표시 -->
@@ -284,6 +283,15 @@
 
       <!-- 해외 히트맵 (TradingView) -->
       <div v-else class="heatmap-wrapper">
+        <div v-if="tvUpdatedAt" class="kr-heatmap-header">
+          📅 {{ tvUpdatedAt }} 로드
+          <span :class="['tv-market-status', isUsMarketOpen() ? 'market-open' : 'market-closed']">
+            {{ isUsMarketOpen() ? '🟢 장중' : '🔴 장외' }}
+          </span>
+          <span class="kr-sync-note">
+            (TradingView 실시간 위젯 · 장중 자동 업데이트 · NYSE/NASDAQ 22:30~05:00 KST)
+          </span>
+        </div>
         <div id="tv-heatmap" class="tradingview-widget-container">
           <div class="tradingview-widget-container__widget"></div>
         </div>
@@ -464,6 +472,20 @@ export default {
     const krUpdatedAt      = ref('');
     let   krChartInstance  = null;
 
+    // ── 해외 히트맵 (TradingView) 상태 ──────────────────────────
+    const tvUpdatedAt = ref('');
+
+    function isUsMarketOpen() {
+      // NYSE/NASDAQ: 월~금 22:30~05:00 KST
+      const now = new Date();
+      const kst = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+      const day = kst.getDay(); // 0=일, 6=토
+      const h = kst.getHours(), m = kst.getMinutes();
+      const minutes = h * 60 + m;
+      if (day === 0 || day === 6) return false;
+      return minutes >= 22 * 60 + 30 || minutes < 5 * 60;
+    }
+
     // ── 포트폴리오 상태 ──────────────────────────────────────
     const holdings      = ref([]);
     const prices        = ref({});  // { symbol: StockPriceDto }
@@ -503,6 +525,12 @@ export default {
     function switchTab(id) {
       activeTab.value = id;
       if (id === 'heatmap') {
+        if (heatmapMarket.value !== 'kr') {
+          tvUpdatedAt.value = new Date().toLocaleString('ko-KR', {
+            year: 'numeric', month: 'numeric', day: 'numeric',
+            hour: '2-digit', minute: '2-digit',
+          });
+        }
         nextTick(() => {
           if (heatmapMarket.value === 'kr') loadKrHeatmap();
           else initHeatmap(heatmapMarket.value);
@@ -520,15 +548,41 @@ export default {
     }
 
     // ──────────────────────────────────────────────────────────────
-    // 포트폴리오 로직
+    // 포트폴리오 로직 (DB 연동 + localStorage 마이그레이션)
     // ──────────────────────────────────────────────────────────────
 
-    function loadHoldings() {
-      try { holdings.value = JSON.parse(localStorage.getItem(PORTFOLIO_KEY)) || []; }
-      catch { holdings.value = []; }
-    }
-    function saveHoldings() {
-      localStorage.setItem(PORTFOLIO_KEY, JSON.stringify(holdings.value));
+    // 최초 한 번: 기존 localStorage 데이터를 서버로 마이그레이션
+    async function initPortfolio() {
+      try {
+        holdings.value = JSON.parse(localStorage.getItem(PORTFOLIO_KEY)) || [];
+      } catch {
+        holdings.value = [];
+      }
+      const localData = [...holdings.value];
+      try {
+        const res = await axios.get('/api/portfolio/holdings');
+        const serverData = res.data || [];
+
+        if (serverData.length > 0) {
+          holdings.value = serverData;
+          localStorage.removeItem(PORTFOLIO_KEY);
+        } else if (localData.length > 0) {
+          for (const h of localData) {
+            await axios.post('/api/portfolio/holdings', {
+              market: h.market,
+              name: h.name,
+              symbol: h.symbol,
+              quantity: h.quantity,
+              avgPrice: h.avgPrice,
+            });
+          }
+          const refreshed = await axios.get('/api/portfolio/holdings');
+          holdings.value = refreshed.data || [];
+          localStorage.removeItem(PORTFOLIO_KEY);
+        }
+      } catch {
+        holdings.value = localData;
+      }
     }
 
     async function fetchPrices() {
@@ -595,41 +649,56 @@ export default {
     }
     function onSearchBlur() { setTimeout(() => { showDropdown.value = false; }, 200); }
 
-    function addHolding() {
+    async function addHolding() {
       const h = newHolding.value;
       // symbol에서 market 자동 감지 (직접 입력한 경우 대비)
       const sym = h.symbol.trim().toUpperCase();
       const market = h.market || (sym.endsWith('.KS') || sym.endsWith('.KQ') ? 'KR' : 'US');
-      holdings.value.push({
-        id:       Date.now().toString(),
-        market,
-        name:     h.name.trim(),
-        symbol:   sym,
-        quantity: h.quantity,
-        avgPrice: h.avgPrice || null,
-      });
-      saveHoldings();
-      closeAddModal();
-      fetchPrices();
+      try {
+        const res = await axios.post('/api/portfolio/holdings', {
+          market,
+          name: h.name.trim(),
+          symbol: sym,
+          quantity: h.quantity,
+          avgPrice: h.avgPrice || null,
+        });
+        holdings.value.push(res.data);
+        closeAddModal();
+        fetchPrices();
+      } catch {
+        // noop
+      }
     }
 
-    function removeHolding(id) {
-      holdings.value = holdings.value.filter(h => h.id !== id);
-      saveHoldings();
+    async function removeHolding(id) {
+      try {
+        await axios.delete(`/api/portfolio/holdings/${id}`);
+        holdings.value = holdings.value.filter(h => h.id !== id);
+      } catch {
+        // noop
+      }
     }
 
     function startEdit(h) {
       editingId.value      = h.id;
       editForm.value       = { quantity: h.quantity, avgPrice: h.avgPrice };
     }
-    function saveEdit(h) {
-      const idx = holdings.value.findIndex(x => x.id === h.id);
-      if (idx !== -1) {
-        holdings.value[idx].quantity = editForm.value.quantity;
-        holdings.value[idx].avgPrice = editForm.value.avgPrice || null;
-        saveHoldings();
+    async function saveEdit(h) {
+      const payload = {
+        quantity: editForm.value.quantity,
+        avgPrice: editForm.value.avgPrice || null,
+      };
+      try {
+        const res = await axios.put(`/api/portfolio/holdings/${h.id}`, payload);
+        const idx = holdings.value.findIndex(x => x.id === h.id);
+        if (idx !== -1) {
+          holdings.value[idx] = res.data;
+        }
+        editingId.value = null;
+        fetchPrices();
+      } catch {
+        // noop
       }
-      editingId.value = null;
     }
 
     // ─── Computed ─────────────────────────────────────
@@ -747,10 +816,15 @@ export default {
     // ─── 히트맵 ──────────────────────────────────────
     function switchHeatmap(market) {
       heatmapMarket.value = market;
-      // 국내→해외 전환 시 ECharts 인스턴스 정리
       if (market !== 'kr' && krChartInstance) {
         krChartInstance.dispose();
         krChartInstance = null;
+      }
+      if (market !== 'kr') {
+        tvUpdatedAt.value = new Date().toLocaleString('ko-KR', {
+          year: 'numeric', month: 'numeric', day: 'numeric',
+          hour: '2-digit', minute: '2-digit',
+        });
       }
       nextTick(() => {
         if (market === 'kr') loadKrHeatmap();
@@ -970,8 +1044,8 @@ export default {
       return '';
     }
 
-    onMounted(() => {
-      loadHoldings();
+    onMounted(async () => {
+      await initPortfolio();
       fetchPrices();
       window.addEventListener('resize', onResizeKrChart);
     });
@@ -984,6 +1058,7 @@ export default {
     return {
       activeTab, heatmapMarket, top10Market, tabs,
       krChartEl, krHeatmapLoading, krHeatmapError, krUpdatedAt,
+      tvUpdatedAt, isUsMarketOpen,
       // 포트폴리오
       holdings, prices, priceLoading, portfolioView,
       showAddModal, searchQ, showDropdown, searchResults, searchLoading, newHolding,
