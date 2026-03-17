@@ -1254,6 +1254,12 @@ export default {
     }
 
     function buildKrOption(sectors) {
+      const isMobile = window.innerWidth <= 768;
+      const nameFontSize = isMobile ? 14 : 12;
+      const pctFontSize  = isMobile ? 12 : 11;
+      const upperHeight  = isMobile ? 32 : 28;
+      const upperFontSize = isMobile ? 13 : 13;
+
       const treeData = sectors.map((sector) => ({
         name: sector.sector,
         children: sector.stocks.map((s) => ({
@@ -1283,6 +1289,7 @@ export default {
             type: "treemap",
             roam: false,
             nodeClick: false,
+            visibleMin: isMobile ? 800 : 400,
             breadcrumb: { show: true, itemStyle: { color: "#2a2a3e" } },
             label: {
               show: true,
@@ -1290,22 +1297,20 @@ export default {
                 const d = p.data;
                 if (!d.changePct && d.changePct !== 0) return p.name;
                 const sign = d.changePct >= 0 ? "+" : "";
-                return `{name|${d.name}}\n{pct|${sign}${d.changePct.toFixed(
-                  2,
-                )}%}`;
+                return `{name|${d.name}}\n{pct|${sign}${d.changePct.toFixed(2)}%}`;
               },
               rich: {
-                name: { fontSize: 12, fontWeight: "bold", color: "#fff" },
-                pct: { fontSize: 11, color: "rgba(255,255,255,0.85)" },
+                name: { fontSize: nameFontSize, fontWeight: "bold", color: "#fff" },
+                pct:  { fontSize: pctFontSize,  color: "rgba(255,255,255,0.9)" },
               },
             },
             upperLabel: {
               show: true,
-              height: 28,
+              height: upperHeight,
               color: "#fff",
               fontWeight: "bold",
-              fontSize: 13,
-              backgroundColor: "rgba(0,0,0,0.35)",
+              fontSize: upperFontSize,
+              backgroundColor: "rgba(0,0,0,0.45)",
             },
             itemStyle: { borderColor: "#1a1a2e", borderWidth: 2, gapWidth: 2 },
             levels: [
@@ -1337,10 +1342,17 @@ export default {
       script.src =
         "https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js";
       script.async = true;
+      const isMobile = window.innerWidth <= 768;
+      const tvHeight = isMobile
+        ? Math.floor(window.innerHeight * 0.7).toString()
+        : "560";
+
       script.textContent = JSON.stringify({
         exchanges: market === "nasdaq" ? ["NASDAQ"] : [],
         dataSource: market === "nasdaq" ? "NDX100" : "SPX500",
-        grouping: "sector",
+        // 모바일: 그룹 없이 시총 순 정렬 → 대형주만 크게, 소형주는 작은 점
+        // 데스크탑: 섹터별 그룹핑
+        grouping: isMobile ? "no_group" : "sector",
         blockSize: "market_cap_basic",
         blockColor: "change",
         locale: "en",
@@ -1352,7 +1364,7 @@ export default {
         hasSymbolTooltip: true,
         isMonoSize: false,
         width: "100%",
-        height: "560",
+        height: tvHeight,
       });
       container.appendChild(script);
     }
@@ -1459,14 +1471,27 @@ export default {
       return "";
     }
 
+    function onOrientationChange() {
+      // 방향 전환 후 레이아웃 확정되면 차트 리사이즈
+      setTimeout(() => {
+        if (krChartInstance) {
+          krChartInstance.resize();
+          // 폰트 크기도 재계산
+          if (heatmapMarket.value === "kr") loadKrHeatmap();
+        }
+      }, 300);
+    }
+
     onMounted(async () => {
       await initPortfolio();
       fetchPrices();
       window.addEventListener("resize", onResizeKrChart);
+      window.addEventListener("orientationchange", onOrientationChange);
     });
 
     onBeforeUnmount(() => {
       window.removeEventListener("resize", onResizeKrChart);
+      window.removeEventListener("orientationchange", onOrientationChange);
       if (krChartInstance) {
         krChartInstance.dispose();
         krChartInstance = null;

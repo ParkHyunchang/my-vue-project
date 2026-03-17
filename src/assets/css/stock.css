@@ -1049,4 +1049,10 @@
   .top10-table td, .top10-table th { padding: 11px 10px; font-size: 0.82rem; }
 
   .news-grid { grid-template-columns: 1fr; }
+
+  .heatmap-wrapper         { min-height: 70vh; }
+  .kr-heatmap-chart        { height: 70vh; }
+  .tradingview-widget-container { height: 70vh; }
+  .heatmap-loading,
+  .heatmap-error           { height: 70vh; }
 }
