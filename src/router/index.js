@@ -4,21 +4,7 @@ import Home from '../pages/index.vue';
 import Portfolio from '../pages/portfolio.vue';
 import Projects from '../pages/projects.vue';
 import Auth from '../pages/auth.vue';
-
-// ──────────────────────────────────────────────────────────────────
-// DB 메뉴 경로 → Vue 컴포넌트 레지스트리
-// DB에 새 메뉴를 추가할 때 여기에 경로와 컴포넌트를 함께 등록하면
-// 라우터에 자동으로 등록됩니다.
-// ──────────────────────────────────────────────────────────────────
-const ROUTE_COMPONENTS = {
-    '/history':       { component: () => import('../pages/history.vue'),               requiresAuth: true  },
-    '/dating':        { component: () => import('../pages/dating.vue'),                requiresAuth: true  },
-    '/dating_sys':    { component: () => import('../pages/dating_sys.vue'),            requiresAuth: true  },
-    '/todos':         { component: () => import('../pages/todos/index.vue'),           requiresAuth: true  },
-    '/todos/create':  { component: () => import('../pages/todos/create/index.vue'),   requiresAuth: true  },
-    '/expense':       { component: () => import('../pages/expense.vue'),              requiresAuth: true  },
-    '/stock':         { component: () => import('../pages/stock.vue'),                requiresAuth: true  },
-};
+import { ROUTE_COMPONENTS } from '../config/routes';
 
 const router = createRouter({
     history: createWebHashHistory(),

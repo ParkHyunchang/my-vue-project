@@ -478,90 +478,18 @@ import Modal from '@/components/Modal.vue';
 import DeleteModal from '@/components/DeleteModal.vue';
 import { useToast } from '@/composables/toast';
 import axios from '@/axios';
-
-const formatMonthValue = (date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  return `${year}-${month}`;
-};
-
-const buildMonthRange = (year, month) => {
-  const monthString = String(month).padStart(2, '0');
-  const lastDay = new Date(year, month, 0).getDate();
-  const dayString = String(lastDay).padStart(2, '0');
-  return {
-    startDate: `${year}-${monthString}-01T00:00:00`,
-    endDate: `${year}-${monthString}-${dayString}T23:59:59`
-  };
-};
-
-const formatDateInputValue = (value) => {
-  if (!value) {
-    return '';
-  }
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return '';
-  }
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-const buildCreatedAtForImport = (expense, targetDate) => {
-  const year = targetDate.getFullYear();
-  const month = targetDate.getMonth();
-  let day = 1;
-
-  if (expense.createdAt) {
-    const sourceDate = new Date(expense.createdAt);
-    if (!Number.isNaN(sourceDate.getTime())) {
-      day = sourceDate.getDate();
-    }
-  }
-
-  const lastDay = new Date(year, month + 1, 0).getDate();
-  const safeDay = Math.min(day, lastDay);
-  const monthString = String(month + 1).padStart(2, '0');
-  const dayString = String(safeDay).padStart(2, '0');
-  return `${year}-${monthString}-${dayString}T00:00:00`;
-};
-
-const formatDateTimeForBoundary = (dateString, boundary) => {
-  if (!dateString) {
-    return null;
-  }
-  const parts = dateString.split('-');
-  if (parts.length !== 3) {
-    return null;
-  }
-  const [year, month, day] = parts;
-  const time = boundary === 'start' ? '00:00:00' : '23:59:59';
-  return `${year}-${month}-${day}T${time}`;
-};
-
-const monthLabel = (value) => {
-  if (!value) {
-    return '';
-  }
-  const [year, month] = value.split('-');
-  if (!year || !month) {
-    return '';
-  }
-  return `${year}년 ${Number(month)}월`;
-};
-
-const dateLabel = (value) => {
-  if (!value) {
-    return '';
-  }
-  const [year, month, day] = value.split('-');
-  if (!year || !month || !day) {
-    return '';
-  }
-  return `${year}년 ${Number(month)}월 ${Number(day)}일`;
-};
+import {
+  useExpensePeriod,
+  formatDateInputValue,
+  buildCreatedAtForImport,
+} from '@/composables/useExpensePeriod';
+import {
+  useExpenseFilters,
+  EXPENSE_CATEGORIES,
+  INCOME_CATEGORIES,
+  VIEW_MODE_OPTIONS,
+  ITEMS_PER_PAGE_OPTIONS,
+} from '@/composables/useExpenseFilters';
 
 export default {
   components: {
@@ -571,295 +499,42 @@ export default {
   setup() {
     const { showToast } = useToast();
 
-    const expenses = ref([]);
-    const fixedExpenses = ref([]);
-    const fixedCollapsed = ref(true);
+    // ── 데이터 상태 ────────────────────────────────────────────────
+    const expenses        = ref([]);
+    const fixedExpenses   = ref([]);
+    const fixedCollapsed  = ref(true);
     const isImportingFixed = ref(false);
-    const summary = ref({
-      totalIncome: 0,
-      totalExpense: 0,
-      balance: 0,
-      totalFixedExpense: 0
-    });
-    const loading = ref(false);
+    const summary    = ref({ totalIncome: 0, totalExpense: 0, balance: 0, totalFixedExpense: 0 });
+    const loading    = ref(false);
     const fixedLoading = ref(false);
-    const error = ref('');
-
-    const showExpenseModal = ref(false);
-    const isEditing = ref(false);
-    const showDeleteModal = ref(false);
-
-    const selectedType = ref('');
-    const selectedCategory = ref('');
-    const sortBy = ref('date-desc');
-    const viewMode = ref('all');
-
-    const viewModeOptions = [
-      { value: 'all', label: '전체 내역' },
-      { value: 'variable', label: '변동 지출만' },
-      { value: 'fixed', label: '고정 지출만' }
-    ];
-
-    const currentPage = ref(1);
-    const defaultItemsPerPage = typeof window !== 'undefined' && window.innerWidth <= 768 ? 5 : 10;
-    const itemsPerPage = ref(defaultItemsPerPage);
-    const itemsPerPageOptions = [5, 10, 20];
-    const pageInput = ref(1);
-    const pageInputError = ref(false);
-
-    const expenseToDelete = ref(null);
-
-    const incomeCategories = [
-      '급여',
-      '보너스',
-      '현금',
-      '투자',
-      '기타'
-    ];
-    const expenseCategories = [
-      '식비',
-      '교통비',
-      '주거비',
-      '문화생활',
-      '의료비',
-      '교육',
-      '세금',
-      '보험료',
-      '여행',
-      '기타'
-    ];
-
-    const currentExpense = ref({
-      id: undefined,
-      title: '',
-      amount: null,
-      category: expenseCategories[0],
-      type: 'EXPENSE',
-      fixed: false,
-      date: formatDateInputValue(new Date()),
-      description: ''
-    });
-
-    const periodFilter = ref('current-month');
-    const selectedMonth = ref(formatMonthValue(new Date()));
-    const customStartDate = ref('');
-    const customEndDate = ref('');
-    const dateRangeError = ref('');
+    const error      = ref('');
     const totalRecords = ref(0);
 
-    const canImportToCurrentView = computed(() => ['current-month', 'previous-month'].includes(periodFilter.value));
-
-    const importButtonLabel = computed(() => {
-      if (!canImportToCurrentView.value) {
-        return '선택된 기간에 추가할 수 없습니다';
-      }
-      return periodFilter.value === 'previous-month'
-        ? '지난 달에 고정 지출 추가'
-        : '이번 달에 고정 지출 추가';
+    // ── UI 상태 ─────────────────────────────────────────────────
+    const showExpenseModal = ref(false);
+    const isEditing       = ref(false);
+    const showDeleteModal  = ref(false);
+    const expenseToDelete  = ref(null);
+    const currentExpense   = ref({
+      id: undefined, title: '', amount: null,
+      category: EXPENSE_CATEGORIES[0], type: 'EXPENSE',
+      fixed: false, date: formatDateInputValue(new Date()), description: ''
     });
 
-    const categoryFilterOptions = computed(() => {
-      if (selectedType.value === 'INCOME') {
-        return incomeCategories;
-      }
-      if (selectedType.value === 'EXPENSE') {
-        return expenseCategories;
-      }
-      return Array.from(new Set([...incomeCategories, ...expenseCategories]));
-    });
-
-    const formCategoryOptions = computed(() => {
-      return currentExpense.value.type === 'INCOME'
-        ? incomeCategories
-        : expenseCategories;
-    });
-
-    const fixedExpensesForPeriod = computed(() =>
-      expenses.value.filter(expense => expense.fixed)
-    );
-
-    const baseExpenses = computed(() => {
-      if (viewMode.value === 'fixed') {
-        return fixedExpenses.value;
-      }
-      if (viewMode.value === 'variable') {
-        return expenses.value.filter(expense => !expense.fixed);
-      }
-      return expenses.value;
-    });
-
-    const sortExpensesList = (list) => {
-      const sorted = [...list];
-      switch (sortBy.value) {
-        case 'date-desc':
-          return sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        case 'date-asc':
-          return sorted.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-        case 'amount-desc':
-          return sorted.sort((a, b) => b.amount - a.amount);
-        case 'amount-asc':
-          return sorted.sort((a, b) => a.amount - b.amount);
-        case 'title-asc':
-          return sorted.sort((a, b) => a.title.localeCompare(b.title));
-        case 'title-desc':
-          return sorted.sort((a, b) => b.title.localeCompare(a.title));
-        default:
-          return sorted;
-      }
-    };
-
-    const filteredExpenses = computed(() => {
-      let filtered = baseExpenses.value.slice();
-
-      if (selectedType.value) {
-        filtered = filtered.filter(expense => expense.type === selectedType.value);
-      }
-
-      if (selectedCategory.value) {
-        filtered = filtered.filter(expense => expense.category === selectedCategory.value);
-      }
-
-      return sortExpensesList(filtered);
-    });
-
-    const totalPages = computed(() => {
-      const pages = Math.ceil(filteredExpenses.value.length / itemsPerPage.value);
-      return pages > 0 ? pages : 1;
-    });
-
-    const paginatedExpenses = computed(() => {
-      const start = (currentPage.value - 1) * itemsPerPage.value;
-      const end = start + itemsPerPage.value;
-      return filteredExpenses.value.slice(start, end);
-    });
-
-    const visiblePages = computed(() => {
-      const pages = [];
-      const total = totalPages.value;
-      const current = currentPage.value;
-
-      if (total <= 7) {
-        for (let i = 1; i <= total; i += 1) {
-          pages.push(i);
-        }
-        return pages;
-      }
-
-      if (current <= 4) {
-        for (let i = 1; i <= 5; i += 1) {
-          pages.push(i);
-        }
-        pages.push('...');
-        pages.push(total);
-        return pages;
-      }
-
-      if (current >= total - 3) {
-        pages.push(1);
-        pages.push('...');
-        for (let i = total - 4; i <= total; i += 1) {
-          pages.push(i);
-        }
-        return pages;
-      }
-
-      pages.push(1);
-      pages.push('...');
-      for (let i = current - 1; i <= current + 1; i += 1) {
-        pages.push(i);
-      }
-      pages.push('...');
-      pages.push(total);
-      return pages;
-    });
-
-    const periodLabel = computed(() => {
-      switch (periodFilter.value) {
-        case 'all':
-          return '전체 기간';
-        case 'current-month':
-          return `${monthLabel(selectedMonth.value)} (이번 달)`;
-        case 'previous-month':
-          return `${monthLabel(selectedMonth.value)} (지난 달)`;
-        case 'custom-month':
-          return selectedMonth.value ? monthLabel(selectedMonth.value) : '조회할 달을 선택하세요';
-        case 'custom-range':
-          if (customStartDate.value && customEndDate.value) {
-            return `${dateLabel(customStartDate.value)} ~ ${dateLabel(customEndDate.value)}`;
-          }
-          return '조회할 기간을 선택하세요';
-        default:
-          return '';
-      }
-    });
-
-    const fixedExpensesTotal = computed(() =>
-      fixedExpenses.value.reduce((acc, item) => acc + (item.amount || 0), 0)
-    );
-
-    const currentPeriodSummary = computed(() => ({
-      totalIncome: summary.value.totalIncome || 0,
-      totalExpense: summary.value.totalExpense || 0,
-      balance: summary.value.balance || 0,
-      totalFixedExpense: summary.value.totalFixedExpense || 0
-    }));
-
-    const getPeriodRange = () => {
-      if (periodFilter.value === 'all') {
-        return null;
-      }
-
-      if (['current-month', 'previous-month', 'custom-month'].includes(periodFilter.value)) {
-        if (!selectedMonth.value) {
-          return null;
-        }
-        const [yearStr, monthStr] = selectedMonth.value.split('-');
-        const year = Number(yearStr);
-        const month = Number(monthStr);
-        if (!year || !month) {
-          return null;
-        }
-        return buildMonthRange(year, month);
-      }
-
-      if (periodFilter.value === 'custom-range') {
-        if (!customStartDate.value || !customEndDate.value) {
-          return null;
-        }
-        return {
-          startDate: formatDateTimeForBoundary(customStartDate.value, 'start'),
-          endDate: formatDateTimeForBoundary(customEndDate.value, 'end')
-        };
-      }
-
-      return null;
-    };
-
+    // ── API 함수 (컴포저블보다 먼저 정의, 콜백에서 참조) ──────────
     const fetchExpenses = async (range) => {
       loading.value = true;
       error.value = '';
       try {
         let response;
-
-        if (range && range.startDate && range.endDate) {
-          response = await axios.get('/expenses/date-range', {
-            params: {
-              startDate: range.startDate,
-              endDate: range.endDate
-            }
-          });
+        if (range?.startDate && range?.endDate) {
+          response = await axios.get('/expenses/date-range', { params: { startDate: range.startDate, endDate: range.endDate } });
           totalRecords.value = Array.isArray(response.data) ? response.data.length : 0;
         } else {
-          response = await axios.get('/expenses', {
-            params: {
-              page: 0,
-              size: 500
-            }
-          });
+          response = await axios.get('/expenses', { params: { page: 0, size: 500 } });
           const headerTotal = Number(response.headers?.['x-total-count']);
           totalRecords.value = Number.isNaN(headerTotal) ? response.data.length : headerTotal;
         }
-
         expenses.value = Array.isArray(response.data) ? response.data : [];
       } catch (err) {
         // eslint-disable-next-line no-console
@@ -874,13 +549,8 @@ export default {
     const fetchSummary = async (range) => {
       try {
         let response;
-        if (range && range.startDate && range.endDate) {
-          response = await axios.get('/expenses/summary/date-range', {
-            params: {
-              startDate: range.startDate,
-              endDate: range.endDate
-            }
-          });
+        if (range?.startDate && range?.endDate) {
+          response = await axios.get('/expenses/summary/date-range', { params: { startDate: range.startDate, endDate: range.endDate } });
         } else {
           response = await axios.get('/expenses/summary');
         }
@@ -909,149 +579,102 @@ export default {
       }
     };
 
+    // ── 컴포저블 (API 함수 정의 후 생성) ─────────────────────────
+    // period.getPeriodRange() / filters.resetPagination() 은
+    // 콜백이 실행될 시점(사용자 인터랙션)에는 이미 할당돼 있음
+    const filters = useExpenseFilters(expenses, fixedExpenses);
+    const period  = useExpensePeriod(async () => {
+      const range = period.getPeriodRange();
+      await Promise.all([fetchExpenses(range), fetchSummary(range)]);
+      filters.resetPagination();
+    });
+
+    const {
+      periodFilter, selectedMonth, customStartDate, customEndDate,
+      dateRangeError, periodLabel, getPeriodRange, setPeriod
+    } = period;
+
+    const {
+      selectedType, selectedCategory, sortBy, viewMode,
+      currentPage, itemsPerPage, pageInput, pageInputError,
+      categoryFilterOptions, filteredExpenses,
+      totalPages, paginatedExpenses, visiblePages,
+      goToPage, resetPagination, getFormCategoryOptions
+    } = filters;
+
+    // ── computed ────────────────────────────────────────────────
+    const canImportToCurrentView = computed(() =>
+      ['current-month', 'previous-month'].includes(periodFilter.value)
+    );
+    const importButtonLabel = computed(() => {
+      if (!canImportToCurrentView.value) return '선택된 기간에 추가할 수 없습니다';
+      return periodFilter.value === 'previous-month' ? '지난 달에 고정 지출 추가' : '이번 달에 고정 지출 추가';
+    });
+    const formCategoryOptions   = computed(() => getFormCategoryOptions(currentExpense.value.type));
+    const fixedExpensesForPeriod = computed(() => expenses.value.filter(e => e.fixed));
+    const fixedExpensesTotal    = computed(() => fixedExpenses.value.reduce((acc, e) => acc + (e.amount || 0), 0));
+    const currentPeriodSummary  = computed(() => ({
+      totalIncome: summary.value.totalIncome || 0,
+      totalExpense: summary.value.totalExpense || 0,
+      balance: summary.value.balance || 0,
+      totalFixedExpense: summary.value.totalFixedExpense || 0
+    }));
+
+    // ── 오케스트레이션 ───────────────────────────────────────────
     const loadExpensesForCurrentPeriod = async () => {
       const range = getPeriodRange();
       await Promise.all([fetchExpenses(range), fetchSummary(range)]);
-      currentPage.value = 1;
-      pageInput.value = 1;
-      pageInputError.value = false;
+      resetPagination();
     };
 
+    // ── 폼 헬퍼 ────────────────────────────────────────────────
     const resetForm = () => {
       currentExpense.value = {
-        id: undefined,
-        title: '',
-        amount: null,
-        category: expenseCategories[0],
-        type: 'EXPENSE',
-        fixed: false,
-        date: formatDateInputValue(new Date()),
-        description: ''
+        id: undefined, title: '', amount: null,
+        category: EXPENSE_CATEGORIES[0], type: 'EXPENSE',
+        fixed: false, date: formatDateInputValue(new Date()), description: ''
       };
     };
 
     const computeDefaultDateForCurrentPeriod = () => {
       if (periodFilter.value === 'previous-month') {
-        const previous = new Date();
-        previous.setMonth(previous.getMonth() - 1);
-        return formatDateInputValue(previous);
+        const prev = new Date(); prev.setMonth(prev.getMonth() - 1);
+        return formatDateInputValue(prev);
       }
       if (periodFilter.value === 'custom-month' && selectedMonth.value) {
         const [year, month] = selectedMonth.value.split('-');
-        if (year && month) {
-          return `${year}-${month}-01`;
-        }
+        if (year && month) return `${year}-${month}-01`;
       }
-      if (periodFilter.value === 'custom-range' && customStartDate.value) {
-        return customStartDate.value;
-      }
+      if (periodFilter.value === 'custom-range' && customStartDate.value) return customStartDate.value;
       return formatDateInputValue(new Date());
     };
 
+    // ── 모달 ────────────────────────────────────────────────────
     const openCreateModal = () => {
-      isEditing.value = false;
-      resetForm();
+      isEditing.value = false; resetForm();
       currentExpense.value.date = computeDefaultDateForCurrentPeriod();
       showExpenseModal.value = true;
     };
 
     const openCreateFixedModal = () => {
-      isEditing.value = false;
-      resetForm();
-      currentExpense.value.type = 'EXPENSE';
-      currentExpense.value.fixed = true;
-      currentExpense.value.category = '주거비';
-      currentExpense.value.date = computeDefaultDateForCurrentPeriod();
+      isEditing.value = false; resetForm();
+      Object.assign(currentExpense.value, { type: 'EXPENSE', fixed: true, category: '주거비', date: computeDefaultDateForCurrentPeriod() });
       showExpenseModal.value = true;
-    };
-
-    const toggleFixedSection = () => {
-      fixedCollapsed.value = !fixedCollapsed.value;
-    };
-
-    const importFixedExpenses = async () => {
-      if (fixedExpenses.value.length === 0 || isImportingFixed.value) {
-        return;
-      }
-
-      if (!canImportToCurrentView.value) {
-        showToast('현재 선택한 기간에는 고정 지출을 일괄 추가할 수 없습니다.', 'warning');
-        return;
-      }
-
-      isImportingFixed.value = true;
-      showToast('고정 지출을 추가하고 있습니다...', 'info');
-
-      const targetDate = new Date();
-      if (periodFilter.value === 'previous-month') {
-        targetDate.setMonth(targetDate.getMonth() - 1);
-      }
-      targetDate.setDate(1);
-      targetDate.setHours(0, 0, 0, 0);
-
-      const successMessage = periodFilter.value === 'previous-month'
-        ? '지난 달에 고정 지출 항목을 추가했습니다.'
-        : '이번 달에 고정 지출 항목을 추가했습니다.';
-
-      try {
-        const payloads = fixedExpenses.value.map((expense) => ({
-          title: expense.title,
-          description: expense.description,
-          amount: expense.amount,
-          category: expense.category,
-          type: 'EXPENSE',
-          fixed: false,
-          createdAt: buildCreatedAtForImport(expense, targetDate)
-        }));
-
-        await Promise.all(payloads.map((payload) => axios.post('/expenses', payload)));
-        await loadExpensesForCurrentPeriod();
-        showToast(successMessage, 'success');
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('Error importing fixed expenses:', err);
-        showToast('고정 지출 항목 추가에 실패했습니다.', 'danger');
-      } finally {
-        isImportingFixed.value = false;
-      }
     };
 
     const openEditModal = (expense) => {
       isEditing.value = true;
-      currentExpense.value = {
-        id: expense.id,
-        title: expense.title,
-        description: expense.description,
-        amount: expense.amount,
-        category: expense.category,
-        type: expense.type,
-        fixed: !!expense.fixed,
-        date: formatDateInputValue(expense.createdAt)
-      };
+      currentExpense.value = { id: expense.id, title: expense.title, description: expense.description, amount: expense.amount, category: expense.category, type: expense.type, fixed: !!expense.fixed, date: formatDateInputValue(expense.createdAt) };
       showExpenseModal.value = true;
     };
 
-    const closeExpenseModal = () => {
-      showExpenseModal.value = false;
-      resetForm();
-    };
+    const closeExpenseModal = () => { showExpenseModal.value = false; resetForm(); };
 
     const saveExpense = async () => {
       const { date, ...rest } = currentExpense.value;
-      const payload = {
-        ...rest,
-        amount: Number(currentExpense.value.amount)
-      };
-
-      if (Number.isNaN(payload.amount)) {
-        showToast('금액을 확인해주세요.', 'danger');
-        return;
-      }
-
-      if (date) {
-        payload.createdAt = `${date}T00:00:00`;
-      }
-
+      const payload = { ...rest, amount: Number(currentExpense.value.amount) };
+      if (Number.isNaN(payload.amount)) { showToast('금액을 확인해주세요.', 'danger'); return; }
+      if (date) payload.createdAt = `${date}T00:00:00`;
       try {
         if (isEditing.value) {
           await axios.put(`/expenses/${payload.id}`, payload);
@@ -1060,7 +683,6 @@ export default {
           await axios.post('/expenses', payload);
           showToast('가계부 항목이 추가되었습니다.', 'success');
         }
-
         closeExpenseModal();
         await loadExpensesForCurrentPeriod();
         await fetchFixedExpenses();
@@ -1071,21 +693,11 @@ export default {
       }
     };
 
-    const openDeleteModal = (expense) => {
-      expenseToDelete.value = expense;
-      showDeleteModal.value = true;
-    };
-
-    const closeDeleteModal = () => {
-      showDeleteModal.value = false;
-      expenseToDelete.value = null;
-    };
+    const openDeleteModal  = (expense) => { expenseToDelete.value = expense; showDeleteModal.value = true; };
+    const closeDeleteModal = () => { showDeleteModal.value = false; expenseToDelete.value = null; };
 
     const deleteExpense = async () => {
-      if (!expenseToDelete.value?.id) {
-        return;
-      }
-
+      if (!expenseToDelete.value?.id) return;
       try {
         await axios.delete(`/expenses/${expenseToDelete.value.id}`);
         showToast('가계부 항목이 삭제되었습니다.', 'success');
@@ -1099,121 +711,60 @@ export default {
       }
     };
 
-    const filterExpenses = () => {
-      currentPage.value = 1;
-      pageInput.value = 1;
-      pageInputError.value = false;
+    // ── 고정 지출 ───────────────────────────────────────────────
+    const toggleFixedSection = () => { fixedCollapsed.value = !fixedCollapsed.value; };
+
+    const importFixedExpenses = async () => {
+      if (fixedExpenses.value.length === 0 || isImportingFixed.value) return;
+      if (!canImportToCurrentView.value) { showToast('현재 선택한 기간에는 고정 지출을 일괄 추가할 수 없습니다.', 'warning'); return; }
+      isImportingFixed.value = true;
+      showToast('고정 지출을 추가하고 있습니다...', 'info');
+      const targetDate = new Date();
+      if (periodFilter.value === 'previous-month') targetDate.setMonth(targetDate.getMonth() - 1);
+      targetDate.setDate(1); targetDate.setHours(0, 0, 0, 0);
+      const successMessage = periodFilter.value === 'previous-month' ? '지난 달에 고정 지출 항목을 추가했습니다.' : '이번 달에 고정 지출 항목을 추가했습니다.';
+      try {
+        const payloads = fixedExpenses.value.map((e) => ({ title: e.title, description: e.description, amount: e.amount, category: e.category, type: 'EXPENSE', fixed: false, createdAt: buildCreatedAtForImport(e, targetDate) }));
+        await Promise.all(payloads.map((p) => axios.post('/expenses', p)));
+        await loadExpensesForCurrentPeriod();
+        showToast(successMessage, 'success');
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Error importing fixed expenses:', err);
+        showToast('고정 지출 항목 추가에 실패했습니다.', 'danger');
+      } finally {
+        isImportingFixed.value = false;
+      }
     };
+
+    // ── 필터 이벤트 핸들러 ──────────────────────────────────────
+    const filterExpenses    = () => resetPagination();
+    const sortExpenses      = () => resetPagination();
+    const changeItemsPerPage = () => resetPagination();
+    const setViewMode       = (mode) => { viewMode.value = mode; };
 
     const onTypeFilterChange = () => {
-      if (selectedType.value === 'INCOME' && selectedCategory.value && !incomeCategories.includes(selectedCategory.value)) {
+      const cats = selectedType.value === 'INCOME' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+      if (selectedType.value && selectedCategory.value && !cats.includes(selectedCategory.value)) {
         selectedCategory.value = '';
-      } else if (selectedType.value === 'EXPENSE' && selectedCategory.value && !expenseCategories.includes(selectedCategory.value)) {
-        selectedCategory.value = '';
       }
-      filterExpenses();
+      resetPagination();
     };
 
-    const sortExpenses = () => {
-      currentPage.value = 1;
-      pageInput.value = 1;
-      pageInputError.value = false;
+    // ── 직접 페이지 입력 ─────────────────────────────────────────
+    const goToInputPage = () => {
+      const inputPage = parseInt(pageInput.value, 10);
+      if (Number.isNaN(inputPage) || inputPage < 1 || inputPage > totalPages.value) {
+        pageInputError.value = true; pageInput.value = currentPage.value; return;
+      }
+      pageInputError.value = false; currentPage.value = inputPage;
     };
 
-    const changeItemsPerPage = () => {
-      currentPage.value = 1;
-      pageInput.value = 1;
-      pageInputError.value = false;
-    };
-
-    const setViewMode = (mode) => {
-      viewMode.value = mode;
-      currentPage.value = 1;
-      pageInput.value = 1;
-      pageInputError.value = false;
-    };
-
-    const setPeriod = async (value) => {
-      periodFilter.value = value;
-      dateRangeError.value = '';
-
-      if (value === 'all') {
-        selectedMonth.value = '';
-        customStartDate.value = '';
-        customEndDate.value = '';
-        await loadExpensesForCurrentPeriod();
-        return;
-      }
-
-      if (value === 'current-month') {
-        selectedMonth.value = formatMonthValue(new Date());
-        await loadExpensesForCurrentPeriod();
-        return;
-      }
-
-      if (value === 'previous-month') {
-        const base = new Date();
-        base.setMonth(base.getMonth() - 1);
-        selectedMonth.value = formatMonthValue(base);
-        await loadExpensesForCurrentPeriod();
-        return;
-      }
-
-      if (value === 'custom-month') {
-        if (!selectedMonth.value) {
-          selectedMonth.value = formatMonthValue(new Date());
-        }
-        await loadExpensesForCurrentPeriod();
-        return;
-      }
-
-      if (value === 'custom-range') {
-        if (customStartDate.value && customEndDate.value) {
-          if (new Date(customStartDate.value) > new Date(customEndDate.value)) {
-            dateRangeError.value = '시작일이 종료일보다 이후입니다.';
-            return;
-          }
-          await loadExpensesForCurrentPeriod();
-        }
-      }
-    };
-
+    // ── watch ────────────────────────────────────────────────────
     watch(() => currentExpense.value.type, (type) => {
-      const options = type === 'INCOME' ? incomeCategories : expenseCategories;
-      if (!options.includes(currentExpense.value.category)) {
-        currentExpense.value.category = options[0];
-      }
-      if (type === 'INCOME') {
-        currentExpense.value.fixed = false;
-      }
-    });
-
-    watch(selectedMonth, async (value, oldValue) => {
-      if (periodFilter.value === 'custom-month' && value && value !== oldValue) {
-        await loadExpensesForCurrentPeriod();
-      }
-    });
-
-    watch([customStartDate, customEndDate], async ([start, end]) => {
-      if (periodFilter.value !== 'custom-range') {
-        return;
-      }
-      if (!start || !end) {
-        dateRangeError.value = '';
-        return;
-      }
-      if (new Date(start) > new Date(end)) {
-        dateRangeError.value = '시작일이 종료일보다 이후입니다.';
-        return;
-      }
-      dateRangeError.value = '';
-      await loadExpensesForCurrentPeriod();
-    });
-
-    watch(viewMode, () => {
-      currentPage.value = 1;
-      pageInput.value = 1;
-      pageInputError.value = false;
+      const options = type === 'INCOME' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+      if (!options.includes(currentExpense.value.category)) currentExpense.value.category = options[0];
+      if (type === 'INCOME') currentExpense.value.fixed = false;
     });
 
     onMounted(async () => {
@@ -1221,101 +772,33 @@ export default {
       await fetchFixedExpenses();
     });
 
-    const goToPage = (page) => {
-      if (typeof page !== 'number') {
-        return;
-      }
-      if (page >= 1 && page <= totalPages.value) {
-        currentPage.value = page;
-        pageInput.value = page;
-        pageInputError.value = false;
-      }
-    };
-
-    const goToInputPage = () => {
-      const inputPage = parseInt(pageInput.value, 10);
-
-      if (Number.isNaN(inputPage) || inputPage < 1 || inputPage > totalPages.value) {
-        pageInputError.value = true;
-        pageInput.value = currentPage.value;
-        return;
-      }
-
-      pageInputError.value = false;
-      currentPage.value = inputPage;
-    };
-
-    const formatCurrency = (amount) => {
-      return new Intl.NumberFormat('ko-KR').format(amount || 0);
-    };
-
-    const formatDate = (dateString) => {
-      if (!dateString) {
-        return '';
-      }
-      return new Date(dateString).toLocaleDateString('ko-KR');
-    };
+    // ── UI 포맷터 ─────────────────────────────────────────────────
+    const formatCurrency = (amount) => new Intl.NumberFormat('ko-KR').format(amount || 0);
+    const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString('ko-KR') : '';
 
     return {
-      expenses,
-      summary,
-      fixedExpenses,
-      fixedExpensesForPeriod,
-      fixedCollapsed,
-      isImportingFixed,
-      canImportToCurrentView,
-      importButtonLabel,
-      currentPeriodSummary,
-      fixedExpensesTotal,
-      showExpenseModal,
-      isEditing,
-      selectedType,
-      selectedCategory,
-      sortBy,
-      viewMode,
-      viewModeOptions,
-      periodFilter,
-      selectedMonth,
-      customStartDate,
-      customEndDate,
-      dateRangeError,
-      currentPage,
-      itemsPerPage,
-      itemsPerPageOptions,
-      pageInput,
-      pageInputError,
-      showDeleteModal,
-      currentExpense,
-      loading,
-      fixedLoading,
-      error,
-      filteredExpenses,
-      paginatedExpenses,
-      totalPages,
-      visiblePages,
-      periodLabel,
-      openCreateModal,
-      openCreateFixedModal,
-      openEditModal,
-      closeExpenseModal,
-      saveExpense,
-      openDeleteModal,
-      closeDeleteModal,
-      deleteExpense,
-      filterExpenses,
-      sortExpenses,
-      toggleFixedSection,
-      importFixedExpenses,
-      changeItemsPerPage,
-      setPeriod,
-      setViewMode,
-      goToPage,
-      goToInputPage,
-      formatCurrency,
-      formatDate,
-      onTypeFilterChange,
-      categoryFilterOptions,
-      formCategoryOptions
+      // 데이터
+      expenses, summary, fixedExpenses, fixedExpensesForPeriod, fixedCollapsed,
+      isImportingFixed, canImportToCurrentView, importButtonLabel,
+      currentPeriodSummary, fixedExpensesTotal,
+      // UI
+      showExpenseModal, isEditing, showDeleteModal, currentExpense, loading, fixedLoading, error,
+      // 컴포저블 상태
+      selectedType, selectedCategory, sortBy, viewMode,
+      periodFilter, selectedMonth, customStartDate, customEndDate, dateRangeError,
+      currentPage, itemsPerPage, pageInput, pageInputError,
+      // 컴포저블 computed
+      filteredExpenses, paginatedExpenses, totalPages, visiblePages, periodLabel,
+      categoryFilterOptions, formCategoryOptions,
+      // 상수 (템플릿에서 참조)
+      viewModeOptions: VIEW_MODE_OPTIONS,
+      itemsPerPageOptions: ITEMS_PER_PAGE_OPTIONS,
+      // 이벤트 핸들러
+      openCreateModal, openCreateFixedModal, openEditModal, closeExpenseModal, saveExpense,
+      openDeleteModal, closeDeleteModal, deleteExpense,
+      filterExpenses, sortExpenses, toggleFixedSection, importFixedExpenses,
+      changeItemsPerPage, setPeriod, setViewMode, goToPage, goToInputPage,
+      formatCurrency, formatDate, onTypeFilterChange
     };
   }
 };

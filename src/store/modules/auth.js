@@ -1,4 +1,5 @@
 import { syncDynamicRoutes } from '../../router/index.js';
+import { PREMIUM_MENU_PATHS } from '../../config/routes';
 
 // 메뉴 정의 로드 완료 후 동적 라우트 동기화 헬퍼
 async function applyDynamicRoutes(rootGetters) {
@@ -190,7 +191,7 @@ const actions = {
 };
 
 const isPremiumDatingMenu = (userRole, menuPath) =>
-  userRole === "PREMIUM" && ["/dating", "/history"].includes(menuPath);
+  userRole === "PREMIUM" && PREMIUM_MENU_PATHS.includes(menuPath);
 
 const getters = {
   isAuthenticated: (state) => state.isAuthenticated,

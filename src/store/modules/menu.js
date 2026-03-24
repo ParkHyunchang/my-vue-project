@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+import { getDefaultMenuDefinitions, getDefaultMenusForRole } from '../../config/routes';
+
 const state = {
     userMenus: [],
     allMenus: []  // DB에서 로드 (초기 빈 배열, loadMenuDefinitions 액션으로 채워짐)
@@ -106,39 +108,6 @@ const getters = {
         return getters.adminSubMenus.length > 0;
     }
 };
-
-// API 실패 시 폴백용 기본 메뉴 정의
-// portfolio / projects는 DB에서 제거됐으므로 폴백에도 포함하지 않음
-function getDefaultMenuDefinitions() {
-    return [
-        { path: '/', name: '홈', icon: '🏠', description: '메인 홈페이지', category: 'main', isRequired: true, showInNav: true, navLabel: 'HOME', isAdminSubMenu: false, parentPath: null },
-        { path: '/history', name: '히스토리', icon: '📚', description: '작업 이력 및 기록', category: 'work', isRequired: false, showInNav: true, navLabel: 'HISTORY', isAdminSubMenu: false, parentPath: null },
-        { path: '/dating', name: '데이팅', icon: '💕', description: '데이팅 관련 기능', category: 'personal', isRequired: false, showInNav: true, navLabel: 'DATING', isAdminSubMenu: false, parentPath: null },
-        { path: '/dating_sys', name: '데이팅 추억', icon: '📸', description: '데이팅 추억 기록', category: 'personal', isRequired: false, showInNav: false, navLabel: 'DATING SYS', isAdminSubMenu: false, parentPath: '/dating' },
-        { path: '/todos', name: '할일 목록', icon: '📝', description: '할일 관리', category: 'productivity', isRequired: false, showInNav: true, navLabel: 'TODOS', isAdminSubMenu: false, parentPath: null },
-        { path: '/todos/create', name: '할일 생성', icon: '➕', description: '새로운 할일 추가', category: 'productivity', isRequired: false, showInNav: false, navLabel: '할일 생성', isAdminSubMenu: false, parentPath: null },
-        { path: '/expense', name: '지출 관리', icon: '💰', description: '지출 내역 관리', category: 'finance', isRequired: false, showInNav: true, navLabel: '가계부', isAdminSubMenu: false, parentPath: null },
-        { path: '/admin', name: '관리자 대시보드', icon: '🎛️', description: '관리자 메인 대시보드', category: 'admin', isRequired: false, showInNav: false, navLabel: '관리자 대시보드', isAdminSubMenu: false, parentPath: null },
-        { path: '/admin/users', name: '사용자 관리', icon: '👥', description: '사용자 계정 관리', category: 'admin', isRequired: false, showInNav: false, navLabel: '사용자 관리', isAdminSubMenu: true, parentPath: null },
-        { path: '/admin/menu-management', name: '권한별 접근메뉴관리', icon: '🔐', description: '메뉴 접근 권한 설정', category: 'admin', isRequired: false, showInNav: false, navLabel: '권한별 접근메뉴관리', isAdminSubMenu: true, parentPath: null },
-        { path: '/admin/role-management', name: '권한 관리', icon: '🛡️', description: '사용자 권한(Role) 관리', category: 'admin', isRequired: false, showInNav: false, navLabel: '권한 관리', isAdminSubMenu: true, parentPath: null }
-    ];
-}
-
-// 기본 권한 설정 함수 (폴백용)
-// portfolio / projects는 DB에서 제거됐으므로 폴백에도 포함하지 않음
-function getDefaultMenusForRole(role) {
-    const defaultPermissions = {
-        'USER': ['/', '/todos', '/todos/create'],
-        'PREMIUM': ['/', '/history', '/dating', '/dating_sys', '/todos', '/todos/create'],
-        'ADMIN': [
-            '/', '/history', '/dating', '/dating_sys',
-            '/todos', '/todos/create', '/expense',
-            '/admin', '/admin/users', '/admin/menu-management', '/admin/role-management', '/admin/menu-definition'
-        ]
-    };
-    return defaultPermissions[role] || [];
-}
 
 export default {
     namespaced: true,
