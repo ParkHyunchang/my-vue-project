@@ -496,7 +496,13 @@
           :class="['market-btn', { active: top10Market === 'kr' }]"
           @click="switchTop10('kr')"
         >
-          🇰🇷 국내 (KOSPI)
+          🇰🇷 코스피
+        </button>
+        <button
+          :class="['market-btn', { active: top10Market === 'kosdaq' }]"
+          @click="switchTop10('kosdaq')"
+        >
+          🇰🇷 코스닥
         </button>
         <button
           :class="['market-btn', { active: top10Market === 'us' }]"
@@ -1382,6 +1388,8 @@ export default {
         const endpoint =
           top10Market.value === "kr"
             ? "/api/stock/top10/kr"
+            : top10Market.value === "kosdaq"
+            ? "/api/stock/top10/kosdaq"
             : "/api/stock/top10/us";
         const res = await axios.get(endpoint);
         top10Data.value = res.data;
