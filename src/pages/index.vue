@@ -223,7 +223,7 @@
               <h3 class="title">vue.js를 이용한 프론트엔드</h3>
               <div class="btn">
                 <a href="https://github.com/ParkHyunchang/my-vue-project">code</a><br>
-                <a href="http://125.141.20.218:3100/#/">view</a>
+                <a href="https://hyunchang.synology.me:3100/#/">view</a>
               </div>
               <div class="info">
                 <span>site coding</span>
@@ -239,7 +239,7 @@
               <h3 class="title">springboot를 이용한 백엔드</h3>
               <div class="btn">
                 <a href="https://github.com/ParkHyunchang/my-vue-project_backend">code</a><br>
-                <a href="http://125.141.20.218:3100/#/">view</a>
+                <a href="https://hyunchang.synology.me:3100/#/">view</a>
               </div>
               <div class="info">
                 <span>site coding</span>

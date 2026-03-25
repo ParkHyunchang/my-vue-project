@@ -1,18 +1,10 @@
 import axios from "axios";
 import store from './store';
 
-// 백엔드 URL 결정: 환경변수 우선, 없으면 hostname 기반 fallback
-const getBaseURL = () => {
-  if (process.env.VUE_APP_API_URL) {
-    return process.env.VUE_APP_API_URL;
-  }
-  // 배포 환경 fallback: 프론트엔드와 같은 호스트의 3200 포트
-  return `http://${window.location.hostname}:3200`;
-};
-
 // api 엔드포인트 백엔드 서버 연동설정
+// VUE_APP_API_URL은 .env 파일에서 반드시 설정해야 합니다.
 const api = axios.create({
-  baseURL: getBaseURL()
+  baseURL: process.env.VUE_APP_API_URL
 });
 
 // 요청 인터셉터 - JWT 토큰 자동 추가
