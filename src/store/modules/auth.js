@@ -124,6 +124,18 @@ const actions = {
       return false;
     }
 
+    // 서버 요청 전에 토큰 만료 여부 로컬 체크
+    try {
+      const payload = JSON.parse(atob(state.token.split('.')[1]));
+      if (payload.exp * 1000 < Date.now()) {
+        commit("LOGOUT");
+        return false;
+      }
+    } catch {
+      commit("LOGOUT");
+      return false;
+    }
+
     try {
       const axios = (await import("../../axios")).default;
       const response = await axios.get("/api/auth/me", {
