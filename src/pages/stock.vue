@@ -543,8 +543,6 @@
               <th class="col-rank">순위</th>
               <th class="col-name">종목</th>
               <th class="col-price">현재가</th>
-              <th class="col-change">등락</th>
-              <th class="col-change-pct">등락률</th>
               <th class="col-mcap">시가총액</th>
             </tr>
           </thead>
@@ -573,19 +571,6 @@
               <td class="col-price">
                 {{ formatPrice(stock.price, stock.currency) }}
               </td>
-              <td :class="['col-change', changeClass(stock.change)]">
-                {{ stock.change >= 0 ? "+" : ""
-                }}{{ formatPrice(stock.change, stock.currency) }}
-              </td>
-              <td :class="['col-change-pct', changeClass(stock.changePercent)]">
-                <span
-                  class="change-badge"
-                  :class="changeClass(stock.changePercent)"
-                >
-                  {{ stock.changePercent >= 0 ? "▲" : "▼" }}
-                  {{ Math.abs(stock.changePercent).toFixed(2) }}%
-                </span>
-              </td>
               <td class="col-mcap">
                 {{ formatMarketCap(stock.marketCap, stock.currency) }}
               </td>
@@ -601,11 +586,8 @@
           <div class="schedule-item">
             <span class="schedule-flag">🇰🇷</span>
             <div class="schedule-detail">
-              <strong>국내 (KOSPI)</strong>
-              <span
-                >매일 09:00 KST — KRX 시총 순위 기반, 한국 장 개장 직전
-                갱신</span
-              >
+              <strong>코스피 / 코스닥</strong>
+              <span>매일 09:00 KST — KRX 공식 API, 한국 장 개장 직전 갱신</span>
             </div>
             <span class="schedule-time">09:00</span>
           </div>
@@ -619,7 +601,7 @@
           </div>
         </div>
         <p class="schedule-note">
-          🇰🇷 KRX 공식 API 기반 실제 KOSPI 시총 순위 · 🇺🇸 Yahoo Finance v8 기반 ·
+          🇰🇷 KRX 공식 API 기반 실제 시총 순위 · 🇺🇸 Yahoo Finance v8 기반 ·
           캐시 유효 시간 6시간 · 순위 변동(▲▼)은 직전 갱신 대비
         </p>
       </div>

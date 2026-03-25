@@ -820,8 +820,6 @@
 .col-rank    { text-align: center; width: 60px; }
 .col-name    { min-width: 160px; }
 .col-price   { text-align: right; }
-.col-change  { text-align: right; }
-.col-change-pct { text-align: right; }
 .col-mcap    { text-align: right; }
 
 .rank-badge {
@@ -1044,8 +1042,6 @@
   .holdings-table tbody td, .holdings-table thead th { padding: 10px 8px; font-size: 0.78rem; }
   .th-r, .td-r { font-size: 0.76rem; }
 
-  .col-mcap   { display: none; }
-  .col-change { display: none; }
   .top10-table td, .top10-table th { padding: 11px 10px; font-size: 0.82rem; }
 
   .news-grid { grid-template-columns: 1fr; }
