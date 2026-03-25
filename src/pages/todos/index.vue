@@ -110,9 +110,7 @@ export default {
         };
 
         const moveToCreatePage = () => {
-            router.push({
-                name: 'TodoCreate',
-            })
+            router.push('/todos/create');
         };
 
         let timeout = null;

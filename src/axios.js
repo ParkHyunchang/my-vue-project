@@ -1,27 +1,13 @@
 import axios from "axios";
 import store from './store';
 
-// 현재 브라우저 URL을 기반으로 백엔드 URL 결정
+// 백엔드 URL 결정: 환경변수 우선, 없으면 hostname 기반 fallback
 const getBaseURL = () => {
-  const hostname = window.location.hostname;
-  
-  // 로컬 개발 환경
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return 'http://localhost:3200';
+  if (process.env.VUE_APP_API_URL) {
+    return process.env.VUE_APP_API_URL;
   }
-  
-  // IP 주소로 접속
-  if (hostname === '125.141.20.218') {
-    return 'http://125.141.20.218:3200';
-  }
-  
-  // 도메인으로 접속
-  if (hostname.includes('synology.me')) {
-    return `http://${hostname}:3200`;
-  }
-  
-  // 기타 경우 (기본값)
-  return 'http://125.141.20.218:3200';
+  // 배포 환경 fallback: 프론트엔드와 같은 호스트의 3200 포트
+  return `http://${window.location.hostname}:3200`;
 };
 
 // api 엔드포인트 백엔드 서버 연동설정
