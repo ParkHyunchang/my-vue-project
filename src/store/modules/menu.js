@@ -16,15 +16,33 @@ const mutations = {
 };
 
 const actions = {
-    // 메뉴 정의를 DB에서 로드 (로그인 후 한 번만 호출)
+    // 메뉴 정의를 DB에서 로드
     async loadMenuDefinitions({ commit, rootGetters }) {
         try {
             const user = rootGetters['auth/user'];
-            if (!user) return;
-
             const axios = (await import('../../axios')).default;
+
+            if (!user) {
+                // 비로그인: 공개 API에서 전체 메뉴 정의 로드
+                const response = await axios.get('/api/public/menus');
+                const menus = response.data.allMenus.map(m => ({
+                    path: m.path,
+                    name: m.name,
+                    icon: m.icon,
+                    description: m.description,
+                    category: m.category,
+                    isRequired: m.required,
+                    showInNav: m.showInNav,
+                    navLabel: m.navLabel,
+                    isAdminSubMenu: m.adminSubMenu,
+                    defaultRoles: m.defaultRoles || [],
+                    parentPath: m.parentPath || null
+                }));
+                commit('SET_ALL_MENUS', menus);
+                return;
+            }
+
             const response = await axios.get('/api/auth/menus');
-            // DB 응답을 store 형식으로 변환
             const menus = response.data.map(m => ({
                 path: m.path,
                 name: m.name,
@@ -48,21 +66,26 @@ const actions = {
     async loadUserMenus({ commit, rootGetters }) {
         try {
             const user = rootGetters['auth/user'];
+            const axios = (await import('../../axios')).default;
+
             if (!user) {
-                commit('SET_USER_MENUS', []);
+                // 비로그인: GUEST 권한 메뉴 로드
+                const response = await axios.get('/api/public/menus');
+                commit('SET_USER_MENUS', response.data.guestMenuPaths || []);
                 return;
             }
 
-            const axios = (await import('../../axios')).default;
             const response = await axios.get('/api/auth/my-menu-permissions');
             commit('SET_USER_MENUS', response.data);
         } catch (error) {
             console.error('사용자 메뉴 권한을 불러오는데 실패했습니다. 기본 권한을 사용합니다.');
-            
+
             const user = rootGetters['auth/user'];
             if (user) {
                 const defaultMenus = getDefaultMenusForRole(user.role);
                 commit('SET_USER_MENUS', defaultMenus);
+            } else {
+                commit('SET_USER_MENUS', ['/', '/chat']); // 비로그인 폴백
             }
         }
     },

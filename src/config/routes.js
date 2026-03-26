@@ -19,7 +19,7 @@ export const ROUTE_COMPONENTS = {
     '/todos/create': { component: () => import('../pages/todos/create/index.vue'), requiresAuth: true },
     '/expense':      { component: () => import('../pages/expense.vue'),             requiresAuth: true },
     '/stock':        { component: () => import('../pages/stock.vue'),               requiresAuth: true },
-    '/chat':         { component: () => import('../pages/chat.vue'),                requiresAuth: true },
+    '/chat':         { component: () => import('../pages/chat.vue'),                requiresAuth: false },
 };
 
 // ── 2. PREMIUM 역할 특별 접근 경로 ────────────────────────────
@@ -48,6 +48,7 @@ export function getDefaultMenuDefinitions() {
 // ── 4. 역할별 기본 접근 메뉴 (API 실패 시 폴백) ────────────────
 export function getDefaultMenusForRole(role) {
     const defaultPermissions = {
+        'GUEST':   ['/', '/chat'],
         'USER':    ['/', '/todos', '/todos/create', '/chat'],
         'PREMIUM': ['/', '/history', '/dating', '/dating_sys', '/todos', '/todos/create', '/chat'],
         'ADMIN':   [

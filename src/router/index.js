@@ -14,7 +14,7 @@ const router = createRouter({
             path: '/',
             name: 'Home',
             component: Home,
-            meta: { requiresAuth: true }
+            meta: { requiresAuth: false }
         },
         {
             path: '/login',
@@ -123,8 +123,12 @@ router.beforeEach(async (to, from, next) => {
     const isAuthenticated = store.getters['auth/isAuthenticated'];
 
     if (requiresAuth && !isAuthenticated) {
-        next('/login');
-        return;
+        // GUEST 권한으로 접근 가능한 메뉴인지 확인
+        const canGuestAccess = store.getters['menu/canAccessMenu'](to.path);
+        if (!canGuestAccess) {
+            next('/login');
+            return;
+        }
     }
 
     if (guestOnly && isAuthenticated) {

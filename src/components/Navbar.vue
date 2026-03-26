@@ -46,6 +46,9 @@
           <li v-if="isAdmin" class="nav-item">
             <router-link to="/admin" @click="closeMenu">관리자</router-link>
           </li>
+          <li v-if="!isAuthenticated" class="nav-item mobile-login-item">
+            <router-link to="/login" @click="closeMenu">로그인</router-link>
+          </li>
         </ul>
         <div v-if="!isAuthenticated" class="desktop-login">
           <router-link to="/login" @click="closeMenu" class="login-btn">로그인</router-link>

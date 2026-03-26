@@ -115,8 +115,16 @@ const actions = {
     }
   },
 
-  async logout({ commit }) {
+  async logout({ commit, dispatch, rootGetters }) {
     commit("LOGOUT");
+    // 로그아웃 후 비로그인 메뉴 로드
+    try {
+      await dispatch("menu/loadMenuDefinitions", null, { root: true });
+      await dispatch("menu/loadUserMenus", null, { root: true });
+      await applyDynamicRoutes(rootGetters);
+    } catch (e) {
+      // 무시
+    }
   },
 
   async checkAuth({ commit, dispatch, state, rootGetters }) {

@@ -215,6 +215,11 @@
   .header__left .mobile-avatar-wrapper {
     display: none;
   }
+
+  /* 데스크탑에서 nav 안의 모바일 전용 로그인 항목 숨김 */
+  .mobile-login-item {
+    display: none !important;
+  }
 }
 
 @media (max-width: 767px) {

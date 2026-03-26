@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
-import router from './router';
+import router, { syncDynamicRoutes } from './router';
 import store from './store';
 import './assets/js/main.js';
 
@@ -18,16 +18,26 @@ app.use(router);
 // 앱 시작 시 인증 상태 확인
 async function initializeApp() {
   try {
-    // 토큰이 있는 경우에만 인증 확인
     if (store.getters['auth/token']) {
       await store.dispatch('auth/checkAuth');
     }
   } catch (error) {
     // 초기 인증 확인 실패는 무시
-  } finally {
-    // 인증 확인 완료 후 앱 마운트
-    app.mount('#app');
   }
+
+  // 비로그인 상태이면 GUEST 메뉴 로드 + 동적 라우트 등록
+  if (!store.getters['auth/isAuthenticated']) {
+    try {
+      await store.dispatch('menu/loadMenuDefinitions');
+      await store.dispatch('menu/loadUserMenus');
+      const allMenus = store.getters['menu/allMenus'];
+      syncDynamicRoutes(allMenus.map(m => m.path));
+    } catch (e) {
+      // 비로그인 메뉴 로드 실패는 무시
+    }
+  }
+
+  app.mount('#app');
 }
 
 initializeApp();

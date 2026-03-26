@@ -622,6 +622,19 @@
 
 .required-badge { font-size: 10px; background: var(--danger-bg); color: var(--danger-color); padding: 1px 6px; border-radius: 8px; font-weight: 600; }
 
+.menu-order-controls { display: flex; gap: 2px; margin-left: auto; }
+.order-btn { background: transparent; border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-muted); font-size: 11px; padding: 1px 5px; cursor: pointer; line-height: 1.4; transition: background 0.15s, color 0.15s; }
+.order-btn:hover:not(:disabled) { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+.order-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.collapse-indicator { font-size: 10px; color: var(--text-muted); margin-left: 4px; }
+
+.nav-order-block { margin-bottom: 8px; }
+.nav-order-items { padding: 0; }
+.nav-order-item { display: flex; align-items: center; gap: 8px; padding: 6px 10px; }
+.nav-order-item:not(:last-child) { border-bottom: 1px solid var(--card-border); }
+.nav-order-num { font-size: 11px; color: var(--text-muted); min-width: 18px; text-align: right; flex-shrink: 0; }
+
 /* 상태 필 */
 .status-pill { font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600; flex-shrink: 0; }
 .pill-allow { background: var(--success-bg); color: var(--success-color); }
