@@ -450,9 +450,15 @@ export default {
     const confirmSavePermissions = async () => {
       try {
         saving.value = true;
-        // 1) 메뉴 접근 권한 저장
+        // 1) 메뉴 순서 변경이 있으면 함께 저장
+        if (orderChanged.value) {
+          const sortOrders = allMenus.value.map(m => ({ id: m.id, sortOrder: m.sortOrder }));
+          await axios.put('/api/admin/menus/sort-order', sortOrders);
+          orderChanged.value = false;
+        }
+        // 2) 메뉴 접근 권한 저장
         await axios.post('/api/admin/menu-permissions', { permissions: menuPermissions.value });
-        // 2) CRUD 권한 저장 (허용된 메뉴 기준)
+        // 3) CRUD 권한 저장 (허용된 메뉴 기준)
         if (activeRole.value) {
           const allowedPaths = menuPermissions.value[activeRole.value] || [];
           const crudData = {};
@@ -463,7 +469,7 @@ export default {
           });
           await axios.post(`/api/admin/crud-permissions/${activeRole.value}`, crudData);
         }
-        store.dispatch('toast/showToast', { message: '메뉴 접근 및 CRUD 권한이 저장되었습니다.', type: 'success' });
+        store.dispatch('toast/showToast', { message: '메뉴 순서 및 접근 권한이 저장되었습니다.', type: 'success' });
         try { await store.dispatch('menu/refreshUserMenus'); } catch (_) { /* ignore */ }
         closeSaveModal();
       } catch (e) {
