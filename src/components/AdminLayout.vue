@@ -65,6 +65,15 @@
           <span class="link-icon">📋</span>
           <span class="link-text">메뉴 관리</span>
         </router-link>
+        <router-link
+          to="/admin/chat-history"
+          class="sidebar-link"
+          :class="{ active: $route.path === '/admin/chat-history' }"
+          @click="closeSidebar"
+        >
+          <span class="link-icon">💬</span>
+          <span class="link-text">채팅 히스토리</span>
+        </router-link>
       </nav>
     </aside>
 
@@ -109,6 +118,7 @@ export default {
       '/admin/menu-management': '권한별 접근메뉴관리',
       '/admin/role-management': '권한 관리',
       '/admin/menu-definition': '메뉴 정의 관리',
+      '/admin/chat-history': '채팅 히스토리',
     };
     const pageTitle = computed(() => pageTitleMap[route.path] || '관리자');
 

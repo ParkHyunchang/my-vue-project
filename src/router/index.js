@@ -71,6 +71,11 @@ const router = createRouter({
                     path: 'menu-definition',
                     name: 'AdminMenuDefinition',
                     component: () => import('../pages/admin-menu-definition.vue'),
+                },
+                {
+                    path: 'chat-history',
+                    name: 'AdminChatHistory',
+                    component: () => import('../pages/admin-chat-history.vue'),
                 }
             ]
         }

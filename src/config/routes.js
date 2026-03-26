@@ -19,6 +19,7 @@ export const ROUTE_COMPONENTS = {
     '/todos/create': { component: () => import('../pages/todos/create/index.vue'), requiresAuth: true },
     '/expense':      { component: () => import('../pages/expense.vue'),             requiresAuth: true },
     '/stock':        { component: () => import('../pages/stock.vue'),               requiresAuth: true },
+    '/chat':         { component: () => import('../pages/chat.vue'),                requiresAuth: true },
 };
 
 // ── 2. PREMIUM 역할 특별 접근 경로 ────────────────────────────
@@ -40,17 +41,18 @@ export function getDefaultMenuDefinitions() {
         { path: '/admin/users',           name: '사용자 관리',        icon: '👥', description: '사용자 계정 관리',    category: 'admin',       isRequired: false, showInNav: false, navLabel: '사용자 관리',       isAdminSubMenu: true,  parentPath: null },
         { path: '/admin/menu-management', name: '권한별 접근메뉴관리', icon: '🔐', description: '메뉴 접근 권한 설정', category: 'admin',       isRequired: false, showInNav: false, navLabel: '권한별 접근메뉴관리', isAdminSubMenu: true,  parentPath: null },
         { path: '/admin/role-management', name: '권한 관리',          icon: '🛡️', description: '사용자 권한(Role) 관리', category: 'admin',  isRequired: false, showInNav: false, navLabel: '권한 관리',         isAdminSubMenu: true,  parentPath: null },
+        { path: '/chat',                  name: 'AI 채팅',            icon: '💬', description: 'Claude AI 채팅',         category: 'main',        isRequired: false, showInNav: true,  navLabel: 'CHAT',             isAdminSubMenu: false, parentPath: null },
     ];
 }
 
 // ── 4. 역할별 기본 접근 메뉴 (API 실패 시 폴백) ────────────────
 export function getDefaultMenusForRole(role) {
     const defaultPermissions = {
-        'USER':    ['/', '/todos', '/todos/create'],
-        'PREMIUM': ['/', '/history', '/dating', '/dating_sys', '/todos', '/todos/create'],
+        'USER':    ['/', '/todos', '/todos/create', '/chat'],
+        'PREMIUM': ['/', '/history', '/dating', '/dating_sys', '/todos', '/todos/create', '/chat'],
         'ADMIN':   [
             '/', '/history', '/dating', '/dating_sys',
-            '/todos', '/todos/create', '/expense',
+            '/todos', '/todos/create', '/expense', '/chat',
             '/admin', '/admin/users', '/admin/menu-management',
             '/admin/role-management', '/admin/menu-definition',
         ],
