@@ -20,6 +20,7 @@ export const ROUTE_COMPONENTS = {
     '/expense':      { component: () => import('../pages/expense.vue'),             requiresAuth: true },
     '/stock':        { component: () => import('../pages/stock.vue'),               requiresAuth: true },
     '/chat':         { component: () => import('../pages/chat.vue'),                requiresAuth: false },
+    '/diary':        { component: () => import('../pages/diary.vue'),               requiresAuth: true },
 };
 
 // ── 2. PREMIUM 역할 특별 접근 경로 ────────────────────────────
@@ -42,6 +43,7 @@ export function getDefaultMenuDefinitions() {
         { path: '/admin/menu-management', name: '권한별 접근메뉴관리', icon: '🔐', description: '메뉴 접근 권한 설정', category: 'admin',       isRequired: false, showInNav: false, navLabel: '권한별 접근메뉴관리', isAdminSubMenu: true,  parentPath: null },
         { path: '/admin/role-management', name: '권한 관리',          icon: '🛡️', description: '사용자 권한(Role) 관리', category: 'admin',  isRequired: false, showInNav: false, navLabel: '권한 관리',         isAdminSubMenu: true,  parentPath: null },
         { path: '/chat',                  name: 'AI 채팅',            icon: '💬', description: 'Claude AI 채팅',         category: 'main',        isRequired: false, showInNav: true,  navLabel: 'CHAT',             isAdminSubMenu: false, parentPath: null },
+        { path: '/diary',                 name: 'AI 일기',            icon: '📔', description: 'AI 감정 분석 일기',      category: 'personal',    isRequired: false, showInNav: true,  navLabel: 'DIARY',            isAdminSubMenu: false, parentPath: null },
     ];
 }
 
@@ -49,11 +51,11 @@ export function getDefaultMenuDefinitions() {
 export function getDefaultMenusForRole(role) {
     const defaultPermissions = {
         'GUEST':   ['/', '/chat'],
-        'USER':    ['/', '/todos', '/todos/create', '/chat'],
-        'PREMIUM': ['/', '/history', '/dating', '/dating_sys', '/todos', '/todos/create', '/chat'],
+        'USER':    ['/', '/todos', '/todos/create', '/chat', '/diary'],
+        'PREMIUM': ['/', '/history', '/dating', '/dating_sys', '/todos', '/todos/create', '/chat', '/diary'],
         'ADMIN':   [
             '/', '/history', '/dating', '/dating_sys',
-            '/todos', '/todos/create', '/expense', '/chat',
+            '/todos', '/todos/create', '/expense', '/chat', '/diary',
             '/admin', '/admin/users', '/admin/menu-management',
             '/admin/role-management', '/admin/menu-definition',
         ],
