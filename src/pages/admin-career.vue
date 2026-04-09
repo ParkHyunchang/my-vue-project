@@ -31,7 +31,15 @@
         </thead>
         <tbody>
           <tr v-for="item in careers" :key="item.id">
-            <td>{{ item.sortOrder }}</td>
+            <td>
+              <div class="order-cell">
+                <span>{{ item.sortOrder }}</span>
+                <div class="order-btns">
+                  <button @click="moveUp(item)" :disabled="isFirst(item) || saving" class="order-btn" title="위로">↑</button>
+                  <button @click="moveDown(item)" :disabled="isLast(item) || saving" class="order-btn" title="아래로">↓</button>
+                </div>
+              </div>
+            </td>
             <td><span class="icon-badge">{{ item.icon }}</span></td>
             <td>{{ item.company }}</td>
             <td>{{ item.period }}</td>
@@ -58,6 +66,8 @@
           </div>
           <p class="card-role">{{ item.roleDesc }}</p>
           <div class="card-actions">
+            <button class="order-btn" @click="moveUp(item)" :disabled="isFirst(item) || saving" title="위로">↑</button>
+            <button class="order-btn" @click="moveDown(item)" :disabled="isLast(item) || saving" title="아래로">↓</button>
             <button class="btn-edit" @click="openEdit(item)">수정</button>
             <button class="btn-delete" @click="confirmDelete(item)">삭제</button>
           </div>
@@ -104,10 +114,6 @@
               <div class="form-row">
                 <label>기술 태그 <span class="hint">(쉼표로 구분)</span></label>
                 <input v-model="tagsText" placeholder="Python, LLM, Spring Boot, Docker" />
-              </div>
-              <div class="form-row form-row-sm">
-                <label>정렬 순서</label>
-                <input v-model.number="form.sortOrder" type="number" min="0" placeholder="0" />
               </div>
               <div class="form-actions">
                 <button type="button" class="btn-cancel" @click="closeModal">취소</button>
@@ -177,7 +183,8 @@ export default {
     },
     openCreate() {
       this.editTarget = null
-      this.form = { icon: '', company: '', period: '', badge: '', roleDesc: '', sortOrder: this.careers.length }
+      const maxOrder = this.careers.length > 0 ? Math.max(...this.careers.map(c => c.sortOrder)) + 1 : 0
+      this.form = { icon: '', company: '', period: '', badge: '', roleDesc: '', sortOrder: maxOrder }
       this.projectsText = ''
       this.tagsText = ''
       this.showModal = true
@@ -193,21 +200,60 @@ export default {
       this.showModal = false
       this.editTarget = null
     },
-    async save() {
+    toast(message, type = 'success') {
+      this.$store.dispatch('toast/showToast', { message, type })
+    },
+    isFirst(item) { return this.careers.length === 0 || this.careers[0].id === item.id },
+    isLast(item) { return this.careers.length === 0 || this.careers[this.careers.length - 1].id === item.id },
+    async moveUp(item) {
+      const idx = this.careers.findIndex(c => c.id === item.id)
+      if (idx <= 0) return
+      await this.swapOrder(item, this.careers[idx - 1])
+    },
+    async moveDown(item) {
+      const idx = this.careers.findIndex(c => c.id === item.id)
+      if (idx < 0 || idx >= this.careers.length - 1) return
+      await this.swapOrder(item, this.careers[idx + 1])
+    },
+    async swapOrder(a, b) {
       this.saving = true
+      try {
+        await Promise.all([
+          axios.put(`/api/admin/career/${a.id}`, { ...a, sortOrder: b.sortOrder }),
+          axios.put(`/api/admin/career/${b.id}`, { ...b, sortOrder: a.sortOrder }),
+        ])
+        await this.load()
+      } catch (e) {
+        this.toast('순서 변경에 실패했습니다.', 'danger')
+      } finally {
+        this.saving = false
+      }
+    },
+    async save() {
+      const isDuplicate = this.careers.some(c =>
+        c.sortOrder === this.form.sortOrder &&
+        (!this.editTarget || c.id !== this.editTarget.id)
+      )
+      if (isDuplicate) {
+        this.toast(`정렬 순서 ${this.form.sortOrder}은(는) 이미 사용 중입니다.`, 'warning')
+        return
+      }
+      this.saving = true
+      const isEdit = !!this.editTarget
       try {
         const projects = JSON.stringify(this.projectsText.split('\n').map(s => s.trim()).filter(Boolean))
         const tags = JSON.stringify(this.tagsText.split(',').map(s => s.trim()).filter(Boolean))
         const payload = { ...this.form, projects, tags }
-        if (this.editTarget) {
+        if (isEdit) {
           await axios.put(`/api/admin/career/${this.editTarget.id}`, payload)
         } else {
           await axios.post('/api/admin/career', payload)
         }
         this.closeModal()
         await this.load()
+        this.toast(isEdit ? '수정되었습니다.' : '추가되었습니다.')
       } catch (e) {
-        alert('저장에 실패했습니다.')
+        this.toast('저장에 실패했습니다.', 'danger')
       } finally {
         this.saving = false
       }
@@ -221,8 +267,9 @@ export default {
         await axios.delete(`/api/admin/career/${this.deleteTarget.id}`)
         this.deleteTarget = null
         await this.load()
+        this.toast('삭제되었습니다.')
       } catch (e) {
-        alert('삭제에 실패했습니다.')
+        this.toast('삭제에 실패했습니다.', 'danger')
       } finally {
         this.saving = false
       }
@@ -293,7 +340,6 @@ export default {
 /* ── 폼 ── */
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
 .form-row { margin-bottom: 0.875rem; }
-.form-row-sm { max-width: 160px; }
 .form-row label { display: block; font-size: 0.78rem; color: #aaa; margin-bottom: 0.25rem; }
 .form-row .hint { color: #666; font-size: 0.72rem; }
 .form-row input, .form-row textarea {
@@ -308,6 +354,11 @@ export default {
 }
 .form-row textarea { resize: vertical; font-family: inherit; min-height: 80px; }
 .form-row input:focus, .form-row textarea:focus { outline: none; border-color: #c9a96e; }
+.order-cell { display: flex; align-items: center; gap: 0.4rem; }
+.order-btns { display: flex; flex-direction: column; gap: 2px; }
+.order-btn { background: #1a1a2e; color: #c9a96e; border: 1px solid #333; border-radius: 3px; cursor: pointer; font-size: 0.7rem; padding: 1px 5px; line-height: 1.4; }
+.order-btn:hover:not(:disabled) { background: #2a2a4e; }
+.order-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .form-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #1a1a2a; }
 .modal-confirm .modal-body p { color: #ccc; margin-bottom: 1rem; }
 
@@ -325,7 +376,6 @@ export default {
   .desktop-only { display: none; }
   .mobile-only { display: flex; }
   .form-grid { grid-template-columns: 1fr; }
-  .form-row-sm { max-width: 100%; }
 }
 
 /* ── 반응형: 모바일 (480px 이하) ── */

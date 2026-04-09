@@ -29,7 +29,15 @@
         </thead>
         <tbody>
           <tr v-for="item in skills" :key="item.id">
-            <td>{{ item.sortOrder }}</td>
+            <td>
+              <div class="order-cell">
+                <span>{{ item.sortOrder }}</span>
+                <div class="order-btns">
+                  <button @click="moveUp(item)" :disabled="isFirst(item) || saving" class="order-btn" title="위로">↑</button>
+                  <button @click="moveDown(item)" :disabled="isLast(item) || saving" class="order-btn" title="아래로">↓</button>
+                </div>
+              </div>
+            </td>
             <td><span class="class-badge">{{ item.cssClass }}</span></td>
             <td><strong>{{ item.title }}</strong></td>
             <td class="desc-cell">{{ parseDescriptions(item.descriptions).join(' / ') }}</td>
@@ -50,6 +58,8 @@
           </div>
           <p class="card-desc">{{ parseDescriptions(item.descriptions).slice(0, 2).join(' / ') }}</p>
           <div class="card-actions">
+            <button class="order-btn" @click="moveUp(item)" :disabled="isFirst(item) || saving" title="위로">↑</button>
+            <button class="order-btn" @click="moveDown(item)" :disabled="isLast(item) || saving" title="아래로">↓</button>
             <button class="btn-edit" @click="openEdit(item)">수정</button>
             <button class="btn-delete" @click="confirmDelete(item)">삭제</button>
           </div>
@@ -74,10 +84,6 @@
                     <option value="">-- 선택 --</option>
                     <option v-for="n in 8" :key="n" :value="'p' + n">p{{ n }}</option>
                   </select>
-                </div>
-                <div class="form-row form-row-sm">
-                  <label>정렬 순서</label>
-                  <input v-model.number="form.sortOrder" type="number" min="0" placeholder="0" />
                 </div>
               </div>
               <div class="form-row">
@@ -158,7 +164,8 @@ export default {
     },
     openCreate() {
       this.editTarget = null
-      this.form = { cssClass: 'p' + (this.skills.length + 1), title: '', sortOrder: this.skills.length }
+      const maxOrder = this.skills.length > 0 ? Math.max(...this.skills.map(s => s.sortOrder)) + 1 : 0
+      this.form = { cssClass: 'p' + (this.skills.length + 1), title: '', sortOrder: maxOrder }
       this.descriptionsText = ''
       this.showModal = true
     },
@@ -172,20 +179,59 @@ export default {
       this.showModal = false
       this.editTarget = null
     },
-    async save() {
+    toast(message, type = 'success') {
+      this.$store.dispatch('toast/showToast', { message, type })
+    },
+    isFirst(item) { return this.skills.length === 0 || this.skills[0].id === item.id },
+    isLast(item) { return this.skills.length === 0 || this.skills[this.skills.length - 1].id === item.id },
+    async moveUp(item) {
+      const idx = this.skills.findIndex(s => s.id === item.id)
+      if (idx <= 0) return
+      await this.swapOrder(item, this.skills[idx - 1])
+    },
+    async moveDown(item) {
+      const idx = this.skills.findIndex(s => s.id === item.id)
+      if (idx < 0 || idx >= this.skills.length - 1) return
+      await this.swapOrder(item, this.skills[idx + 1])
+    },
+    async swapOrder(a, b) {
       this.saving = true
+      try {
+        await Promise.all([
+          axios.put(`/api/admin/portfolio-skills/${a.id}`, { ...a, sortOrder: b.sortOrder }),
+          axios.put(`/api/admin/portfolio-skills/${b.id}`, { ...b, sortOrder: a.sortOrder }),
+        ])
+        await this.load()
+      } catch (e) {
+        this.toast('순서 변경에 실패했습니다.', 'danger')
+      } finally {
+        this.saving = false
+      }
+    },
+    async save() {
+      const isDuplicate = this.skills.some(s =>
+        s.sortOrder === this.form.sortOrder &&
+        (!this.editTarget || s.id !== this.editTarget.id)
+      )
+      if (isDuplicate) {
+        this.toast(`정렬 순서 ${this.form.sortOrder}은(는) 이미 사용 중입니다.`, 'warning')
+        return
+      }
+      this.saving = true
+      const isEdit = !!this.editTarget
       try {
         const descriptions = JSON.stringify(this.descriptionsText.split('\n').map(s => s.trim()).filter(Boolean))
         const payload = { ...this.form, descriptions }
-        if (this.editTarget) {
+        if (isEdit) {
           await axios.put(`/api/admin/portfolio-skills/${this.editTarget.id}`, payload)
         } else {
           await axios.post('/api/admin/portfolio-skills', payload)
         }
         this.closeModal()
         await this.load()
+        this.toast(isEdit ? '수정되었습니다.' : '추가되었습니다.')
       } catch (e) {
-        alert('저장에 실패했습니다.')
+        this.toast('저장에 실패했습니다.', 'danger')
       } finally {
         this.saving = false
       }
@@ -199,8 +245,9 @@ export default {
         await axios.delete(`/api/admin/portfolio-skills/${this.deleteTarget.id}`)
         this.deleteTarget = null
         await this.load()
+        this.toast('삭제되었습니다.')
       } catch (e) {
-        alert('삭제에 실패했습니다.')
+        this.toast('삭제에 실패했습니다.', 'danger')
       } finally {
         this.saving = false
       }
@@ -257,6 +304,11 @@ export default {
 .form-row input, .form-row textarea, .form-row select { width: 100%; background: #0a0a12; border: 1px solid #333; border-radius: 6px; padding: 0.45rem 0.7rem; color: #f0ece4; font-size: 0.875rem; box-sizing: border-box; }
 .form-row textarea { resize: vertical; font-family: inherit; min-height: 100px; }
 .form-row input:focus, .form-row textarea:focus, .form-row select:focus { outline: none; border-color: #c9a96e; }
+.order-cell { display: flex; align-items: center; gap: 0.4rem; }
+.order-btns { display: flex; flex-direction: column; gap: 2px; }
+.order-btn { background: #1a1a2e; color: #c9a96e; border: 1px solid #333; border-radius: 3px; cursor: pointer; font-size: 0.7rem; padding: 1px 5px; line-height: 1.4; }
+.order-btn:hover:not(:disabled) { background: #2a2a4e; }
+.order-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .form-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #1a1a2a; }
 .modal-confirm .modal-body p { color: #ccc; margin-bottom: 1rem; }
 

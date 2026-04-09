@@ -30,7 +30,15 @@
         </thead>
         <tbody>
           <tr v-for="item in items" :key="item.id">
-            <td>{{ item.sortOrder }}</td>
+            <td>
+              <div class="order-cell">
+                <span>{{ item.sortOrder }}</span>
+                <div class="order-btns">
+                  <button @click="moveUp(item)" :disabled="isFirst(item) || saving" class="order-btn" title="위로">↑</button>
+                  <button @click="moveDown(item)" :disabled="isLast(item) || saving" class="order-btn" title="아래로">↓</button>
+                </div>
+              </div>
+            </td>
             <td>{{ item.title }}</td>
             <td>{{ item.subtitle }}</td>
             <td>{{ item.period }}</td>
@@ -55,6 +63,8 @@
           <p class="card-period">{{ item.period }}</p>
           <p class="card-desc">{{ item.description }}</p>
           <div class="card-actions">
+            <button class="order-btn" @click="moveUp(item)" :disabled="isFirst(item) || saving" title="위로">↑</button>
+            <button class="order-btn" @click="moveDown(item)" :disabled="isLast(item) || saving" title="아래로">↓</button>
             <button class="btn-edit" @click="openEdit(item)">수정</button>
             <button class="btn-delete" @click="confirmDelete(item)">삭제</button>
           </div>
@@ -87,10 +97,6 @@
               <div class="form-row">
                 <label>설명</label>
                 <textarea v-model="form.description" rows="3" placeholder="프론트엔드와 백엔드 전반에 걸친 웹 개발 기술을 체계적으로 학습하였습니다."></textarea>
-              </div>
-              <div class="form-row form-row-sm">
-                <label>정렬 순서</label>
-                <input v-model.number="form.sortOrder" type="number" min="0" placeholder="0" />
               </div>
               <div class="form-actions">
                 <button type="button" class="btn-cancel" @click="closeModal">취소</button>
@@ -158,7 +164,8 @@ export default {
     },
     openCreate() {
       this.editTarget = null
-      this.form = { title: '', subtitle: '', description: '', period: '', sortOrder: this.items.length }
+      const maxOrder = this.items.length > 0 ? Math.max(...this.items.map(i => i.sortOrder)) + 1 : 0
+      this.form = { title: '', subtitle: '', description: '', period: '', sortOrder: maxOrder }
       this.showModal = true
     },
     openEdit(item) {
@@ -170,18 +177,57 @@ export default {
       this.showModal = false
       this.editTarget = null
     },
-    async save() {
+    toast(message, type = 'success') {
+      this.$store.dispatch('toast/showToast', { message, type })
+    },
+    isFirst(item) { return this.items.length === 0 || this.items[0].id === item.id },
+    isLast(item) { return this.items.length === 0 || this.items[this.items.length - 1].id === item.id },
+    async moveUp(item) {
+      const idx = this.items.findIndex(i => i.id === item.id)
+      if (idx <= 0) return
+      await this.swapOrder(item, this.items[idx - 1])
+    },
+    async moveDown(item) {
+      const idx = this.items.findIndex(i => i.id === item.id)
+      if (idx < 0 || idx >= this.items.length - 1) return
+      await this.swapOrder(item, this.items[idx + 1])
+    },
+    async swapOrder(a, b) {
       this.saving = true
       try {
-        if (this.editTarget) {
+        await Promise.all([
+          axios.put(`/api/admin/experience/${a.id}`, { ...a, sortOrder: b.sortOrder }),
+          axios.put(`/api/admin/experience/${b.id}`, { ...b, sortOrder: a.sortOrder }),
+        ])
+        await this.load()
+      } catch (e) {
+        this.toast('순서 변경에 실패했습니다.', 'danger')
+      } finally {
+        this.saving = false
+      }
+    },
+    async save() {
+      const isDuplicate = this.items.some(item =>
+        item.sortOrder === this.form.sortOrder &&
+        (!this.editTarget || item.id !== this.editTarget.id)
+      )
+      if (isDuplicate) {
+        this.toast(`정렬 순서 ${this.form.sortOrder}은(는) 이미 사용 중입니다.`, 'warning')
+        return
+      }
+      this.saving = true
+      const isEdit = !!this.editTarget
+      try {
+        if (isEdit) {
           await axios.put(`/api/admin/experience/${this.editTarget.id}`, this.form)
         } else {
           await axios.post('/api/admin/experience', this.form)
         }
         this.closeModal()
         await this.load()
+        this.toast(isEdit ? '수정되었습니다.' : '추가되었습니다.')
       } catch (e) {
-        alert('저장에 실패했습니다.')
+        this.toast('저장에 실패했습니다.', 'danger')
       } finally {
         this.saving = false
       }
@@ -195,8 +241,9 @@ export default {
         await axios.delete(`/api/admin/experience/${this.deleteTarget.id}`)
         this.deleteTarget = null
         await this.load()
+        this.toast('삭제되었습니다.')
       } catch (e) {
-        alert('삭제에 실패했습니다.')
+        this.toast('삭제에 실패했습니다.', 'danger')
       } finally {
         this.saving = false
       }
@@ -247,11 +294,15 @@ export default {
 
 .modal-body { padding: 1.25rem 1.5rem; overflow-y: auto; flex: 1; min-height: 0; }
 .form-row { margin-bottom: 0.875rem; }
-.form-row-sm { max-width: 160px; }
 .form-row label { display: block; font-size: 0.78rem; color: #aaa; margin-bottom: 0.25rem; }
 .form-row input, .form-row textarea { width: 100%; background: #0a0a12; border: 1px solid #333; border-radius: 6px; padding: 0.45rem 0.7rem; color: #f0ece4; font-size: 0.875rem; box-sizing: border-box; }
 .form-row textarea { resize: vertical; font-family: inherit; min-height: 80px; }
 .form-row input:focus, .form-row textarea:focus { outline: none; border-color: #c9a96e; }
+.order-cell { display: flex; align-items: center; gap: 0.4rem; }
+.order-btns { display: flex; flex-direction: column; gap: 2px; }
+.order-btn { background: #1a1a2e; color: #c9a96e; border: 1px solid #333; border-radius: 3px; cursor: pointer; font-size: 0.7rem; padding: 1px 5px; line-height: 1.4; }
+.order-btn:hover:not(:disabled) { background: #2a2a4e; }
+.order-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .form-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #1a1a2a; }
 .modal-confirm .modal-body p { color: #ccc; margin-bottom: 1rem; }
 
@@ -262,7 +313,6 @@ export default {
   .page-header h1 { font-size: 1.25rem; }
   .desktop-only { display: none; }
   .mobile-only { display: flex; }
-  .form-row-sm { max-width: 100%; }
 }
 @media (max-width: 480px) {
   .modal-body { padding: 1rem; }
