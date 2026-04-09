@@ -258,36 +258,75 @@
           <div class="port__wrap">
             <article class="port__item p1">
               <span class="num">01.</span>
-              <h3 class="title">HTML / CSS</h3>
-              <p class="desc">HTML/CSS를 활용한 반응형 웹</p>
-              <p class="desc">CSS 애니메이션</p>
-              <p class="desc">Sass(scss)</p>
+              <h3 class="title">AI / LLM</h3>
+              <p class="desc">Claude / OpenAI API 연동 및 활용</p>
+              <p class="desc">프롬프트 엔지니어링 설계</p>
+              <p class="desc">Anthropic Agent SDK 기반 개발</p>
+              <p class="desc">RAG 파이프라인 구성</p>
+              <p class="desc">AI 기능 서비스 통합 개발</p>
             </article>
             <article class="port__item p2">
               <span class="num">02.</span>
-              <h3 class="title">JavaScript</h3>
-              <p class="desc">JQuery</p>
-              <p class="desc">JSON/AJAX</p>
-              <p class="desc">외부 API</p>
+              <h3 class="title">Java</h3>
+              <p class="desc">OOP 설계 (상속 / 다형성 / 캡슐화)</p>
+              <p class="desc">JSP / Servlet 웹 애플리케이션</p>
+              <p class="desc">JDBC 데이터베이스 연동</p>
+              <p class="desc">Tomcat 서버 배포</p>
+              <p class="desc">Maven / Gradle 빌드 관리</p>
             </article>
             <article class="port__item p3">
               <span class="num">03.</span>
-              <h3 class="title">JAVA</h3>
-              <p class="desc">JSP/Servlet</p>
-              <p class="desc">JDBC</p>
-              <p class="desc">Tomcat</p>
+              <h3 class="title">Spring / SpringBoot</h3>
+              <p class="desc">MVC 패턴 기반 웹 개발</p>
+              <p class="desc">REST API 설계 및 구현</p>
+              <p class="desc">Spring Security 인증 / 인가</p>
+              <p class="desc">JPA / Hibernate ORM</p>
+              <p class="desc">MyBatis 연동</p>
             </article>
             <article class="port__item p4">
               <span class="num">04.</span>
-              <h3 class="title">React</h3>
-              <p class="desc">Context API</p>
-              <p class="desc">외부 API</p>
+              <h3 class="title">Vue 3</h3>
+              <p class="desc">Composition API &amp; &lt;script setup&gt;</p>
+              <p class="desc">Pinia 전역 상태 관리</p>
+              <p class="desc">Vue Router SPA 구성</p>
+              <p class="desc">Vite 빌드 환경 설정</p>
+              <p class="desc">컴포넌트 기반 UI 설계</p>
             </article>
             <article class="port__item p5">
               <span class="num">05.</span>
-              <h3 class="title">DB</h3>
-              <p class="desc">Postgresql</p>
-              <p class="desc">Oracle DB</p>
+              <h3 class="title">Database</h3>
+              <p class="desc">PostgreSQL / Oracle / MySQL</p>
+              <p class="desc">ERD 설계 및 정규화</p>
+              <p class="desc">SQL 쿼리 최적화</p>
+              <p class="desc">인덱스 / 트랜잭션 관리</p>
+              <p class="desc">저장 프로시저 &amp; 뷰 활용</p>
+            </article>
+            <article class="port__item p6">
+              <span class="num">06.</span>
+              <h3 class="title">Linux Server</h3>
+              <p class="desc">Ubuntu / CentOS 서버 환경</p>
+              <p class="desc">SSH 원격 접속 &amp; 파일 관리</p>
+              <p class="desc">Nginx / Apache 웹서버 설정</p>
+              <p class="desc">Shell Script 배포 자동화</p>
+              <p class="desc">방화벽(firewalld) &amp; 포트 관리</p>
+            </article>
+            <article class="port__item p7">
+              <span class="num">07.</span>
+              <h3 class="title">HTML / CSS</h3>
+              <p class="desc">반응형 웹 레이아웃 (Flexbox / Grid)</p>
+              <p class="desc">CSS 애니메이션 &amp; 트랜지션</p>
+              <p class="desc">Sass(SCSS) 전처리기</p>
+              <p class="desc">크로스 브라우저 호환성 대응</p>
+              <p class="desc">BEM 방법론 기반 CSS 설계</p>
+            </article>
+            <article class="port__item p8">
+              <span class="num">08.</span>
+              <h3 class="title">JavaScript</h3>
+              <p class="desc">ES6+ 문법 (Arrow / Destructuring 등)</p>
+              <p class="desc">DOM 조작 &amp; 이벤트 핸들링</p>
+              <p class="desc">jQuery 플러그인 활용</p>
+              <p class="desc">JSON / AJAX 비동기 통신</p>
+              <p class="desc">외부 REST API 연동</p>
             </article>
           </div>
         </div>

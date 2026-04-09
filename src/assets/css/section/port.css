@@ -214,6 +214,9 @@
 .port-section .port__item.p3 { background-color: #1a0e14; border-left-color: #b35f7a; }
 .port-section .port__item.p4 { background-color: #0e1020; border-left-color: #6a82c9; }
 .port-section .port__item.p5 { background-color: #0a1510; border-left-color: #5fa878; }
+.port-section .port__item.p6 { background-color: #1a0e1a; border-left-color: #b35fb3; }
+.port-section .port__item.p7 { background-color: #150e20; border-left-color: #9a7abf; }
+.port-section .port__item.p8 { background-color: #1a1208; border-left-color: #b08a3a; }
 
 .port-section .port__item .num {
     font-size: 2rem;
