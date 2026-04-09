@@ -63,113 +63,29 @@
           <h2 class="career__title">Career <em>경력 및 프로젝트</em></h2>
           <div class="section-divider"></div>
           <div class="career__list">
-
-            <div class="career__item">
+            <div v-for="item in careers" :key="item.id" class="career__item">
               <div class="career__header">
-                <div class="career__icon">AI</div>
+                <div class="career__icon">{{ item.icon }}</div>
                 <div class="career__meta">
-                  <h3 class="career__company">(주)포니링크</h3>
-                  <span class="career__period">2025.04.21 ~ 재직중</span>
+                  <h3 class="career__company">{{ item.company }}</h3>
+                  <span class="career__period">{{ item.period }}</span>
                 </div>
-                <span class="career__badge current">재직중</span>
+                <span v-if="item.badge" class="career__badge current">{{ item.badge }}</span>
               </div>
               <div class="career__body">
-                <p class="career__role">LLM 개발운영 — 대규모 언어 모델 프로젝트</p>
+                <p class="career__role">{{ item.roleDesc }}</p>
                 <ul class="career__projects">
-                  <li>SKT — LLM 서비스 개발 및 운영</li>
-                  <li>H사 — 대규모 언어 모델 개발</li>
+                  <li v-for="(proj, i) in parseJson(item.projects)" :key="i">{{ proj }}</li>
                 </ul>
                 <div class="career__tags">
-                  <span>Python</span><span>LLM</span><span>Spring Boot</span><span>Docker</span>
+                  <span v-for="(tag, i) in parseJson(item.tags)" :key="i">{{ tag }}</span>
                 </div>
               </div>
             </div>
-
-            <div class="career__item">
-              <div class="career__header">
-                <div class="career__icon">NLP</div>
-                <div class="career__meta">
-                  <h3 class="career__company">(주)NHN다이퀘스트</h3>
-                  <span class="career__period">2021.11.29 ~ 2024.10.18 (35개월)</span>
-                </div>
-              </div>
-              <div class="career__body">
-                <p class="career__role">AI 콜봇·챗봇 개발 및 유지보수 / 딥러닝 CI/CD 구축</p>
-                <ul class="career__projects">
-                  <li>국민은행 — 챗봇/콜봇 SI 1차</li>
-                  <li>법률구조공단 — 챗봇 백엔드 개발</li>
-                  <li>국민은행 — 챗봇/콜봇 SI 고도화</li>
-                  <li>한전, 신한은행, 흥국화재, 하나손보, 신한라이프, 신한투자증권, 삼성카드 등 SM</li>
-                </ul>
-                <div class="career__tags">
-                  <span>Java</span><span>Spring</span><span>AI/NLP</span><span>Docker</span><span>Jenkins</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="career__item">
-              <div class="career__header">
-                <div class="career__icon">NAV</div>
-                <div class="career__meta">
-                  <h3 class="career__company">(주)아이나비모빌리티</h3>
-                  <span class="career__period">2021.10.05 ~ 2021.11.09 (1개월)</span>
-                </div>
-              </div>
-              <div class="career__body">
-                <p class="career__role">서버 개발</p>
-                <ul class="career__projects">
-                  <li>네비게이션 로그 개발</li>
-                </ul>
-                <div class="career__tags">
-                  <span>Java</span><span>서버 개발</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="career__item">
-              <div class="career__header">
-                <div class="career__icon">SEC</div>
-                <div class="career__meta">
-                  <h3 class="career__company">(주)나일소프트</h3>
-                  <span class="career__period">2017.09.04 ~ 2021.09.24 (49개월)</span>
-                </div>
-              </div>
-              <div class="career__body">
-                <p class="career__role">웹 취약점 점검 솔루션 개발 및 유지보수 / Java 웹 개발</p>
-                <ul class="career__projects">
-                  <li>교통안전공단, 아산병원 — 웹 취약점 점검 프로젝트 SI</li>
-                  <li>국민카드 — 웹 취약점 점검 프로젝트 SM</li>
-                  <li>KB국민은행 등 다수 기업 SM</li>
-                </ul>
-                <div class="career__tags">
-                  <span>Java</span><span>JSP</span><span>Oracle DB</span><span>보안 솔루션</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="career__item">
-              <div class="career__header">
-                <div class="career__icon">EMB</div>
-                <div class="career__meta">
-                  <h3 class="career__company">칼라세븐</h3>
-                  <span class="career__period">2016.11.02 ~ 2017.02.01 (3개월)</span>
-                </div>
-              </div>
-              <div class="career__body">
-                <p class="career__role">임베디드 개발</p>
-                <ul class="career__projects">
-                  <li>생리통 치료기기 임베디드 개발</li>
-                </ul>
-                <div class="career__tags">
-                  <span>Embedded</span><span>C/C++</span>
-                </div>
-              </div>
-            </div>
-
           </div>
         </div>
       </section>
-      
+
       <!-- Experience Section -->
       <section id="experience" class="experience-section">
         <div class="experience__inner">
@@ -177,33 +93,13 @@
           <div class="section-divider"></div>
           <span class="section-sub">교육 및 경험</span>
           <div class="experience__timeline">
-            <div class="timeline__item">
+            <div v-for="item in experiences" :key="item.id" class="timeline__item">
               <div class="timeline__dot"></div>
               <div class="timeline__content">
-                <h3>IT 융복합기기 회로설계 전문가과정</h3>
-                <p class="timeline__subtitle">대한상공회의소</p>
-                <p class="timeline__desc">PCB 설계, 회로 설계 및 프로토타입 제작 등을 하며 실무 경험을 쌓았습니다.</p>
-                <span class="timeline__period">2016.03.02 ~ 2016.06.01</span>
-              </div>
-            </div>
-            
-            <div class="timeline__item">
-              <div class="timeline__dot"></div>
-              <div class="timeline__content">
-                <h3>멀티프레임워크기반 웹 전문 개발자</h3>
-                <p class="timeline__subtitle">에이콘아카데미</p>
-                <p class="timeline__desc">프론트엔드와 백엔드 전반에 걸친 웹 개발 기술을 체계적으로 학습하고 실무 프로젝트를 통해 실전 경험을 쌓았습니다.</p>
-                <span class="timeline__period">2017.03.09 ~ 2017.09.12</span>
-              </div>
-            </div>
-            
-            <div class="timeline__item">
-              <div class="timeline__dot"></div>
-              <div class="timeline__content">
-                <h3>회사 웹 개발자</h3>
-                <p class="timeline__subtitle">다수 기업</p>
-                <p class="timeline__desc">여러 회사의 솔루션 및 개발 프로젝트를 수행하며 폭넓은 기술 경험과 프로젝트 관리 능력을 키워가고 있습니다.</p>
-                <span class="timeline__period">2017.09 ~ 현재</span>
+                <h3>{{ item.title }}</h3>
+                <p class="timeline__subtitle">{{ item.subtitle }}</p>
+                <p class="timeline__desc">{{ item.description }}</p>
+                <span class="timeline__period">{{ item.period }}</span>
               </div>
             </div>
           </div>
@@ -256,77 +152,15 @@
         <div class="port__wrap-sticky">
           <div class="port__title">Portfolio</div>
           <div class="port__wrap">
-            <article class="port__item p1">
-              <span class="num">01.</span>
-              <h3 class="title">AI / LLM</h3>
-              <p class="desc">Claude / OpenAI API 연동 및 활용</p>
-              <p class="desc">프롬프트 엔지니어링 설계</p>
-              <p class="desc">Anthropic Agent SDK 기반 개발</p>
-              <p class="desc">RAG 파이프라인 구성</p>
-              <p class="desc">AI 기능 서비스 통합 개발</p>
-            </article>
-            <article class="port__item p2">
-              <span class="num">02.</span>
-              <h3 class="title">Java</h3>
-              <p class="desc">OOP 설계 (상속 / 다형성 / 캡슐화)</p>
-              <p class="desc">JSP / Servlet 웹 애플리케이션</p>
-              <p class="desc">JDBC 데이터베이스 연동</p>
-              <p class="desc">Tomcat 서버 배포</p>
-              <p class="desc">Maven / Gradle 빌드 관리</p>
-            </article>
-            <article class="port__item p3">
-              <span class="num">03.</span>
-              <h3 class="title">Spring / SpringBoot</h3>
-              <p class="desc">MVC 패턴 기반 웹 개발</p>
-              <p class="desc">REST API 설계 및 구현</p>
-              <p class="desc">Spring Security 인증 / 인가</p>
-              <p class="desc">JPA / Hibernate ORM</p>
-              <p class="desc">MyBatis 연동</p>
-            </article>
-            <article class="port__item p4">
-              <span class="num">04.</span>
-              <h3 class="title">Vue 3</h3>
-              <p class="desc">Composition API &amp; &lt;script setup&gt;</p>
-              <p class="desc">Pinia 전역 상태 관리</p>
-              <p class="desc">Vue Router SPA 구성</p>
-              <p class="desc">Vite 빌드 환경 설정</p>
-              <p class="desc">컴포넌트 기반 UI 설계</p>
-            </article>
-            <article class="port__item p5">
-              <span class="num">05.</span>
-              <h3 class="title">Database</h3>
-              <p class="desc">PostgreSQL / Oracle / MySQL</p>
-              <p class="desc">ERD 설계 및 정규화</p>
-              <p class="desc">SQL 쿼리 최적화</p>
-              <p class="desc">인덱스 / 트랜잭션 관리</p>
-              <p class="desc">저장 프로시저 &amp; 뷰 활용</p>
-            </article>
-            <article class="port__item p6">
-              <span class="num">06.</span>
-              <h3 class="title">Linux Server</h3>
-              <p class="desc">Ubuntu / CentOS 서버 환경</p>
-              <p class="desc">SSH 원격 접속 &amp; 파일 관리</p>
-              <p class="desc">Nginx / Apache 웹서버 설정</p>
-              <p class="desc">Shell Script 배포 자동화</p>
-              <p class="desc">방화벽(firewalld) &amp; 포트 관리</p>
-            </article>
-            <article class="port__item p7">
-              <span class="num">07.</span>
-              <h3 class="title">HTML / CSS</h3>
-              <p class="desc">반응형 웹 레이아웃 (Flexbox / Grid)</p>
-              <p class="desc">CSS 애니메이션 &amp; 트랜지션</p>
-              <p class="desc">Sass(SCSS) 전처리기</p>
-              <p class="desc">크로스 브라우저 호환성 대응</p>
-              <p class="desc">BEM 방법론 기반 CSS 설계</p>
-            </article>
-            <article class="port__item p8">
-              <span class="num">08.</span>
-              <h3 class="title">JavaScript</h3>
-              <p class="desc">ES6+ 문법 (Arrow / Destructuring 등)</p>
-              <p class="desc">DOM 조작 &amp; 이벤트 핸들링</p>
-              <p class="desc">jQuery 플러그인 활용</p>
-              <p class="desc">JSON / AJAX 비동기 통신</p>
-              <p class="desc">외부 REST API 연동</p>
+            <article
+              v-for="(skill, index) in portfolioSkills"
+              :key="skill.id"
+              class="port__item"
+              :class="skill.cssClass"
+            >
+              <span class="num">{{ String(index + 1).padStart(2, '0') }}.</span>
+              <h3 class="title">{{ skill.title }}</h3>
+              <p v-for="(desc, i) in parseJson(skill.descriptions)" :key="i" class="desc">{{ desc }}</p>
             </article>
           </div>
         </div>
@@ -393,20 +227,46 @@
 
 <script>
 import { port } from '@/assets/js/port.js';
+import axios from '@/axios';
 
 export default {
   name: 'HomePage',
-  mounted() {
-    port();
+  data() {
+    return {
+      careers: [],
+      experiences: [],
+      portfolioSkills: [],
+    };
+  },
+  async mounted() {
+    await this.loadAll();
+    this.$nextTick(() => port());
   },
   methods: {
+    async loadAll() {
+      try {
+        const [careerRes, expRes, skillRes] = await Promise.all([
+          axios.get('/api/public/career'),
+          axios.get('/api/public/experience'),
+          axios.get('/api/public/portfolio-skills'),
+        ]);
+        this.careers = careerRes.data;
+        this.experiences = expRes.data;
+        this.portfolioSkills = skillRes.data;
+      } catch (e) {
+        // API 실패 시 빈 배열 유지 (섹션이 비어 보임)
+      }
+    },
+    parseJson(json) {
+      try { return JSON.parse(json) || []; } catch { return []; }
+    },
     scrollToSection(id) {
       const el = document.getElementById(id);
       if (el) {
         el.scrollIntoView({ behavior: 'smooth' });
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -1210,31 +1070,27 @@ html, body {
     gap: 3rem;
   }
 
-  .career__header {
-    flex-wrap: wrap;
-  }
+  /* Career */
+  .career-section { padding: 4rem 0; }
+  .career__header { flex-wrap: wrap; }
+  .career__badge { margin-left: auto; }
+  .career__body { padding-left: 0; padding-top: 0.5rem; }
+  .career__item { padding: 1.25rem 1rem; }
+  .career__tags { flex-wrap: wrap; }
+  .section-sub { margin-bottom: 2.5rem; }
 
-  .career__badge {
-    margin-left: auto;
-  }
+  /* Experience */
+  .experience-section { padding: 4rem 0; }
+  .timeline__item { padding-left: 32px; padding-bottom: 2rem; }
+  .experience__timeline::before { left: 4px; }
+  .timeline__dot { width: 9px; height: 9px; top: 16px; }
+  .timeline__content { padding: 1rem; }
+  .timeline__content h3 { font-size: 0.95rem; }
 
-  .career__body {
-    padding-left: 0;
-    padding-top: 0.5rem;
-  }
-
-  .contact__content {
-    padding: 2rem 1.5rem;
-  }
-
-  .contact__method {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .contact__icon {
-    text-align: center;
-  }
+  /* Contact */
+  .contact__content { padding: 2rem 1.5rem; }
+  .contact__method { flex-direction: column; gap: 0.5rem; }
+  .contact__icon { text-align: center; }
 
   .about__inner,
   .career__inner,
@@ -1243,6 +1099,15 @@ html, body {
   .contact__inner {
     padding: 0 1.2rem;
   }
+}
+
+@media (max-width: 480px) {
+  .career-section { padding: 3rem 0; }
+  .career__icon { width: 38px; height: 38px; font-size: 0.55rem; }
+  .career__company { font-size: 0.95rem; }
+  .career__item { padding: 1rem 0.875rem; }
+  .experience-section { padding: 3rem 0; }
+  .timeline__item { padding-left: 24px; }
 }
 
 @media (min-width: 800px) {

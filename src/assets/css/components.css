@@ -1,4 +1,85 @@
 /* =============================================
+   어드민 공통 모달 (Teleport to body — 전역 적용 필요)
+   ============================================= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  z-index: 9999;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 4.5rem 1rem 1.5rem;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.modal-box {
+  background: #13131f;
+  border: 1px solid #2a2a3a;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100vh - 5rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #2a2a3a;
+  flex-shrink: 0;
+  background: #13131f;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #f0ece4;
+  font-weight: 600;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color 0.2s, background 0.2s;
+  flex-shrink: 0;
+}
+
+.modal-close:hover {
+  color: #f0ece4;
+  background: #2a2a3a;
+}
+
+@media (max-width: 768px) {
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+    overflow-y: visible;
+  }
+  .modal-box {
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+    max-height: 92vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-header { padding: 1rem; }
+}
+
+/* =============================================
    버튼 스타일
    ============================================= */
 .btn {

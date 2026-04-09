@@ -74,6 +74,35 @@
           <span class="link-icon">💬</span>
           <span class="link-text">채팅 히스토리</span>
         </router-link>
+
+        <p class="nav-section-label">포트폴리오</p>
+        <router-link
+          to="/admin/career"
+          class="sidebar-link"
+          :class="{ active: $route.path === '/admin/career' }"
+          @click="closeSidebar"
+        >
+          <span class="link-icon">💼</span>
+          <span class="link-text">경력 관리</span>
+        </router-link>
+        <router-link
+          to="/admin/experience"
+          class="sidebar-link"
+          :class="{ active: $route.path === '/admin/experience' }"
+          @click="closeSidebar"
+        >
+          <span class="link-icon">🎓</span>
+          <span class="link-text">교육·경험 관리</span>
+        </router-link>
+        <router-link
+          to="/admin/portfolio-skill"
+          class="sidebar-link"
+          :class="{ active: $route.path === '/admin/portfolio-skill' }"
+          @click="closeSidebar"
+        >
+          <span class="link-icon">🛠️</span>
+          <span class="link-text">포트폴리오 스킬</span>
+        </router-link>
       </nav>
     </aside>
 
@@ -119,6 +148,9 @@ export default {
       '/admin/role-management': '권한 관리',
       '/admin/menu-definition': '메뉴 정의 관리',
       '/admin/chat-history': '채팅 히스토리',
+      '/admin/career': '경력 관리',
+      '/admin/experience': '교육·경험 관리',
+      '/admin/portfolio-skill': '포트폴리오 스킬',
     };
     const pageTitle = computed(() => pageTitleMap[route.path] || '관리자');
 

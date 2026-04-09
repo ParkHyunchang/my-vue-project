@@ -76,6 +76,21 @@ const router = createRouter({
                     path: 'chat-history',
                     name: 'AdminChatHistory',
                     component: () => import('../pages/admin-chat-history.vue'),
+                },
+                {
+                    path: 'career',
+                    name: 'AdminCareer',
+                    component: () => import('../pages/admin-career.vue'),
+                },
+                {
+                    path: 'experience',
+                    name: 'AdminExperience',
+                    component: () => import('../pages/admin-experience.vue'),
+                },
+                {
+                    path: 'portfolio-skill',
+                    name: 'AdminPortfolioSkill',
+                    component: () => import('../pages/admin-portfolio-skill.vue'),
                 }
             ]
         }
