@@ -196,8 +196,8 @@
                       <span v-if="h.avgPrice">{{ fmtByMkt(h.avgPrice, h.market) }}</span>
                       <span v-else class="txt-muted">—</span>
                     </td>
-                    <td :class="['td-r', pnlCls(holdPnl(h))]">{{ fmtHoldPnl(h) }}</td>
-                    <td :class="['td-r', pnlCls(holdPnlPct(h))]">{{ fmtHoldPnlPct(h) }}</td>
+                    <td class="td-r"><span :class="pnlCls(holdPnl(h))">{{ fmtHoldPnl(h) }}</span></td>
+                    <td class="td-r"><span :class="['pnl-pct', pnlCls(holdPnlPct(h))]">{{ fmtHoldPnlPct(h) }}</span></td>
                     <td class="td-act">
                       <button class="act-btn act-edit" @click="startEdit(h)">수정</button>
                       <button class="act-btn act-del" @click="removeHolding(h.id)">삭제</button>

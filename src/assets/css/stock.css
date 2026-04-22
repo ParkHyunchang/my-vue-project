@@ -3,17 +3,14 @@
    국내 주식 컨벤션: 상승 = 빨강, 하락 = 파랑
    ========================================================== */
 
-:root {
-  --stock-up:       #e64444;
-  --stock-up-bg:    rgba(230, 68, 68, 0.13);
-  --stock-down:     #3b82f6;
-  --stock-down-bg:  rgba(59, 130, 246, 0.13);
-}
-
 .stock-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 24px;
+  --stock-up:     #e64444;
+  --stock-up-bg:  rgba(230, 68, 68, 0.13);
+  --stock-down:   #3b82f6;
+  --stock-down-bg: rgba(59, 130, 246, 0.13);
 }
 
 /* ── 페이지 헤더 ── */
@@ -857,21 +854,18 @@
 .stock-name      { color: var(--text-primary); font-weight: 600; font-size: 0.88rem; }
 .stock-symbol    { color: var(--text-muted); font-size: 0.75rem; }
 
-.positive { color: var(--stock-up)   !important; }
-.negative { color: var(--stock-down) !important; }
+.positive { color: var(--stock-up)   !important; font-weight: 600; }
+.negative { color: var(--stock-down) !important; font-weight: 600; }
 .neutral  { color: var(--text-muted) !important; }
 
 .change-badge {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 700;
 }
 
-.change-badge.positive { background: rgba(230, 68, 68, 0.25);   color: var(--stock-up);   }
-.change-badge.negative { background: rgba(59, 130, 246, 0.25);  color: var(--stock-down); }
-.change-badge.neutral  { background: var(--subBg400);            color: var(--text-muted); }
+.change-badge.positive { color: var(--stock-up);   }
+.change-badge.negative { color: var(--stock-down); }
+.change-badge.neutral  { color: var(--text-muted); }
 
 /* ─────────────────────────────────────────────────────
    📰 뉴스
