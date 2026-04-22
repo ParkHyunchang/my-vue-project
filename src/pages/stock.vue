@@ -43,22 +43,65 @@
               {{ marketFilter === 'all' ? '전체' : marketFilter === 'kr' ? '🇰🇷 한국' : '🇺🇸 미국' }}
               {{ filteredHoldings.length }}종목
             </span>
-            <div class="ps-totals">
-              <span v-if="krTotal > 0" class="ps-total-val">🇰🇷 {{ fmtKRW(krTotal) }}</span>
-              <span v-if="krTotal > 0 && usTotal > 0" class="ps-sep">·</span>
-              <div v-if="usTotal > 0" class="ps-us-wrap">
-                <span class="ps-total-val">🇺🇸 {{ fmtUSD(usTotal) }}</span>
-                <span v-if="usTotalKRW > 0" class="ps-us-krw">≈ {{ fmtKRW(usTotalKRW) }}</span>
+            <!-- 전체 탭 + 한국/미국 모두 있을 때: 분리 표시 -->
+            <template v-if="marketFilter === 'all' && krHoldingsCount > 0 && usHoldingsCount > 0">
+              <div class="ps-breakdown">
+                <!-- KR 행 -->
+                <div class="ps-bd-row">
+                  <span class="ps-bd-label">🇰🇷 한국</span>
+                  <span class="ps-bd-val">{{ fmtKRW(krTotal) }}</span>
+                  <span v-if="krHasAvgPrice" :class="['ps-bd-pnl', pnlCls(krPnl)]">
+                    {{ krPnl >= 0 ? "▲" : "▼" }} {{ fmtKRW(Math.abs(krPnl)) }}
+                    <span class="ps-bd-pct">({{ krPnlPct >= 0 ? "+" : "" }}{{ krPnlPct.toFixed(2) }}%)</span>
+                  </span>
+                </div>
+                <!-- US 행 -->
+                <div class="ps-bd-row">
+                  <span class="ps-bd-label">🇺🇸 미국</span>
+                  <div class="ps-bd-val-group">
+                    <span class="ps-bd-val">{{ fmtUSD(usTotal) }}</span>
+                    <span v-if="usTotalKRW > 0" class="ps-us-krw">≈ {{ fmtKRW(usTotalKRW) }}</span>
+                  </div>
+                  <span v-if="usHasAvgPrice" :class="['ps-bd-pnl', pnlCls(usPnl)]">
+                    {{ usPnl >= 0 ? "▲" : "▼" }} {{ fmtUSD(Math.abs(usPnl)) }}
+                    <span class="ps-bd-pct">({{ usPnlPct >= 0 ? "+" : "" }}{{ usPnlPct.toFixed(2) }}%)</span>
+                  </span>
+                </div>
+                <!-- 전체 합산 행 -->
+                <div class="ps-bd-total">
+                  <span class="ps-bd-total-label">전체</span>
+                  <span v-if="exchangeRate > 0" class="ps-bd-val">{{ fmtKRW(totalValKRW) }}</span>
+                  <template v-if="krHasAvgPrice || (usHasAvgPrice && exchangeRate > 0)">
+                    <span :class="['ps-pnl-val', pnlCls(totalPnlKRW)]">
+                      {{ totalPnlKRW >= 0 ? "▲" : "▼" }} {{ fmtKRW(Math.abs(totalPnlKRW)) }}
+                    </span>
+                    <span :class="['ps-pnl-pct', pnlCls(totalPnlKRW)]">
+                      ({{ totalPnlKRWPct >= 0 ? "+" : "" }}{{ totalPnlKRWPct.toFixed(2) }}%)
+                    </span>
+                  </template>
+                </div>
               </div>
-            </div>
-            <div v-if="hasAvgPrice" class="ps-pnl">
-              <span :class="['ps-pnl-val', pnlCls(totalPnl)]">
-                {{ totalPnl >= 0 ? "▲" : "▼" }} {{ fmtAbsPnl(totalPnl) }}
-              </span>
-              <span :class="['ps-pnl-pct', pnlCls(totalPnl)]">
-                ({{ totalPnlPct >= 0 ? "+" : "" }}{{ totalPnlPct.toFixed(2) }}%)
-              </span>
-            </div>
+            </template>
+
+            <!-- 단일 마켓 탭 또는 한쪽만 있을 때: 기존 레이아웃 -->
+            <template v-else>
+              <div class="ps-totals">
+                <span v-if="krTotal > 0" class="ps-total-val">🇰🇷 {{ fmtKRW(krTotal) }}</span>
+                <span v-if="krTotal > 0 && usTotal > 0" class="ps-sep">·</span>
+                <div v-if="usTotal > 0" class="ps-us-wrap">
+                  <span class="ps-total-val">🇺🇸 {{ fmtUSD(usTotal) }}</span>
+                  <span v-if="usTotalKRW > 0" class="ps-us-krw">≈ {{ fmtKRW(usTotalKRW) }}</span>
+                </div>
+              </div>
+              <div v-if="hasAvgPrice" class="ps-pnl">
+                <span :class="['ps-pnl-val', pnlCls(totalPnl)]">
+                  {{ totalPnl >= 0 ? "▲" : "▼" }} {{ fmtAbsPnl(totalPnl) }}
+                </span>
+                <span :class="['ps-pnl-pct', pnlCls(totalPnl)]">
+                  ({{ totalPnlPct >= 0 ? "+" : "" }}{{ totalPnlPct.toFixed(2) }}%)
+                </span>
+              </div>
+            </template>
           </div>
           <button class="btn-add-sm" @click="openAddModal">＋ 추가</button>
         </div>
@@ -528,7 +571,7 @@
           {{ krHeatmapError }}
         </div>
         <div v-else ref="krChartEl" class="kr-heatmap-chart"></div>
-        <p class="widget-credit">국내 데이터 제공: Yahoo Finance</p>
+        <p class="widget-credit">국내 데이터 제공: KRX 공식 Open API (전일 종가 기준)</p>
       </div>
 
       <!-- 해외 히트맵 (TradingView) -->
@@ -584,6 +627,7 @@
         <span class="last-updated" v-if="top10UpdateTime"
           >기준: {{ top10UpdateTime }}</span
         >
+        <span v-if="top10Market !== 'us'" class="prev-close-note">전일 종가 기준</span>
         <span class="auto-refresh-info"
           >🕐 자동 갱신: 🇰🇷 09:00 · 🇺🇸 23:30 (KST)</span
         >
@@ -704,7 +748,7 @@
           </div>
         </div>
         <p class="schedule-note">
-          🇰🇷 KRX 공식 API 기반 실제 시총 순위 · 🇺🇸 Yahoo Finance v8 기반 ·
+          🇰🇷 KRX 공식 API · 전일 종가 기준 · 🇺🇸 Yahoo Finance v8 기반 ·
           캐시 유효 시간 6시간 · 순위 변동(▲▼)은 직전 갱신 대비
         </p>
       </div>
@@ -1190,6 +1234,45 @@ export default {
 
     const totalPnlPct = computed(() =>
       totalCost.value === 0 ? 0 : (totalPnl.value / totalCost.value) * 100,
+    );
+
+    // ── 한국/미국 분리 PnL ──
+    const krPnl = computed(() =>
+      holdings.value.filter(h => h.market === 'KR').reduce((s, h) => {
+        if (!h.avgPrice) return s;
+        const p = prices.value[h.symbol]?.price;
+        return p ? s + (p - h.avgPrice) * h.quantity : s;
+      }, 0),
+    );
+    const krCost = computed(() =>
+      holdings.value.filter(h => h.market === 'KR').reduce((s, h) => h.avgPrice ? s + h.avgPrice * h.quantity : s, 0),
+    );
+    const krPnlPct = computed(() => krCost.value === 0 ? 0 : (krPnl.value / krCost.value) * 100);
+    const krHasAvgPrice = computed(() => holdings.value.filter(h => h.market === 'KR').some(h => h.avgPrice));
+
+    const usPnl = computed(() =>
+      holdings.value.filter(h => h.market === 'US').reduce((s, h) => {
+        if (!h.avgPrice) return s;
+        const p = prices.value[h.symbol]?.price;
+        return p ? s + (p - h.avgPrice) * h.quantity : s;
+      }, 0),
+    );
+    const usCost = computed(() =>
+      holdings.value.filter(h => h.market === 'US').reduce((s, h) => h.avgPrice ? s + h.avgPrice * h.quantity : s, 0),
+    );
+    const usPnlPct = computed(() => usCost.value === 0 ? 0 : (usPnl.value / usCost.value) * 100);
+    const usHasAvgPrice = computed(() => holdings.value.filter(h => h.market === 'US').some(h => h.avgPrice));
+
+    // ── 전체 합산 (KRW 환산) ──
+    const totalValKRW = computed(() => krTotal.value + usTotalKRW.value);
+    const totalPnlKRW = computed(() =>
+      krPnl.value + (exchangeRate.value > 0 ? usPnl.value * exchangeRate.value : 0),
+    );
+    const totalCostKRW = computed(() =>
+      krCost.value + (exchangeRate.value > 0 ? usCost.value * exchangeRate.value : 0),
+    );
+    const totalPnlKRWPct = computed(() =>
+      totalCostKRW.value === 0 ? 0 : (totalPnlKRW.value / totalCostKRW.value) * 100,
     );
 
     // ─── 차트 세그먼트 ────────────────────────────────
@@ -1723,6 +1806,15 @@ export default {
       hasAvgPrice,
       totalPnl,
       totalPnlPct,
+      krPnl,
+      krPnlPct,
+      krHasAvgPrice,
+      usPnl,
+      usPnlPct,
+      usHasAvgPrice,
+      totalValKRW,
+      totalPnlKRW,
+      totalPnlKRWPct,
       chartSegments,
       // 포트폴리오 함수
       openAddModal,
