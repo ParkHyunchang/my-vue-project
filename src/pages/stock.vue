@@ -211,45 +211,78 @@
           <!-- 모바일 카드 뷰 -->
           <div class="holdings-cards">
             <div v-for="h in sortedHoldings" :key="h.id" class="holding-card">
-              <div class="hcard-header">
-                <div class="hcard-name-wrap">
-                  <span class="mkt-flag">{{ h.market === "KR" ? "🇰🇷" : "🇺🇸" }}</span>
-                  <div>
-                    <div class="h-name">{{ h.name }}</div>
-                    <div class="h-sym">{{ h.symbol }}</div>
+              <!-- 편집 모드 -->
+              <template v-if="editingId === h.id">
+                <div class="hcard-header">
+                  <div class="hcard-name-wrap">
+                    <span class="mkt-flag">{{ h.market === "KR" ? "🇰🇷" : "🇺🇸" }}</span>
+                    <div>
+                      <div class="h-name">{{ h.name }}</div>
+                      <div class="h-sym">{{ h.symbol }}</div>
+                    </div>
+                  </div>
+                  <div class="hcard-price-wrap">
+                    <div class="hcard-price">{{ fmtCurPrice(h) }}</div>
+                    <span :class="['change-badge', changePctCls(h) || 'neutral']" style="margin-top:4px; display:inline-block;">{{ fmtChangePctDisplay(h) }}</span>
                   </div>
                 </div>
-                <div class="hcard-price-wrap">
-                  <div class="hcard-price">{{ fmtCurPrice(h) }}</div>
-                  <span :class="['change-badge', changePctCls(h) || 'neutral']" style="margin-top:4px; display:inline-block;">{{ fmtChangePctDisplay(h) }}</span>
+                <div class="hcard-edit-body">
+                  <div class="hcard-edit-row">
+                    <label class="hcard-edit-label">보유수량</label>
+                    <input v-model.number="editForm.quantity" type="number" min="1" class="hcard-edit-inp" />
+                  </div>
+                  <div class="hcard-edit-row">
+                    <label class="hcard-edit-label">평단가 <span class="opt-label">(선택)</span></label>
+                    <input v-model.number="editForm.avgPrice" type="number" min="0" class="hcard-edit-inp" :placeholder="h.market === 'KR' ? '원 단위' : 'USD'" />
+                  </div>
                 </div>
-              </div>
-              <div class="hcard-body">
-                <div class="hcard-row">
-                  <span class="hcard-label">보유수량</span>
-                  <span>{{ h.quantity.toLocaleString() }}주</span>
+                <div class="hcard-actions">
+                  <button class="act-btn act-save" @click="saveEdit(h)">저장</button>
+                  <button class="act-btn act-cancel" @click="editingId = null">취소</button>
                 </div>
-                <div class="hcard-row">
-                  <span class="hcard-label">평가금액</span>
-                  <span>{{ fmtHoldVal(h) }}</span>
+              </template>
+              <!-- 일반 모드 -->
+              <template v-else>
+                <div class="hcard-header">
+                  <div class="hcard-name-wrap">
+                    <span class="mkt-flag">{{ h.market === "KR" ? "🇰🇷" : "🇺🇸" }}</span>
+                    <div>
+                      <div class="h-name">{{ h.name }}</div>
+                      <div class="h-sym">{{ h.symbol }}</div>
+                    </div>
+                  </div>
+                  <div class="hcard-price-wrap">
+                    <div class="hcard-price">{{ fmtCurPrice(h) }}</div>
+                    <span :class="['change-badge', changePctCls(h) || 'neutral']" style="margin-top:4px; display:inline-block;">{{ fmtChangePctDisplay(h) }}</span>
+                  </div>
                 </div>
-                <div class="hcard-row" v-if="h.avgPrice">
-                  <span class="hcard-label">평단가</span>
-                  <span>{{ fmtByMkt(h.avgPrice, h.market) }}</span>
+                <div class="hcard-body">
+                  <div class="hcard-row">
+                    <span class="hcard-label">보유수량</span>
+                    <span>{{ h.quantity.toLocaleString() }}주</span>
+                  </div>
+                  <div class="hcard-row">
+                    <span class="hcard-label">평가금액</span>
+                    <span>{{ fmtHoldVal(h) }}</span>
+                  </div>
+                  <div class="hcard-row" v-if="h.avgPrice">
+                    <span class="hcard-label">평단가</span>
+                    <span>{{ fmtByMkt(h.avgPrice, h.market) }}</span>
+                  </div>
+                  <div class="hcard-row" v-if="holdPnl(h) !== null">
+                    <span class="hcard-label">평가손익</span>
+                    <span :class="pnlCls(holdPnl(h))">{{ fmtHoldPnl(h) }}</span>
+                  </div>
+                  <div class="hcard-row" v-if="holdPnlPct(h) !== null">
+                    <span class="hcard-label">수익률</span>
+                    <span :class="pnlCls(holdPnlPct(h))">{{ fmtHoldPnlPct(h) }}</span>
+                  </div>
                 </div>
-                <div class="hcard-row" v-if="holdPnl(h) !== null">
-                  <span class="hcard-label">평가손익</span>
-                  <span :class="pnlCls(holdPnl(h))">{{ fmtHoldPnl(h) }}</span>
+                <div class="hcard-actions">
+                  <button class="act-btn act-edit" @click="startEdit(h)">수정</button>
+                  <button class="act-btn act-del" @click="removeHolding(h.id)">삭제</button>
                 </div>
-                <div class="hcard-row" v-if="holdPnlPct(h) !== null">
-                  <span class="hcard-label">수익률</span>
-                  <span :class="pnlCls(holdPnlPct(h))">{{ fmtHoldPnlPct(h) }}</span>
-                </div>
-              </div>
-              <div class="hcard-actions">
-                <button class="act-btn act-edit" @click="startEdit(h)">수정</button>
-                <button class="act-btn act-del" @click="removeHolding(h.id)">삭제</button>
-              </div>
+              </template>
             </div>
           </div>
         </template>

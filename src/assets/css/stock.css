@@ -1184,6 +1184,35 @@
   gap: 6px;
   justify-content: flex-end;
 }
+.hcard-edit-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid var(--card-border);
+  border-bottom: 1px solid var(--card-border);
+  margin-bottom: 10px;
+}
+.hcard-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hcard-edit-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  min-width: 72px;
+}
+.hcard-edit-inp {
+  flex: 1;
+  padding: 7px 10px;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  background: var(--input-bg, var(--card-bg));
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
 
 /* ── 반응형 ── */
 @media (max-width: 768px) {
