@@ -824,6 +824,7 @@
 
 <script>
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import axios from "@/axios";
 import * as echarts from "echarts";
 
@@ -849,6 +850,10 @@ const PORTFOLIO_KEY = "stock_portfolio";
 export default {
   name: "StockPage",
   setup() {
+    const route = useRoute();
+    const router = useRouter();
+    const VALID_TABS = ["balance", "heatmap", "top10", "news"];
+
     const activeTab = ref("balance");
     const heatmapMarket = ref("kr");
     const top10Market = ref("kr");
@@ -933,6 +938,7 @@ export default {
     // ─── 탭 전환 ─────────────────────────────────────
     function switchTab(id) {
       activeTab.value = id;
+      router.replace({ query: { ...route.query, tab: id } });
       if (id === "heatmap") {
         if (heatmapMarket.value !== "kr") {
           tvUpdatedAt.value = new Date().toLocaleString("ko-KR", {
@@ -1749,7 +1755,12 @@ export default {
 
     onMounted(async () => {
       await initPortfolio();
-      fetchPrices();
+      const tabFromUrl = route.query.tab;
+      if (tabFromUrl && VALID_TABS.includes(tabFromUrl)) {
+        switchTab(tabFromUrl);
+      } else {
+        fetchPrices();
+      }
       refreshTimer = setInterval(fetchPrices, 30000);
       window.addEventListener("resize", onResizeKrChart);
       window.addEventListener("orientationchange", onOrientationChange);
