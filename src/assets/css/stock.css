@@ -1208,6 +1208,68 @@
   font-size: 0.9rem;
 }
 
+/* ── Top10 모바일 카드 ── */
+.top10-cards { display: none; }
+
+.top10-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.t10c-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.t10c-rank-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 38px;
+}
+
+.t10c-name-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.t10c-name-wrap .stock-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.t10c-price-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.t10c-price {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.t10c-mcap {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--card-border);
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  text-align: right;
+}
+
 /* ── 반응형 ── */
 @media (max-width: 768px) {
   .stock-container { padding: 16px; }
@@ -1220,7 +1282,35 @@
   .holdings-table tbody td, .holdings-table thead th { padding: 10px 8px; font-size: 0.78rem; }
   .th-r, .td-r { font-size: 0.76rem; }
 
-  .top10-table td, .top10-table th { padding: 11px 10px; font-size: 0.82rem; }
+  /* top10 컨트롤 */
+  .auto-refresh-info {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 2px;
+  }
+
+  /* 뉴스 마켓 토글 */
+  .news-market-toggle { flex-wrap: wrap; }
+  .news-divider { display: none; }
+
+  /* 포트폴리오 요약 금액 */
+  .ps-totals { flex-wrap: wrap; }
+
+  /* top10 테이블 → 카드 전환 */
+  .top10-table-wrap { display: none; }
+
+  .top10-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* 카드 내 rank-chg 정렬 */
+  .t10c-rank-wrap .rank-chg { margin-left: 0; }
+
+  /* 스케줄 안내 */
+  .schedule-detail span { word-break: keep-all; }
+  .schedule-note { word-break: keep-all; font-size: 0.71rem; }
 
   .news-grid { grid-template-columns: 1fr; }
 

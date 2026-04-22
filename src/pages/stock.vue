@@ -606,55 +606,81 @@
         데이터가 없습니다.
       </div>
 
-      <!-- 테이블 -->
-      <div v-else class="top10-table-wrap">
-        <table class="top10-table">
-          <thead>
-            <tr>
-              <th class="col-rank">순위</th>
-              <th class="col-name">종목</th>
-              <th class="col-price">현재가</th>
-              <th class="col-change">등락률</th>
-              <th class="col-mcap">시가총액</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="stock in top10Data" :key="stock.symbol">
-              <td class="col-rank">
-                <span :class="['rank-badge', rankClass(stock.rank)]">{{
-                  stock.rank
-                }}</span>
-                <span v-if="stock.rankChange > 0" class="rank-chg rank-up"
-                  >▲{{ stock.rankChange }}</span
-                >
-                <span
-                  v-else-if="stock.rankChange < 0"
-                  class="rank-chg rank-down"
-                  >▼{{ Math.abs(stock.rankChange) }}</span
-                >
+      <!-- 데이터 표시 -->
+      <template v-else>
+        <!-- 데스크탑 테이블 -->
+        <div class="top10-table-wrap">
+          <table class="top10-table">
+            <thead>
+              <tr>
+                <th class="col-rank">순위</th>
+                <th class="col-name">종목</th>
+                <th class="col-price">현재가</th>
+                <th class="col-change">등락률</th>
+                <th class="col-mcap">시가총액</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="stock in top10Data" :key="stock.symbol">
+                <td class="col-rank">
+                  <span :class="['rank-badge', rankClass(stock.rank)]">{{
+                    stock.rank
+                  }}</span>
+                  <span v-if="stock.rankChange > 0" class="rank-chg rank-up"
+                    >▲{{ stock.rankChange }}</span
+                  >
+                  <span
+                    v-else-if="stock.rankChange < 0"
+                    class="rank-chg rank-down"
+                    >▼{{ Math.abs(stock.rankChange) }}</span
+                  >
+                  <span v-else class="rank-chg rank-neutral">—</span>
+                </td>
+                <td class="col-name">
+                  <div class="stock-name-cell">
+                    <span class="stock-name">{{ stock.name }}</span>
+                    <span class="stock-symbol">{{ stock.symbol }}</span>
+                  </div>
+                </td>
+                <td class="col-price">
+                  {{ formatPrice(stock.price, stock.currency) }}
+                </td>
+                <td class="col-change">
+                  <span :class="['change-badge', changeClass(stock.changePercent)]">
+                    {{ formatChangePct(stock.changePercent) }}
+                  </span>
+                </td>
+                <td class="col-mcap">
+                  {{ formatMarketCap(stock.marketCap, stock.currency) }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 모바일 카드 뷰 -->
+        <div class="top10-cards">
+          <div v-for="stock in top10Data" :key="'card-' + stock.symbol" class="top10-card">
+            <div class="t10c-header">
+              <div class="t10c-rank-wrap">
+                <span :class="['rank-badge', rankClass(stock.rank)]">{{ stock.rank }}</span>
+                <span v-if="stock.rankChange > 0" class="rank-chg rank-up">▲{{ stock.rankChange }}</span>
+                <span v-else-if="stock.rankChange < 0" class="rank-chg rank-down">▼{{ Math.abs(stock.rankChange) }}</span>
                 <span v-else class="rank-chg rank-neutral">—</span>
-              </td>
-              <td class="col-name">
-                <div class="stock-name-cell">
-                  <span class="stock-name">{{ stock.name }}</span>
-                  <span class="stock-symbol">{{ stock.symbol }}</span>
-                </div>
-              </td>
-              <td class="col-price">
-                {{ formatPrice(stock.price, stock.currency) }}
-              </td>
-              <td class="col-change">
-                <span :class="['change-badge', changeClass(stock.changePercent)]">
-                  {{ formatChangePct(stock.changePercent) }}
-                </span>
-              </td>
-              <td class="col-mcap">
-                {{ formatMarketCap(stock.marketCap, stock.currency) }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+              </div>
+              <div class="t10c-name-wrap">
+                <span class="stock-name">{{ stock.name }}</span>
+                <span class="stock-symbol">{{ stock.symbol }}</span>
+              </div>
+              <div class="t10c-price-wrap">
+                <span class="t10c-price">{{ formatPrice(stock.price, stock.currency) }}</span>
+                <span :class="['change-badge', changeClass(stock.changePercent)]">{{ formatChangePct(stock.changePercent) }}</span>
+              </div>
+            </div>
+            <div class="t10c-mcap">시가총액 {{ formatMarketCap(stock.marketCap, stock.currency) }}</div>
+          </div>
+        </div>
+      </template>
 
       <!-- 스케줄 안내 -->
       <div class="schedule-info">
