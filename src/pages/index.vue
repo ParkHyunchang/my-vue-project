@@ -15,8 +15,8 @@
       <section id="intro" class="hero-section">
         <div class="hero__inner">
           <span class="hero__eyebrow">AI Web Developer</span>
-          <h1 class="hero__title">안녕하세요,<br><span class="highlight">현창</span>입니다</h1>
-          <p class="hero__subtitle">Full Stack · AI Specialist · Builder</p>
+          <h1 class="hero__title">Building Ideas<br><span class="highlight">Into Reality.</span></h1>
+          <p class="hero__subtitle">Full Stack · Spring Boot · Vue.js</p>
           <div class="hero__buttons">
             <a href="#skill" class="btn btn-primary" @click.prevent="scrollToSection('skill')">경력 보기</a>
             <a href="#contact" class="btn btn-secondary" @click.prevent="scrollToSection('contact')">연락하기</a>
@@ -29,29 +29,11 @@
         <div class="about__inner">
           <h2 class="about__title">About Me</h2>
           <div class="section-divider"></div>
-          <span class="section-sub">개발자 소개</span>
+          <span class="section-sub">Who I Am</span>
           <div class="about__content">
             <div class="about__philosophy">
-              <h3>개발자로서의 철학</h3>
-              <p>사용자 중심의 웹 개발을 지향합니다. 새로운 기술을 배우고 적용하는 것을 즐기며, 팀과의 협업을 통해 더 나은 결과물을 만들어내는 것을 목표로 합니다.</p>
-              <p>지속적인 학습과 개선을 통해 사용자에게 최고의 경험을 제공하는 개발자가 되고자 합니다.</p>
-            </div>
-            <div class="about__skills">
-              <h3>기술 스택</h3>
-              <div class="skills__list">
-                <span class="skill__tag">JavaScript</span>
-                <span class="skill__tag">HTML5</span>
-                <span class="skill__tag">CSS3</span>
-                <span class="skill__tag">Tailwind CSS</span>
-                <span class="skill__tag">Vue.js</span>
-                <span class="skill__tag">Node.js</span>
-                <span class="skill__tag">Git</span>
-                <span class="skill__tag">Oracle DB</span>
-                <span class="skill__tag">MySQL</span>
-                <span class="skill__tag">Postgresql</span>
-                <span class="skill__tag">Spring Framework</span>
-                <span class="skill__tag">Spring Boot</span>
-              </div>
+              <p>아이디어가 코드가 되고, 코드가 쌓여 무언가가 완성될 때 가장 보람을 느낍니다. 그 작은 순간들이 모여 개발을 계속하게 만드는 이유가 됩니다.</p>
+              <p>이 일이 좋은 건 결과물만이 아닙니다. 기술은 늘 새롭고, 배울 것은 언제나 남아 있습니다. 그 흐름 안에 있다는 것 자체가 동기가 됩니다.</p>
             </div>
           </div>
         </div>
@@ -60,8 +42,9 @@
       <!-- Career & Projects Section -->
       <section id="skill" class="career-section">
         <div class="career__inner">
-          <h2 class="career__title">Career <em>경력 및 프로젝트</em></h2>
+          <h2 class="career__title">Career</h2>
           <div class="section-divider"></div>
+          <span class="section-sub">Work History</span>
           <div class="career__list">
             <div v-for="item in careers" :key="item.id" class="career__item">
               <div class="career__header">
@@ -91,7 +74,7 @@
         <div class="experience__inner">
           <h2 class="experience__title">Experience</h2>
           <div class="section-divider"></div>
-          <span class="section-sub">교육 및 경험</span>
+          <span class="section-sub">Learning & Growth</span>
           <div class="experience__timeline">
             <div v-for="item in experiences" :key="item.id" class="timeline__item">
               <div class="timeline__dot"></div>
@@ -109,20 +92,20 @@
       <!-- Site Section -->
       <section id="site" class="site-section">
         <div class="site__inner">
-          <h2 class="site__title">Site coding</h2>
+          <h2 class="site__title">Works</h2>
           <div class="site__wrap">
             <article class="site__item s1">
               <span class="num">1.</span>
               <div class="text">
-                <div>Make</div><div>site with</div><div>vue.js</div>
+                <div>Frontend</div><div>Vue.js</div><div>Dev</div>
               </div>
-              <h3 class="title">vue.js를 이용한 프론트엔드</h3>
+              <h3 class="title">Vue.js 프론트엔드</h3>
               <div class="btn">
                 <a href="https://github.com/ParkHyunchang/my-vue-project">code</a><br>
                 <a href="https://hyunchang.synology.me:3100/#/">view</a>
               </div>
               <div class="info">
-                <span>site coding</span>
+                <span>works</span>
                 <span>production period : three days</span>
                 <span>use stack : vue.js, axios, vue-router, lodash, lenis</span>
               </div>
@@ -130,17 +113,17 @@
             <article class="site__item s2">
               <span class="num">2.</span>
               <div class="text">
-                <div>Make</div><div>site with</div><div>springboot</div>
+                <div>Backend</div><div>Spring</div><div>Boot</div>
               </div>
-              <h3 class="title">springboot를 이용한 백엔드</h3>
+              <h3 class="title">Spring Boot 백엔드</h3>
               <div class="btn">
                 <a href="https://github.com/ParkHyunchang/my-vue-project_backend">code</a><br>
                 <a href="https://hyunchang.synology.me:3100/#/">view</a>
               </div>
               <div class="info">
-                <span>site coding</span>
+                <span>works</span>
                 <span>production period : two days</span>
-                <span>use stack : Spring Boot 3.2.0, MySQL 8.0, Spring Data JPA, Java21, docker </span>
+                <span>use stack : Spring Boot 3.2.0, MySQL 8.0, Spring Data JPA, Java21, docker</span>
               </div>
             </article>
           </div>
@@ -199,7 +182,7 @@
       <div class="footer__inner">
         <div class="footer__text">
           <span>hyunchang</span>
-          <span>© webs</span>
+          <span>hyunchang's web</span>
         </div>
         <div class="footer__info">
           <div class="center">
@@ -217,7 +200,7 @@
           </div>
         </div>
         <div class="footer__right">
-          © 2025 hyunchang<br />
+          © hyunchang's web<br />
           이 사이트는 Vue3, Spring Boot를 이용하여 제작하였습니다.
         </div>
       </div>
@@ -507,10 +490,8 @@ html, body {
 }
 
 .about__content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5rem;
-  align-items: start;
+  max-width: 640px;
+  margin: 0 auto;
 }
 
 .about__philosophy h3,
