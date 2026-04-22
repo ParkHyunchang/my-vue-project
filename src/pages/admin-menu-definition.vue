@@ -364,8 +364,8 @@
                 </div>
                 <button
                   type="button"
-                  :class="['toggle-switch-def', { on: form.isAdminSubMenu }]"
-                  @click="form.isAdminSubMenu = !form.isAdminSubMenu"
+                  :class="['toggle-switch-def', { on: form.adminSubMenu }]"
+                  @click="form.adminSubMenu = !form.adminSubMenu"
                 >
                   <div class="toggle-thumb"></div>
                 </button>
@@ -418,7 +418,7 @@ export default {
       sortOrder: 0,
       isRequired: false,
       showInNav: true,
-      isAdminSubMenu: false,
+      adminSubMenu: false,
       defaultRoles: [],
       parentPath: '',
     });
@@ -526,7 +526,7 @@ export default {
         sortOrder: menu.sortOrder || 0,
         isRequired: menu.required,
         showInNav: menu.showInNav,
-        isAdminSubMenu: menu.adminSubMenu,
+        adminSubMenu: menu.adminSubMenu,
         defaultRoles: [...(menu.defaultRoles || [])],
         parentPath: menu.parentPath || '',
       };
@@ -574,7 +574,7 @@ export default {
           sortOrder: form.value.sortOrder,
           isRequired: form.value.isRequired,
           showInNav: form.value.showInNav,
-          isAdminSubMenu: form.value.isAdminSubMenu,
+          isAdminSubMenu: form.value.adminSubMenu,
           defaultRoles: form.value.defaultRoles.join(','),
           parentPath: form.value.parentPath || null,
         };

@@ -43,16 +43,15 @@
               </select>
             </div>
             <div class="filter-group">
-              <label>이름:</label>
-              <input 
-                v-model="searchFilters.name" 
-                type="text" 
-                placeholder="이름을 입력하세요"
+              <label>이름 / 사용자ID:</label>
+              <input
+                v-model="searchFilters.name"
+                type="text"
+                placeholder="이름 또는 사용자ID로 검색"
                 class="filter-input"
               />
             </div>
             <div class="search-actions">
-              <button @click="searchUsers" class="btn btn-search">검색</button>
               <button @click="resetSearch" class="btn btn-reset">초기화</button>
             </div>
           </div>
@@ -260,12 +259,12 @@
             </button>
           </div>
           <div class="modal-actions-right">
-            <button 
-              @click="updateUserInfo" 
+            <button
+              @click="updateUserInfo"
               class="btn btn-edit"
               :disabled="loading"
             >
-              {{ loading ? '수정 중...' : '권한 수정' }}
+              {{ loading ? '수정 중...' : '정보 수정' }}
             </button>
             <button @click="closeUserDetailModal" class="btn btn-secondary">닫기</button>
           </div>
@@ -360,6 +359,25 @@ export default {
     
 
     const currentUser = computed(() => store.getters['auth/user']);
+
+    const parseApiError = (error, fallback) => {
+      const data = error.response?.data;
+      if (!data) return fallback;
+      if (typeof data === 'string') {
+        if (data.includes('가입된 메일주소가 있습니다')) return '이미 사용 중인 이메일 주소입니다.';
+        if (data.includes('가입된 전화번호가 있습니다')) return '이미 사용 중인 전화번호입니다.';
+        if (data.includes('이미 사용 중인 사용자ID')) return '이미 사용 중인 사용자ID입니다.';
+        if (data.includes('관리자 권한을 설정할 수 없습니다')) return '관리자 권한을 설정할 수 없습니다.';
+        if (data.includes('UK_') || data.includes('constraint') || data.includes('Duplicate')) {
+          if (data.includes('email')) return '이미 사용 중인 이메일 주소입니다.';
+          if (data.includes('phone')) return '이미 사용 중인 전화번호입니다.';
+          if (data.includes('userId')) return '이미 사용 중인 사용자ID입니다.';
+          return '입력한 정보에 문제가 있습니다. 다시 확인해주세요.';
+        }
+        return data;
+      }
+      return data.message || fallback;
+    };
     const roleInfos = ref([]);
 
     const loadRoles = async () => {
@@ -423,10 +441,6 @@ export default {
         loading.value = true;
         const response = await axios.get('/api/admin/users');
         users.value = response.data;
-        store.dispatch('toast/showToast', {
-          message: '사용자 목록을 성공적으로 불러왔습니다.',
-          type: 'success'
-        });
       } catch (error) {
         const errorMessage = error.response?.data || '사용자 목록을 불러오는데 실패했습니다.';
         store.dispatch('toast/showToast', {
@@ -489,46 +503,10 @@ export default {
 
         closeCreateModal();
       } catch (error) {
-        let errorMessage = '사용자 생성에 실패했습니다.';
-        
-        if (error.response?.data) {
-          const data = error.response.data;
-          if (typeof data === 'string') {
-            // 기술적인 에러 메시지를 사용자 친화적으로 변환
-            if (data.includes('가입된 메일주소가 있습니다')) {
-              errorMessage = '이미 사용 중인 이메일 주소입니다.';
-            } else if (data.includes('가입된 전화번호가 있습니다')) {
-              errorMessage = '이미 사용 중인 전화번호입니다.';
-            } else if (data.includes('이미 사용 중인 사용자ID')) {
-              errorMessage = '이미 사용 중인 사용자ID입니다.';
-            } else if (data.includes('관리자 권한을 설정할 수 없습니다')) {
-              errorMessage = '관리자 권한을 설정할 수 없습니다.';
-            } else if (data.includes('UK_') || data.includes('constraint') || data.includes('Duplicate')) {
-              // 데이터베이스 제약 조건 위반 시 - 더 정확한 구분
-              if (data.includes('UK_r43af9ap4edm43mmtq01oddj6') || data.includes('email') && data.includes('UK_')) {
-                errorMessage = '이미 사용 중인 이메일 주소입니다.';
-              } else if (data.includes('phone') && data.includes('UK_')) {
-                errorMessage = '이미 사용 중인 전화번호입니다.';
-              } else if (data.includes('userId') && data.includes('UK_')) {
-                errorMessage = '이미 사용 중인 사용자ID입니다.';
-              } else {
-                // 이름 중복 등 기타 제약 조건 위반
-                errorMessage = '입력한 정보에 문제가 있습니다. 다시 확인해주세요.';
-              }
-            } else {
-              errorMessage = data;
-            }
-          } else if (data.message) {
-            errorMessage = data.message;
-          }
-        }
-        
-        // 토스트 메시지로 표시 (모달 내 에러 메시지 제거)
         store.dispatch('toast/showToast', {
-          message: errorMessage,
+          message: parseApiError(error, '사용자 생성에 실패했습니다.'),
           type: 'error'
         });
-        
       } finally {
         loading.value = false;
       }
@@ -656,56 +634,13 @@ export default {
         closeUserDetailModal();
         
       } catch (error) {
-        let errorMessage = '사용자 정보 수정에 실패했습니다.';
-        
-        if (error.response?.data) {
-          const data = error.response.data;
-          if (typeof data === 'string') {
-            // 기술적인 에러 메시지를 사용자 친화적으로 변환
-            if (data.includes('가입된 메일주소가 있습니다')) {
-              errorMessage = '이미 사용 중인 이메일 주소입니다.';
-            } else if (data.includes('가입된 전화번호가 있습니다')) {
-              errorMessage = '이미 사용 중인 전화번호입니다.';
-            } else if (data.includes('이미 사용 중인 사용자ID')) {
-              errorMessage = '이미 사용 중인 사용자ID입니다.';
-            } else if (data.includes('관리자 권한을 설정할 수 없습니다')) {
-              errorMessage = '관리자 권한을 설정할 수 없습니다.';
-            } else if (data.includes('UK_') || data.includes('constraint') || data.includes('Duplicate')) {
-              // 데이터베이스 제약 조건 위반 시 - 더 정확한 구분
-              if (data.includes('UK_r43af9ap4edm43mmtq01oddj6')) {
-                // 이 특정 제약 조건은 이름 중복 (현재 데이터베이스에 잘못 설정된 제약 조건)
-                errorMessage = '이미 사용 중인 이름입니다. (데이터베이스 제약 조건)';
-              } else if (data.includes('email') && data.includes('UK_')) {
-                errorMessage = '이미 사용 중인 이메일 주소입니다.';
-              } else if (data.includes('phone') && data.includes('UK_')) {
-                errorMessage = '이미 사용 중인 전화번호입니다.';
-              } else if (data.includes('userId') && data.includes('UK_')) {
-                errorMessage = '이미 사용 중인 사용자ID입니다.';
-              } else {
-                // 기타 제약 조건 위반
-                errorMessage = '입력한 정보에 문제가 있습니다. 다시 확인해주세요.';
-              }
-            } else {
-              errorMessage = data;
-            }
-          } else if (data.message) {
-            errorMessage = data.message;
-          }
-        }
-        
-        // 토스트 메시지로 표시 (모달 내 에러 메시지 제거)
         store.dispatch('toast/showToast', {
-          message: errorMessage,
+          message: parseApiError(error, '사용자 정보 수정에 실패했습니다.'),
           type: 'error'
         });
-        
       } finally {
         loading.value = false;
       }
-    };
-
-    const searchUsers = () => {
-      // 검색 필터가 변경되면 filteredUsers computed가 자동으로 업데이트됨
     };
 
     const resetSearch = () => {
@@ -756,7 +691,6 @@ export default {
       openUserDetailModal,
       closeUserDetailModal,
       updateUserInfo,
-      searchUsers,
       resetSearch,
       filterByRole,
       getRoleDisplayName,

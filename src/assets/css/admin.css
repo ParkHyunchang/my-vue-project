@@ -638,9 +638,14 @@
 
 /* 상태 필 */
 .status-pill { font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600; flex-shrink: 0; }
-.pill-allow { background: var(--success-bg); color: var(--success-color); }
-.pill-deny  { background: var(--danger-bg);  color: var(--danger-color); }
-.pill-locked{ background: var(--subBg400);   color: var(--text-muted); }
+.pill-allow       { background: var(--success-bg); color: var(--success-color); }
+.pill-deny        { background: var(--danger-bg);  color: var(--danger-color); }
+.pill-locked      { background: var(--subBg400);   color: var(--text-muted); }
+.pill-locked-deny { background: var(--danger-bg);  color: var(--danger-color); opacity: 0.6; }
+
+/* 미저장 뱃지 */
+.unsaved-badge { font-size: 11px; font-weight: 600; color: var(--accent); margin-left: 8px; vertical-align: middle; animation: pulse-opacity 1.5s ease-in-out infinite; }
+@keyframes pulse-opacity { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
 /* 빈 화면 */
 .empty-right { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; color: var(--text-muted); font-size: 14px; gap: 10px; }

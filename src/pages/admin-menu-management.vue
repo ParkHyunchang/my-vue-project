@@ -32,7 +32,7 @@
           >
             <span class="role-row-icon">{{ getRoleIcon(role.key) }}</span>
             <div class="role-row-info">
-              <span class="role-row-name">{{ role.name }}</span>
+              <span class="role-row-name">{{ role.name }}<span v-if="dirtyRoles.has(role.key)" class="unsaved-badge" style="font-size:9px;margin-left:4px">●</span></span>
               <span class="role-row-key">{{ role.key }}</span>
             </div>
             <div class="role-row-meta">
@@ -51,10 +51,14 @@
           <!-- 패널 헤더 -->
           <div class="panel-header">
             <div>
-              <h2>{{ getCurrentRoleDisplayName() }} 접근 메뉴 설정</h2>
+              <h2>
+                {{ getCurrentRoleDisplayName() }} 접근 메뉴 설정
+                <span v-if="dirtyRoles.has(activeRole)" class="unsaved-badge">● 미저장</span>
+              </h2>
               <p class="panel-desc">체크된 메뉴는 해당 권한 사용자가 접근할 수 있습니다</p>
             </div>
             <div class="panel-actions">
+              <button v-if="dirtyRoles.has(activeRole)" @click="resetRole" class="btn btn-outline">↺ 초기화</button>
               <button v-if="orderChanged" @click="saveSortOrder" class="btn btn-outline" :disabled="savingOrder">
                 {{ savingOrder ? '저장 중...' : '↕ 순서 저장' }}
               </button>
@@ -108,6 +112,7 @@
                   <span class="collapse-indicator">{{ isCategoryCollapsed(category.key) ? '▶' : '▼' }}</span>
                 </div>
                 <button
+                  v-if="category.menus.some(m => !isMenuLocked(m))"
                   class="btn btn-sm btn-category"
                   @click.stop="toggleCategorySelection(category.key)"
                 >
@@ -120,7 +125,7 @@
                   v-for="menu in category.menus"
                   :key="menu.path"
                   :class="['menu-item', {
-                    'is-disabled': isMenuDisabledForRole(menu, activeRole),
+                    'is-disabled': isMenuLocked(menu),
                     'is-checked': isMenuSelectedForRole(menu, activeRole)
                   }]"
                 >
@@ -130,7 +135,7 @@
                       <input
                         type="checkbox"
                         :checked="isMenuSelectedForRole(menu, activeRole)"
-                        :disabled="isMenuDisabledForRole(menu, activeRole)"
+                        :disabled="isMenuLocked(menu)"
                         @change="toggleMenuForRole(menu, activeRole)"
                       />
                       <div class="menu-text">
@@ -148,12 +153,14 @@
                     </label>
                     <span
                       :class="['status-pill',
-                        isMenuDisabledForRole(menu, activeRole) ? 'pill-locked' :
-                        isMenuSelectedForRole(menu, activeRole) ? 'pill-allow' : 'pill-deny'
+                        isMenuLocked(menu)
+                          ? (isMenuSelectedForRole(menu, activeRole) ? 'pill-locked' : 'pill-locked-deny')
+                          : (isMenuSelectedForRole(menu, activeRole) ? 'pill-allow' : 'pill-deny')
                       ]"
                     >
-                      {{ isMenuDisabledForRole(menu, activeRole) ? '고정' :
-                         isMenuSelectedForRole(menu, activeRole) ? '허용' : '차단' }}
+                      {{ isMenuLocked(menu)
+                          ? (isMenuSelectedForRole(menu, activeRole) ? '고정' : '차단')
+                          : (isMenuSelectedForRole(menu, activeRole) ? '허용' : '차단') }}
                     </span>
                   </div>
 
@@ -163,6 +170,8 @@
                       <input
                         type="checkbox"
                         :checked="getCrud(menu.path, op.key)"
+                        :disabled="op.key === 'canRead'"
+                        :title="op.key === 'canRead' ? '접근 허용 메뉴는 조회 권한이 항상 활성화됩니다' : ''"
                         @change="setCrud(menu.path, op.key, $event.target.checked)"
                       />
                       <span>{{ op.label }}</span>
@@ -190,10 +199,10 @@
         <div class="modal-confirm-body">
           <div class="confirm-icon">⚠️</div>
           <div>
-            <p><strong>{{ getCurrentRoleDisplayName() }}</strong> 권한의 메뉴 접근 설정을 저장하시겠습니까?</p>
+            <p>전체 권한의 메뉴 접근 설정을 저장하시겠습니까?</p>
             <ul class="confirm-list">
-              <li>접근 가능: <strong>{{ getAccessibleMenuCount() }}개</strong></li>
-              <li>접근 차단: <strong>{{ getRestrictedMenuCount() }}개</strong></li>
+              <li>저장 대상 권한: <strong>{{ roles.length }}개</strong></li>
+              <li v-if="dirtyRoles.size > 0">변경된 권한: <strong>{{ dirtyRoles.size }}개</strong></li>
             </ul>
             <p class="warn-text">⚠️ 해당 권한을 가진 모든 사용자에게 즉시 적용됩니다.</p>
           </div>
@@ -204,6 +213,26 @@
         <button @click="confirmSavePermissions" class="btn btn-primary" :disabled="saving">
           {{ saving ? '저장 중...' : '확인 후 저장' }}
         </button>
+      </template>
+    </Modal>
+
+    <!-- 미저장 변경사항 경고 모달 -->
+    <Modal v-if="showUnsavedModal" @close="cancelRoleSwitch">
+      <template #header>
+        <h3>저장하지 않은 변경사항</h3>
+      </template>
+      <template #body>
+        <div class="modal-confirm-body">
+          <div class="confirm-icon">⚠️</div>
+          <div>
+            <p>저장하지 않은 변경사항이 있습니다.</p>
+            <p class="warn-text">이동해도 변경사항은 메모리에 유지됩니다.<br>최종적으로 <strong>설정 저장</strong>을 눌러야 서버에 반영됩니다.</p>
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <button @click="cancelRoleSwitch" class="btn btn-outline">돌아가기</button>
+        <button @click="confirmRoleSwitch" class="btn btn-primary">저장 없이 이동</button>
       </template>
     </Modal>
   </div>
@@ -230,8 +259,12 @@ export default {
     const showSaveModal = ref(false);
     const menuPermissions = ref({});
     const roles = ref([]);
-    // crudPermissions: { menuPath: { canCreate, canRead, canUpdate, canDelete } }
-    const crudPermissions = ref({});
+    const allCrudPermissions = ref({}); // { roleKey: { menuPath: { canCreate, ... } } }
+    const dirtyRoles = ref(new Set()); // 미저장 변경사항이 있는 권한 키 집합
+    const savedMenuPermissions = ref({}); // 마지막 저장 시점의 메뉴 권한 스냅샷
+    const savedCrudPermissions = ref({}); // 마지막 저장 시점의 CRUD 권한 스냅샷
+    const pendingRoleSwitch = ref(null);
+    const showUnsavedModal = ref(false);
     const crudOps = [
       { key: 'canCreate', label: '생성(C)' },
       { key: 'canRead',   label: '조회(R)' },
@@ -252,8 +285,6 @@ export default {
       { key: 'admin',        name: '관리자', icon: '⚙️', menus: sortedByOrder(allMenus.value.filter(m => m.category === 'admin')) },
     ]);
 
-    const totalMenuCount = computed(() => allMenus.value.length);
-
     // ===== 권한 아이콘 =====
     const getRoleIcon = (key) => {
       const icons = { USER: '👤', PREMIUM: '⭐', ADMIN: '👑', GUEST: '🌐' };
@@ -268,122 +299,169 @@ export default {
 
     // ===== CRUD getter/setter =====
     const getCrud = (menuPath, opKey) => {
-      return crudPermissions.value[menuPath]?.[opKey] || false;
+      if (opKey === 'canRead') return true; // 접근 허용 메뉴는 조회 권한 항상 true
+      return allCrudPermissions.value[activeRole.value]?.[menuPath]?.[opKey] || false;
     };
     const setCrud = (menuPath, opKey, value) => {
-      if (!crudPermissions.value[menuPath]) {
-        crudPermissions.value[menuPath] = { canCreate: false, canRead: true, canUpdate: false, canDelete: false };
+      if (opKey === 'canRead' && !value) return; // 접근 허용 메뉴는 조회 권한 항상 활성화
+      const role = activeRole.value;
+      if (!allCrudPermissions.value[role]) allCrudPermissions.value[role] = {};
+      if (!allCrudPermissions.value[role][menuPath]) {
+        allCrudPermissions.value[role][menuPath] = { canCreate: false, canRead: true, canUpdate: false, canDelete: false };
       }
-      crudPermissions.value[menuPath][opKey] = value;
+      allCrudPermissions.value[role][menuPath][opKey] = value;
+      dirtyRoles.value = new Set([...dirtyRoles.value, role]);
     };
 
     // ===== 권한 선택 =====
-    const setActiveRole = async (key) => {
+    const doSetActiveRole = async (key) => {
       activeRole.value = key;
       if (!menuPermissions.value[key]) {
         menuPermissions.value[key] = allMenus.value
           .filter(m => m.defaultRoles && m.defaultRoles.includes(key))
           .map(m => m.path);
       }
-      // 해당 권한의 CRUD 권한 로딩
-      try {
-        const res = await axios.get(`/api/admin/crud-permissions/${key}`);
-        const map = {};
-        (res.data || []).forEach(p => {
-          map[p.menuPath] = {
-            canCreate: p.canCreate,
-            canRead:   p.canRead,
-            canUpdate: p.canUpdate,
-            canDelete: p.canDelete,
-          };
-        });
-        crudPermissions.value = map;
-      } catch (_) {
-        crudPermissions.value = {};
+      // CRUD 권한: 캐시 없을 때만 서버에서 로드
+      if (!allCrudPermissions.value[key]) {
+        try {
+          const res = await axios.get(`/api/admin/crud-permissions/${key}`);
+          const map = {};
+          (res.data || []).forEach(p => {
+            map[p.menuPath] = {
+              canCreate: p.canCreate,
+              canRead:   p.canRead,
+              canUpdate: p.canUpdate,
+              canDelete: p.canDelete,
+            };
+          });
+          allCrudPermissions.value[key] = map;
+        } catch (_) {
+          allCrudPermissions.value[key] = {};
+        }
+        savedCrudPermissions.value[key] = JSON.parse(JSON.stringify(allCrudPermissions.value[key]));
       }
     };
 
-    // ===== 메뉴 수 =====
-    const getMenuCountForRole = (key) => menuPermissions.value[key]?.length || 0;
+    const setActiveRole = (key) => {
+      if (dirtyRoles.value.has(activeRole.value) && activeRole.value && activeRole.value !== key) {
+        pendingRoleSwitch.value = key;
+        showUnsavedModal.value = true;
+        return;
+      }
+      doSetActiveRole(key);
+    };
+
+    const confirmRoleSwitch = () => {
+      showUnsavedModal.value = false;
+      doSetActiveRole(pendingRoleSwitch.value);
+      pendingRoleSwitch.value = null;
+    };
+
+    const cancelRoleSwitch = () => {
+      showUnsavedModal.value = false;
+      pendingRoleSwitch.value = null;
+    };
+
+    // ===== 변경사항 초기화 =====
+    const resetRole = () => {
+      const role = activeRole.value;
+      if (!role) return;
+      menuPermissions.value[role] = JSON.parse(JSON.stringify(savedMenuPermissions.value[role] ?? []));
+      allCrudPermissions.value[role] = JSON.parse(JSON.stringify(savedCrudPermissions.value[role] ?? {}));
+      const next = new Set(dirtyRoles.value);
+      next.delete(role);
+      dirtyRoles.value = next;
+    };
+
+    // ===== 메뉴 수 (필수/고정 포함 실제 접근 가능 수) =====
+    const getMenuCountForRole = (key) => allMenus.value.filter(m => isMenuSelectedForRole(m, key)).length;
 
     // ===== 메뉴 비활성화 여부 =====
-    const isMenuDisabledForRole = (menu, role) => {
+    const isMenuLocked = (menu) => {
       if (menu.isRequired) return true;
-      if (role === 'ADMIN' && menu.category === 'admin') return true;
-      if (role !== 'ADMIN' && menu.category === 'admin') return true;
+      if (menu.category === 'admin') return true; // 관리자 메뉴는 항상 고정 (ADMIN만 접근)
       return false;
     };
 
     // ===== 메뉴 선택 여부 =====
     const isMenuSelectedForRole = (menu, role) => {
-      if (isMenuDisabledForRole(menu, role)) return true;
+      if (menu.isRequired) return true;
+      if (menu.category === 'admin') return role === 'ADMIN'; // ADMIN만 접근, 나머지는 항상 차단
       return menuPermissions.value[role]?.includes(menu.path) || false;
     };
 
     // ===== 메뉴 토글 =====
     const toggleMenuForRole = (menu, role) => {
-      if (isMenuDisabledForRole(menu, role)) return;
+      if (isMenuLocked(menu)) return;
       if (!menuPermissions.value[role]) menuPermissions.value[role] = [];
+      if (!allCrudPermissions.value[role]) allCrudPermissions.value[role] = {};
       const idx = menuPermissions.value[role].indexOf(menu.path);
       if (idx === -1) {
-        // 메뉴 허용 → CRUD 전체 체크
         menuPermissions.value[role].push(menu.path);
-        crudPermissions.value[menu.path] = { canCreate: true, canRead: true, canUpdate: true, canDelete: true };
+        allCrudPermissions.value[role][menu.path] = { canCreate: true, canRead: true, canUpdate: true, canDelete: true };
       } else {
-        // 메뉴 차단 → CRUD 전체 해제
         menuPermissions.value[role].splice(idx, 1);
-        crudPermissions.value[menu.path] = { canCreate: false, canRead: false, canUpdate: false, canDelete: false };
+        allCrudPermissions.value[role][menu.path] = { canCreate: false, canRead: false, canUpdate: false, canDelete: false };
       }
+      dirtyRoles.value = new Set([...dirtyRoles.value, role]);
     };
 
     // ===== 카테고리 전체 선택 여부 =====
     const isCategoryFullySelected = (categoryKey) => {
       const category = menuCategories.value.find(c => c.key === categoryKey);
       if (!category) return false;
-      return category.menus
-        .filter(m => !isMenuDisabledForRole(m, activeRole.value))
-        .every(m => menuPermissions.value[activeRole.value]?.includes(m.path));
+      const editableMenus = category.menus.filter(m => !isMenuLocked(m));
+      if (editableMenus.length === 0) return false;
+      return editableMenus.every(m => menuPermissions.value[activeRole.value]?.includes(m.path));
     };
 
     // ===== 카테고리 토글 =====
     const toggleCategorySelection = (categoryKey) => {
       const category = menuCategories.value.find(c => c.key === categoryKey);
       if (!category || !activeRole.value) return;
+      const editableMenus = category.menus.filter(m => !isMenuLocked(m));
+      if (editableMenus.length === 0) return;
       if (!menuPermissions.value[activeRole.value]) menuPermissions.value[activeRole.value] = [];
-
-      const editableMenus = category.menus.filter(m => !isMenuDisabledForRole(m, activeRole.value));
       if (isCategoryFullySelected(categoryKey)) {
         menuPermissions.value[activeRole.value] = menuPermissions.value[activeRole.value]
           .filter(p => !editableMenus.map(m => m.path).includes(p));
       } else {
+        if (!allCrudPermissions.value[activeRole.value]) allCrudPermissions.value[activeRole.value] = {};
         editableMenus.forEach(m => {
           if (!menuPermissions.value[activeRole.value].includes(m.path)) {
             menuPermissions.value[activeRole.value].push(m.path);
+            if (!allCrudPermissions.value[activeRole.value][m.path]) {
+              allCrudPermissions.value[activeRole.value][m.path] = { canCreate: true, canRead: true, canUpdate: true, canDelete: true };
+            }
           }
         });
       }
+      dirtyRoles.value = new Set([...dirtyRoles.value, activeRole.value]);
     };
 
     // ===== 전체 선택/해제 =====
     const selectAllMenus = () => {
       if (!activeRole.value) return;
-      menuPermissions.value[activeRole.value] = allMenus.value
-        .filter(m => !isMenuDisabledForRole(m, activeRole.value))
+      const role = activeRole.value;
+      if (!allCrudPermissions.value[role]) allCrudPermissions.value[role] = {};
+      allMenus.value
+        .filter(m => !isMenuLocked(m))
+        .forEach(m => {
+          if (!allCrudPermissions.value[role][m.path]) {
+            allCrudPermissions.value[role][m.path] = { canCreate: true, canRead: true, canUpdate: true, canDelete: true };
+          }
+        });
+      menuPermissions.value[role] = allMenus.value
+        .filter(m => !isMenuLocked(m))
         .map(m => m.path);
+      dirtyRoles.value = new Set([...dirtyRoles.value, role]);
     };
 
     const deselectAllMenus = () => {
       if (!activeRole.value) return;
       menuPermissions.value[activeRole.value] = [];
+      dirtyRoles.value = new Set([...dirtyRoles.value, activeRole.value]);
     };
-
-    // ===== 접근 가능/불가 수 =====
-    const getAccessibleMenuCount = () => {
-      if (!activeRole.value) return 0;
-      return allMenus.value.filter(m => isMenuSelectedForRole(m, activeRole.value)).length;
-    };
-
-    const getRestrictedMenuCount = () => totalMenuCount.value - getAccessibleMenuCount();
 
     // ===== 데이터 로드 =====
     const loadData = async () => {
@@ -425,20 +503,21 @@ export default {
         const permRes = await axios.get('/api/admin/menu-permissions');
         if (permRes.data) {
           Object.keys(permRes.data).forEach(roleKey => {
-            if (permRes.data[roleKey]?.length > 0) {
-              menuPermissions.value[roleKey] = permRes.data[roleKey];
-            }
+            menuPermissions.value[roleKey] = permRes.data[roleKey] ?? [];
           });
         }
 
+        // 메뉴 권한 스냅샷 저장 (초기화 기준점)
+        savedMenuPermissions.value = JSON.parse(JSON.stringify(menuPermissions.value));
+
         // 첫 번째 권한 선택
         if (roles.value.length > 0) {
-          activeRole.value = roles.value[0].key;
-          await setActiveRole(roles.value[0].key);
+          await doSetActiveRole(roles.value[0].key);
         }
       } catch (_) {
-        // 로드 실패 시 기본값 유지
+        store.dispatch('toast/showToast', { message: '데이터를 불러오는 데 실패했습니다.', type: 'error' });
       } finally {
+        dirtyRoles.value = new Set();
         pageLoading.value = false;
       }
     };
@@ -456,20 +535,27 @@ export default {
           await axios.put('/api/admin/menus/sort-order', sortOrders);
           orderChanged.value = false;
         }
-        // 2) 메뉴 접근 권한 저장
+        // 2) 메뉴 접근 권한 저장 (전체 권한 한번에)
         await axios.post('/api/admin/menu-permissions', { permissions: menuPermissions.value });
-        // 3) CRUD 권한 저장 (허용된 메뉴 기준)
-        if (activeRole.value) {
-          const allowedPaths = menuPermissions.value[activeRole.value] || [];
-          const crudData = {};
-          allowedPaths.forEach(path => {
-            crudData[path] = crudPermissions.value[path] || {
-              canCreate: false, canRead: true, canUpdate: false, canDelete: false
-            };
-          });
-          await axios.post(`/api/admin/crud-permissions/${activeRole.value}`, crudData);
-        }
-        store.dispatch('toast/showToast', { message: '메뉴 순서 및 접근 권한이 저장되었습니다.', type: 'success' });
+        // 3) CRUD 권한 저장 (로드된 모든 권한 대상)
+        await Promise.all(
+          Object.keys(allCrudPermissions.value).map(roleKey => {
+            const allowedPaths = menuPermissions.value[roleKey] || [];
+            const crudData = {};
+            allowedPaths.forEach(path => {
+              crudData[path] = allCrudPermissions.value[roleKey][path] || {
+                canCreate: false, canRead: true, canUpdate: false, canDelete: false
+              };
+            });
+            return axios.post(`/api/admin/crud-permissions/${roleKey}`, crudData);
+          })
+        );
+        dirtyRoles.value = new Set();
+        savedMenuPermissions.value = JSON.parse(JSON.stringify(menuPermissions.value));
+        Object.keys(allCrudPermissions.value).forEach(k => {
+          savedCrudPermissions.value[k] = JSON.parse(JSON.stringify(allCrudPermissions.value[k]));
+        });
+        store.dispatch('toast/showToast', { message: '메뉴 권한이 저장되었습니다.', type: 'success' });
         try { await store.dispatch('menu/refreshUserMenus'); } catch (_) { /* ignore */ }
         closeSaveModal();
       } catch (e) {
@@ -611,14 +697,15 @@ export default {
 
     return {
       pageLoading, saving, savingOrder, orderChanged, activeRole, showSaveModal,
-      navSectionCollapsed, collapsedCategories,
-      menuPermissions, roles, menuCategories, totalMenuCount,
-      crudPermissions, crudOps, getCrud, setCrud,
+      navSectionCollapsed,
+      roles, menuCategories,
+      dirtyRoles, showUnsavedModal,
+      crudOps, getCrud, setCrud,
       getRoleIcon, getCurrentRoleDisplayName, setActiveRole,
-      getMenuCountForRole, isMenuDisabledForRole, isMenuSelectedForRole,
+      confirmRoleSwitch, cancelRoleSwitch, resetRole,
+      getMenuCountForRole, isMenuLocked, isMenuSelectedForRole,
       toggleMenuForRole, isCategoryFullySelected, toggleCategorySelection,
       selectAllMenus, deselectAllMenus,
-      getAccessibleMenuCount, getRestrictedMenuCount,
       savePermissions, closeSaveModal, confirmSavePermissions,
       isFirstInCategory, isLastInCategory, moveMenuUp, moveMenuDown, saveSortOrder,
       isCategoryCollapsed, toggleCategoryCollapse, collapseAll, expandAll, allCollapsed,

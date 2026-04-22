@@ -99,7 +99,7 @@
                       class="btn btn-delete"
                       :disabled="role.isDefault || deletingId === role.id"
                       :title="role.isDefault ? '기본 권한은 삭제할 수 없습니다' : '삭제'"
-                      @click="deleteRole(role)"
+                      @click="openDeleteModal(role)"
                     >
                       {{ deletingId === role.id ? '삭제중' : '삭제' }}
                     </button>
@@ -159,10 +159,10 @@
                   <select
                     :value="user.role"
                     class="role-select"
-                    @change="changeUserRole(user, $event.target.value)"
+                    @change="requestChangeUserRole(user, $event.target.value)"
                     :disabled="changingRoleUserId === user.id"
                   >
-                    <option v-for="r in defaultRoleNames" :key="r" :value="r">{{ r }}</option>
+                    <option v-for="r in roleInfos" :key="r.roleName" :value="r.roleName">{{ r.displayName }}</option>
                   </select>
                 </td>
                 <td class="date-cell">{{ formatDate(user.createdAt) }}</td>
@@ -286,6 +286,53 @@
       </div>
     </transition>
 
+    <!-- 사용자 권한 변경 확인 모달 -->
+    <Modal v-if="changeRoleModal.visible" @close="cancelChangeUserRole">
+      <template #header>
+        <h3>사용자 권한 변경</h3>
+      </template>
+      <template #body>
+        <div class="modal-confirm-body">
+          <div class="confirm-icon">⚠️</div>
+          <div>
+            <p>
+              <strong>{{ changeRoleModal.user?.userId }}</strong> 사용자의 권한을
+              <strong>{{ getDisplayName(changeRoleModal.newRole) }}</strong>(으)로 변경하시겠습니까?
+            </p>
+            <p class="warn-text">⚠️ 변경 즉시 반영됩니다.</p>
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <button @click="cancelChangeUserRole" class="btn btn-cancel">취소</button>
+        <button @click="changeUserRole" class="btn btn-submit">변경</button>
+      </template>
+    </Modal>
+
+    <!-- 권한 삭제 확인 모달 -->
+    <Modal v-if="deleteModal.visible" @close="closeDeleteModal">
+      <template #header>
+        <h3>⚠️ 권한 삭제 확인</h3>
+      </template>
+      <template #body>
+        <div class="modal-confirm-body">
+          <div class="confirm-icon">⚠️</div>
+          <div>
+            <p>
+              <strong>{{ deleteModal.role?.displayName }}({{ deleteModal.role?.roleName }})</strong>
+              권한을 삭제하시겠습니까?
+            </p>
+            <p class="warn-text">⚠️ 해당 권한을 가진 사용자는 기본 권한(USER)으로 변경될 수 있습니다.</p>
+            <p class="warn-text">⚠️ 이 작업은 되돌릴 수 없습니다.</p>
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <button @click="closeDeleteModal" class="btn btn-cancel">취소</button>
+        <button @click="deleteRole" class="btn btn-danger">삭제하기</button>
+      </template>
+    </Modal>
+
     <!-- 토스트 알림 -->
     <transition name="toast-fade">
       <div v-if="toast.visible" :class="['toast', `toast-${toast.type}`]">
@@ -298,9 +345,11 @@
 <script>
 import { ref, reactive, onMounted } from 'vue';
 import api from '../axios.js';
+import Modal from '../components/Modal.vue';
 
 export default {
   name: 'AdminRoleManagement',
+  components: { Modal },
   setup() {
     const loading = ref(false);
     const error = ref(null);
@@ -319,12 +368,13 @@ export default {
     const editModal = reactive({ visible: false, role: null });
     const editForm = reactive({ displayName: '', description: '', isDefault: false });
 
+    const deleteModal = reactive({ visible: false, role: null });
+    const changeRoleModal = reactive({ visible: false, user: null, newRole: null });
+
     const systemDefaultNames = ['USER', 'PREMIUM', 'ADMIN'];
 
     const toast = reactive({ visible: false, message: '', type: 'success' });
     let toastTimer = null;
-
-    const defaultRoleNames = ['USER', 'PREMIUM', 'ADMIN'];
 
     const showToast = (message, type = 'success') => {
       if (toastTimer) clearTimeout(toastTimer);
@@ -466,10 +516,22 @@ export default {
     };
 
     // ===== DELETE =====
-    const deleteRole = async (role) => {
+    const openDeleteModal = (role) => {
       if (role.isDefault) return;
-      if (!confirm(`'${role.displayName}(${role.roleName})' 권한을 삭제하시겠습니까?`)) return;
+      deleteModal.role = role;
+      deleteModal.visible = true;
+    };
+
+    const closeDeleteModal = () => {
+      deleteModal.visible = false;
+      deleteModal.role = null;
+    };
+
+    const deleteRole = async () => {
+      const role = deleteModal.role;
+      if (!role) return;
       deletingId.value = role.id;
+      closeDeleteModal();
       try {
         await api.delete(`/api/admin/role-infos/${role.id}`);
         roleInfos.value = roleInfos.value.filter(r => r.id !== role.id);
@@ -486,9 +548,23 @@ export default {
     };
 
     // ===== 사용자 권한 변경 =====
-    const changeUserRole = async (user, newRole) => {
+    const requestChangeUserRole = (user, newRole) => {
       if (user.role === newRole) return;
-      if (!confirm(`${user.userId} 사용자의 권한을 ${newRole}(으)로 변경하시겠습니까?`)) return;
+      changeRoleModal.user = user;
+      changeRoleModal.newRole = newRole;
+      changeRoleModal.visible = true;
+    };
+
+    const cancelChangeUserRole = () => {
+      changeRoleModal.visible = false;
+      changeRoleModal.user = null;
+      changeRoleModal.newRole = null;
+    };
+
+    const changeUserRole = async () => {
+      const { user, newRole } = changeRoleModal;
+      if (!user || !newRole) return;
+      cancelChangeUserRole();
       changingRoleUserId.value = user.id;
       try {
         await api.put(`/api/admin/users/${user.id}/role`, { role: newRole });
@@ -510,12 +586,13 @@ export default {
       saving, editForm, deletingId, changingRoleUserId,
       createModal, createForm, creating,
       editModal, systemDefaultNames,
-      toast, defaultRoleNames,
+      toast,
       getRoleIcon, getDisplayName, formatDate,
       loadRoleInfos, selectRole,
       openCreateModal, closeCreateModal, submitCreate,
       openEditModal, closeEditModal, submitEdit,
-      deleteRole, changeUserRole,
+      deleteModal, openDeleteModal, closeDeleteModal, deleteRole,
+      changeRoleModal, requestChangeUserRole, cancelChangeUserRole, changeUserRole,
     };
   }
 };
