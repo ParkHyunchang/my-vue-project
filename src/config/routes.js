@@ -14,7 +14,6 @@
 export const ROUTE_COMPONENTS = {
     '/history':      { component: () => import('../pages/history.vue'),             requiresAuth: true },
     '/dating':       { component: () => import('../pages/dating.vue'),              requiresAuth: true },
-    '/dating_sys':   { component: () => import('../pages/dating_sys.vue'),          requiresAuth: true },
     '/todos':        { component: () => import('../pages/todos/index.vue'),         requiresAuth: true },
     '/todos/create': { component: () => import('../pages/todos/create/index.vue'), requiresAuth: true },
     '/expense':      { component: () => import('../pages/expense.vue'),             requiresAuth: true },
@@ -34,7 +33,6 @@ export function getDefaultMenuDefinitions() {
         { path: '/',                      name: '홈',               icon: '🏠', description: '메인 홈페이지',        category: 'main',        isRequired: true,  showInNav: true,  navLabel: 'HOME',             isAdminSubMenu: false, parentPath: null },
         { path: '/history',               name: '히스토리',          icon: '📚', description: '작업 이력 및 기록',    category: 'work',        isRequired: false, showInNav: true,  navLabel: 'HISTORY',          isAdminSubMenu: false, parentPath: null },
         { path: '/dating',                name: '데이팅',            icon: '💕', description: '데이팅 관련 기능',     category: 'personal',    isRequired: false, showInNav: true,  navLabel: 'DATING',           isAdminSubMenu: false, parentPath: null },
-        { path: '/dating_sys',            name: '데이팅 추억',       icon: '📸', description: '데이팅 추억 기록',     category: 'personal',    isRequired: false, showInNav: false, navLabel: 'DATING SYS',       isAdminSubMenu: false, parentPath: '/dating' },
         { path: '/todos',                 name: '할일 목록',          icon: '📝', description: '할일 관리',            category: 'productivity',isRequired: false, showInNav: true,  navLabel: 'TODOS',            isAdminSubMenu: false, parentPath: null },
         { path: '/todos/create',          name: '할일 생성',          icon: '➕', description: '새로운 할일 추가',     category: 'productivity',isRequired: false, showInNav: false, navLabel: '할일 생성',         isAdminSubMenu: false, parentPath: null },
         { path: '/expense',               name: '지출 관리',          icon: '💰', description: '지출 내역 관리',      category: 'finance',     isRequired: false, showInNav: true,  navLabel: '가계부',            isAdminSubMenu: false, parentPath: null },
@@ -52,9 +50,9 @@ export function getDefaultMenusForRole(role) {
     const defaultPermissions = {
         'GUEST':   ['/', '/chat'],
         'USER':    ['/', '/todos', '/todos/create', '/chat', '/diary'],
-        'PREMIUM': ['/', '/history', '/dating', '/dating_sys', '/todos', '/todos/create', '/chat', '/diary'],
+        'PREMIUM': ['/', '/history', '/dating', '/todos', '/todos/create', '/chat', '/diary'],
         'ADMIN':   [
-            '/', '/history', '/dating', '/dating_sys',
+            '/', '/history', '/dating',
             '/todos', '/todos/create', '/expense', '/chat', '/diary',
             '/admin', '/admin/users', '/admin/menu-management',
             '/admin/role-management', '/admin/menu-definition',
