@@ -1,5 +1,9 @@
 <template>
   <div class="timeline">
+    <div v-if="!items.length" class="timeline-empty">
+      <i class="fas fa-heart"></i>
+      <p>아직 추억이 없습니다.</p>
+    </div>
     <div
       v-for="item in items"
       :key="item.id"
@@ -22,21 +26,20 @@
           >
             <div class="image-gallery">
               <template
-                v-for="media in item.processedMedia.slice(0, 3)"
+                v-for="(media, mediaIdx) in item.processedMedia.slice(0, 3)"
                 :key="media.originalIndex"
               >
                 <div
                   class="media-thumbnail"
                   :class="{ 'has-video': media.isVideo }"
+                  @click.stop="$emit('media-click', { item, mediaIdx })"
                 >
                   <video
                     v-if="media.isVideo"
                     :src="media.url"
                     class="memory-image memory-video"
                     muted
-                    loop
                     playsinline
-                    autoplay
                     preload="metadata"
                   ></video>
                   <img
@@ -79,14 +82,6 @@
               <i :class="locationIcon"></i>
               {{ item.location }}
             </span>
-            <button
-              v-if="canShowDelete(item)"
-              class="btn btn-sm btn-danger delete-btn"
-              type="button"
-              @click.stop="$emit('delete', item)"
-            >
-              <i class="fas fa-trash"></i>
-            </button>
           </div>
         </div>
       </div>
@@ -110,24 +105,12 @@ export default {
       type: Function,
       required: true,
     },
-    allowDelete: {
-      type: [Boolean, Function],
-      default: true,
-    },
     locationIcon: {
       type: String,
       default: "fas fa-map-marker-alt",
     },
   },
-  emits: ["select", "delete", "image-error", "image-load"],
-  methods: {
-    canShowDelete(item) {
-      if (typeof this.allowDelete === "function") {
-        return this.allowDelete(item);
-      }
-      return this.allowDelete;
-    },
-  },
+  emits: ["select", "image-error", "image-load", "media-click"],
 };
 </script>
 

@@ -7,13 +7,13 @@
     -->
     <div class="dating-page-content" v-show="!showMemoryModal">
       <div class="page-header">
-        <h2>My Dating History</h2>
+        <h2>데이팅 히스토리</h2>
         <button
           v-if="canCreate"
           class="btn btn-primary"
           @click="openCreateModal"
         >
-          Add New Memory
+          새 추억 추가
         </button>
       </div>
 
@@ -26,6 +26,15 @@
           aria-label="Dating search"
           autocomplete="off"
         />
+        <button
+          v-if="searchInput"
+          type="button"
+          class="search-clear"
+          @click="clearSearch"
+          aria-label="검색어 지우기"
+        >
+          <i class="fas fa-times"></i>
+        </button>
         <button type="submit" class="search-submit" aria-label="검색 실행">
           <img
             src="@/assets/img/btn_search_01.png"
@@ -84,11 +93,10 @@
         :items="processedMemories"
         :date-formatter="formatMemoryDate"
         :category-icon-getter="getCategoryIcon"
-        :allow-delete="canDelete"
         @select="openMemoryDetail"
-        @delete="openDeleteModal"
         @image-error="handleImageError"
         @image-load="handleImageLoad"
+        @media-click="handleMediaClick"
       />
     </div>
 
@@ -104,12 +112,70 @@
         @close="requestCloseMemoryModal"
       >
         <template #header>
-          <h3>{{ isEditing ? "추억 수정" : "새 추억 추가" }}</h3>
+          <h3>{{ isViewMode ? currentMemory.title : (isEditing ? "추억 수정" : "새 추억 추가") }}</h3>
         </template>
         <template #body>
-          <form @submit.prevent="saveMemory" class="memory-form">
+          <!-- 조회 모드 -->
+          <div v-if="isViewMode" class="memory-view">
+            <div class="view-row">
+              <span class="view-label">날짜</span>
+              <span class="view-value">{{ formatMemoryDate(currentMemory) }}</span>
+            </div>
+            <div class="view-row">
+              <span class="view-label">카테고리</span>
+              <span class="view-value">
+                <i :class="getCategoryIcon(currentMemory.category)"></i>
+                {{ getCategoryName(currentMemory.category) }}
+              </span>
+            </div>
+            <div v-if="currentMemory.description" class="view-row">
+              <span class="view-label">설명</span>
+              <span class="view-value view-description">{{ currentMemory.description }}</span>
+            </div>
+            <div v-if="currentMemory.location" class="view-row">
+              <span class="view-label">장소</span>
+              <span class="view-value">
+                <i class="fas fa-map-marker-alt"></i>
+                {{ currentMemory.location }}
+              </span>
+            </div>
+            <div v-if="currentMemory.images && currentMemory.images.length > 0" class="view-row view-media-row">
+              <span class="view-label">미디어</span>
+              <div class="view-media-grid">
+                <div
+                  v-for="(image, index) in currentMemory.images"
+                  :key="index"
+                  class="view-media-item"
+                  @click="openLightboxFromModal(index)"
+                >
+                  <video
+                    v-if="isVideoMedia(image)"
+                    :src="getImageUrl(image)"
+                    class="view-media-thumb"
+                    muted
+                    playsinline
+                    preload="metadata"
+                  ></video>
+                  <img
+                    v-else
+                    :src="getImageUrl(image)"
+                    :alt="`미디어 ${index + 1}`"
+                    class="view-media-thumb"
+                  />
+                  <div v-if="isVideoMedia(image)" class="video-type-badge">
+                    <i class="fas fa-video"></i>
+                  </div>
+                  <div class="view-media-expand">
+                    <i class="fas fa-expand-alt"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 편집/생성 모드 -->
+          <form v-else @submit.prevent="saveMemory" class="memory-form">
             <div class="form-group">
-              <label>Title</label>
+              <label>제목</label>
               <input
                 v-model="currentMemory.title"
                 type="text"
@@ -195,7 +261,7 @@
               </div>
             </div>
             <div class="form-group">
-              <label>Category</label>
+              <label>카테고리</label>
               <select
                 v-model="currentMemory.category"
                 class="form-control"
@@ -214,7 +280,7 @@
               </select>
             </div>
             <div class="form-group">
-              <label>Description</label>
+              <label>설명</label>
               <textarea
                 v-model="currentMemory.description"
                 class="form-control"
@@ -222,7 +288,7 @@
               ></textarea>
             </div>
             <div class="form-group">
-              <label>Location</label>
+              <label>장소</label>
               <input
                 v-model="currentMemory.location"
                 type="text"
@@ -230,7 +296,7 @@
               />
             </div>
             <div class="form-group">
-              <label>Images / Videos</label>
+              <label>이미지 / 동영상</label>
               <div class="image-upload-container">
                 <input
                   ref="fileInput"
@@ -241,7 +307,7 @@
                   style="display: none"
                 />
                 <div
-                  v-if="canUpdate"
+                  v-if="hasUploadPermission"
                   class="image-upload-area"
                   @click="triggerFileInput"
                 >
@@ -279,7 +345,7 @@
                     <img
                       v-else
                       :src="getImageUrl(image)"
-                      :alt="`Media ${index + 1}`"
+                      :alt="`미디어 ${index + 1}`"
                       class="media-preview"
                     />
                     <button
@@ -305,7 +371,25 @@
           </form>
         </template>
         <template #footer>
-          <div class="modal-footer-buttons">
+          <!-- 조회 모드 푸터 -->
+          <div v-if="isViewMode" class="modal-footer-buttons">
+            <div>
+              <button
+                v-if="canDelete"
+                type="button"
+                class="btn btn-danger"
+                @click="openDeleteModal(currentMemory)"
+              >
+                삭제
+              </button>
+            </div>
+            <div>
+              <button type="button" class="btn btn-secondary" @click="closeMemoryModal">닫기</button>
+              <button v-if="canUpdate" type="button" class="btn btn-primary" @click="enterEditMode">수정</button>
+            </div>
+          </div>
+          <!-- 편집/생성 모드 푸터 -->
+          <div v-else class="modal-footer-buttons">
             <div>
               <button
                 v-if="isEditing && canDelete"
@@ -359,6 +443,50 @@
         @delete="removeImage"
       />
     </teleport>
+
+    <!-- 라이트박스 -->
+    <teleport to="body">
+      <div v-if="lightboxOpen" class="lightbox-overlay" @click.self="closeLightbox" @touchstart.passive="onLightboxTouchStart" @touchend.passive="onLightboxTouchEnd">
+        <button class="lightbox-close" @click="closeLightbox" aria-label="닫기">
+          <i class="fas fa-times"></i>
+        </button>
+        <button
+          v-if="lightboxItems.length > 1"
+          class="lightbox-nav lightbox-prev"
+          @click="lightboxPrev"
+          aria-label="이전"
+        >
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button
+          v-if="lightboxItems.length > 1"
+          class="lightbox-nav lightbox-next"
+          @click="lightboxNext"
+          aria-label="다음"
+        >
+          <i class="fas fa-chevron-right"></i>
+        </button>
+        <div class="lightbox-content" @click.stop>
+          <video
+            v-if="lightboxItems[lightboxIndex]?.isVideo"
+            :src="lightboxItems[lightboxIndex]?.url"
+            :key="'v-' + lightboxIndex"
+            class="lightbox-media"
+            controls
+            playsinline
+          ></video>
+          <img
+            v-else
+            :src="lightboxItems[lightboxIndex]?.url"
+            :key="'i-' + lightboxIndex"
+            class="lightbox-media"
+          />
+        </div>
+        <div v-if="lightboxItems.length > 1" class="lightbox-counter">
+          {{ lightboxIndex + 1 }} / {{ lightboxItems.length }}
+        </div>
+      </div>
+    </teleport>
   </div>
 </template>
 
@@ -366,6 +494,7 @@
 import {
   ref,
   computed,
+  watch,
   onBeforeUpdate,
   onMounted,
   onUnmounted,
@@ -414,6 +543,7 @@ export default {
     const showImageDeleteModal = ref(false);
     const imageToDelete = ref(null);
     const previewVideos = ref([]);
+    const isViewMode = ref(false);
 
     onBeforeUpdate(() => {
       previewVideos.value = [];
@@ -484,6 +614,7 @@ export default {
         document.removeEventListener("visibilitychange", handleVisibilityChange);
         handleVisibilityChange = null;
       }
+      document.removeEventListener("keydown", handleLightboxKey);
     });
 
     const toLocalMidnight = (d) => {
@@ -532,12 +663,12 @@ export default {
     ];
 
     const categoryOptions = computed(() => {
-      const hasFirstMeet = memories.value.some(
-        (memory) => memory.category === "first_meet"
-      );
+      const hasFirstMeet = memories.value.some((m) => m.category === "first_meet");
+      const hasSpecial = memories.value.some((m) => m.category === "special");
       return categories.filter((cat) => {
         if (cat.id === "all") return false;
         if (cat.id === "first_meet" && hasFirstMeet) return false;
+        if (cat.id === "special" && hasSpecial) return false;
         return true;
       });
     });
@@ -546,7 +677,6 @@ export default {
     const canCreate = computed(() =>
       store.getters["auth/canCreate"]("/dating")
     );
-    const canRead = computed(() => store.getters["auth/canRead"]("/dating"));
     const canUpdate = computed(() =>
       store.getters["auth/canUpdate"]("/dating")
     );
@@ -604,33 +734,29 @@ export default {
       });
     };
 
+    const parseImagesArray = (memory) => {
+      if (memory.images && typeof memory.images === "string") {
+        try { return JSON.parse(memory.images); } catch (e) { return memory.image ? [memory.image] : []; }
+      }
+      if (Array.isArray(memory.images)) return memory.images;
+      return memory.image ? [memory.image] : [];
+    };
+
     const fetchMemories = async () => {
       try {
         const response = await axios.get("/dating");
-        memories.value = response.data.map((memory) => {
-          let imagesArray = [];
-
-          if (memory.images && typeof memory.images === "string") {
-            try {
-              imagesArray = JSON.parse(memory.images);
-            } catch (e) {
-              imagesArray = memory.image ? [memory.image] : [];
-            }
-          } else if (Array.isArray(memory.images)) {
-            imagesArray = memory.images;
-          } else if (memory.image) {
-            imagesArray = [memory.image];
-          }
-
-          return { ...memory, images: imagesArray };
-        });
+        memories.value = response.data.map((memory) => ({
+          ...memory,
+          images: parseImagesArray(memory),
+        }));
       } catch (error) {
-        showToast("Failed to load memories", "danger");
+        showToast("추억을 불러오지 못했습니다.", "danger");
       }
     };
 
     const openCreateModal = () => {
       isEditing.value = false;
+      isViewMode.value = false;
       currentMemory.value = {
         title: "", date: "", dateType: "single",
         startDate: "", endDate: "", category: "",
@@ -641,22 +767,14 @@ export default {
 
     const openMemoryDetail = (memory) => {
       isEditing.value = true;
-
-      let imagesArray = [];
-      if (memory.images && typeof memory.images === "string") {
-        try { imagesArray = JSON.parse(memory.images); } catch (e) { imagesArray = []; }
-      } else if (Array.isArray(memory.images)) {
-        imagesArray = memory.images;
-      } else if (memory.image) {
-        imagesArray = [memory.image];
-      }
+      isViewMode.value = true;
 
       currentMemory.value = {
         ...memory,
         dateType: memory.dateType || "single",
         startDate: memory.startDate || "",
         endDate: memory.endDate || "",
-        images: imagesArray,
+        images: parseImagesArray(memory),
       };
 
       showMemoryModal.value = true;
@@ -665,6 +783,7 @@ export default {
     const closeMemoryModal = () => {
       stopAllPreviewVideos();
       showMemoryModal.value = false;
+      isViewMode.value = false;
       currentMemory.value = {
         title: "", date: "", dateType: "single",
         startDate: "", endDate: "", category: "",
@@ -677,7 +796,75 @@ export default {
       closeMemoryModal();
     };
 
-    const maxDate = new Date().toISOString().split("T")[0];
+    const enterEditMode = () => { isViewMode.value = false; };
+
+    const getCategoryName = (categoryId) => {
+      const category = categories.find((c) => c.id === categoryId);
+      return category ? category.name : categoryId;
+    };
+
+    // 라이트박스
+    const lightboxOpen = ref(false);
+    const lightboxItems = ref([]);
+    const lightboxIndex = ref(0);
+
+    const openLightbox = (items, index) => {
+      lightboxItems.value = items;
+      lightboxIndex.value = index;
+      lightboxOpen.value = true;
+    };
+
+    const closeLightbox = () => { lightboxOpen.value = false; };
+
+    const lightboxPrev = () => {
+      lightboxIndex.value = (lightboxIndex.value - 1 + lightboxItems.value.length) % lightboxItems.value.length;
+    };
+
+    const lightboxNext = () => {
+      lightboxIndex.value = (lightboxIndex.value + 1) % lightboxItems.value.length;
+    };
+
+    const openLightboxFromModal = (index) => {
+      const items = (currentMemory.value.images || []).map((img) => ({
+        url: getImageUrl(img),
+        isVideo: isVideoMedia(img),
+      }));
+      openLightbox(items, index);
+    };
+
+    const handleMediaClick = ({ item, mediaIdx }) => {
+      openLightbox(item.processedMedia, mediaIdx);
+    };
+
+    const handleLightboxKey = (e) => {
+      if (e.key === "Escape") closeLightbox();
+      else if (e.key === "ArrowLeft") lightboxPrev();
+      else if (e.key === "ArrowRight") lightboxNext();
+    };
+
+    const lightboxTouchStartX = ref(0);
+    const onLightboxTouchStart = (e) => {
+      lightboxTouchStartX.value = e.touches[0].clientX;
+    };
+    const onLightboxTouchEnd = (e) => {
+      const delta = e.changedTouches[0].clientX - lightboxTouchStartX.value;
+      if (Math.abs(delta) < 50) return;
+      if (delta < 0) lightboxNext();
+      else lightboxPrev();
+    };
+
+    watch(lightboxOpen, (open) => {
+      if (open) document.addEventListener("keydown", handleLightboxKey);
+      else document.removeEventListener("keydown", handleLightboxKey);
+    });
+
+    const maxDate = computed(() => {
+      const d = new Date(nowTick.value);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    });
 
     const onDateTypeChange = () => {
       if (currentMemory.value.dateType === "single") {
@@ -751,10 +938,6 @@ export default {
       };
     });
 
-    const validateDate = (event) => {
-      if (currentMemory.value.dateType === "single") return validateSingleDate(event);
-      return validateRangeDate();
-    };
 
     const saveMemory = async () => {
       if (!currentMemory.value.title?.trim()) {
@@ -1100,9 +1283,7 @@ export default {
       }
 
       const processed = filteredMemories.map((memory) => {
-        const mediaList = Array.isArray(memory.images)
-          ? memory.images
-          : memory.image ? [memory.image] : [];
+        const mediaList = parseImagesArray(memory);
         const processedMedia = mediaList
           .map((mediaItem, index) => {
             const url = getImageUrl(mediaItem);
@@ -1131,7 +1312,10 @@ export default {
     });
 
     const applySearch = () => { searchQuery.value = searchInput.value.trim(); };
+    const clearSearch = () => { searchInput.value = ""; searchQuery.value = ""; };
     const setMediaFilter = (type) => { mediaFilter.value = type; };
+
+    watch(searchInput, (val) => { searchQuery.value = val.trim(); });
 
     const handleImageError = (event) => { event.target.style.display = "none"; };
     const handleImageLoad = (event) => { event.target.style.display = "block"; };
@@ -1139,20 +1323,25 @@ export default {
     fetchMemories();
 
     return {
-      memories, searchQuery, searchInput, showMemoryModal, currentMemory,
+      searchInput, showMemoryModal, currentMemory,
       categories, categoryOptions, selectedCategory, mediaFilter, mediaFilterOptions,
       processedMemories, isEditing, openCreateModal, openMemoryDetail, closeMemoryModal,
       saveMemory, filterByCategory, formatDate, formatMemoryDate, getCategoryIcon,
       showDeleteModal, openDeleteModal, closeDeleteModal, deleteMemory,
-      maxDate, validateDate, uploading, isSelectingFiles, postUploadSettling,
+      maxDate, uploading, isSelectingFiles, postUploadSettling,
       isMobileLike, modalLock, fileInput, triggerFileInput, handleFileUpload,
       requestCloseMemoryModal, confirmRemoveImage, removeImage,
       previewVideos, handlePreviewVideoLoaded, handlePreviewVideoPlay, getImageUrl, isVideoMedia,
-      handleImageError, handleImageLoad, setMediaFilter,
+      handleImageError, handleImageLoad, setMediaFilter, clearSearch,
       showImageDeleteModal, closeImageDeleteModal,
-      canCreate, canRead, canUpdate, canDelete, hasUploadPermission,
+      canCreate, canUpdate, canDelete, hasUploadPermission,
       firstMeetDate, firstMeetEndDate, specialDate, specialEndDate, firstMeetDays, specialDays,
       onDateTypeChange, validateSingleDate, validateRangeDate, dateRangeInfo, applySearch,
+      isViewMode, enterEditMode, getCategoryName,
+      lightboxOpen, lightboxItems, lightboxIndex,
+      openLightboxFromModal, closeLightbox, lightboxPrev, lightboxNext,
+      onLightboxTouchStart, onLightboxTouchEnd,
+      handleMediaClick,
     };
   },
 };

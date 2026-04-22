@@ -204,8 +204,27 @@
   object-fit: cover;
 }
 
+.timeline-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+.timeline-empty i {
+  font-size: 2.5rem;
+  color: var(--timeline-primary-color);
+  opacity: 0.4;
+  display: block;
+  margin-bottom: 14px;
+}
+.timeline-empty p {
+  margin: 0;
+  font-size: 1rem;
+  opacity: 0.6;
+}
+
 .media-thumbnail {
   position: relative;
+  cursor: pointer;
 }
 
 .video-overlay-indicator {
