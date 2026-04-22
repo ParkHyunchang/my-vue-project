@@ -820,6 +820,7 @@
 .col-rank    { text-align: center; width: 60px; }
 .col-name    { min-width: 160px; }
 .col-price   { text-align: right; }
+.col-change  { text-align: right; }
 .col-mcap    { text-align: right; }
 
 .rank-badge {
@@ -868,9 +869,9 @@
   font-weight: 700;
 }
 
-.change-badge.positive { background: var(--stock-up-bg);   color: var(--stock-up);   }
-.change-badge.negative { background: var(--stock-down-bg); color: var(--stock-down); }
-.change-badge.neutral  { background: var(--subBg400);      color: var(--text-muted); }
+.change-badge.positive { background: rgba(230, 68, 68, 0.25);   color: var(--stock-up);   }
+.change-badge.negative { background: rgba(59, 130, 246, 0.25);  color: var(--stock-down); }
+.change-badge.neutral  { background: var(--subBg400);            color: var(--text-muted); }
 
 /* ─────────────────────────────────────────────────────
    📰 뉴스
@@ -903,6 +904,57 @@
   border-color: var(--accent-glow);
   color: var(--accent);
   font-weight: 600;
+}
+
+.news-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--card-border);
+  margin: 0 4px;
+  align-self: center;
+}
+
+.news-holdings-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
+  white-space: nowrap;
+}
+.news-holdings-btn:hover:not(:disabled) {
+  background: var(--card-bg-hover);
+  border-color: var(--accent-glow);
+  color: var(--text-primary);
+}
+.news-holdings-btn.active {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.5);
+  color: #818cf8;
+  font-weight: 600;
+}
+.news-holdings-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.news-match-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.25);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #818cf8;
 }
 
 .news-grid {
@@ -1030,6 +1082,109 @@
 
 .retry-btn:hover { background: rgba(201, 169, 110, 0.25); }
 
+/* ── 정렬 헤더 ── */
+.sortable-th {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: color 0.13s;
+}
+.sortable-th:hover { color: var(--text-primary); }
+.sort-ind {
+  font-size: 0.68rem;
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+/* ── 등락률 셀 ── */
+.change-pct-cell {
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+
+/* ── 새로고침 바 ── */
+.price-refresh-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.prf-updated {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.prf-btn {
+  padding: 4px 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.13s;
+}
+.prf-btn:hover:not(:disabled) { border-color: var(--accent-glow); color: var(--accent); }
+.prf-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ── 모바일 카드 뷰 (기본: 숨김) ── */
+.holdings-cards { display: none; }
+
+.holding-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 16px;
+}
+.hcard-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.hcard-name-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hcard-price-wrap { text-align: right; }
+.hcard-price {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.hcard-change {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-top: 2px;
+}
+.hcard-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 12px 0;
+  border-top: 1px solid var(--card-border);
+  border-bottom: 1px solid var(--card-border);
+  margin-bottom: 10px;
+}
+.hcard-row { display: flex; flex-direction: column; gap: 3px; }
+.hcard-label {
+  font-size: 0.67rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.hcard-row span:not(.hcard-label) {
+  font-size: 0.84rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.hcard-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
 /* ── 반응형 ── */
 @media (max-width: 768px) {
   .stock-container { padding: 16px; }
@@ -1045,6 +1200,14 @@
   .top10-table td, .top10-table th { padding: 11px 10px; font-size: 0.82rem; }
 
   .news-grid { grid-template-columns: 1fr; }
+
+  /* 모바일: 테이블 숨기고 카드뷰 표시 */
+  .holdings-table-wrap { display: none; }
+  .holdings-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
 
   .heatmap-wrapper         { min-height: 70vh; }
   .kr-heatmap-chart        { height: 70vh; }

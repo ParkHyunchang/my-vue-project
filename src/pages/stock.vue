@@ -96,6 +96,14 @@
           </button>
         </div>
 
+        <!-- 새로고침 바 -->
+        <div class="price-refresh-bar">
+          <span v-if="lastUpdated" class="prf-updated">↻ {{ lastUpdated }} 기준</span>
+          <button class="prf-btn" @click="fetchPrices" :disabled="priceLoading">
+            {{ priceLoading ? '로딩 중...' : '↻ 새로고침' }}
+          </button>
+        </div>
+
         <!-- 현재가 로딩 -->
         <div v-if="priceLoading" class="loading-state" style="padding: 24px 0">
           <div class="spinner"></div>
@@ -103,118 +111,148 @@
         </div>
 
         <!-- 필터 결과 없음 -->
-        <div v-else-if="filteredHoldings.length === 0" class="filter-empty">
+        <div v-else-if="sortedHoldings.length === 0" class="filter-empty">
           <span>{{ marketFilter === 'kr' ? '🇰🇷 국내' : '🇺🇸 미국' }} 보유 종목이 없습니다</span>
         </div>
 
         <!-- 목록 뷰 -->
-        <div v-else-if="portfolioView === 'grid'" class="holdings-table-wrap">
-          <table class="holdings-table">
-            <thead>
-              <tr>
-                <th>종목</th>
-                <th class="th-r">보유수량</th>
-                <th class="th-r">현재가</th>
-                <th class="th-r">평가금액</th>
-                <th class="th-r">평단가</th>
-                <th class="th-r">평가손익</th>
-                <th class="th-r">수익률</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="h in filteredHoldings" :key="h.id">
-                <!-- 편집 모드 -->
-                <template v-if="editingId === h.id">
-                  <td class="hname-cell">
-                    <span class="mkt-flag">{{
-                      h.market === "KR" ? "🇰🇷" : "🇺🇸"
-                    }}</span>
-                    <div>
-                      <div class="h-name">{{ h.name }}</div>
-                      <div class="h-sym">{{ h.symbol }}</div>
-                    </div>
-                  </td>
-                  <td class="td-r">
-                    <input
-                      v-model.number="editForm.quantity"
-                      type="number"
-                      min="1"
-                      class="inline-inp"
-                    />
-                  </td>
-                  <td class="td-r">{{ fmtCurPrice(h) }}</td>
-                  <td class="td-r">{{ fmtHoldVal(h) }}</td>
-                  <td class="td-r">
-                    <input
-                      v-model.number="editForm.avgPrice"
-                      type="number"
-                      min="0"
-                      class="inline-inp"
-                      placeholder="미입력"
-                    />
-                  </td>
-                  <td class="td-r">—</td>
-                  <td class="td-r">—</td>
-                  <td class="td-act">
-                    <button class="act-btn act-save" @click="saveEdit(h)">
-                      저장
-                    </button>
-                    <button
-                      class="act-btn act-cancel"
-                      @click="editingId = null"
-                    >
-                      취소
-                    </button>
-                  </td>
-                </template>
-                <!-- 일반 모드 -->
-                <template v-else>
-                  <td class="hname-cell">
-                    <span class="mkt-flag">{{
-                      h.market === "KR" ? "🇰🇷" : "🇺🇸"
-                    }}</span>
-                    <div>
-                      <div class="h-name">{{ h.name }}</div>
-                      <div class="h-sym">{{ h.symbol }}</div>
-                    </div>
-                  </td>
-                  <td class="td-r">{{ h.quantity.toLocaleString() }}</td>
-                  <td class="td-r">{{ fmtCurPrice(h) }}</td>
-                  <td class="td-r">
-                    {{ fmtHoldVal(h) }}
-                    <div v-if="h.market === 'US' && holdValKRW(h) > 0" class="td-krw-sub">
-                      ≈ {{ fmtKRW(holdValKRW(h)) }}
-                    </div>
-                  </td>
-                  <td class="td-r">
-                    <span v-if="h.avgPrice">{{
-                      fmtByMkt(h.avgPrice, h.market)
-                    }}</span>
-                    <span v-else class="txt-muted">—</span>
-                  </td>
-                  <td :class="['td-r', pnlCls(holdPnl(h))]">
-                    {{ fmtHoldPnl(h) }}
-                  </td>
-                  <td :class="['td-r', pnlCls(holdPnlPct(h))]">
-                    {{ fmtHoldPnlPct(h) }}
-                  </td>
-                  <td class="td-act">
-                    <button class="act-btn act-edit" @click="startEdit(h)">
-                      수정
-                    </button>
-                    <button
-                      class="act-btn act-del"
-                      @click="removeHolding(h.id)"
-                    >
-                      삭제
-                    </button>
-                  </td>
-                </template>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <template v-else-if="portfolioView === 'grid'">
+          <!-- 데스크탑 테이블 -->
+          <div class="holdings-table-wrap">
+            <table class="holdings-table">
+              <thead>
+                <tr>
+                  <th class="sortable-th" @click="toggleSort('name')">
+                    종목<span class="sort-ind">{{ sortKey === 'name' ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '' }}</span>
+                  </th>
+                  <th class="th-r">보유수량</th>
+                  <th class="th-r sortable-th" @click="toggleSort('curPrice')">
+                    현재가<span class="sort-ind">{{ sortKey === 'curPrice' ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '' }}</span>
+                  </th>
+                  <th class="th-r sortable-th" @click="toggleSort('changePct')">
+                    등락률<span class="sort-ind">{{ sortKey === 'changePct' ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '' }}</span>
+                  </th>
+                  <th class="th-r sortable-th" @click="toggleSort('value')">
+                    평가금액<span class="sort-ind">{{ sortKey === 'value' ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '' }}</span>
+                  </th>
+                  <th class="th-r">평단가</th>
+                  <th class="th-r">평가손익</th>
+                  <th class="th-r sortable-th" @click="toggleSort('pnlPct')">
+                    수익률<span class="sort-ind">{{ sortKey === 'pnlPct' ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '' }}</span>
+                  </th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="h in sortedHoldings" :key="h.id">
+                  <!-- 편집 모드 -->
+                  <template v-if="editingId === h.id">
+                    <td class="hname-cell">
+                      <span class="mkt-flag">{{ h.market === "KR" ? "🇰🇷" : "🇺🇸" }}</span>
+                      <div>
+                        <div class="h-name">{{ h.name }}</div>
+                        <div class="h-sym">{{ h.symbol }}</div>
+                      </div>
+                    </td>
+                    <td class="td-r">
+                      <input v-model.number="editForm.quantity" type="number" min="1" class="inline-inp" />
+                    </td>
+                    <td class="td-r">{{ fmtCurPrice(h) }}</td>
+                    <td class="td-r">
+                      <span :class="['change-badge', changePctCls(h) || 'neutral']">{{ fmtChangePctDisplay(h) }}</span>
+                    </td>
+                    <td class="td-r">{{ fmtHoldVal(h) }}</td>
+                    <td class="td-r">
+                      <input v-model.number="editForm.avgPrice" type="number" min="0" class="inline-inp" placeholder="미입력" />
+                    </td>
+                    <td class="td-r">—</td>
+                    <td class="td-r">—</td>
+                    <td class="td-act">
+                      <button class="act-btn act-save" @click="saveEdit(h)">저장</button>
+                      <button class="act-btn act-cancel" @click="editingId = null">취소</button>
+                    </td>
+                  </template>
+                  <!-- 일반 모드 -->
+                  <template v-else>
+                    <td class="hname-cell">
+                      <span class="mkt-flag">{{ h.market === "KR" ? "🇰🇷" : "🇺🇸" }}</span>
+                      <div>
+                        <div class="h-name">{{ h.name }}</div>
+                        <div class="h-sym">{{ h.symbol }}</div>
+                      </div>
+                    </td>
+                    <td class="td-r">{{ h.quantity.toLocaleString() }}</td>
+                    <td class="td-r">{{ fmtCurPrice(h) }}</td>
+                    <td class="td-r">
+                      <span :class="['change-badge', changePctCls(h) || 'neutral']">{{ fmtChangePctDisplay(h) }}</span>
+                    </td>
+                    <td class="td-r">
+                      {{ fmtHoldVal(h) }}
+                      <div v-if="h.market === 'US' && holdValKRW(h) > 0" class="td-krw-sub">
+                        ≈ {{ fmtKRW(holdValKRW(h)) }}
+                      </div>
+                    </td>
+                    <td class="td-r">
+                      <span v-if="h.avgPrice">{{ fmtByMkt(h.avgPrice, h.market) }}</span>
+                      <span v-else class="txt-muted">—</span>
+                    </td>
+                    <td :class="['td-r', pnlCls(holdPnl(h))]">{{ fmtHoldPnl(h) }}</td>
+                    <td :class="['td-r', pnlCls(holdPnlPct(h))]">{{ fmtHoldPnlPct(h) }}</td>
+                    <td class="td-act">
+                      <button class="act-btn act-edit" @click="startEdit(h)">수정</button>
+                      <button class="act-btn act-del" @click="removeHolding(h.id)">삭제</button>
+                    </td>
+                  </template>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 모바일 카드 뷰 -->
+          <div class="holdings-cards">
+            <div v-for="h in sortedHoldings" :key="h.id" class="holding-card">
+              <div class="hcard-header">
+                <div class="hcard-name-wrap">
+                  <span class="mkt-flag">{{ h.market === "KR" ? "🇰🇷" : "🇺🇸" }}</span>
+                  <div>
+                    <div class="h-name">{{ h.name }}</div>
+                    <div class="h-sym">{{ h.symbol }}</div>
+                  </div>
+                </div>
+                <div class="hcard-price-wrap">
+                  <div class="hcard-price">{{ fmtCurPrice(h) }}</div>
+                  <span :class="['change-badge', changePctCls(h) || 'neutral']" style="margin-top:4px; display:inline-block;">{{ fmtChangePctDisplay(h) }}</span>
+                </div>
+              </div>
+              <div class="hcard-body">
+                <div class="hcard-row">
+                  <span class="hcard-label">보유수량</span>
+                  <span>{{ h.quantity.toLocaleString() }}주</span>
+                </div>
+                <div class="hcard-row">
+                  <span class="hcard-label">평가금액</span>
+                  <span>{{ fmtHoldVal(h) }}</span>
+                </div>
+                <div class="hcard-row" v-if="h.avgPrice">
+                  <span class="hcard-label">평단가</span>
+                  <span>{{ fmtByMkt(h.avgPrice, h.market) }}</span>
+                </div>
+                <div class="hcard-row" v-if="holdPnl(h) !== null">
+                  <span class="hcard-label">평가손익</span>
+                  <span :class="pnlCls(holdPnl(h))">{{ fmtHoldPnl(h) }}</span>
+                </div>
+                <div class="hcard-row" v-if="holdPnlPct(h) !== null">
+                  <span class="hcard-label">수익률</span>
+                  <span :class="pnlCls(holdPnlPct(h))">{{ fmtHoldPnlPct(h) }}</span>
+                </div>
+              </div>
+              <div class="hcard-actions">
+                <button class="act-btn act-edit" @click="startEdit(h)">수정</button>
+                <button class="act-btn act-del" @click="removeHolding(h.id)">삭제</button>
+              </div>
+            </div>
+          </div>
+        </template>
 
         <!-- 차트 뷰 -->
         <div v-else class="chart-view">
@@ -543,6 +581,7 @@
               <th class="col-rank">순위</th>
               <th class="col-name">종목</th>
               <th class="col-price">현재가</th>
+              <th class="col-change">등락률</th>
               <th class="col-mcap">시가총액</th>
             </tr>
           </thead>
@@ -570,6 +609,11 @@
               </td>
               <td class="col-price">
                 {{ formatPrice(stock.price, stock.currency) }}
+              </td>
+              <td class="col-change">
+                <span :class="['change-badge', changeClass(stock.changePercent)]">
+                  {{ formatChangePct(stock.changePercent) }}
+                </span>
               </td>
               <td class="col-mcap">
                 {{ formatMarketCap(stock.marketCap, stock.currency) }}
@@ -613,7 +657,7 @@
          📰 주식 뉴스
     ══════════════════════════════════════════ -->
     <div v-show="activeTab === 'news'" class="tab-content">
-      <!-- 국내 / 해외 토글 -->
+      <!-- 국내 / 해외 토글 + 보유 종목 필터 -->
       <div class="news-market-toggle">
         <button
           :class="['news-market-btn', newsMarket === 'KR' && 'active']"
@@ -623,6 +667,15 @@
           :class="['news-market-btn', newsMarket === 'US' && 'active']"
           @click="switchNewsMarket('US')"
         >🌐 해외</button>
+        <div class="news-divider"></div>
+        <button
+          :class="['news-holdings-btn', newsFilterHoldings && 'active']"
+          @click="newsFilterHoldings = !newsFilterHoldings"
+          :disabled="holdings.length === 0"
+        >
+          📊 내 보유 종목
+          <span v-if="newsFilterHoldings && filteredNewsData.length > 0" class="news-match-count">{{ filteredNewsData.length }}</span>
+        </button>
       </div>
 
       <!-- 로딩 -->
@@ -638,9 +691,9 @@
       </div>
 
       <!-- 뉴스 목록 -->
-      <div v-else-if="newsData.length > 0" class="news-grid">
+      <div v-else-if="filteredNewsData.length > 0" class="news-grid">
         <a
-          v-for="(news, idx) in newsData"
+          v-for="(news, idx) in filteredNewsData"
           :key="idx"
           :href="news.link"
           target="_blank"
@@ -659,7 +712,9 @@
         </a>
       </div>
 
-      <div v-else class="empty-state">뉴스가 없습니다.</div>
+      <div v-else class="empty-state">
+        {{ newsFilterHoldings ? '보유 종목 관련 뉴스가 없습니다.' : '뉴스가 없습니다.' }}
+      </div>
     </div>
   </div>
 </template>
@@ -758,6 +813,12 @@ export default {
     const newsLoading = ref(false);
     const newsError = ref("");
     const newsMarket = ref("KR");
+    const newsFilterHoldings = ref(false);
+
+    const lastUpdated = ref('');
+    const sortKey = ref('');
+    const sortDir = ref('asc');
+    let refreshTimer = null;
 
     const tabs = [
       { id: "balance", icon: "💰", label: "내 잔고" },
@@ -851,6 +912,9 @@ export default {
       await Promise.all(tasks);
       prices.value = results;
       priceLoading.value = false;
+      lastUpdated.value = new Date().toLocaleTimeString('ko-KR', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+      });
     }
 
     async function fetchExchangeRate() {
@@ -996,6 +1060,35 @@ export default {
       if (marketFilter.value === "kr") return holdings.value.filter(h => h.market === "KR");
       if (marketFilter.value === "us") return holdings.value.filter(h => h.market === "US");
       return holdings.value;
+    });
+
+    const sortedHoldings = computed(() => {
+      const arr = [...filteredHoldings.value];
+      if (!sortKey.value) return arr;
+      return arr.sort((a, b) => {
+        if (sortKey.value === 'name') {
+          return sortDir.value === 'asc'
+            ? a.name.localeCompare(b.name)
+            : b.name.localeCompare(a.name);
+        }
+        let va, vb;
+        if (sortKey.value === 'value') {
+          va = (prices.value[a.symbol]?.price || 0) * a.quantity;
+          vb = (prices.value[b.symbol]?.price || 0) * b.quantity;
+        } else if (sortKey.value === 'curPrice') {
+          va = prices.value[a.symbol]?.price || 0;
+          vb = prices.value[b.symbol]?.price || 0;
+        } else if (sortKey.value === 'pnlPct') {
+          va = holdPnlPct(a) ?? -Infinity;
+          vb = holdPnlPct(b) ?? -Infinity;
+        } else if (sortKey.value === 'changePct') {
+          va = prices.value[a.symbol]?.changePercent ?? -Infinity;
+          vb = prices.value[b.symbol]?.changePercent ?? -Infinity;
+        } else {
+          return 0;
+        }
+        return sortDir.value === 'asc' ? va - vb : vb - va;
+      });
     });
 
     // 각 마켓 종목 수 (필터 버튼 뱃지용)
@@ -1179,6 +1272,27 @@ export default {
       if (h.market !== "US" || !exchangeRate.value) return 0;
       const p = prices.value[h.symbol]?.price;
       return p ? p * h.quantity * exchangeRate.value : 0;
+    }
+
+    function toggleSort(key) {
+      if (sortKey.value === key) {
+        sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc';
+      } else {
+        sortKey.value = key;
+        sortDir.value = (key === 'value' || key === 'pnlPct') ? 'desc' : 'asc';
+      }
+    }
+
+    function fmtChangePct(h) {
+      return prices.value[h.symbol]?.changePercent ?? null;
+    }
+    function fmtChangePctDisplay(h) {
+      const v = fmtChangePct(h);
+      if (v === null) return '—';
+      return (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+    }
+    function changePctCls(h) {
+      return pnlCls(fmtChangePct(h));
     }
 
     function pnlCls(v) {
@@ -1399,6 +1513,20 @@ export default {
       }
     }
 
+    const filteredNewsData = computed(() => {
+      if (!newsFilterHoldings.value || holdings.value.length === 0) return newsData.value;
+      const keywords = holdings.value.flatMap(h => {
+        const terms = [h.name.toLowerCase()];
+        const sym = h.symbol.replace(/\.(KS|KQ)$/i, '').toLowerCase();
+        if (sym.length >= 2) terms.push(sym);
+        return terms;
+      });
+      return newsData.value.filter(news => {
+        const text = ((news.title || '') + ' ' + (news.description || '')).toLowerCase();
+        return keywords.some(kw => text.includes(kw));
+      });
+    });
+
     async function switchNewsMarket(market) {
       if (newsMarket.value === market) return;
       newsMarket.value = market;
@@ -1432,6 +1560,11 @@ export default {
       if (t >= 1) return "$" + t.toFixed(2) + "T";
       const b = cap / 1e9;
       return "$" + b.toFixed(1) + "B";
+    }
+
+    function formatChangePct(v) {
+      if (v == null) return '—';
+      return (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
     }
 
     function formatNewsDate(pubDate) {
@@ -1475,11 +1608,13 @@ export default {
     onMounted(async () => {
       await initPortfolio();
       fetchPrices();
+      refreshTimer = setInterval(fetchPrices, 30000);
       window.addEventListener("resize", onResizeKrChart);
       window.addEventListener("orientationchange", onOrientationChange);
     });
 
     onBeforeUnmount(() => {
+      clearInterval(refreshTimer);
       window.removeEventListener("resize", onResizeKrChart);
       window.removeEventListener("orientationchange", onOrientationChange);
       if (krChartInstance) {
@@ -1507,7 +1642,11 @@ export default {
       marketFilter,
       exchangeRate,
       exRateAt,
+      lastUpdated,
+      sortKey,
+      sortDir,
       filteredHoldings,
+      sortedHoldings,
       krHoldingsCount,
       usHoldingsCount,
       showAddModal,
@@ -1551,6 +1690,10 @@ export default {
       holdPnlPct,
       holdValKRW,
       pnlCls,
+      toggleSort,
+      fmtChangePct,
+      fmtChangePctDisplay,
+      changePctCls,
       // Top10 / 뉴스
       top10Data,
       top10Loading,
@@ -1560,6 +1703,8 @@ export default {
       newsLoading,
       newsError,
       newsMarket,
+      newsFilterHoldings,
+      filteredNewsData,
       switchNewsMarket,
       switchTab,
       switchHeatmap,
@@ -1568,6 +1713,7 @@ export default {
       loadNews,
       formatPrice,
       formatMarketCap,
+      formatChangePct,
       formatNewsDate,
       changeClass,
       rankClass,
