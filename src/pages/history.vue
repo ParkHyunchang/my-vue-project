@@ -651,8 +651,14 @@ export default {
       closeEventModal();
     };
 
-    // 최대 날짜를 현재 날짜로 설정
-    const maxDate = new Date().toISOString().split("T")[0];
+    // 최대 날짜를 현재 날짜로 설정 (로컬 시간 기준)
+    const maxDate = (() => {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    })();
 
     // 날짜 타입 변경 핸들러
     const onDateTypeChange = () => {
@@ -673,16 +679,13 @@ export default {
         return false;
       }
 
-      const selectedDate = new Date(dateValue);
-      const today = new Date();
-
-      if (isNaN(selectedDate.getTime())) {
+      if (isNaN(new Date(dateValue).getTime())) {
         showToast("올바른 날짜를 입력해주세요.", "danger");
         currentEvent.value.date = "";
         return false;
       }
 
-      if (selectedDate > today) {
+      if (dateValue > maxDate) {
         showToast("미래의 날짜는 입력할 수 없습니다.", "danger");
         currentEvent.value.date = "";
         return false;
@@ -700,21 +703,17 @@ export default {
         return true; // 아직 입력이 완료되지 않았으면 검증하지 않음
       }
 
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      const today = new Date();
-
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      if (isNaN(new Date(startDate).getTime()) || isNaN(new Date(endDate).getTime())) {
         showToast("올바른 날짜를 입력해주세요.", "danger");
         return false;
       }
 
-      if (start > today || end > today) {
+      if (startDate > maxDate || endDate > maxDate) {
         showToast("미래의 날짜는 입력할 수 없습니다.", "danger");
         return false;
       }
 
-      if (start > end) {
+      if (startDate > endDate) {
         showToast("시작일은 종료일보다 이전이어야 합니다.", "danger");
         currentEvent.value.endDate = "";
         return false;

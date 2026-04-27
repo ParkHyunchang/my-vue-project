@@ -879,15 +879,12 @@ export default {
       const dateValue = event.target.value;
       if (!dateValue) { showToast("날짜를 입력해주세요.", "danger"); return false; }
 
-      const selectedDate = new Date(dateValue);
-      const today = new Date();
-
-      if (isNaN(selectedDate.getTime())) {
+      if (isNaN(new Date(dateValue).getTime())) {
         showToast("올바른 날짜를 입력해주세요.", "danger");
         currentMemory.value.date = "";
         return false;
       }
-      if (selectedDate > today) {
+      if (dateValue > maxDate.value) {
         showToast("미래의 날짜는 입력할 수 없습니다.", "danger");
         currentMemory.value.date = "";
         return false;
@@ -900,19 +897,15 @@ export default {
       const endDate = currentMemory.value.endDate;
       if (!startDate || !endDate) return true;
 
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      const today = new Date();
-
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      if (isNaN(new Date(startDate).getTime()) || isNaN(new Date(endDate).getTime())) {
         showToast("올바른 날짜를 입력해주세요.", "danger");
         return false;
       }
-      if (start > today || end > today) {
+      if (startDate > maxDate.value || endDate > maxDate.value) {
         showToast("미래의 날짜는 입력할 수 없습니다.", "danger");
         return false;
       }
-      if (start > end) {
+      if (startDate > endDate) {
         showToast("시작일은 종료일보다 이전이어야 합니다.", "danger");
         currentMemory.value.endDate = "";
         return false;
