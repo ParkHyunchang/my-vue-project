@@ -5,6 +5,16 @@
       <p class="page-subtitle">실시간 시장 데이터 · 포트폴리오 현황</p>
     </div>
 
+    <!-- KRX 만료 임박/만료 알림 배너 -->
+    <div v-if="krxApiStatus !== 'valid'" :class="['krx-alert-banner', 'krx-alert-' + krxApiStatus]">
+      <span class="krx-alert-icon">{{ krxApiStatus === 'expired' ? '🚨' : '⚠️' }}</span>
+      <span class="krx-alert-msg">
+        <template v-if="krxApiStatus === 'expired'">KRX Open API 인증키가 <strong>만료</strong>되었습니다. 국내 주식 데이터가 정상적으로 표시되지 않을 수 있습니다.</template>
+        <template v-else>KRX Open API 인증키가 <strong>D-{{ krxDaysRemaining }}</strong> 후 만료됩니다. 미리 갱신하세요.</template>
+      </span>
+      <a href="https://openapi.krx.co.kr/contents/OPP/MYPG/mypage/OPPMYPG002.cmd" target="_blank" rel="noopener" class="krx-alert-link">인증키 갱신 →</a>
+    </div>
+
     <!-- KRX Open API 현황 -->
     <div class="krx-api-section">
       <div :class="['krx-api-card', 'api-status-' + krxApiStatus]">
@@ -13,7 +23,7 @@
           <span :class="['krx-status-badge', 'api-status-' + krxApiStatus]">{{ krxApiStatusText }}</span>
         </div>
         <div class="krx-api-middle">
-          유효기간: <strong>2026/04/22 ~ 2027/04/21</strong>
+          유효기간: <strong>{{ krxPeriodText }}</strong>
           <span class="krx-api-sep">·</span>
           <span :class="['krx-days', 'api-status-' + krxApiStatus]">D-{{ krxDaysRemaining }}</span>
         </div>
@@ -95,6 +105,7 @@
                   <span class="ps-bd-total-label">전체</span>
                   <span v-if="exchangeRate > 0" class="ps-bd-val">{{ fmtKRW(totalValKRW) }}</span>
                   <template v-if="krHasAvgPrice || (usHasAvgPrice && exchangeRate > 0)">
+                    <span class="ps-cost-label">투자원금 {{ fmtKRW(totalCostKRW) }}</span>
                     <span :class="['ps-pnl-val', pnlCls(totalPnlKRW)]">
                       {{ totalPnlKRW >= 0 ? "▲" : "▼" }} {{ fmtKRW(Math.abs(totalPnlKRW)) }}
                     </span>
@@ -117,6 +128,7 @@
                 </div>
               </div>
               <div v-if="hasAvgPrice" class="ps-pnl">
+                <span class="ps-cost-label">투자원금 {{ fmtAbsPnl(totalCost) }}</span>
                 <span :class="['ps-pnl-val', pnlCls(totalPnl)]">
                   {{ totalPnl >= 0 ? "▲" : "▼" }} {{ fmtAbsPnl(totalPnl) }}
                 </span>
@@ -164,7 +176,7 @@
 
         <!-- 새로고침 바 -->
         <div class="price-refresh-bar">
-          <span v-if="lastUpdated" class="prf-updated">↻ {{ lastUpdated }} 기준</span>
+          <span v-if="lastUpdatedAt" class="prf-updated">↻ {{ relativeUpdated }}</span>
           <button class="prf-btn" @click="fetchPrices" :disabled="priceLoading">
             {{ priceLoading ? '로딩 중...' : '↻ 새로고침' }}
           </button>
@@ -363,7 +375,10 @@
                   :key="seg.id"
                   :d="seg.path"
                   :fill="seg.color"
+                  :style="{ opacity: hoveredSegId && hoveredSegId !== seg.id ? 0.45 : 1 }"
                   class="donut-seg"
+                  @mouseenter="hoveredSegId = seg.id"
+                  @mouseleave="hoveredSegId = null"
                 />
                 <template v-for="seg in chartSegments" :key="'lbl-' + seg.id">
                   <text
@@ -375,29 +390,40 @@
                     font-size="7"
                     font-weight="700"
                     fill="white"
+                    style="pointer-events: none"
                   >
                     {{ (seg.pct * 100).toFixed(1) }}%
                   </text>
                 </template>
-                <text
-                  class="donut-lbl1"
-                  y="-10"
-                  text-anchor="middle"
-                  font-size="9"
-                  fill="var(--text-muted)"
-                >
-                  총 평가
-                </text>
-                <text
-                  class="donut-lbl2"
-                  y="8"
-                  text-anchor="middle"
-                  font-size="15"
-                  font-weight="600"
-                  fill="var(--text-primary)"
-                >
-                  {{ filteredHoldings.length }}종목
-                </text>
+                <!-- 중앙 텍스트: hover 시 해당 종목 정보 표시 -->
+                <template v-if="hoveredSegment">
+                  <text y="-18" text-anchor="middle" font-size="8" fill="var(--text-muted)" style="pointer-events:none">{{ hoveredSegment.name.length > 8 ? hoveredSegment.name.slice(0,7) + '…' : hoveredSegment.name }}</text>
+                  <text y="-3" text-anchor="middle" font-size="14" font-weight="700" fill="var(--accent)" style="pointer-events:none">{{ (hoveredSegment.pct * 100).toFixed(1) }}%</text>
+                  <text y="14" text-anchor="middle" font-size="7.5" fill="var(--text-primary)" style="pointer-events:none">{{ fmtLegVal(hoveredSegment) }}</text>
+                </template>
+                <template v-else>
+                  <text
+                    class="donut-lbl1"
+                    y="-10"
+                    text-anchor="middle"
+                    font-size="9"
+                    fill="var(--text-muted)"
+                    style="pointer-events:none"
+                  >
+                    총 평가
+                  </text>
+                  <text
+                    class="donut-lbl2"
+                    y="8"
+                    text-anchor="middle"
+                    font-size="15"
+                    font-weight="600"
+                    fill="var(--text-primary)"
+                    style="pointer-events:none"
+                  >
+                    {{ filteredHoldings.length }}종목
+                  </text>
+                </template>
               </svg>
             </div>
             <div class="chart-legend">
@@ -656,14 +682,14 @@
         >
       </div>
 
-      <!-- 로딩 -->
-      <div v-if="top10Loading" class="loading-state">
+      <!-- 최초 로딩 (데이터 없을 때만 전체 스피너) -->
+      <div v-if="top10Loading && top10Data.length === 0" class="loading-state">
         <div class="spinner"></div>
         <span>시세 데이터를 불러오는 중...</span>
       </div>
 
-      <!-- 에러 -->
-      <div v-else-if="top10Error" class="error-state">
+      <!-- 에러 (데이터 없을 때만 전체 에러 표시) -->
+      <div v-else-if="top10Error && top10Data.length === 0" class="error-state">
         <span>⚠️ {{ top10Error }}</span>
         <button class="retry-btn" @click="loadTop10">다시 시도</button>
       </div>
@@ -673,8 +699,14 @@
         데이터가 없습니다.
       </div>
 
-      <!-- 데이터 표시 -->
+      <!-- 데이터 표시 (갱신 중에도 기존 데이터 유지) -->
       <template v-else>
+        <!-- 갱신 중 미니 인디케이터 -->
+        <div v-if="top10Loading" class="top10-refreshing">
+          <div class="top10-refreshing-dot"></div> 갱신 중...
+        </div>
+        <div v-if="top10Error && top10Data.length > 0" class="top10-error-inline">⚠️ {{ top10Error }}</div>
+
         <!-- 데스크탑 테이블 -->
         <div class="top10-table-wrap">
           <table class="top10-table">
@@ -685,6 +717,7 @@
                 <th class="col-price">현재가</th>
                 <th class="col-change">등락률</th>
                 <th class="col-mcap">시가총액</th>
+                <th class="col-vol">거래량</th>
               </tr>
             </thead>
             <tbody>
@@ -720,6 +753,7 @@
                 <td class="col-mcap">
                   {{ formatMarketCap(stock.marketCap, stock.currency) }}
                 </td>
+                <td class="col-vol">{{ formatVolume(stock.volume) }}</td>
               </tr>
             </tbody>
           </table>
@@ -744,7 +778,10 @@
                 <span :class="['change-badge', changeClass(stock.changePercent)]">{{ formatChangePct(stock.changePercent) }}</span>
               </div>
             </div>
-            <div class="t10c-mcap">시가총액 {{ formatMarketCap(stock.marketCap, stock.currency) }}</div>
+            <div class="t10c-mcap">
+              시가총액 {{ formatMarketCap(stock.marketCap, stock.currency) }}
+              <span v-if="stock.volume" class="t10c-vol"> · 거래량 {{ formatVolume(stock.volume) }}</span>
+            </div>
           </div>
         </div>
       </template>
@@ -776,32 +813,52 @@
         </p>
       </div>
 
-      <p class="data-credit">시세 데이터: Alpha Vantage</p>
+      <p class="data-credit">시세 데이터: KRX 공식 API · Naver Finance · Yahoo Finance</p>
     </div>
 
     <!-- ══════════════════════════════════════════
          📰 주식 뉴스
     ══════════════════════════════════════════ -->
     <div v-show="activeTab === 'news'" class="tab-content">
-      <!-- 국내 / 해외 토글 + 보유 종목 필터 -->
-      <div class="news-market-toggle">
-        <button
-          :class="['news-market-btn', newsMarket === 'KR' && 'active']"
-          @click="switchNewsMarket('KR')"
-        >🇰🇷 국내</button>
-        <button
-          :class="['news-market-btn', newsMarket === 'US' && 'active']"
-          @click="switchNewsMarket('US')"
-        >🌐 해외</button>
-        <div class="news-divider"></div>
-        <button
-          :class="['news-holdings-btn', newsFilterHoldings && 'active']"
-          @click="newsFilterHoldings = !newsFilterHoldings"
-          :disabled="holdings.length === 0"
-        >
-          📊 내 보유 종목
-          <span v-if="newsFilterHoldings && filteredNewsData.length > 0" class="news-match-count">{{ filteredNewsData.length }}</span>
-        </button>
+      <!-- 컨트롤 바: 시장 토글 + 보유종목 필터 + 새로고침 -->
+      <div class="news-controls">
+        <div class="news-market-toggle">
+          <button
+            :class="['news-market-btn', newsMarket === 'KR' && 'active']"
+            @click="switchNewsMarket('KR')"
+          >🇰🇷 국내</button>
+          <button
+            :class="['news-market-btn', newsMarket === 'US' && 'active']"
+            @click="switchNewsMarket('US')"
+          >🌐 해외</button>
+          <div class="news-divider"></div>
+          <button
+            :class="['news-holdings-btn', newsFilterHoldings && 'active']"
+            @click="newsFilterHoldings = !newsFilterHoldings"
+            :disabled="holdings.length === 0"
+          >
+            📊 내 보유 종목
+            <span v-if="newsFilterHoldings" class="news-match-count">{{ filteredNewsData.length }}</span>
+          </button>
+        </div>
+        <div class="news-right-controls">
+          <span v-if="newsLastFetchedText && !newsLoading" class="news-fetch-time">{{ newsLastFetchedText }}</span>
+          <button class="news-refresh-btn" @click="refreshNews" :disabled="newsLoading" title="뉴스 새로고침">
+            <span :class="['news-refresh-icon', newsLoading && 'spinning']">↻</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 키워드 검색 -->
+      <div class="news-search-wrap">
+        <span class="news-search-icon">🔍</span>
+        <input
+          v-model="newsKeyword"
+          class="news-search-input"
+          type="text"
+          placeholder="제목·내용 검색..."
+        />
+        <button v-if="newsKeyword" class="news-search-clear" @click="newsKeyword = ''">✕</button>
       </div>
 
       <!-- 로딩 -->
@@ -817,30 +874,41 @@
       </div>
 
       <!-- 뉴스 목록 -->
-      <div v-else-if="filteredNewsData.length > 0" class="news-grid">
-        <a
-          v-for="(news, idx) in filteredNewsData"
-          :key="idx"
-          :href="news.link"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="news-card"
-        >
-          <div class="news-meta">
-            <span class="news-source">{{ news.source }}</span>
-            <span v-if="newsMarket === 'US'" class="news-translated-badge">번역됨</span>
-            <span class="news-date">{{ formatNewsDate(news.pubDate) }}</span>
-          </div>
-          <h4 class="news-title">{{ news.title }}</h4>
-          <p v-if="news.description" class="news-desc">
-            {{ news.description }}
-          </p>
-        </a>
-      </div>
-
-      <div v-else class="empty-state">
-        {{ newsFilterHoldings ? '보유 종목 관련 뉴스가 없습니다.' : '뉴스가 없습니다.' }}
-      </div>
+      <template v-else>
+        <div class="news-count-bar">
+          총 <strong>{{ filteredNewsData.length }}</strong>건
+          <span v-if="newsKeyword || newsFilterHoldings" class="news-count-filter">· 필터 적용 중</span>
+        </div>
+        <div v-if="filteredNewsData.length > 0" class="news-grid">
+          <a
+            v-for="(news, idx) in filteredNewsData"
+            :key="idx"
+            :href="news.link"
+            target="_blank"
+            rel="noopener noreferrer"
+            :class="['news-card', visitedLinksSet.has(news.link) && 'news-card--visited']"
+            @click="markVisited(news.link)"
+          >
+            <img
+              v-if="news.imageUrl"
+              :src="news.imageUrl"
+              class="news-img"
+              alt=""
+              loading="lazy"
+              @error="(e) => e.target.style.display = 'none'"
+            />
+            <div class="news-meta">
+              <span :class="['news-source', `news-source--${newsSourceKey(news.source)}`]">{{ news.source }}</span>
+              <span class="news-date">{{ formatNewsDate(news.pubDate) }}</span>
+            </div>
+            <h4 class="news-title">{{ news.title }}</h4>
+            <p v-if="news.description" class="news-desc">{{ news.description }}</p>
+          </a>
+        </div>
+        <div v-else class="empty-state">
+          {{ newsFilterHoldings && !newsKeyword ? '보유 종목 관련 뉴스가 없습니다.' : '검색 결과가 없습니다.' }}
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -869,6 +937,7 @@ const CHART_COLORS = [
 ];
 
 const PORTFOLIO_KEY = "stock_portfolio";
+
 
 export default {
   name: "StockPage",
@@ -930,6 +999,7 @@ export default {
       avgPrice: null,
     });
     let searchTimer = null; // debounce 타이머
+    let newsTimer   = null; // #9 뉴스 자동 갱신 타이머 (20분)
 
     // ── 인라인 편집 ───────────────────────────────────────────
     const editingId = ref(null);
@@ -943,13 +1013,30 @@ export default {
     const newsData = ref([]);
     const newsLoading = ref(false);
     const newsError = ref("");
-    const newsMarket = ref("KR");
+    const newsMarket = ref(localStorage.getItem('stock_newsMarket') || "KR");
     const newsFilterHoldings = ref(false);
+    const newsKeyword = ref('');
+    const newsLastFetched = ref(null);
 
-    const lastUpdated = ref('');
-    const sortKey = ref('');
-    const sortDir = ref('asc');
+    const lastUpdatedAt = ref(null);    // 갱신 시각 (Date)
+    const relativeUpdated = ref('');    // "방금 전", "30초 전" 등
+    const sortKey = ref(localStorage.getItem('stock_sortKey') || '');
+    const sortDir = ref(localStorage.getItem('stock_sortDir') || 'asc');
+
+    // #12 도넛 차트 hover
+    const hoveredSegId = ref(null);
+
+    // #13 방문한 뉴스 링크 추적 (localStorage 기반, Set 반응성 위해 배열+computed 사용)
+    const visitedLinksList = ref(JSON.parse(localStorage.getItem('stock_visited_links') || '[]'));
+    const visitedLinksSet  = computed(() => new Set(visitedLinksList.value));
+
+    // #15 KRX 만료일 (백엔드 설정에서 로드)
+    const krxExpiryDate = ref(new Date('2027-04-21T23:59:59')); // 기본값 (API 로드 전)
+    // 미국 종목 ticker → 영문 검색어 맵 (뉴스 필터링용, 백엔드에서 로드)
+    const usEnNames = ref({});
     let refreshTimer = null;
+    let relativeTimer = null;
+    let krHeatmapSectorsCache = null; // #10 히트맵 KR 섹터 데이터 캐시
 
     const tabs = [
       { id: "balance", icon: "💰", label: "내 잔고" },
@@ -962,6 +1049,14 @@ export default {
     function switchTab(id) {
       activeTab.value = id;
       router.replace({ query: { ...route.query, tab: id } });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // #9 뉴스 탭 벗어날 때 자동갱신 타이머 해제
+      if (id !== "news") {
+        clearInterval(newsTimer);
+        newsTimer = null;
+      }
+
       if (id === "heatmap") {
         if (heatmapMarket.value !== "kr") {
           tvUpdatedAt.value = new Date().toLocaleString("ko-KR", {
@@ -980,8 +1075,12 @@ export default {
       if (id === "top10" && top10Data.value.length === 0) {
         loadTop10();
       }
-      if (id === "news" && newsData.value.length === 0) {
-        loadNews(newsMarket.value);
+      if (id === "news") {
+        if (newsData.value.length === 0) loadNews(newsMarket.value);
+        // #9 뉴스 탭 진입 시 20분마다 자동 갱신
+        if (!newsTimer) {
+          newsTimer = setInterval(() => loadNews(newsMarket.value), 20 * 60 * 1000);
+        }
       }
       if (id === "balance") {
         fetchPrices(); // fetchPrices 내부에서 환율도 함께 조회
@@ -1044,9 +1143,16 @@ export default {
       await Promise.all(tasks);
       prices.value = results;
       priceLoading.value = false;
-      lastUpdated.value = new Date().toLocaleTimeString('ko-KR', {
-        hour: '2-digit', minute: '2-digit', second: '2-digit',
-      });
+      lastUpdatedAt.value = new Date();
+      updateRelativeTime();
+    }
+
+    function updateRelativeTime() {
+      if (!lastUpdatedAt.value) return;
+      const sec = Math.floor((Date.now() - lastUpdatedAt.value.getTime()) / 1000);
+      if (sec < 10) relativeUpdated.value = '방금 전 업데이트';
+      else if (sec < 60) relativeUpdated.value = `${sec}초 전 업데이트`;
+      else relativeUpdated.value = `${Math.floor(sec / 60)}분 전 업데이트`;
     }
 
     async function fetchExchangeRate() {
@@ -1131,6 +1237,11 @@ export default {
       const sym = h.symbol.trim().toUpperCase();
       const market =
         h.market || (sym.endsWith(".KS") || sym.endsWith(".KQ") ? "KR" : "US");
+      // #7 중복 종목 체크
+      if (holdings.value.some(x => x.symbol.toUpperCase() === sym)) {
+        alert(`'${h.name}' 종목은 이미 추가되어 있습니다.`);
+        return;
+      }
       try {
         const res = await axios.post("/api/portfolio/holdings", {
           market,
@@ -1148,6 +1259,9 @@ export default {
     }
 
     async function removeHolding(id) {
+      const target = holdings.value.find(h => h.id === id);
+      const name = target ? target.name : '이 종목';
+      if (!confirm(`'${name}'을(를) 삭제하시겠습니까?`)) return;
       try {
         await axios.delete(`/api/portfolio/holdings/${id}`);
         holdings.value = holdings.value.filter((h) => h.id !== id);
@@ -1388,7 +1502,7 @@ export default {
     }
     function fmtAbsPnl(v) {
       const abs = Math.abs(v);
-      const krPart = holdings.value.filter(
+      const krPart = filteredHoldings.value.filter(
         (h) => h.market === "KR" && h.avgPrice,
       ).length;
       return krPart > 0 ? fmtKRW(abs) : fmtUSD(abs);
@@ -1452,6 +1566,8 @@ export default {
         sortKey.value = key;
         sortDir.value = (key === 'value' || key === 'pnlPct') ? 'desc' : 'asc';
       }
+      localStorage.setItem('stock_sortKey', sortKey.value);
+      localStorage.setItem('stock_sortDir', sortDir.value);
     }
 
     function fmtChangePct(h) {
@@ -1493,11 +1609,24 @@ export default {
     }
 
     async function loadKrHeatmap() {
+      // #10 캐시된 섹터 데이터 재사용 (API 재호출 없이 차트만 재초기화)
+      if (krHeatmapSectorsCache) {
+        krHeatmapLoading.value = false;
+        await nextTick();
+        const el = krChartEl.value;
+        if (!el) return;
+        if (krChartInstance) krChartInstance.dispose();
+        krChartInstance = echarts.init(el, "dark");
+        krChartInstance.setOption(buildKrOption(krHeatmapSectorsCache));
+        return;
+      }
+
       krHeatmapLoading.value = true;
       krHeatmapError.value = "";
       try {
         const res = await axios.get("/api/stock/heatmap/kr");
         krUpdatedAt.value = res.data.updatedAt || "";
+        krHeatmapSectorsCache = res.data.sectors; // #10 캐시 저장
 
         // loading을 false로 먼저 바꿔야 v-else 차트 div가 DOM에 생성됨
         krHeatmapLoading.value = false;
@@ -1670,12 +1799,15 @@ export default {
     }
 
     // ─── 뉴스 ────────────────────────────────────────
-    async function loadNews(market = "KR") {
+    async function loadNews(market = "KR", force = false) {
       newsLoading.value = true;
       newsError.value = "";
       try {
-        const res = await axios.get("/api/stock/news", { params: { market } });
+        const params = { market };
+        if (force) params.force = true;
+        const res = await axios.get("/api/stock/news", { params });
         newsData.value = res.data;
+        newsLastFetched.value = new Date();
       } catch (e) {
         newsError.value =
           "뉴스를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.";
@@ -1685,25 +1817,84 @@ export default {
     }
 
     const filteredNewsData = computed(() => {
-      if (!newsFilterHoldings.value || holdings.value.length === 0) return newsData.value;
-      const keywords = holdings.value.flatMap(h => {
-        const terms = [h.name.toLowerCase()];
-        const sym = h.symbol.replace(/\.(KS|KQ)$/i, '').toLowerCase();
-        if (sym.length >= 2) terms.push(sym);
-        return terms;
-      });
-      return newsData.value.filter(news => {
-        const text = ((news.title || '') + ' ' + (news.description || '')).toLowerCase();
-        return keywords.some(kw => text.includes(kw));
-      });
+      let data = newsData.value;
+
+      // 보유 종목 필터
+      if (newsFilterHoldings.value && holdings.value.length > 0) {
+        const keywords = holdings.value.flatMap(h => {
+          const terms = [];
+          if (h.market === 'KR') {
+            terms.push(h.name.toLowerCase());
+          } else {
+            const ticker = h.symbol.replace(/\.(KS|KQ)$/i, '').toUpperCase();
+            const enName = usEnNames.value[ticker];
+            if (enName) {
+              // 한글명으로 저장된 종목(테슬라→tesla 등) 영문 이름으로 매칭
+              enName.split(' ').forEach(w => { if (w.length >= 3) terms.push(w); });
+            }
+            // 영문명 저장 종목(Schwab, Direxion 등)은 첫 단어로 매칭
+            const firstName = h.name.split(/[\s,.(]/)[0].toLowerCase();
+            if (firstName.length >= 3) terms.push(firstName);
+            // ticker 보조 매칭
+            if (ticker.length >= 2) terms.push(ticker.toLowerCase());
+          }
+          return terms;
+        });
+        data = data.filter(news => {
+          const text = [
+            news.title || '', news.originalTitle || '',
+            news.description || '', news.originalDescription || '',
+          ].join(' ').toLowerCase();
+          return keywords.some(kw => kw.length >= 2 && text.includes(kw));
+        });
+      }
+
+      // 키워드 검색 필터
+      const kw = newsKeyword.value.trim().toLowerCase();
+      if (kw) {
+        data = data.filter(news => {
+          const text = [
+            news.title || '', news.originalTitle || '',
+            news.description || '', news.originalDescription || '',
+          ].join(' ').toLowerCase();
+          return text.includes(kw);
+        });
+      }
+
+      return data;
     });
 
     async function switchNewsMarket(market) {
       if (newsMarket.value === market) return;
       newsMarket.value = market;
+      localStorage.setItem('stock_newsMarket', market);
       newsData.value = [];
+      newsKeyword.value = '';
+      newsFilterHoldings.value = false; // #2 필터 리셋
       await loadNews(market);
     }
+
+    async function refreshNews() {
+      newsData.value = [];
+      await loadNews(newsMarket.value, true);
+    }
+
+    function newsSourceKey(source) {
+      const map = {
+        '한국경제': 'hk', '머니투데이': 'mt', '연합뉴스': 'yn', '매일경제': 'mk',
+        '이데일리': 'ed', '서울경제': 'sd', '아시아경제': 'ae',
+        'Yahoo Finance': 'yf', 'MarketWatch': 'mw', 'CNBC': 'cnbc',
+        'AP News': 'ap', 'Motley Fool': 'mf', 'Investopedia': 'iv',
+      };
+      return map[source] || 'etc';
+    }
+
+    const newsLastFetchedText = computed(() => {
+      if (!newsLastFetched.value) return '';
+      return newsLastFetched.value.toLocaleTimeString('ko-KR', {
+        hour: '2-digit', minute: '2-digit',
+      }) + ' 기준';
+    });
 
     // ─── 포맷 헬퍼 ──────────────────────────────────
     function formatPrice(price, currency) {
@@ -1719,6 +1910,13 @@ export default {
           maximumFractionDigits: 2,
         })
       );
+    }
+
+    function formatVolume(vol) {
+      if (!vol) return '—';
+      if (vol >= 1e8) return (vol / 1e8).toFixed(1) + '억주';
+      if (vol >= 1e4) return (vol / 1e4).toFixed(0) + '만주';
+      return vol.toLocaleString() + '주';
     }
 
     function formatMarketCap(cap, currency) {
@@ -1741,14 +1939,15 @@ export default {
     function formatNewsDate(pubDate) {
       if (!pubDate) return "";
       try {
-        return new Date(pubDate).toLocaleString("ko-KR", {
-          month: "numeric",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+        const date = new Date(pubDate);
+        const diff = Math.floor((Date.now() - date) / 1000);
+        if (diff < 60)    return '방금 전';
+        if (diff < 3600)  return `${Math.floor(diff / 60)}분 전`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+        if (diff < 604800) return `${Math.floor(diff / 86400)}일 전`;
+        return date.toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' });
       } catch {
-        return pubDate.substring(0, 16);
+        return pubDate.substring(0, 10);
       }
     }
 
@@ -1776,12 +1975,30 @@ export default {
       }, 300);
     }
 
-    // KRX API 키 만료 현황
-    const KRX_EXPIRY = new Date('2027-04-21T23:59:59');
+    // #12 도넛 차트 hover — 현재 hover 중인 세그먼트
+    const hoveredSegment = computed(() =>
+      hoveredSegId.value ? chartSegments.value.find(s => s.id === hoveredSegId.value) : null
+    );
+
+    // #13 방문 링크 등록 함수
+    function markVisited(link) {
+      if (visitedLinksSet.value.has(link)) return;
+      const updated = [...visitedLinksList.value, link];
+      // 최대 500개 유지
+      visitedLinksList.value = updated.length > 500 ? updated.slice(-500) : updated;
+      localStorage.setItem('stock_visited_links', JSON.stringify(visitedLinksList.value));
+    }
+
+    // #11 ESC 키로 종목 추가 모달 닫기
+    function onKeydown(e) {
+      if (e.key === 'Escape' && showAddModal.value) closeAddModal();
+    }
+
+    // KRX API 키 만료 현황 (#15: krxExpiryDate ref 사용)
     const krxDaysRemaining = computed(() => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      return Math.ceil((KRX_EXPIRY - today) / (1000 * 60 * 60 * 24));
+      return Math.ceil((krxExpiryDate.value - today) / (1000 * 60 * 60 * 24));
     });
     const krxApiStatus = computed(() => {
       const d = krxDaysRemaining.value;
@@ -1796,6 +2013,15 @@ export default {
       return '정상';
     });
 
+    const krxPeriodText = computed(() => {
+      const fmt = d => `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+      const end = new Date(krxExpiryDate.value);
+      const start = new Date(end);
+      start.setFullYear(start.getFullYear() - 1);
+      start.setDate(start.getDate() + 1);
+      return `${fmt(start)} ~ ${fmt(end)}`;
+    });
+
     onMounted(async () => {
       await initPortfolio();
       const tabFromUrl = route.query.tab;
@@ -1804,15 +2030,38 @@ export default {
       } else {
         fetchPrices();
       }
-      refreshTimer = setInterval(fetchPrices, 30000);
+      // #3 balance 탭일 때만 가격 자동 갱신
+      refreshTimer = setInterval(() => {
+        if (activeTab.value === 'balance') fetchPrices();
+      }, 120000);
+      relativeTimer = setInterval(updateRelativeTime, 10000);
       window.addEventListener("resize", onResizeKrChart);
       window.addEventListener("orientationchange", onOrientationChange);
+      // #11 ESC 키로 모달 닫기
+      document.addEventListener("keydown", onKeydown);
+      // #15 KRX 만료일 백엔드에서 로드
+      try {
+        const res = await axios.get("/api/stock/krx-config");
+        if (res.data?.expiryDate) {
+          krxExpiryDate.value = new Date(res.data.expiryDate + 'T23:59:59');
+        }
+      } catch { /* 기본값 사용 */ }
+      // 미국 종목 영문 검색어 맵 로드 (뉴스 필터링용)
+      try {
+        const res = await axios.get("/api/stock/en-names");
+        if (res.data && typeof res.data === 'object') {
+          usEnNames.value = res.data;
+        }
+      } catch { /* 필터링 기능은 비어있는 맵으로도 동작 */ }
     });
 
     onBeforeUnmount(() => {
       clearInterval(refreshTimer);
+      clearInterval(relativeTimer);
+      clearInterval(newsTimer); // #9
       window.removeEventListener("resize", onResizeKrChart);
       window.removeEventListener("orientationchange", onOrientationChange);
+      document.removeEventListener("keydown", onKeydown); // #11
       if (krChartInstance) {
         krChartInstance.dispose();
         krChartInstance = null;
@@ -1838,7 +2087,8 @@ export default {
       marketFilter,
       exchangeRate,
       exRateAt,
-      lastUpdated,
+      lastUpdatedAt,
+      relativeUpdated,
       sortKey,
       sortDir,
       filteredHoldings,
@@ -1858,6 +2108,7 @@ export default {
       usTotal,
       usTotalKRW,
       hasAvgPrice,
+      totalCost,
       totalPnl,
       totalPnlPct,
       krPnl,
@@ -1867,6 +2118,7 @@ export default {
       usPnlPct,
       usHasAvgPrice,
       totalValKRW,
+      totalCostKRW,
       totalPnlKRW,
       totalPnlKRWPct,
       chartSegments,
@@ -1909,14 +2161,24 @@ export default {
       newsError,
       newsMarket,
       newsFilterHoldings,
+      newsKeyword,
+      newsLastFetched,
+      newsLastFetchedText,
       filteredNewsData,
       switchNewsMarket,
+      refreshNews,
+      newsSourceKey,
+      visitedLinksSet,  // #13
+      markVisited,      // #13
+      hoveredSegId,     // #12
+      hoveredSegment,   // #12
       switchTab,
       switchHeatmap,
       switchTop10,
       loadTop10,
       loadNews,
       formatPrice,
+      formatVolume,
       formatMarketCap,
       formatChangePct,
       formatNewsDate,
@@ -1926,6 +2188,8 @@ export default {
       krxDaysRemaining,
       krxApiStatus,
       krxApiStatusText,
+      krxPeriodText,
+      usEnNames,
     };
   },
 };
@@ -1992,6 +2256,59 @@ export default {
 .krx-renew-link:hover {
   opacity: 1;
   color: var(--text-primary);
+}
+
+/* ── KRX 만료 알림 배너 ── */
+.krx-alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+.krx-alert-warning {
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  color: #b45309;
+}
+.krx-alert-expired {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #b91c1c;
+}
+.krx-alert-icon { font-size: 16px; flex-shrink: 0; }
+.krx-alert-msg  { flex: 1; line-height: 1.4; }
+.krx-alert-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: underline;
+  white-space: nowrap;
+  opacity: 0.85;
+}
+.krx-alert-link:hover { opacity: 1; }
+
+/* ── 투자 원금 레이블 ── */
+.ps-cost-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0.8;
+  margin-right: 4px;
+}
+
+/* ── Top10 거래량 컬럼 ── */
+.col-vol {
+  text-align: right;
+  color: var(--text-secondary);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.t10c-vol {
+  color: var(--text-muted);
+  font-size: 12px;
 }
 </style>
 
