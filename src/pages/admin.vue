@@ -11,6 +11,9 @@
         <div class="section-header">
           <h2>사용자 목록</h2>
           <div class="header-actions">
+            <button @click="fetchUsers" class="btn btn-refresh" :disabled="loadingUsers" :title="'사용자 목록 새로고침'">
+              {{ loadingUsers ? '로딩 중...' : '↻ 새로고침' }}
+            </button>
             <button @click="openCreateModal" class="btn btn-create">
               새 사용자 생성
             </button>
@@ -51,6 +54,15 @@
                 class="filter-input"
               />
             </div>
+            <div class="filter-group">
+              <label>정렬:</label>
+              <select v-model="sortKey" class="filter-select">
+                <option value="createdAt_desc">가입일 최신순</option>
+                <option value="createdAt_asc">가입일 오래된순</option>
+                <option value="name_asc">이름순</option>
+                <option value="role_asc">권한순</option>
+              </select>
+            </div>
             <div class="search-actions">
               <button @click="resetSearch" class="btn btn-reset">초기화</button>
             </div>
@@ -63,7 +75,14 @@
         </div>
 
         <!-- 사용자 카드 리스트 -->
-        <div class="users-cards-container">
+        <div :class="['users-cards-container', { 'refreshing': loadingUsers && users.length > 0 }]">
+          <div v-if="loadingUsers && users.length === 0" class="loading-state">
+            사용자 목록을 불러오는 중...
+          </div>
+          <div v-else-if="!loadingUsers && filteredUsers.length === 0" class="empty-state">
+            <span v-if="searchFilters.role || searchFilters.name">검색 조건에 맞는 사용자가 없습니다.</span>
+            <span v-else>등록된 사용자가 없습니다.</span>
+          </div>
           <div v-for="user in filteredUsers" :key="user.id" class="user-card">
             <div class="user-info">
               <div class="user-main">
@@ -102,29 +121,6 @@
     </div>
 
 
-    <!-- API 키 현황 -->
-    <div class="api-info-section">
-      <div :class="['api-info-card', 'api-status-' + krxApiStatus]">
-        <div class="api-info-left">
-          <span class="api-info-name">KRX Open API</span>
-          <span :class="['api-status-badge', 'api-status-' + krxApiStatus]">{{ krxApiStatusText }}</span>
-        </div>
-        <div class="api-info-middle">
-          유효기간: <strong>2026/04/22 ~ 2027/04/21</strong>
-          <span class="api-info-sep">·</span>
-          <span :class="['api-days', 'api-status-' + krxApiStatus]">D-{{ krxDaysRemaining }}</span>
-        </div>
-        <div class="api-info-right">
-          <a
-            href="https://openapi.krx.co.kr/contents/OPP/MYPG/mypage/OPPMYPG002.cmd"
-            target="_blank"
-            rel="noopener"
-            class="api-renew-link"
-          >인증키 갱신 →</a>
-        </div>
-      </div>
-    </div>
-
     <!-- 사용자 생성 모달 -->
     <Modal v-if="showCreateModal" @close="closeCreateModal">
       <template #header>
@@ -143,6 +139,9 @@
           <div class="form-group">
             <label>이메일:</label>
             <input v-model="newUser.email" type="email" class="form-control" placeholder="이메일을 입력하세요" />
+            <div v-if="newUser.email && !isNewUserEmailValid" class="error-message">
+              올바른 이메일 형식이 아닙니다.
+            </div>
           </div>
           <div class="form-group">
             <label>전화번호:</label>
@@ -181,8 +180,8 @@
       </template>
       <template #footer>
         <button @click="closeCreateModal" class="btn btn-secondary">취소</button>
-        <button @click="createUser" class="btn btn-primary" :disabled="loading || !isCreateFormValid">
-          {{ loading ? '생성 중...' : '생성' }}
+        <button @click="createUser" class="btn btn-primary" :disabled="loadingCreate || !isCreateFormValid">
+          {{ loadingCreate ? '생성 중...' : '생성' }}
         </button>
       </template>
     </Modal>
@@ -195,14 +194,14 @@
       <template #body>
         <div class="user-detail-content">
           <div class="user-detail-header">
-            <div class="user-avatar">
+            <div class="user-avatar-lg">
               <span class="avatar-text">{{ editingUserInfo?.name?.charAt(0) || 'U' }}</span>
             </div>
             <div class="user-basic-info">
               <h4>{{ editingUserInfo?.name || '-' }}</h4>
               <p class="user-id-text">{{ selectedUser?.userId || '-' }}</p>
-              <span :class="['role-badge-large', selectedUser?.role?.toLowerCase()]">
-                {{ getRoleDisplayName(selectedUser?.role) }}
+              <span :class="['role-badge-large', editingUserInfo?.role?.toLowerCase()]">
+                {{ getRoleDisplayName(editingUserInfo?.role) }}
               </span>
             </div>
           </div>
@@ -265,8 +264,34 @@
                 </div>
               </div>
             </div>
+
+            <!-- 비밀번호 변경 -->
+            <div class="info-section password-section">
+              <h5>비밀번호 변경</h5>
+              <div class="info-grid">
+                <div class="info-item">
+                  <label>새 비밀번호:</label>
+                  <input v-model="newPassword" type="password" class="form-control-edit" placeholder="새 비밀번호 (최소 6자)" />
+                  <div v-if="newPassword && newPassword.length < 6" class="error-message">최소 6자 이상이어야 합니다.</div>
+                </div>
+                <div class="info-item">
+                  <label>비밀번호 확인:</label>
+                  <input v-model="confirmNewPassword" type="password" class="form-control-edit" placeholder="비밀번호 확인" />
+                  <div v-if="newPassword && confirmNewPassword && newPassword !== confirmNewPassword" class="error-message">비밀번호가 일치하지 않습니다.</div>
+                </div>
+              </div>
+              <div class="password-change-action">
+                <button
+                  @click="changeUserPassword"
+                  class="btn btn-secondary"
+                  :disabled="loadingPassword || !isPasswordChangeValid"
+                >
+                  {{ loadingPassword ? '변경 중...' : '비밀번호 변경' }}
+                </button>
+              </div>
+            </div>
           </div>
-          
+
         </div>
       </template>
       <template #footer>
@@ -285,9 +310,9 @@
             <button
               @click="updateUserInfo"
               class="btn btn-edit"
-              :disabled="loading"
+              :disabled="loadingUpdate || !hasUserInfoChanged"
             >
-              {{ loading ? '수정 중...' : '정보 수정' }}
+              {{ loadingUpdate ? '수정 중...' : '정보 수정' }}
             </button>
             <button @click="closeUserDetailModal" class="btn btn-secondary">닫기</button>
           </div>
@@ -305,7 +330,8 @@
           <div class="warning-icon">⚠️</div>
           <div class="warning-content">
             <h4>정말로 삭제하시겠습니까?</h4>
-            <p><strong>{{ deletingUser?.name }}</strong> ({{ deletingUser?.email }}) 사용자를 삭제하려고 합니다.</p>
+            <p><strong>{{ deletingUser?.name }}</strong> ({{ deletingUser?.userId }}) 사용자를 삭제하려고 합니다.</p>
+            <p class="delete-user-email">{{ deletingUser?.email }}</p>
             <div class="warning-details">
               <p class="warning-text">⚠️ 이 작업은 되돌릴 수 없습니다!</p>
               <p class="warning-text">⚠️ 사용자의 모든 데이터가 영구적으로 삭제됩니다!</p>
@@ -330,9 +356,9 @@
         <button 
           @click="deleteUser" 
           class="btn btn-danger" 
-          :disabled="loading || deleteConfirmation !== 'DELETE'"
+          :disabled="loadingDelete || deleteConfirmation !== 'DELETE'"
         >
-          {{ loading ? '삭제 중...' : '정말 삭제하기' }}
+          {{ loadingDelete ? '삭제 중...' : '정말 삭제하기' }}
         </button>
       </template>
     </Modal>
@@ -353,7 +379,11 @@ export default {
   setup() {
     const store = useStore();
     const users = ref([]);
-    const loading = ref(false);
+    const loadingUsers = ref(false);
+    const loadingCreate = ref(false);
+    const loadingDelete = ref(false);
+    const loadingUpdate = ref(false);
+    const loadingPassword = ref(false);
     const showDeleteModal = ref(false);
     const showCreateModal = ref(false);
     const showUserDetailModal = ref(false);
@@ -366,10 +396,14 @@ export default {
       role: ''
     });
     const deleteConfirmation = ref('');
+    const allowedAdmins = ref([]);
+    const newPassword = ref('');
+    const confirmNewPassword = ref('');
     const searchFilters = ref({
       role: '',
       name: ''
     });
+    const sortKey = ref('createdAt_desc');
     const newUser = ref({
       userId: '',
       name: '',
@@ -408,12 +442,20 @@ export default {
         const res = await axios.get('/api/admin/role-infos');
         roleInfos.value = res.data;
       } catch (e) {
-        // 로드 실패 시 기본값 유지
         roleInfos.value = [
           { roleName: 'USER',    displayName: '일반 사용자',    isDefault: true },
           { roleName: 'PREMIUM', displayName: '프리미엄 사용자', isDefault: true },
           { roleName: 'ADMIN',   displayName: '관리자',         isDefault: true },
         ];
+      }
+    };
+
+    const loadAllowedAdmins = async () => {
+      try {
+        const res = await axios.get('/api/admin/allowed-admins');
+        allowedAdmins.value = res.data;
+      } catch (e) {
+        allowedAdmins.value = ['hyunchang88', 'admin'];
       }
     };
 
@@ -426,32 +468,46 @@ export default {
       });
     };
 
-    const adminCount = computed(() => users.value.filter(u => u.role === 'ADMIN').length);
-    const premiumCount = computed(() => users.value.filter(u => u.role === 'PREMIUM').length);
-    const userCount = computed(() => users.value.filter(u => u.role === 'USER').length);
-    
+    const ROLE_ORDER = { ADMIN: 0, PREMIUM: 1, USER: 2 };
     const filteredUsers = computed(() => {
       let filtered = users.value;
-      
+
       if (searchFilters.value.role) {
         filtered = filtered.filter(user => user.role === searchFilters.value.role);
       }
-      
       if (searchFilters.value.name) {
-        filtered = filtered.filter(user => 
+        filtered = filtered.filter(user =>
           user.name?.toLowerCase().includes(searchFilters.value.name.toLowerCase()) ||
           user.userId?.toLowerCase().includes(searchFilters.value.name.toLowerCase())
         );
       }
-      
-      return filtered;
+
+      const [field, dir] = sortKey.value.split('_');
+      return [...filtered].sort((a, b) => {
+        if (field === 'name') {
+          return dir === 'asc'
+            ? (a.name || '').localeCompare(b.name || '', 'ko')
+            : (b.name || '').localeCompare(a.name || '', 'ko');
+        }
+        if (field === 'role') {
+          const ra = ROLE_ORDER[a.role] ?? 99;
+          const rb = ROLE_ORDER[b.role] ?? 99;
+          return dir === 'asc' ? ra - rb : rb - ra;
+        }
+        // createdAt (default)
+        const da = new Date(a.createdAt || 0).getTime();
+        const db = new Date(b.createdAt || 0).getTime();
+        return dir === 'asc' ? da - db : db - da;
+      });
     });
     
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const isNewUserEmailValid = computed(() => EMAIL_RE.test(newUser.value.email.trim()));
     const isCreateFormValid = computed(() => {
-      return newUser.value.userId.trim() && 
+      return newUser.value.userId.trim() &&
              newUser.value.name.trim() &&
-             newUser.value.email.trim() && 
-             newUser.value.password.trim() && 
+             isNewUserEmailValid.value &&
+             newUser.value.password.trim() &&
              newUser.value.password.length >= 6 &&
              newUser.value.confirmPassword.trim() &&
              newUser.value.password === newUser.value.confirmPassword &&
@@ -461,7 +517,7 @@ export default {
 
     const fetchUsers = async () => {
       try {
-        loading.value = true;
+        loadingUsers.value = true;
         const response = await axios.get('/api/admin/users');
         users.value = response.data;
       } catch (error) {
@@ -471,7 +527,7 @@ export default {
           type: 'error'
         });
       } finally {
-        loading.value = false;
+        loadingUsers.value = false;
       }
     };
 
@@ -491,21 +547,12 @@ export default {
 
     const closeCreateModal = () => {
       showCreateModal.value = false;
-      newUser.value = {
-        userId: '',
-        name: '',
-        email: '',
-        phone: '',
-        password: '',
-        confirmPassword: '',
-        role: 'USER'
-      };
     };
 
     const createUser = async () => {
       try {
-        loading.value = true;
-        
+        loadingCreate.value = true;
+
         const userData = {
           userId: newUser.value.userId,
           name: newUser.value.name,
@@ -531,12 +578,13 @@ export default {
           type: 'error'
         });
       } finally {
-        loading.value = false;
+        loadingCreate.value = false;
       }
     };
 
 
     const confirmDelete = (user) => {
+      showUserDetailModal.value = false;
       deletingUser.value = user;
       deleteConfirmation.value = '';
       showDeleteModal.value = true;
@@ -555,7 +603,7 @@ export default {
 
     const deleteUser = async () => {
       try {
-        loading.value = true;
+        loadingDelete.value = true;
         await axios.delete(`/api/admin/users/${deletingUser.value.id}`);
 
         users.value = users.value.filter(u => u.id !== deletingUser.value.id);
@@ -573,7 +621,7 @@ export default {
           type: 'error'
         });
       } finally {
-        loading.value = false;
+        loadingDelete.value = false;
       }
     };
 
@@ -595,10 +643,11 @@ export default {
     };
 
     const isAllowedAdmin = (username) => {
-      return username === 'hyunchang88' || username === 'admin';
+      return allowedAdmins.value.includes(username);
     };
 
     const openUserDetailModal = async (user) => {
+      // 캐시 데이터로 모달 즉시 오픈
       selectedUser.value = user;
       editingUserInfo.value = {
         name: user?.name || '',
@@ -607,22 +656,33 @@ export default {
         role: user?.role || 'USER'
       };
       showUserDetailModal.value = true;
+      // 백그라운드에서 최신 데이터 조회 후 조용히 갱신
+      try {
+        const response = await axios.get(`/api/admin/users/${user.id}`);
+        const fresh = response.data;
+        selectedUser.value = fresh;
+        editingUserInfo.value = {
+          name: fresh?.name || '',
+          email: fresh?.email || '',
+          phone: fresh?.phone || '',
+          role: fresh?.role || 'USER'
+        };
+      } catch {
+        // 실패 시 캐시 데이터 유지
+      }
     };
 
     const closeUserDetailModal = () => {
       showUserDetailModal.value = false;
       selectedUser.value = null;
-      editingUserInfo.value = {
-        name: '',
-        email: '',
-        phone: '',
-        role: 'USER'
-      };
+      editingUserInfo.value = { name: '', email: '', phone: '', role: 'USER' };
+      newPassword.value = '';
+      confirmNewPassword.value = '';
     };
 
     const updateUserInfo = async () => {
       try {
-        loading.value = true;
+        loadingUpdate.value = true;
         
         const updateData = {
           name: editingUserInfo.value.name,
@@ -631,23 +691,15 @@ export default {
           role: editingUserInfo.value.role
         };
         
-        await axios.put(`/api/admin/users/${selectedUser.value.id}`, updateData);
-        
-        // 사용자 목록 업데이트
+        const response = await axios.put(`/api/admin/users/${selectedUser.value.id}`, updateData);
+        const updatedUser = response.data;
+
+        // 서버 응답으로 updatedAt 포함 전체 갱신
         const userIndex = users.value.findIndex(u => u.id === selectedUser.value.id);
         if (userIndex !== -1) {
-          users.value[userIndex] = {
-            ...users.value[userIndex],
-            ...updateData
-          };
+          users.value[userIndex] = updatedUser;
         }
-        
-        // 선택된 사용자 정보도 업데이트
-        selectedUser.value = {
-          ...selectedUser.value,
-          ...updateData
-        };
-        
+
         store.dispatch('toast/showToast', {
           message: `${editingUserInfo.value.name}의 정보가 성공적으로 수정되었습니다.`,
           type: 'success'
@@ -655,55 +707,74 @@ export default {
         
         // 수정 완료 후 모달 닫기
         closeUserDetailModal();
-        
+
       } catch (error) {
         store.dispatch('toast/showToast', {
           message: parseApiError(error, '사용자 정보 수정에 실패했습니다.'),
           type: 'error'
         });
       } finally {
-        loading.value = false;
+        loadingUpdate.value = false;
       }
     };
 
     const resetSearch = () => {
       searchFilters.value.role = '';
       searchFilters.value.name = '';
+      sortKey.value = 'createdAt_desc';
     };
 
     const filterByRole = (role) => {
       searchFilters.value.role = role;
     };
 
-    // KRX API 키 만료 현황
-    const KRX_EXPIRY = new Date('2027-04-21T23:59:59');
-    const krxDaysRemaining = computed(() => {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return Math.ceil((KRX_EXPIRY - today) / (1000 * 60 * 60 * 24));
+    const hasUserInfoChanged = computed(() => {
+      if (!selectedUser.value) return false;
+      return editingUserInfo.value.name !== (selectedUser.value.name || '') ||
+             editingUserInfo.value.email !== (selectedUser.value.email || '') ||
+             editingUserInfo.value.phone !== (selectedUser.value.phone || '') ||
+             editingUserInfo.value.role !== (selectedUser.value.role || 'USER');
     });
-    const krxApiStatus = computed(() => {
-      const d = krxDaysRemaining.value;
-      if (d < 0) return 'expired';
-      if (d <= 30) return 'warning';
-      return 'valid';
+
+    const isPasswordChangeValid = computed(() => {
+      return newPassword.value.length >= 6 &&
+             newPassword.value === confirmNewPassword.value;
     });
-    const krxApiStatusText = computed(() => {
-      const d = krxDaysRemaining.value;
-      if (d < 0) return '만료됨';
-      if (d <= 30) return '만료 임박';
-      return '정상';
-    });
-    
+
+    const changeUserPassword = async () => {
+      try {
+        loadingPassword.value = true;
+        await axios.put(`/api/admin/users/${selectedUser.value.id}/password`, {
+          password: newPassword.value
+        });
+        newPassword.value = '';
+        confirmNewPassword.value = '';
+        store.dispatch('toast/showToast', {
+          message: `${selectedUser.value.name || selectedUser.value.userId}의 비밀번호가 변경되었습니다.`,
+          type: 'success'
+        });
+      } catch (error) {
+        store.dispatch('toast/showToast', {
+          message: parseApiError(error, '비밀번호 변경에 실패했습니다.'),
+          type: 'error'
+        });
+      } finally {
+        loadingPassword.value = false;
+      }
+    };
 
     onMounted(async () => {
-      await loadRoles();
+      await Promise.all([loadRoles(), loadAllowedAdmins()]);
       await fetchUsers();
     });
 
     return {
       users,
-      loading,
+      loadingUsers,
+      loadingCreate,
+      loadingDelete,
+      loadingUpdate,
+      loadingPassword,
       showDeleteModal,
       showCreateModal,
       showUserDetailModal,
@@ -713,17 +784,15 @@ export default {
       newUser,
       deleteConfirmation,
       searchFilters,
+      sortKey,
       currentUser,
       roleInfos,
       countByRole,
       assignableRoles,
-      adminCount,
-      premiumCount,
-      userCount,
       filteredUsers,
+      isNewUserEmailValid,
       isCreateFormValid,
-      fetchUsers,
-      loadRoles,
+      hasUserInfoChanged,
       openCreateModal,
       closeCreateModal,
       createUser,
@@ -739,9 +808,10 @@ export default {
       getRoleDisplayName,
       formatDate,
       isAllowedAdmin,
-      krxDaysRemaining,
-      krxApiStatus,
-      krxApiStatusText,
+      newPassword,
+      confirmNewPassword,
+      isPasswordChangeValid,
+      changeUserPassword,
     };
   }
 };
@@ -750,73 +820,34 @@ export default {
 <style src="@/assets/css/admin.css" scoped></style>
 
 <style scoped>
-.api-info-section {
-  margin-top: 16px;
-}
-
-.api-info-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 10px 16px;
-  border-radius: 8px;
-  border: 1px solid var(--card-border);
-  background: var(--card-bg);
+.delete-user-email {
   font-size: 13px;
   color: var(--text-muted);
+  margin-top: -8px;
 }
-
-.api-info-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.users-cards-container.refreshing {
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.2s;
 }
-
-.api-info-name {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.api-status-badge {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-weight: 600;
-}
-.api-status-badge.api-status-valid    { background: #d1fae5; color: #065f46; }
-.api-status-badge.api-status-warning  { background: #fef3c7; color: #92400e; }
-.api-status-badge.api-status-expired  { background: #fee2e2; color: #991b1b; }
-
-.api-info-middle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.api-info-sep {
+.btn-refresh {
+  padding: 7px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
   color: var(--text-muted);
-  opacity: 0.4;
-}
-
-.api-days {
-  font-weight: 600;
-}
-.api-days.api-status-valid   { color: #059669; }
-.api-days.api-status-warning { color: #d97706; }
-.api-days.api-status-expired { color: #dc2626; }
-
-.api-renew-link {
-  font-size: 12px;
-  color: var(--text-muted);
-  text-decoration: none;
-  opacity: 0.7;
-  transition: opacity 0.15s;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
   white-space: nowrap;
 }
-.api-renew-link:hover {
-  opacity: 1;
+.btn-refresh:hover:not(:disabled) {
   color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+.btn-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>
+

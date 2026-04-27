@@ -157,6 +157,17 @@
 /* 사용자 카드 */
 .users-cards-container { display: flex; flex-direction: column; gap: 15px; }
 
+.loading-state,
+.empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+  border: 1px dashed var(--card-border);
+  border-radius: 8px;
+  background: var(--subBg300);
+}
+
 .user-card {
   background: var(--subBg400);
   border: 1px solid var(--card-border);
@@ -264,6 +275,18 @@
 .info-item label { font-weight: 600; color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
 .info-item span { color: var(--text-primary); font-size: 14px; }
 
+.password-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--card-border);
+}
+
+.password-change-action {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+
 /* 모달 액션 버튼 배치 */
 .modal-actions-horizontal { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 20px; }
 .modal-actions-left { display: flex; gap: 10px; flex: 0 0 auto; }
@@ -337,7 +360,7 @@
   box-shadow: 0 0 0 2px var(--danger-bg);
 }
 
-.tab-content { min-height: 400px; }
+.tab-content { min-height: 0; }
 
 /* ---- admin.vue 공통 버튼 ---- */
 .btn {

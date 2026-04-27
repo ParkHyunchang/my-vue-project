@@ -41,28 +41,67 @@
 .header__nav li a {
     text-transform: uppercase;
     font-size: 11px;
-    padding: 14px;
+    padding: 14px 8px;
     position: relative;
     color: #8a8580;
-    letter-spacing: 0.15em;
-    transition: color 0.3s ease;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    border-radius: 4px;
+    transition: color 0.3s ease, background 0.25s ease;
 }
-.header__nav li a:hover {
+.header__nav li a:hover,
+.header__nav li a.router-link-active {
     color: #c9a96e;
 }
 .header__nav li a::before {
     content: '';
-    width: calc(100% - 28px);
+    width: calc(100% - 16px);
     height: 1px;
     background-color: #c9a96e;
     position: absolute;
-    left: 14px;
+    left: 8px;
     bottom: 10px;
     transform: scaleX(0);
     transition: all 0.3s;
 }
-.header__nav li a:hover::before {
+.header__nav li a:hover::before,
+.header__nav li a.router-link-active::before {
     transform: scaleX(1);
+}
+
+/* ── 1280px 이상: 풀 데스크탑 강화 디자인 ── */
+@media (min-width: 1280px) {
+    .header__nav li a {
+        font-size: 14px;
+        padding: 16px 13px;
+        letter-spacing: 0.06em;
+    }
+    .header__nav li a::before {
+        width: calc(100% - 26px);
+        left: 13px;
+        bottom: 9px;
+    }
+    .header__nav li a.router-link-active {
+        color: #d4aa6e;
+        background: rgba(201, 169, 110, 0.13);
+        border: 1px solid rgba(201, 169, 110, 0.18);
+    }
+    .header__nav li a:hover {
+        background: rgba(201, 169, 110, 0.07);
+    }
+}
+
+/* ── 801–1279px: 중간 화면 압축형 ── */
+@media (max-width: 1279px) and (min-width: 801px) {
+    .header__nav li a {
+        font-size: 13px;
+        padding: 14px 9px;
+        letter-spacing: 0.04em;
+    }
+    .header__nav li a::before {
+        width: calc(100% - 18px);
+        left: 9px;
+    }
 }
 .header__nav__mobile {
     display: none;

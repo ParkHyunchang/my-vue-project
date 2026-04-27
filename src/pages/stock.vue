@@ -5,6 +5,29 @@
       <p class="page-subtitle">실시간 시장 데이터 · 포트폴리오 현황</p>
     </div>
 
+    <!-- KRX Open API 현황 -->
+    <div class="krx-api-section">
+      <div :class="['krx-api-card', 'api-status-' + krxApiStatus]">
+        <div class="krx-api-left">
+          <span class="krx-api-name">KRX Open API</span>
+          <span :class="['krx-status-badge', 'api-status-' + krxApiStatus]">{{ krxApiStatusText }}</span>
+        </div>
+        <div class="krx-api-middle">
+          유효기간: <strong>2026/04/22 ~ 2027/04/21</strong>
+          <span class="krx-api-sep">·</span>
+          <span :class="['krx-days', 'api-status-' + krxApiStatus]">D-{{ krxDaysRemaining }}</span>
+        </div>
+        <div class="krx-api-right">
+          <a
+            href="https://openapi.krx.co.kr/contents/OPP/MYPG/mypage/OPPMYPG002.cmd"
+            target="_blank"
+            rel="noopener"
+            class="krx-renew-link"
+          >인증키 갱신 →</a>
+        </div>
+      </div>
+    </div>
+
     <!-- 탭 네비게이션 -->
     <div class="stock-tabs">
       <button
@@ -1753,6 +1776,26 @@ export default {
       }, 300);
     }
 
+    // KRX API 키 만료 현황
+    const KRX_EXPIRY = new Date('2027-04-21T23:59:59');
+    const krxDaysRemaining = computed(() => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return Math.ceil((KRX_EXPIRY - today) / (1000 * 60 * 60 * 24));
+    });
+    const krxApiStatus = computed(() => {
+      const d = krxDaysRemaining.value;
+      if (d < 0) return 'expired';
+      if (d <= 30) return 'warning';
+      return 'valid';
+    });
+    const krxApiStatusText = computed(() => {
+      const d = krxDaysRemaining.value;
+      if (d < 0) return '만료됨';
+      if (d <= 30) return '만료 임박';
+      return '정상';
+    });
+
     onMounted(async () => {
       await initPortfolio();
       const tabFromUrl = route.query.tab;
@@ -1879,9 +1922,77 @@ export default {
       formatNewsDate,
       changeClass,
       rankClass,
+      // KRX API
+      krxDaysRemaining,
+      krxApiStatus,
+      krxApiStatusText,
     };
   },
 };
 </script>
+
+<style scoped>
+.krx-api-section {
+  margin-bottom: 12px;
+}
+.krx-api-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.krx-api-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.krx-api-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.krx-status-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.krx-status-badge.api-status-valid    { background: #d1fae5; color: #065f46; }
+.krx-status-badge.api-status-warning  { background: #fef3c7; color: #92400e; }
+.krx-status-badge.api-status-expired  { background: #fee2e2; color: #991b1b; }
+.krx-api-middle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.krx-api-sep {
+  color: var(--text-muted);
+  opacity: 0.4;
+}
+.krx-days {
+  font-weight: 600;
+}
+.krx-days.api-status-valid   { color: #059669; }
+.krx-days.api-status-warning { color: #d97706; }
+.krx-days.api-status-expired { color: #dc2626; }
+.krx-renew-link {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.krx-renew-link:hover {
+  opacity: 1;
+  color: var(--text-primary);
+}
+</style>
 
 <style src="@/assets/css/stock.css" scoped></style>
