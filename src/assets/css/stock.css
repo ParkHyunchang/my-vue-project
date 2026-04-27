@@ -1073,9 +1073,8 @@
 }
 
 .news-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 14px;
+  columns: 3 300px;
+  column-gap: 14px;
 }
 
 .news-card {
@@ -1089,6 +1088,8 @@
   text-decoration: none;
   transition: all 0.18s ease;
   cursor: pointer;
+  break-inside: avoid;
+  margin-bottom: 14px;
 }
 
 .news-card:hover {
@@ -1096,6 +1097,22 @@
   border-color: var(--accent-glow);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.news-img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 2px;
+}
+
+.news-card--no-image .news-title {
+  -webkit-line-clamp: 4;
+}
+
+.news-card--no-image .news-desc {
+  -webkit-line-clamp: 4;
 }
 
 .news-meta {
@@ -1444,7 +1461,7 @@
   .schedule-detail span { word-break: keep-all; }
   .schedule-note { word-break: keep-all; font-size: 0.71rem; }
 
-  .news-grid { grid-template-columns: 1fr; }
+  .news-grid { columns: 1; }
 
   /* 모바일: 테이블 숨기고 카드뷰 표시 */
   .holdings-table-wrap { display: none; }

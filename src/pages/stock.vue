@@ -886,7 +886,7 @@
             :href="news.link"
             target="_blank"
             rel="noopener noreferrer"
-            :class="['news-card', visitedLinksSet.has(news.link) && 'news-card--visited']"
+            :class="['news-card', visitedLinksSet.has(news.link) && 'news-card--visited', !news.imageUrl && 'news-card--no-image']"
             @click="markVisited(news.link)"
           >
             <img
