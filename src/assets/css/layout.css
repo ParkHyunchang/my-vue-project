@@ -130,6 +130,27 @@
   background: var(--card-border);
 }
 
+.dropdown-menu-item {
+  display: block;
+  width: 100%;
+  padding: 11px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.dropdown-menu-item:hover {
+  background: var(--sidebar-link-hover-bg);
+  color: var(--text-primary);
+}
+
 .dropdown-logout-btn {
   width: 100%;
   padding: 12px 16px;
@@ -158,44 +179,68 @@
   transform: translateY(-6px);
 }
 
-.user-info {
+/* 데스크탑 아바타 + 드롭다운 */
+.desktop-avatar-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.desktop-avatar-wrapper:hover {
+  background: var(--sidebar-link-hover-bg);
+}
+
+.desktop-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #8a6030);
+  color: var(--text-on-accent);
   font-size: 13px;
-  color: var(--text-muted);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--accent-glow);
+  flex-shrink: 0;
+}
+
+.desktop-avatar-name {
+  font-size: 13px;
   font-weight: 500;
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 
-.logout-btn {
-  padding: 6px 14px;
-  background: var(--danger-bg);
-  color: var(--danger-color);
-  border: 1px solid rgba(196, 90, 90, 0.3);
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.logout-btn:hover {
-  background: var(--danger-color);
-  color: #fff;
-  border-color: transparent;
+.desktop-user-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: var(--surface);
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--card-border-strong);
+  min-width: 220px;
+  z-index: 20000;
+  overflow: hidden;
 }
 
 .nav-item {
   display: inline-block;
 }
 
-.desktop-login .login-btn,
-.desktop-user {
+.desktop-login .login-btn {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-
-.desktop-user .user-info { color: var(--text-muted); font-size: 13px; }
-.desktop-user .logout-btn { font-size: 12px; padding: 5px 12px; }
 
 @media (min-width: 768px) {
   .header__nav {
@@ -226,17 +271,18 @@
 /* ── 1280px 이상: 풀 데스크탑 ── */
 @media (min-width: 1280px) {
   .header__nav { gap: 12px; }
-  .desktop-user { gap: 14px; }
-  .desktop-user .user-info { font-size: 14px; }
-  .desktop-user .logout-btn { font-size: 13px; padding: 6px 16px; }
+  .desktop-avatar-name { font-size: 14px; }
 }
 
 /* ── 801–1279px: 중간 화면 압축형 ── */
 @media (max-width: 1279px) and (min-width: 801px) {
   .header__nav { gap: 6px; }
-  .desktop-user { gap: 8px; }
-  .desktop-user .user-info { font-size: 13px; }
-  .desktop-user .logout-btn { font-size: 12px; padding: 5px 11px; }
+  .desktop-avatar-name { font-size: 13px; }
+}
+
+/* ── 1024px 이하: 아이디 텍스트 숨김, 아이콘만 표시 ── */
+@media (max-width: 1024px) and (min-width: 768px) {
+  .desktop-avatar-name { display: none; }
 }
 
 @media (max-width: 767px) {
@@ -249,7 +295,7 @@
   }
 
   .desktop-login,
-  .desktop-user {
+  .desktop-avatar-wrapper {
     display: none;
   }
 

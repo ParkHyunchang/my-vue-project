@@ -115,6 +115,47 @@ const actions = {
     }
   },
 
+  async fetchProfile({ state }) {
+    if (!state.token) return null;
+    try {
+      const axios = (await import("../../axios")).default;
+      const response = await axios.get("/api/auth/me", {
+        headers: { Authorization: `Bearer ${state.token}` },
+      });
+      return response.data;
+    } catch {
+      return null;
+    }
+  },
+
+  async updateProfile({ commit, state }, profileData) {
+    try {
+      const axios = (await import("../../axios")).default;
+      const response = await axios.put("/api/auth/me", profileData, {
+        headers: { Authorization: `Bearer ${state.token}` },
+      });
+      const { username, email, role } = response.data;
+      commit("SET_USER", { username, email, role });
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || "정보 수정에 실패했습니다.";
+      return { success: false, message };
+    }
+  },
+
+  async changePassword({ state }, { currentPassword, newPassword }) {
+    try {
+      const axios = (await import("../../axios")).default;
+      await axios.put("/api/auth/change-password", { currentPassword, newPassword }, {
+        headers: { Authorization: `Bearer ${state.token}` },
+      });
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || "비밀번호 변경에 실패했습니다.";
+      return { success: false, message };
+    }
+  },
+
   async logout({ commit, dispatch, rootGetters }) {
     commit("LOGOUT");
     // 로그아웃 후 비로그인 메뉴 로드

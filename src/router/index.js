@@ -42,6 +42,18 @@ const router = createRouter({
             component: () => import('../pages/todos/_id.vue'),
             meta: { requiresAuth: true }
         },
+        {
+            path: '/mypage',
+            name: 'MyPage',
+            component: () => import('../pages/mypage.vue'),
+            meta: { requiresAuth: true, skipMenuCheck: true }
+        },
+        {
+            path: '/change-password',
+            name: 'ChangePassword',
+            component: () => import('../pages/change-password.vue'),
+            meta: { requiresAuth: true, skipMenuCheck: true }
+        },
         // ── 어드민 (AdminLayout 중첩 라우트, DB 권한과 별도로 ADMIN 역할 고정) ──
         {
             path: '/admin',
@@ -162,8 +174,9 @@ router.beforeEach(async (to, from, next) => {
         }
     }
 
-    // DB 기반 메뉴 접근 권한 확인
-    if (isAuthenticated && !isAdminRoute && requiresAuth) {
+    // DB 기반 메뉴 접근 권한 확인 (시스템 경로는 제외)
+    const skipMenuCheck = to.matched.some(record => record.meta.skipMenuCheck);
+    if (isAuthenticated && !isAdminRoute && requiresAuth && !skipMenuCheck) {
         const canAccessMenu = store.getters['menu/canAccessMenu'](to.path);
         if (!canAccessMenu) {
             store.dispatch('toast/showToast', { message: '해당 메뉴에 접근할 권한이 없습니다.', type: 'error' });

@@ -21,6 +21,9 @@
                 </div>
               </div>
               <div class="dropdown-divider"></div>
+              <router-link to="/mypage" class="dropdown-menu-item" @click="closeMenu">내 정보 수정</router-link>
+              <router-link to="/change-password" class="dropdown-menu-item" @click="closeMenu">비밀번호 수정</router-link>
+              <div class="dropdown-divider"></div>
               <button @click="handleLogout" class="dropdown-logout-btn">로그아웃</button>
             </div>
           </transition>
@@ -29,9 +32,9 @@
           <span></span>
         </div>
       </div>
-      <nav 
-        :class="['header__nav', { show: isOpen }]" 
-        role="navigation" 
+      <nav
+        :class="['header__nav', { show: isOpen }]"
+        role="navigation"
         aria-label="메인 메뉴"
       >
         <ul>
@@ -40,7 +43,6 @@
             :key="menu.path"
             class="nav-item"
           >
-            <!-- 모든 메뉴: 단순 링크 (자식 있는 섹션은 사이드바에서 서브메뉴 제공) -->
             <router-link :to="menu.path" @click="closeMenu">{{ menu.navLabel }}</router-link>
           </li>
           <li v-if="isAdmin" class="nav-item">
@@ -53,9 +55,26 @@
         <div v-if="!isAuthenticated" class="desktop-login">
           <router-link to="/login" @click="closeMenu" class="login-btn">로그인</router-link>
         </div>
-        <div v-else class="desktop-user">
-          <span class="user-info">{{ user.username }} ({{ user.role }})</span>
-          <button @click="handleLogout" class="logout-btn">로그아웃</button>
+        <!-- 데스크탑 전용: 아바타 클릭 → 드롭다운 -->
+        <div v-else class="desktop-avatar-wrapper" @click.stop="toggleDesktopDropdown">
+          <div class="desktop-avatar">{{ userInitial }}</div>
+          <span class="desktop-avatar-name">{{ user.username }}</span>
+          <transition name="dropdown-fade">
+            <div v-if="showDesktopDropdown" class="desktop-user-dropdown" @click.stop>
+              <div class="dropdown-user-header">
+                <div class="dropdown-avatar-lg">{{ userInitial }}</div>
+                <div class="dropdown-user-meta">
+                  <span class="dropdown-username">{{ user.username }}</span>
+                  <span class="dropdown-role">{{ user.role }}</span>
+                </div>
+              </div>
+              <div class="dropdown-divider"></div>
+              <router-link to="/mypage" class="dropdown-menu-item" @click="closeMenu">내 정보 수정</router-link>
+              <router-link to="/change-password" class="dropdown-menu-item" @click="closeMenu">비밀번호 수정</router-link>
+              <div class="dropdown-divider"></div>
+              <button @click="handleLogout" class="dropdown-logout-btn">로그아웃</button>
+            </div>
+          </transition>
         </div>
       </nav>
     </div>
@@ -74,20 +93,29 @@ export default {
     const router = useRouter();
     const isOpen = ref(false);
     const showUserDropdown = ref(false);
+    const showDesktopDropdown = ref(false);
 
     const toggleMenu = () => {
       isOpen.value = !isOpen.value;
       showUserDropdown.value = false;
+      showDesktopDropdown.value = false;
     };
 
     const closeMenu = () => {
       isOpen.value = false;
       showUserDropdown.value = false;
+      showDesktopDropdown.value = false;
     };
 
     const toggleUserDropdown = () => {
       showUserDropdown.value = !showUserDropdown.value;
+      showDesktopDropdown.value = false;
       isOpen.value = false;
+    };
+
+    const toggleDesktopDropdown = () => {
+      showDesktopDropdown.value = !showDesktopDropdown.value;
+      showUserDropdown.value = false;
     };
     
     const handleLogout = async () => {
@@ -115,12 +143,16 @@ export default {
     const handleDocumentClick = (event) => {
       const navElement = event.target.closest('.header__nav');
       const mobileToggle = event.target.closest('.header__nav__mobile');
-      const avatarWrapper = event.target.closest('.mobile-avatar-wrapper');
+      const mobileAvatarWrapper = event.target.closest('.mobile-avatar-wrapper');
+      const desktopAvatarWrapper = event.target.closest('.desktop-avatar-wrapper');
       if (!navElement && !mobileToggle && isOpen.value) {
         isOpen.value = false;
       }
-      if (!avatarWrapper && showUserDropdown.value) {
+      if (!mobileAvatarWrapper && showUserDropdown.value) {
         showUserDropdown.value = false;
+      }
+      if (!desktopAvatarWrapper && showDesktopDropdown.value) {
+        showDesktopDropdown.value = false;
       }
     };
     
@@ -134,11 +166,13 @@ export default {
       document.removeEventListener('touchstart', handleDocumentClick);
     });
     
-    return { 
+    return {
       isOpen,
       showUserDropdown,
+      showDesktopDropdown,
       toggleMenu,
       toggleUserDropdown,
+      toggleDesktopDropdown,
       closeMenu,
       handleLogout,
       isAuthenticated,
