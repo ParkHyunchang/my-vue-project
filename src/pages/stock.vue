@@ -676,10 +676,7 @@
         <span class="last-updated" v-if="top10UpdateTime"
           >기준: {{ top10UpdateTime }}</span
         >
-        <span v-if="top10Market !== 'us'" class="prev-close-note">전일 종가 기준</span>
-        <span class="auto-refresh-info"
-          >🕐 자동 갱신: 🇰🇷 09:00 · 🇺🇸 23:30 (KST)</span
-        >
+        <span class="auto-refresh-info">🕐 실시간 (2분 자동 갱신)</span>
       </div>
 
       <!-- 최초 로딩 (데이터 없을 때만 전체 스피너) -->
@@ -2033,6 +2030,7 @@ export default {
       // #3 balance 탭일 때만 가격 자동 갱신
       refreshTimer = setInterval(() => {
         if (activeTab.value === 'balance') fetchPrices();
+        if (activeTab.value === 'top10') loadTop10();
       }, 120000);
       relativeTimer = setInterval(updateRelativeTime, 10000);
       window.addEventListener("resize", onResizeKrChart);
