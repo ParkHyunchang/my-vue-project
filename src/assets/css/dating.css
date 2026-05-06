@@ -166,6 +166,13 @@
 .date-input-group { margin-bottom: 14px; }
 .date-input-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: var(--text-secondary); }
 
+.single-date-input input[type="date"],
+.date-input-group input[type="date"] { color-scheme: dark; }
+.single-date-input input[type="date"]::-webkit-calendar-picker-indicator,
+.date-input-group input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7) sepia(1) saturate(3) hue-rotate(15deg); cursor: pointer; opacity: 0.9; }
+.single-date-input input[type="date"]::-webkit-calendar-picker-indicator:hover,
+.date-input-group input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
 .date-range-info { background: var(--accent-dim); border: 1px solid var(--card-border-strong); border-radius: 8px; padding: 12px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
 .range-duration { font-weight: 700; color: var(--accent); font-size: 1rem; font-family: "Playfair Display", serif; }
 .range-period { color: var(--text-secondary); font-size: 0.85rem; }
