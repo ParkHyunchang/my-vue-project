@@ -1,6 +1,13 @@
 <template>
   <div class="diary-page">
 
+    <!-- 모바일 사이드바 백드롭 -->
+    <div
+      v-if="sidebarOpen"
+      class="sidebar-backdrop"
+      @click="sidebarOpen = false"
+    ></div>
+
     <!-- 좌측: 일기 목록 사이드바 -->
     <aside class="diary-sidebar" :class="{ 'sidebar--open': sidebarOpen }">
       <div class="sidebar-header">
@@ -31,7 +38,7 @@
     <div class="diary-main">
       <!-- 헤더 -->
       <div class="diary-header">
-        <button class="sidebar-toggle" @click="sidebarOpen = !sidebarOpen">☰</button>
+        <button class="sidebar-toggle" @click.stop="sidebarOpen = !sidebarOpen">☰</button>
         <div class="diary-header-text">
           <h2>AI 일기</h2>
           <p>오늘의 하루를 기록하고 AI의 감정 분석을 받아보세요</p>
@@ -708,6 +715,8 @@ export default {
 /* ══════════════════════════════════════════
    반응형
 ══════════════════════════════════════════ */
+.sidebar-backdrop { display: none; }
+
 @media (max-width: 768px) {
   .diary-sidebar {
     position: fixed;
@@ -720,6 +729,17 @@ export default {
   }
   .diary-sidebar.sidebar--open { transform: translateX(0); }
   .sidebar-toggle { display: flex; }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    top: 80px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 99;
+  }
 
   .diary-main {
     padding: 0 14px 16px;
