@@ -7,6 +7,10 @@ node_modules
 .env.local
 .env.*.local
 
+# 환경별 환경변수 파일 (서버 IP 등 민감 정보 포함)
+.env.development
+.env.production
+
 # 인증서/비밀키 등 민감 파일
 *.pem
 *.key
