@@ -20,7 +20,7 @@ const actions = {
     async loadMenuDefinitions({ commit, rootGetters }) {
         try {
             const user = rootGetters['auth/user'];
-            const axios = (await import('../../axios')).default;
+            const axios = (await import('@/axios')).default;
 
             if (!user) {
                 // 비로그인: 공개 API에서 전체 메뉴 정의 로드
@@ -66,7 +66,7 @@ const actions = {
     async loadUserMenus({ commit, rootGetters }) {
         try {
             const user = rootGetters['auth/user'];
-            const axios = (await import('../../axios')).default;
+            const axios = (await import('@/axios')).default;
 
             if (!user) {
                 // 비로그인: GUEST 권한 메뉴 로드

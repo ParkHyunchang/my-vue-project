@@ -53,7 +53,6 @@ export default {
     setup() {
         const router = useRouter();
         const todos = ref([]);
-        const error = ref('');
         const numberOfTodos = ref(0);
         const limit = 5;
         const currentPage = ref(1);
@@ -64,11 +63,7 @@ export default {
             return n || 1;  // 최소 1페이지
         });
 
-        const {
-            toastMessage,
-            toastAlertType,
-            showToast
-        } = useToast();
+        const { showToast } = useToast();
 
         // 서버에서 페이징/검색 적용해서 가져오기
         const fetchTodos = async (page = currentPage.value) => {
@@ -94,8 +89,7 @@ export default {
                 }
             } catch (err) {
                 console.error('할 일 목록 로드 실패:', err);
-                error.value = 'Something went wrong.';
-                showToast('Something went wrong', 'danger')
+                showToast('Something went wrong', 'danger');
             } finally {
                 loading.value = false;
             }
@@ -130,12 +124,9 @@ export default {
             searchTodo,
             todos,
             searchText,
-            error,
             numberOfPages,
             currentPage,
             fetchTodos,
-            toastMessage,
-            toastAlertType,
             showToast,
             moveToCreatePage,
             changePage,

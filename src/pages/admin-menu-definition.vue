@@ -387,7 +387,7 @@
 <script>
 import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
-import axios from '../axios';
+import axios from '@/axios';
 import Modal from '../components/Modal.vue';
 
 export default {

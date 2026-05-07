@@ -48,7 +48,7 @@ const mutations = {
 const actions = {
   async login({ commit, dispatch, rootGetters }, credentials) {
     try {
-      const axios = (await import("../../axios")).default;
+      const axios = (await import("@/axios")).default;
       const response = await axios.post("/api/auth/login", credentials);
       const { token, username, email, role, message } = response.data;
 
@@ -82,7 +82,7 @@ const actions = {
 
   async register({ commit, dispatch, rootGetters }, userData) {
     try {
-      const axios = (await import("../../axios")).default;
+      const axios = (await import("@/axios")).default;
       const response = await axios.post("/api/auth/register", userData);
       const { token, username, email, role, message } = response.data;
 
@@ -118,7 +118,7 @@ const actions = {
   async fetchProfile({ state }) {
     if (!state.token) return null;
     try {
-      const axios = (await import("../../axios")).default;
+      const axios = (await import("@/axios")).default;
       const response = await axios.get("/api/auth/me", {
         headers: { Authorization: `Bearer ${state.token}` },
       });
@@ -130,7 +130,7 @@ const actions = {
 
   async updateProfile({ commit, state }, profileData) {
     try {
-      const axios = (await import("../../axios")).default;
+      const axios = (await import("@/axios")).default;
       const response = await axios.put("/api/auth/me", profileData, {
         headers: { Authorization: `Bearer ${state.token}` },
       });
@@ -145,7 +145,7 @@ const actions = {
 
   async changePassword({ state }, { currentPassword, newPassword }) {
     try {
-      const axios = (await import("../../axios")).default;
+      const axios = (await import("@/axios")).default;
       await axios.put("/api/auth/change-password", { currentPassword, newPassword }, {
         headers: { Authorization: `Bearer ${state.token}` },
       });
@@ -186,7 +186,7 @@ const actions = {
     }
 
     try {
-      const axios = (await import("../../axios")).default;
+      const axios = (await import("@/axios")).default;
       const response = await axios.get("/api/auth/me", {
         headers: {
           Authorization: `Bearer ${state.token}`,
@@ -229,7 +229,7 @@ const actions = {
     }
 
     try {
-      const axios = (await import("../../axios")).default;
+      const axios = (await import("@/axios")).default;
       const response = await axios.get("/api/admin/user-crud-permissions", {
         headers: {
           Authorization: `Bearer ${state.token}`,

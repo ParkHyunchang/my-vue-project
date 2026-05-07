@@ -52,7 +52,7 @@
 <script>
 import { ref, computed, onMounted } from "vue";
 import { useStore } from "vuex";
-import axios from "../axios";
+import axios from "@/axios";
 import UserListPanel from "@/components/admin/UserListPanel.vue";
 import UserCreateModal from "@/components/admin/UserCreateModal.vue";
 import UserDetailModal from "@/components/admin/UserDetailModal.vue";

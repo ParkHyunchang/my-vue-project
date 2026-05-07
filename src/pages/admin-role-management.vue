@@ -344,7 +344,7 @@
 
 <script>
 import { ref, reactive, onMounted } from 'vue';
-import api from '../axios.js';
+import api from '@/axios';
 import Modal from '../components/Modal.vue';
 
 export default {

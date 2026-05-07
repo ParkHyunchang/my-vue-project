@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <div v-if="loading">
         Loading..
     </div>
@@ -35,31 +35,25 @@
             </button>
         </div>
     </form>
-    <transition name="fade">
-        <Toast v-if="showToast" :message="toastMessage" :type="toastAlertType" />
-    </transition>
 </template>
-  
+
 <script>
 import { useRoute, useRouter } from 'vue-router';
 /* eslint-disable no-console */
 import axios from '@/axios';
-import { ref, computed } from 'vue';
-import _ from 'lodash';
-import Toast from '@/components/Toast.vue';
+import { ref } from 'vue';
 import { useToast } from '@/composables/toast';
 import AppInput from '@/components/Input.vue';
 
 export default {
     components: {
-        Toast,
-        AppInput
+        AppInput,
     },
     props: {
         editing: {
             type: Boolean,
-            default: false
-        }
+            default: false,
+        },
     },
     setup(props) {
         const route = useRoute();
@@ -67,17 +61,12 @@ export default {
         const todo = ref({
             title: '',
             done: false,
-            description: ''
+            description: '',
         });
 
         const titleError = ref('');
-        const originalTodo = ref(null);
         const loading = ref(false);
-        const {
-            toastMessage,
-            toastAlertType,
-            showToast
-        } = useToast();
+        const { showToast } = useToast();
 
         const todoId = route.params.id;
 
@@ -86,7 +75,6 @@ export default {
             try {
                 const res = await axios.get(`todos/${todoId}`);
                 todo.value = { ...res.data };
-                originalTodo.value = { ...res.data };
                 loading.value = false;
             } catch (error) {
                 loading.value = false;
@@ -95,17 +83,13 @@ export default {
             }
         };
 
-        const todoUpdated = computed(() => {
-            return !_.isEqual(todo.value, originalTodo.value);
-        });
-
         const toggleTodoStatus = () => {
             todo.value.done = !todo.value.done;
         };
 
         const moveToTodoListPage = () => {
             router.push({
-                name: 'Todos'
+                name: 'Todos',
             });
         };
 
@@ -124,7 +108,7 @@ export default {
                 const data = {
                     title: todo.value.title.trim(),
                     done: todo.value.done,
-                    description: todo.value.description.trim()
+                    description: todo.value.description.trim(),
                 };
 
                 if (props.editing) {
@@ -148,14 +132,10 @@ export default {
             toggleTodoStatus,
             moveToTodoListPage,
             onSave,
-            todoUpdated,
-            showToast,
-            toastMessage,
-            toastAlertType,
-            titleError
+            titleError,
         };
-    }
-}
+    },
+};
 </script>
 
 <style src="@/assets/css/todos.css" scoped></style>
