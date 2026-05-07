@@ -1,7 +1,13 @@
 <template>
   <div>
+    <!-- 초기 로딩 -->
+    <div v-if="initialLoading" class="loading-state" style="padding: 48px 0">
+      <div class="spinner"></div>
+      <span>보유 종목 불러오는 중...</span>
+    </div>
+
     <!-- 빈 상태 -->
-    <div v-if="holdings.length === 0" class="portfolio-empty">
+    <div v-else-if="holdings.length === 0" class="portfolio-empty">
       <div class="portfolio-empty-icon">📊</div>
       <h3>보유 종목이 없습니다</h3>
       <p>
@@ -528,6 +534,7 @@ export default {
     const holdings = ref([]);
     const prices = ref({});
     const priceLoading = ref(false);
+    const initialLoading = ref(true);
     const portfolioView = ref("grid");
     const marketFilter = ref("all");
     const exchangeRate = ref(0);
@@ -1000,7 +1007,11 @@ export default {
     );
 
     onMounted(async () => {
-      await initPortfolio();
+      try {
+        await initPortfolio();
+      } finally {
+        initialLoading.value = false;
+      }
       if (props.active) fetchPrices();
       refreshTimer = setInterval(() => {
         if (props.active) fetchPrices();
@@ -1017,7 +1028,7 @@ export default {
     });
 
     return {
-      holdings, prices, priceLoading, portfolioView, marketFilter,
+      holdings, prices, priceLoading, initialLoading, portfolioView, marketFilter,
       exchangeRate, exRateAt, lastUpdatedAt, relativeUpdated,
       sortKey, sortDir, hoveredSegId, hoveredSegment,
       showAddModal, searchQ, showDropdown, searchResults, searchLoading,
