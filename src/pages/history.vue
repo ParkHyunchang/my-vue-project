@@ -194,7 +194,7 @@ export default {
 
     const fetchEvents = async () => {
       try {
-        const response = await axios.get("/histories");
+        const response = await axios.get("/api/histories");
         events.value = response.data.map((event) => ({
           ...event,
           images: parseImagesFromEvent(event),
@@ -224,10 +224,10 @@ export default {
     const saveEvent = async (eventData) => {
       try {
         if (isEditing.value) {
-          await axios.put(`/histories/${eventData.id}`, eventData);
+          await axios.put(`/api/histories/${eventData.id}`, eventData);
           showToast("이벤트가 수정되었습니다.");
         } else {
-          await axios.post("/histories", eventData);
+          await axios.post("/api/histories", eventData);
           showToast("이벤트가 생성되었습니다.");
         }
         await fetchEvents();
@@ -253,7 +253,7 @@ export default {
 
     const deleteEvent = async () => {
       try {
-        await axios.delete(`/histories/${eventToDelete.value.id}`);
+        await axios.delete(`/api/histories/${eventToDelete.value.id}`);
         closeDeleteModal();
         await fetchEvents();
         showToast("이벤트가 삭제되었습니다.");

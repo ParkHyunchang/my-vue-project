@@ -73,7 +73,7 @@ export default {
         const getTodo = async () => {
             loading.value = true;
             try {
-                const res = await axios.get(`todos/${todoId}`);
+                const res = await axios.get(`/api/todos/${todoId}`);
                 todo.value = { ...res.data };
                 loading.value = false;
             } catch (error) {
@@ -112,11 +112,11 @@ export default {
                 };
 
                 if (props.editing) {
-                    await axios.put(`todos/${todoId}`, data);
+                    await axios.put(`/api/todos/${todoId}`, data);
                     showToast('Successfully Updated!');
                     moveToTodoListPage();
                 } else {
-                    await axios.post('todos', data);
+                    await axios.post('/api/todos', data);
                     showToast('Successfully Created!');
                     moveToTodoListPage();
                 }

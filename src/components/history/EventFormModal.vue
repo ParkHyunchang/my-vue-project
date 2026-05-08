@@ -491,7 +491,7 @@ export default {
           }
           const formData = new FormData();
           formData.append("file", file);
-          const response = await axios.post("/histories/upload", formData, {
+          const response = await axios.post("/api/histories/upload", formData, {
             headers: { "Content-Type": "multipart/form-data" },
           });
           return response.data;
@@ -528,7 +528,7 @@ export default {
       if (imageToDelete.value !== null && localEvent.value.images) {
         const target = localEvent.value.images[imageToDelete.value];
         try {
-          await axios.delete("/histories/media", {
+          await axios.delete("/api/histories/media", {
             params: { mediaPath: target },
           });
           localEvent.value.images.splice(imageToDelete.value, 1);

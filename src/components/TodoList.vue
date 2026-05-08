@@ -48,7 +48,7 @@ export default {
 
         const toggleTodo = async (item) => {
             try {
-                await axios.put(`todos/${item.id}`, {
+                await axios.put(`/api/todos/${item.id}`, {
                     ...item,
                     done: item.done === null ? true : !item.done
                 });
@@ -70,7 +70,7 @@ export default {
 
         const deleteTodo = async () => {
             try {
-                await axios.delete(`todos/${todoDeleteId.value}`);
+                await axios.delete(`/api/todos/${todoDeleteId.value}`);
                 emit('todo-updated');
             } catch (e) {
                 // 에러 처리 필요시 추가

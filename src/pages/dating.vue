@@ -171,7 +171,7 @@ export default {
 
     const fetchMemories = async () => {
       try {
-        const response = await axios.get("/dating");
+        const response = await axios.get("/api/dating");
         memories.value = response.data.map((memory) => ({
           ...memory,
           images: parseImagesArray(memory),
@@ -206,10 +206,10 @@ export default {
     const saveMemory = async (memoryData) => {
       try {
         if (isEditing.value) {
-          await axios.put(`/dating/${memoryData.id}`, memoryData);
+          await axios.put(`/api/dating/${memoryData.id}`, memoryData);
           showToast("추억이 수정되었습니다.");
         } else {
-          await axios.post("/dating", memoryData);
+          await axios.post("/api/dating", memoryData);
           showToast("추억이 생성되었습니다.");
         }
         await fetchMemories();
@@ -235,7 +235,7 @@ export default {
 
     const deleteMemory = async () => {
       try {
-        await axios.delete(`/dating/${memoryToDelete.value.id}`);
+        await axios.delete(`/api/dating/${memoryToDelete.value.id}`);
         closeDeleteModal();
         await fetchMemories();
         showToast("추억이 삭제되었습니다.");

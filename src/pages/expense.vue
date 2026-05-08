@@ -529,10 +529,10 @@ export default {
       try {
         let response;
         if (range?.startDate && range?.endDate) {
-          response = await axios.get('/expenses/date-range', { params: { startDate: range.startDate, endDate: range.endDate } });
+          response = await axios.get('/api/expenses/date-range', { params: { startDate: range.startDate, endDate: range.endDate } });
           totalRecords.value = Array.isArray(response.data) ? response.data.length : 0;
         } else {
-          response = await axios.get('/expenses', { params: { page: 0, size: 500 } });
+          response = await axios.get('/api/expenses', { params: { page: 0, size: 500 } });
           const headerTotal = Number(response.headers?.['x-total-count']);
           totalRecords.value = Number.isNaN(headerTotal) ? response.data.length : headerTotal;
         }
@@ -550,9 +550,9 @@ export default {
       try {
         let response;
         if (range?.startDate && range?.endDate) {
-          response = await axios.get('/expenses/summary/date-range', { params: { startDate: range.startDate, endDate: range.endDate } });
+          response = await axios.get('/api/expenses/summary/date-range', { params: { startDate: range.startDate, endDate: range.endDate } });
         } else {
-          response = await axios.get('/expenses/summary');
+          response = await axios.get('/api/expenses/summary');
         }
         summary.value = {
           totalIncome: response.data?.totalIncome ?? 0,
@@ -568,7 +568,7 @@ export default {
     const fetchFixedExpenses = async () => {
       fixedLoading.value = true;
       try {
-        const response = await axios.get('/expenses/fixed');
+        const response = await axios.get('/api/expenses/fixed');
         fixedExpenses.value = Array.isArray(response.data) ? response.data : [];
       } catch (err) {
         logger.error('Error fetching fixed expenses:', err);
@@ -675,10 +675,10 @@ export default {
       if (date) payload.createdAt = `${date}T00:00:00`;
       try {
         if (isEditing.value) {
-          await axios.put(`/expenses/${payload.id}`, payload);
+          await axios.put(`/api/expenses/${payload.id}`, payload);
           showToast('가계부 항목이 수정되었습니다.', 'success');
         } else {
-          await axios.post('/expenses', payload);
+          await axios.post('/api/expenses', payload);
           showToast('가계부 항목이 추가되었습니다.', 'success');
         }
         closeExpenseModal();
@@ -696,7 +696,7 @@ export default {
     const deleteExpense = async () => {
       if (!expenseToDelete.value?.id) return;
       try {
-        await axios.delete(`/expenses/${expenseToDelete.value.id}`);
+        await axios.delete(`/api/expenses/${expenseToDelete.value.id}`);
         showToast('가계부 항목이 삭제되었습니다.', 'success');
         closeDeleteModal();
         await loadExpensesForCurrentPeriod();
@@ -721,7 +721,7 @@ export default {
       const successMessage = periodFilter.value === 'previous-month' ? '지난 달에 고정 지출 항목을 추가했습니다.' : '이번 달에 고정 지출 항목을 추가했습니다.';
       try {
         const payloads = fixedExpenses.value.map((e) => ({ title: e.title, description: e.description, amount: e.amount, category: e.category, type: 'EXPENSE', fixed: false, createdAt: buildCreatedAtForImport(e, targetDate) }));
-        await Promise.all(payloads.map((p) => axios.post('/expenses', p)));
+        await Promise.all(payloads.map((p) => axios.post('/api/expenses', p)));
         await loadExpensesForCurrentPeriod();
         showToast(successMessage, 'success');
       } catch (err) {

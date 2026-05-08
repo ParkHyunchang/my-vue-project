@@ -622,7 +622,7 @@ export default {
           }
           const formData = new FormData();
           formData.append("file", file);
-          const response = await axios.post("/dating/upload", formData, {
+          const response = await axios.post("/api/dating/upload", formData, {
             headers: { "Content-Type": "multipart/form-data" },
           });
           return response.data;
@@ -673,7 +673,7 @@ export default {
           return;
         }
         try {
-          await axios.delete("/dating/image", { params: { imagePath } });
+          await axios.delete("/api/dating/image", { params: { imagePath } });
           localMemory.value.images.splice(imageToDelete.value, 1);
           showToast("미디어가 삭제되었습니다.");
           await waitForModalMediaSettled(800);

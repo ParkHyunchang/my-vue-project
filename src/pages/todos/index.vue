@@ -75,7 +75,7 @@ export default {
                     size: limit,
                 };
                 if (searchText.value) params.q = searchText.value;
-                const res = await axios.get('todos', { params });
+                const res = await axios.get('/api/todos', { params });
                 
                 // 백엔드에서 반환된 페이지 정보 처리
                 if (res.data && Array.isArray(res.data)) {
