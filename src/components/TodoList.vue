@@ -28,6 +28,8 @@ import Modal from '@/components/DeleteModal.vue';
 import { ref } from 'vue';
 import List from '@/components/List.vue';
 import axios from '@/axios';
+import { useToast } from '@/composables/toast';
+import { apiErrorMessage } from '@/utils/apiError';
 
 export default {
     components: {
@@ -43,6 +45,7 @@ export default {
     emits: ['todo-updated'],
     setup(props, { emit }) {
         const router = useRouter();
+        const { showToast } = useToast();
         const showModal = ref(false);
         const todoDeleteId = ref(null);
 
@@ -54,7 +57,7 @@ export default {
                 });
                 emit('todo-updated');
             } catch (e) {
-                // 에러 처리 필요시 추가
+                showToast(apiErrorMessage(e, '할 일 상태 변경에 실패했습니다.'), 'danger');
             }
         };
 
@@ -73,7 +76,7 @@ export default {
                 await axios.delete(`/api/todos/${todoDeleteId.value}`);
                 emit('todo-updated');
             } catch (e) {
-                // 에러 처리 필요시 추가
+                showToast(apiErrorMessage(e, '할 일 삭제에 실패했습니다.'), 'danger');
             }
             showModal.value = false;
             todoDeleteId.value = null;

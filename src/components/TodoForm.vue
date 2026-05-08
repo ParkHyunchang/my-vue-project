@@ -43,6 +43,7 @@ import axios from '@/axios';
 import { ref } from 'vue';
 import { useToast } from '@/composables/toast';
 import { logger } from '@/utils/logger';
+import { apiErrorMessage } from '@/utils/apiError';
 import AppInput from '@/components/Input.vue';
 
 export default {
@@ -79,7 +80,7 @@ export default {
             } catch (error) {
                 loading.value = false;
                 logger.error('할 일 저장 실패:', error);
-                showToast('Something went wrong', 'danger');
+                showToast(apiErrorMessage(error, 'Something went wrong'), 'danger');
             }
         };
 
@@ -122,7 +123,7 @@ export default {
                 }
             } catch (error) {
                 logger.error('할 일 저장 실패:', error);
-                showToast('Something went wrong', 'danger');
+                showToast(apiErrorMessage(error, 'Something went wrong'), 'danger');
             }
         };
 

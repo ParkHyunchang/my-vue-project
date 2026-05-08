@@ -148,6 +148,7 @@
 
 <script>
 import axios from '@/axios'
+import { apiErrorMessage } from '@/utils/apiError'
 
 export default {
   name: 'AdminCareer',
@@ -176,7 +177,7 @@ export default {
         const res = await axios.get('/api/admin/career')
         this.careers = res.data
       } catch (e) {
-        this.error = '데이터를 불러오지 못했습니다.'
+        this.error = apiErrorMessage(e, '데이터를 불러오지 못했습니다.')
       } finally {
         this.loading = false
       }
@@ -224,7 +225,7 @@ export default {
         ])
         await this.load()
       } catch (e) {
-        this.toast('순서 변경에 실패했습니다.', 'danger')
+        this.toast(apiErrorMessage(e, '순서 변경에 실패했습니다.'), 'danger')
       } finally {
         this.saving = false
       }
@@ -253,7 +254,7 @@ export default {
         await this.load()
         this.toast(isEdit ? '수정되었습니다.' : '추가되었습니다.')
       } catch (e) {
-        this.toast('저장에 실패했습니다.', 'danger')
+        this.toast(apiErrorMessage(e, '저장에 실패했습니다.'), 'danger')
       } finally {
         this.saving = false
       }
@@ -269,7 +270,7 @@ export default {
         await this.load()
         this.toast('삭제되었습니다.')
       } catch (e) {
-        this.toast('삭제에 실패했습니다.', 'danger')
+        this.toast(apiErrorMessage(e, '삭제에 실패했습니다.'), 'danger')
       } finally {
         this.saving = false
       }

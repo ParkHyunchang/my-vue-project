@@ -221,6 +221,7 @@ import axios from "@/axios";
 import Modal from "@/components/Modal.vue";
 import DeleteModal from "@/components/DeleteModal.vue";
 import { useToast } from "@/composables/toast";
+import { apiErrorMessage } from "@/utils/apiError";
 import { useUploadLimits } from "@/composables/useUploadLimits";
 import { useMediaUtils } from "@/composables/useMediaUtils";
 
@@ -506,7 +507,10 @@ export default {
         await waitForModalMediaSettled(1500);
         await new Promise((r) => setTimeout(r, 300));
       } catch (error) {
-        showToast(`미디어 업로드에 실패했습니다: ${error.message}`, "danger");
+        showToast(
+          apiErrorMessage(error, `미디어 업로드에 실패했습니다: ${error.message}`),
+          "danger",
+        );
       } finally {
         uploading.value = false;
         postUploadSettling.value = false;
@@ -533,8 +537,8 @@ export default {
           });
           localEvent.value.images.splice(imageToDelete.value, 1);
           showToast("미디어가 삭제되었습니다.");
-        } catch {
-          showToast("미디어 삭제에 실패했습니다.", "danger");
+        } catch (err) {
+          showToast(apiErrorMessage(err, "미디어 삭제에 실패했습니다."), "danger");
         }
       }
       closeImageDeleteModal();

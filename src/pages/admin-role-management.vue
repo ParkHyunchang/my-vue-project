@@ -345,6 +345,7 @@
 <script>
 import { ref, reactive, onMounted } from 'vue';
 import api from '@/axios';
+import { apiErrorMessage } from '@/utils/apiError';
 import Modal from '../components/Modal.vue';
 
 export default {
@@ -426,7 +427,7 @@ export default {
         const res = await api.get(`/api/admin/role-infos/${roleName}/users`);
         roleUsers.value = res.data.users || [];
       } catch (e) {
-        showToast('사용자 목록 조회에 실패했습니다.', 'error');
+        showToast(apiErrorMessage(e, '사용자 목록 조회에 실패했습니다.'), 'error');
         roleUsers.value = [];
       } finally {
         usersLoading.value = false;
@@ -469,7 +470,7 @@ export default {
         closeCreateModal();
         showToast(`'${res.data.roleName}' 권한이 생성되었습니다.`);
       } catch (e) {
-        showToast(e.response?.data || '권한 생성에 실패했습니다.', 'error');
+        showToast(apiErrorMessage(e, '권한 생성에 실패했습니다.'), 'error');
       } finally {
         creating.value = false;
       }
@@ -509,7 +510,7 @@ export default {
         closeEditModal();
         showToast('권한 정보가 수정되었습니다.');
       } catch (e) {
-        showToast('수정에 실패했습니다.', 'error');
+        showToast(apiErrorMessage(e, '수정에 실패했습니다.'), 'error');
       } finally {
         saving.value = false;
       }
@@ -541,7 +542,7 @@ export default {
         }
         showToast(`'${role.roleName}' 권한이 삭제되었습니다.`);
       } catch (e) {
-        showToast(e.response?.data || '삭제에 실패했습니다.', 'error');
+        showToast(apiErrorMessage(e, '삭제에 실패했습니다.'), 'error');
       } finally {
         deletingId.value = null;
       }
@@ -573,7 +574,7 @@ export default {
         roleUsers.value = roleUsers.value.filter(u => u.id !== user.id);
         await loadRoleInfos();
       } catch (e) {
-        showToast(e.response?.data || '권한 변경에 실패했습니다.', 'error');
+        showToast(apiErrorMessage(e, '권한 변경에 실패했습니다.'), 'error');
       } finally {
         changingRoleUserId.value = null;
       }

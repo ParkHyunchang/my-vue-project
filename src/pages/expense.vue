@@ -478,6 +478,7 @@ import Modal from '@/components/Modal.vue';
 import DeleteModal from '@/components/DeleteModal.vue';
 import { useToast } from '@/composables/toast';
 import { logger } from '@/utils/logger';
+import { apiErrorMessage } from '@/utils/apiError';
 import axios from '@/axios';
 import {
   useExpensePeriod,
@@ -539,8 +540,9 @@ export default {
         expenses.value = Array.isArray(response.data) ? response.data : [];
       } catch (err) {
         logger.error('Error fetching expenses:', err);
-        error.value = '가계부 데이터를 불러오는데 실패했습니다.';
-        showToast('가계부 데이터를 불러오는데 실패했습니다.', 'danger');
+        const msg = apiErrorMessage(err, '가계부 데이터를 불러오는데 실패했습니다.');
+        error.value = msg;
+        showToast(msg, 'danger');
       } finally {
         loading.value = false;
       }
@@ -686,7 +688,7 @@ export default {
         await fetchFixedExpenses();
       } catch (err) {
         logger.error('Error saving expense:', err);
-        showToast('가계부 항목 저장에 실패했습니다.', 'danger');
+        showToast(apiErrorMessage(err, '가계부 항목 저장에 실패했습니다.'), 'danger');
       }
     };
 
@@ -703,7 +705,7 @@ export default {
         await fetchFixedExpenses();
       } catch (err) {
         logger.error('Error deleting expense:', err);
-        showToast('가계부 항목 삭제에 실패했습니다.', 'danger');
+        showToast(apiErrorMessage(err, '가계부 항목 삭제에 실패했습니다.'), 'danger');
       }
     };
 
@@ -726,7 +728,7 @@ export default {
         showToast(successMessage, 'success');
       } catch (err) {
         logger.error('Error importing fixed expenses:', err);
-        showToast('고정 지출 항목 추가에 실패했습니다.', 'danger');
+        showToast(apiErrorMessage(err, '고정 지출 항목 추가에 실패했습니다.'), 'danger');
       } finally {
         isImportingFixed.value = false;
       }

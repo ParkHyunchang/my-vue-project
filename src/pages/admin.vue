@@ -59,7 +59,13 @@ import UserDetailModal from "@/components/admin/UserDetailModal.vue";
 import ConfirmDeleteModal from "@/components/admin/ConfirmDeleteModal.vue";
 
 const parseApiError = (error, fallback) => {
+  const status = error.response?.status;
   const data = error.response?.data;
+  if (status === 403) {
+    if (typeof data === "string" && data) return data;
+    if (data && typeof data === "object" && typeof data.message === "string") return data.message;
+    return "권한이 없습니다.";
+  }
   if (!data) return fallback;
   if (typeof data === "string") {
     if (data.includes("가입된 메일주소가 있습니다")) return "이미 사용 중인 이메일 주소입니다.";
@@ -133,7 +139,7 @@ export default {
         const response = await axios.get("/api/admin/users");
         users.value = response.data;
       } catch (error) {
-        showToast(error.response?.data || "사용자 목록을 불러오는데 실패했습니다.", "error");
+        showToast(parseApiError(error, "사용자 목록을 불러오는데 실패했습니다."), "error");
       } finally {
         loadingUsers.value = false;
       }
@@ -229,7 +235,7 @@ export default {
         showToast(`${deletingUser.value.name} 사용자가 성공적으로 삭제되었습니다.`, "success");
         closeDeleteModal();
       } catch (error) {
-        showToast(error.response?.data || "사용자 삭제에 실패했습니다.", "error");
+        showToast(parseApiError(error, "사용자 삭제에 실패했습니다."), "error");
       } finally {
         loadingDelete.value = false;
       }

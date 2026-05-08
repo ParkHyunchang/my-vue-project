@@ -242,6 +242,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import axios from '@/axios';
+import { apiErrorMessage } from '@/utils/apiError';
 import Modal from '../components/Modal.vue';
 
 export default {
@@ -514,8 +515,8 @@ export default {
         if (roles.value.length > 0) {
           await doSetActiveRole(roles.value[0].key);
         }
-      } catch (_) {
-        store.dispatch('toast/showToast', { message: '데이터를 불러오는 데 실패했습니다.', type: 'error' });
+      } catch (err) {
+        store.dispatch('toast/showToast', { message: apiErrorMessage(err, '데이터를 불러오는 데 실패했습니다.'), type: 'error' });
       } finally {
         dirtyRoles.value = new Set();
         pageLoading.value = false;
@@ -559,7 +560,7 @@ export default {
         try { await store.dispatch('menu/refreshUserMenus'); } catch (_) { /* ignore */ }
         closeSaveModal();
       } catch (e) {
-        store.dispatch('toast/showToast', { message: '저장에 실패했습니다.', type: 'error' });
+        store.dispatch('toast/showToast', { message: apiErrorMessage(e, '저장에 실패했습니다.'), type: 'error' });
       } finally {
         saving.value = false;
       }
@@ -687,7 +688,7 @@ export default {
         store.dispatch('toast/showToast', { message: '메뉴 순서가 저장되었습니다.', type: 'success' });
         orderChanged.value = false;
       } catch (e) {
-        store.dispatch('toast/showToast', { message: '순서 저장에 실패했습니다.', type: 'error' });
+        store.dispatch('toast/showToast', { message: apiErrorMessage(e, '순서 저장에 실패했습니다.'), type: 'error' });
       } finally {
         savingOrder.value = false;
       }

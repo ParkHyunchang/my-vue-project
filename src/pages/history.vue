@@ -89,6 +89,7 @@ import TimelineList from "@/components/TimelineList.vue";
 import Lightbox from "@/components/Lightbox.vue";
 import EventFormModal from "@/components/history/EventFormModal.vue";
 import { useToast } from "@/composables/toast";
+import { apiErrorMessage } from "@/utils/apiError";
 import { useMediaUtils } from "@/composables/useMediaUtils";
 
 const CATEGORIES = [
@@ -199,8 +200,8 @@ export default {
           ...event,
           images: parseImagesFromEvent(event),
         }));
-      } catch {
-        showToast("Failed to load events", "danger");
+      } catch (err) {
+        showToast(apiErrorMessage(err, "Failed to load events"), "danger");
       }
     };
 
@@ -232,9 +233,12 @@ export default {
         }
         await fetchEvents();
         closeEventModal();
-      } catch {
+      } catch (err) {
         showToast(
-          isEditing.value ? "이벤트 수정에 실패했습니다." : "이벤트 생성에 실패했습니다.",
+          apiErrorMessage(
+            err,
+            isEditing.value ? "이벤트 수정에 실패했습니다." : "이벤트 생성에 실패했습니다.",
+          ),
           "danger",
         );
       }
@@ -257,8 +261,8 @@ export default {
         closeDeleteModal();
         await fetchEvents();
         showToast("이벤트가 삭제되었습니다.");
-      } catch {
-        showToast("이벤트 삭제에 실패했습니다.", "danger");
+      } catch (err) {
+        showToast(apiErrorMessage(err, "이벤트 삭제에 실패했습니다."), "danger");
       }
     };
 

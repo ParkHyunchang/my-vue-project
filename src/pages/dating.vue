@@ -106,6 +106,7 @@ import DdayDisplay from "@/components/dating/DdayDisplay.vue";
 import MemoryFormModal from "@/components/dating/MemoryFormModal.vue";
 import { useToast } from "@/composables/toast";
 import { useMediaUtils } from "@/composables/useMediaUtils";
+import { apiErrorMessage } from "@/utils/apiError";
 
 const CATEGORIES = [
   { id: "all", name: "전체", icon: "fas fa-list" },
@@ -176,8 +177,8 @@ export default {
           ...memory,
           images: parseImagesArray(memory),
         }));
-      } catch {
-        showToast("추억을 불러오지 못했습니다.", "danger");
+      } catch (err) {
+        showToast(apiErrorMessage(err, "추억을 불러오지 못했습니다."), "danger");
       }
     };
 
@@ -214,9 +215,12 @@ export default {
         }
         await fetchMemories();
         closeMemoryModal();
-      } catch {
+      } catch (err) {
         showToast(
-          isEditing.value ? "추억 수정에 실패했습니다." : "추억 생성에 실패했습니다.",
+          apiErrorMessage(
+            err,
+            isEditing.value ? "추억 수정에 실패했습니다." : "추억 생성에 실패했습니다.",
+          ),
           "danger",
         );
       }
@@ -239,8 +243,8 @@ export default {
         closeDeleteModal();
         await fetchMemories();
         showToast("추억이 삭제되었습니다.");
-      } catch {
-        showToast("추억 삭제에 실패했습니다.", "danger");
+      } catch (err) {
+        showToast(apiErrorMessage(err, "추억 삭제에 실패했습니다."), "danger");
       }
     };
 

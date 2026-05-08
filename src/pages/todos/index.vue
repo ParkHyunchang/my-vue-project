@@ -44,6 +44,7 @@ import TodoList from '@/components/TodoList.vue';
 import axios from '@/axios';
 import { useToast } from '@/composables/toast';
 import { logger } from '@/utils/logger';
+import { apiErrorMessage } from '@/utils/apiError';
 import { useRouter } from 'vue-router';
 
 export default {
@@ -89,7 +90,7 @@ export default {
                 }
             } catch (err) {
                 logger.error('할 일 목록 로드 실패:', err);
-                showToast('Something went wrong', 'danger');
+                showToast(apiErrorMessage(err, 'Something went wrong'), 'danger');
             } finally {
                 loading.value = false;
             }

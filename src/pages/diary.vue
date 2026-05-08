@@ -127,6 +127,7 @@
 
 <script>
 import axios from '@/axios'
+import { apiErrorMessage } from '@/utils/apiError'
 
 export default {
   name: 'DiaryPage',
@@ -212,8 +213,8 @@ export default {
         this.analysis = null
         this.selectedDate = this.today
         this.$store.dispatch('toast/showToast', { message: '일기가 저장되었습니다.', type: 'success' })
-      } catch {
-        this.$store.dispatch('toast/showToast', { message: '저장에 실패했습니다.', type: 'error' })
+      } catch (err) {
+        this.$store.dispatch('toast/showToast', { message: apiErrorMessage(err, '저장에 실패했습니다.'), type: 'error' })
       } finally {
         this.saving = false
       }
@@ -229,8 +230,8 @@ export default {
         this.analysis = this.parseAnalysis(res.data.aiAnalysis)
         const idx = this.entries.findIndex(e => e.id === res.data.id)
         if (idx !== -1) this.entries.splice(idx, 1, res.data)
-      } catch {
-        this.$store.dispatch('toast/showToast', { message: 'AI 분석에 실패했습니다.', type: 'error' })
+      } catch (err) {
+        this.$store.dispatch('toast/showToast', { message: apiErrorMessage(err, 'AI 분석에 실패했습니다.'), type: 'error' })
       } finally {
         this.analyzing = false
       }
@@ -246,8 +247,8 @@ export default {
         this.analysis = null
         await this.loadEntries()
         this.$store.dispatch('toast/showToast', { message: '삭제되었습니다.', type: 'success' })
-      } catch {
-        this.$store.dispatch('toast/showToast', { message: '삭제에 실패했습니다.', type: 'error' })
+      } catch (err) {
+        this.$store.dispatch('toast/showToast', { message: apiErrorMessage(err, '삭제에 실패했습니다.'), type: 'error' })
       }
     },
 

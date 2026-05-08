@@ -388,6 +388,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import axios from '@/axios';
+import { apiErrorMessage } from '@/utils/apiError';
 import Modal from '../components/Modal.vue';
 
 export default {
@@ -500,7 +501,7 @@ export default {
         const res = await axios.get('/api/admin/menus');
         menus.value = res.data || [];
       } catch (e) {
-        store.dispatch('toast/showToast', { message: '메뉴 목록 로딩에 실패했습니다.', type: 'error' });
+        store.dispatch('toast/showToast', { message: apiErrorMessage(e, '메뉴 목록 로딩에 실패했습니다.'), type: 'error' });
       } finally {
         pageLoading.value = false;
       }
@@ -593,8 +594,8 @@ export default {
         showModal.value = false;
         try { await store.dispatch('menu/refreshUserMenus'); } catch (_) { /* ignore */ }
       } catch (e) {
-        const msg = e.response?.data || (isEditing.value ? '메뉴 수정에 실패했습니다.' : '메뉴 추가에 실패했습니다.');
-        store.dispatch('toast/showToast', { message: String(msg), type: 'error' });
+        const msg = apiErrorMessage(e, isEditing.value ? '메뉴 수정에 실패했습니다.' : '메뉴 추가에 실패했습니다.');
+        store.dispatch('toast/showToast', { message: msg, type: 'error' });
       } finally {
         saving.value = false;
       }
@@ -625,8 +626,7 @@ export default {
         deletingMenu.value = null;
         try { await store.dispatch('menu/refreshUserMenus'); } catch (_) { /* ignore */ }
       } catch (e) {
-        const msg = e.response?.data || '메뉴 삭제에 실패했습니다.';
-        store.dispatch('toast/showToast', { message: String(msg), type: 'error' });
+        store.dispatch('toast/showToast', { message: apiErrorMessage(e, '메뉴 삭제에 실패했습니다.'), type: 'error' });
       } finally {
         deleting.value = false;
       }
