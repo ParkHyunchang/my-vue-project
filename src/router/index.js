@@ -137,13 +137,11 @@ router.beforeEach(async (to, from, next) => {
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
     const guestOnly = to.matched.some(record => record.meta.guestOnly);
 
-    // 토큰이 있지만 사용자 정보가 없는 경우 인증 + 메뉴 복원
-    if (store.getters['auth/token'] && !store.getters['auth/user']) {
+    // 인증 상태 미초기화(예: 깊은 링크 진입) 시 한 번만 복원 시도.
+    // httpOnly 쿠키 기반이라 토큰 존재 여부는 서버 응답으로만 알 수 있다.
+    if (!store.getters['auth/isAuthenticated'] && !store.getters['auth/user']) {
         try {
-            const authResult = await store.dispatch('auth/checkAuth');
-            if (!authResult && store.getters['auth/token']) {
-                store.dispatch('auth/logout');
-            }
+            await store.dispatch('auth/checkAuth');
         } catch (_) { /* 네트워크 에러는 무시 */ }
     }
 

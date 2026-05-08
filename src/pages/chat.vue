@@ -184,8 +184,6 @@ export default {
         const res = await axios.post('/api/chat', {
           sessionKey: this.sessionKey,
           content: text,
-          username: this.username || null,
-          anonId: null,
         })
         this.messages.push({ role: 'assistant', content: res.data.content })
       } catch {

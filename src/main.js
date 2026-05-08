@@ -15,14 +15,12 @@ const app = createApp(App);
 app.use(store);
 app.use(router);
 
-// 앱 시작 시 인증 상태 확인
+// 앱 시작 시 인증 상태 확인 (httpOnly 쿠키 → 서버에 /api/auth/me 호출로 복원)
 async function initializeApp() {
   try {
-    if (store.getters['auth/token']) {
-      await store.dispatch('auth/checkAuth');
-    }
+    await store.dispatch('auth/checkAuth');
   } catch (error) {
-    // 초기 인증 확인 실패는 무시
+    // 초기 인증 확인 실패는 무시 (비로그인 상태)
   }
 
   // 비로그인 상태이면 GUEST 메뉴 로드 + 동적 라우트 등록

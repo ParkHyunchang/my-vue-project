@@ -13,65 +13,59 @@ async function applyDynamicRoutes(rootGetters) {
     }
 }
 
+// 인증 상태는 httpOnly 쿠키에 의해 결정되므로 클라이언트 메모리에만 보관한다.
+// 새로고침 시에는 main.js의 checkAuth 호출이 /api/auth/me로 상태를 복원한다.
 const state = {
   user: null,
-  token: localStorage.getItem("token") || null,
-  isAuthenticated: !!localStorage.getItem("token"),
+  isAuthenticated: false,
   crudPermissions: [],
 };
 
 const mutations = {
-  SET_TOKEN(state, token) {
-    state.token = token;
-    state.isAuthenticated = !!token;
-    if (token) {
-      localStorage.setItem("token", token);
-    } else {
-      localStorage.removeItem("token");
-    }
+  SET_AUTHENTICATED(state, value) {
+    state.isAuthenticated = !!value;
   },
   SET_USER(state, user) {
     state.user = user;
+    state.isAuthenticated = !!user;
   },
   LOGOUT(state) {
     state.user = null;
-    state.token = null;
     state.isAuthenticated = false;
     state.crudPermissions = [];
-    localStorage.removeItem("token");
   },
   SET_CRUD_PERMISSIONS(state, permissions) {
     state.crudPermissions = permissions;
   },
 };
 
+async function loadAuthContext(dispatch, rootGetters) {
+  try {
+    await dispatch("menu/loadMenuDefinitions", null, { root: true });
+    await dispatch("menu/loadUserMenus", null, { root: true });
+    await applyDynamicRoutes(rootGetters);
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error("메뉴 권한 로드 실패:", error);
+  }
+  try {
+    await dispatch("loadCrudPermissions");
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error("CRUD 권한 로드 실패:", error);
+  }
+}
+
 const actions = {
   async login({ commit, dispatch, rootGetters }, credentials) {
     try {
       const axios = (await import("@/axios")).default;
       const response = await axios.post("/api/auth/login", credentials);
-      const { token, username, email, role, message } = response.data;
+      const { username, email, role, message } = response.data;
 
-      commit("SET_TOKEN", token);
       commit("SET_USER", { username, email, role });
 
-      // 메뉴 정의 및 권한 로드
-      try {
-        await dispatch("menu/loadMenuDefinitions", null, { root: true });
-        await dispatch("menu/loadUserMenus", null, { root: true });
-        await applyDynamicRoutes(rootGetters);
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error("메뉴 권한 로드 실패:", error);
-      }
-
-      // CRUD 권한 로드
-      try {
-        await dispatch("loadCrudPermissions");
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error("CRUD 권한 로드 실패:", error);
-      }
+      await loadAuthContext(dispatch, rootGetters);
 
       return { success: true, message };
     } catch (error) {
@@ -84,28 +78,11 @@ const actions = {
     try {
       const axios = (await import("@/axios")).default;
       const response = await axios.post("/api/auth/register", userData);
-      const { token, username, email, role, message } = response.data;
+      const { username, email, role, message } = response.data;
 
-      commit("SET_TOKEN", token);
       commit("SET_USER", { username, email, role });
 
-      // 메뉴 정의 및 권한 로드
-      try {
-        await dispatch("menu/loadMenuDefinitions", null, { root: true });
-        await dispatch("menu/loadUserMenus", null, { root: true });
-        await applyDynamicRoutes(rootGetters);
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error("메뉴 권한 로드 실패:", error);
-      }
-
-      // CRUD 권한 로드
-      try {
-        await dispatch("loadCrudPermissions");
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error("CRUD 권한 로드 실패:", error);
-      }
+      await loadAuthContext(dispatch, rootGetters);
 
       return { success: true, message };
     } catch (error) {
@@ -115,25 +92,20 @@ const actions = {
     }
   },
 
-  async fetchProfile({ state }) {
-    if (!state.token) return null;
+  async fetchProfile() {
     try {
       const axios = (await import("@/axios")).default;
-      const response = await axios.get("/api/auth/me", {
-        headers: { Authorization: `Bearer ${state.token}` },
-      });
+      const response = await axios.get("/api/auth/me");
       return response.data;
     } catch {
       return null;
     }
   },
 
-  async updateProfile({ commit, state }, profileData) {
+  async updateProfile({ commit }, profileData) {
     try {
       const axios = (await import("@/axios")).default;
-      const response = await axios.put("/api/auth/me", profileData, {
-        headers: { Authorization: `Bearer ${state.token}` },
-      });
+      const response = await axios.put("/api/auth/me", profileData);
       const { username, email, role } = response.data;
       commit("SET_USER", { username, email, role });
       return { success: true };
@@ -143,12 +115,10 @@ const actions = {
     }
   },
 
-  async changePassword({ state }, { currentPassword, newPassword }) {
+  async changePassword(_, { currentPassword, newPassword }) {
     try {
       const axios = (await import("@/axios")).default;
-      await axios.put("/api/auth/change-password", { currentPassword, newPassword }, {
-        headers: { Authorization: `Bearer ${state.token}` },
-      });
+      await axios.put("/api/auth/change-password", { currentPassword, newPassword });
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || "비밀번호 변경에 실패했습니다.";
@@ -156,9 +126,15 @@ const actions = {
     }
   },
 
+  // 서버 로그아웃: 쿠키 삭제 + 블랙리스트 등록
   async logout({ commit, dispatch, rootGetters }) {
+    try {
+      const axios = (await import("@/axios")).default;
+      await axios.post("/api/auth/logout");
+    } catch (e) {
+      // 네트워크 실패해도 로컬은 정리
+    }
     commit("LOGOUT");
-    // 로그아웃 후 비로그인 메뉴 로드
     try {
       await dispatch("menu/loadMenuDefinitions", null, { root: true });
       await dispatch("menu/loadUserMenus", null, { root: true });
@@ -168,52 +144,20 @@ const actions = {
     }
   },
 
-  async checkAuth({ commit, dispatch, state, rootGetters }) {
-    if (!state.token) {
-      return false;
-    }
+  // 클라이언트 측 강제 정리 (서버 호출 없이) — axios 인터셉터에서 사용
+  logoutLocal({ commit }) {
+    commit("LOGOUT");
+  },
 
-    // 서버 요청 전에 토큰 만료 여부 로컬 체크
-    try {
-      const payload = JSON.parse(atob(state.token.split('.')[1]));
-      if (payload.exp * 1000 < Date.now()) {
-        commit("LOGOUT");
-        return false;
-      }
-    } catch {
-      commit("LOGOUT");
-      return false;
-    }
-
+  async checkAuth({ commit, dispatch, rootGetters }) {
     try {
       const axios = (await import("@/axios")).default;
-      const response = await axios.get("/api/auth/me", {
-        headers: {
-          Authorization: `Bearer ${state.token}`,
-        },
-      });
+      const response = await axios.get("/api/auth/me");
 
       const { username, email, role } = response.data;
       commit("SET_USER", { username, email, role });
 
-      // 메뉴 정의 및 권한 로드
-      try {
-        await dispatch("menu/loadMenuDefinitions", null, { root: true });
-        await dispatch("menu/loadUserMenus", null, { root: true });
-        await applyDynamicRoutes(rootGetters);
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error("메뉴 권한 로드 실패:", error);
-      }
-
-      // CRUD 권한 로드
-      try {
-        await dispatch("loadCrudPermissions");
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error("CRUD 권한 로드 실패:", error);
-      }
-
+      await loadAuthContext(dispatch, rootGetters);
       return true;
     } catch (error) {
       if (error.response?.status === 401 || error.response?.status === 403) {
@@ -224,18 +168,13 @@ const actions = {
   },
 
   async loadCrudPermissions({ commit, state }) {
-    if (!state.token || !state.user) {
+    if (!state.user) {
       return;
     }
 
     try {
       const axios = (await import("@/axios")).default;
-      const response = await axios.get("/api/admin/user-crud-permissions", {
-        headers: {
-          Authorization: `Bearer ${state.token}`,
-        },
-      });
-
+      const response = await axios.get("/api/admin/user-crud-permissions");
       commit("SET_CRUD_PERMISSIONS", response.data);
     } catch (error) {
       // 403 에러는 권한이 없는 것이므로 조용히 처리
@@ -257,7 +196,6 @@ const isPremiumDatingMenu = (userRole, menuPath) =>
 const getters = {
   isAuthenticated: (state) => state.isAuthenticated,
   user: (state) => state.user,
-  token: (state) => state.token,
   isAdmin: (state) => state.user?.role === "ADMIN",
   isPremium: (state) =>
     state.user?.role === "PREMIUM" || state.user?.role === "ADMIN",
