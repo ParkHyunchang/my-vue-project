@@ -1,5 +1,5 @@
-/* eslint-disable no-console */
 import { getDefaultMenuDefinitions, getDefaultMenusForRole } from '../../config/routes';
+import { logger } from '@/utils/logger';
 
 const state = {
     userMenus: [],
@@ -58,7 +58,7 @@ const actions = {
             }));
             commit('SET_ALL_MENUS', menus);
         } catch (error) {
-            console.error('메뉴 정의를 불러오는데 실패했습니다. 기본값을 사용합니다.');
+            logger.error('메뉴 정의를 불러오는데 실패했습니다. 기본값을 사용합니다.');
             commit('SET_ALL_MENUS', getDefaultMenuDefinitions());
         }
     },
@@ -78,7 +78,7 @@ const actions = {
             const response = await axios.get('/api/auth/my-menu-permissions');
             commit('SET_USER_MENUS', response.data);
         } catch (error) {
-            console.error('사용자 메뉴 권한을 불러오는데 실패했습니다. 기본 권한을 사용합니다.');
+            logger.error('사용자 메뉴 권한을 불러오는데 실패했습니다. 기본 권한을 사용합니다.');
 
             const user = rootGetters['auth/user'];
             if (user) {

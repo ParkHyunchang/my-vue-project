@@ -39,10 +39,10 @@
 
 <script>
 import { useRoute, useRouter } from 'vue-router';
-/* eslint-disable no-console */
 import axios from '@/axios';
 import { ref } from 'vue';
 import { useToast } from '@/composables/toast';
+import { logger } from '@/utils/logger';
 import AppInput from '@/components/Input.vue';
 
 export default {
@@ -78,7 +78,7 @@ export default {
                 loading.value = false;
             } catch (error) {
                 loading.value = false;
-                console.error('할 일 저장 실패:', error);
+                logger.error('할 일 저장 실패:', error);
                 showToast('Something went wrong', 'danger');
             }
         };
@@ -121,7 +121,7 @@ export default {
                     moveToTodoListPage();
                 }
             } catch (error) {
-                console.error('할 일 저장 실패:', error);
+                logger.error('할 일 저장 실패:', error);
                 showToast('Something went wrong', 'danger');
             }
         };

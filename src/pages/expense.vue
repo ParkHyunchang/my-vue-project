@@ -477,6 +477,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import Modal from '@/components/Modal.vue';
 import DeleteModal from '@/components/DeleteModal.vue';
 import { useToast } from '@/composables/toast';
+import { logger } from '@/utils/logger';
 import axios from '@/axios';
 import {
   useExpensePeriod,
@@ -537,8 +538,7 @@ export default {
         }
         expenses.value = Array.isArray(response.data) ? response.data : [];
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('Error fetching expenses:', err);
+        logger.error('Error fetching expenses:', err);
         error.value = '가계부 데이터를 불러오는데 실패했습니다.';
         showToast('가계부 데이터를 불러오는데 실패했습니다.', 'danger');
       } finally {
@@ -561,8 +561,7 @@ export default {
           totalFixedExpense: response.data?.totalFixedExpense ?? 0
         };
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('Error fetching summary:', err);
+        logger.error('Error fetching summary:', err);
       }
     };
 
@@ -572,8 +571,7 @@ export default {
         const response = await axios.get('/expenses/fixed');
         fixedExpenses.value = Array.isArray(response.data) ? response.data : [];
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('Error fetching fixed expenses:', err);
+        logger.error('Error fetching fixed expenses:', err);
       } finally {
         fixedLoading.value = false;
       }
@@ -687,8 +685,7 @@ export default {
         await loadExpensesForCurrentPeriod();
         await fetchFixedExpenses();
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('Error saving expense:', err);
+        logger.error('Error saving expense:', err);
         showToast('가계부 항목 저장에 실패했습니다.', 'danger');
       }
     };
@@ -705,8 +702,7 @@ export default {
         await loadExpensesForCurrentPeriod();
         await fetchFixedExpenses();
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('Error deleting expense:', err);
+        logger.error('Error deleting expense:', err);
         showToast('가계부 항목 삭제에 실패했습니다.', 'danger');
       }
     };
@@ -729,8 +725,7 @@ export default {
         await loadExpensesForCurrentPeriod();
         showToast(successMessage, 'success');
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('Error importing fixed expenses:', err);
+        logger.error('Error importing fixed expenses:', err);
         showToast('고정 지출 항목 추가에 실패했습니다.', 'danger');
       } finally {
         isImportingFixed.value = false;

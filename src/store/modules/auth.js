@@ -1,5 +1,6 @@
 import { syncDynamicRoutes } from '../../router/index.js';
 import { PREMIUM_MENU_PATHS } from '../../config/routes';
+import { logger } from '@/utils/logger';
 
 // 메뉴 정의 로드 완료 후 동적 라우트 동기화 헬퍼
 async function applyDynamicRoutes(rootGetters) {
@@ -8,8 +9,7 @@ async function applyDynamicRoutes(rootGetters) {
         const paths = allMenus.map(m => m.path);
         syncDynamicRoutes(paths);
     } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error('동적 라우트 동기화 실패:', e);
+        logger.error('동적 라우트 동기화 실패:', e);
     }
 }
 
@@ -45,14 +45,12 @@ async function loadAuthContext(dispatch, rootGetters) {
     await dispatch("menu/loadUserMenus", null, { root: true });
     await applyDynamicRoutes(rootGetters);
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error("메뉴 권한 로드 실패:", error);
+    logger.error("메뉴 권한 로드 실패:", error);
   }
   try {
     await dispatch("loadCrudPermissions");
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error("CRUD 권한 로드 실패:", error);
+    logger.error("CRUD 권한 로드 실패:", error);
   }
 }
 
@@ -179,11 +177,9 @@ const actions = {
     } catch (error) {
       // 403 에러는 권한이 없는 것이므로 조용히 처리
       if (error.response?.status === 403) {
-        // eslint-disable-next-line no-console
-        console.error("CRUD 권한 로드 권한 없음 - 기본 권한 사용");
+        logger.error("CRUD 권한 로드 권한 없음 - 기본 권한 사용");
       } else {
-        // eslint-disable-next-line no-console
-        console.error("CRUD 권한 로드 실패:", error);
+        logger.error("CRUD 권한 로드 실패:", error);
       }
       commit("SET_CRUD_PERMISSIONS", []);
     }
