@@ -1,16 +1,16 @@
 /**
- * 백엔드가 보낸 에러 메시지를 안전하게 사용자 토스트 문구로 변환.
+ * 백엔드 에러를 사용자 토스트 문구로 변환.
  *
- * 동작:
- * - 403: 서버가 보낸 메시지(권한 차단 사유) 우선, 없으면 기본 권한 거부 문구.
- * - 그 외: 서버 메시지가 string이거나 { message } 형태면 그대로 사용, 아니면 fallback.
- *
- * 백엔드 컨트롤러는 권한 차단 시 401/403 + plain string body를 반환합니다.
- * (예: ResponseEntity.status(FORBIDDEN).body("삭제 권한이 없습니다."))
+ * 우선순위:
+ *  1) 403 → 서버가 보낸 권한 차단 사유, 없으면 "권한이 없습니다."
+ *  2) 서버가 보낸 사용자용 메시지(string body 또는 { message })가 있으면 그대로 사용
+ *  3) 응답이 없거나 비어있는 경우 → 네트워크/타임아웃/서버 오류 힌트를 fallback에 덧붙임
+ *  4) 그 외 → fallback
  */
 export function apiErrorMessage(err, fallback) {
   const status = err?.response?.status;
   const data = err?.response?.data;
+  const code = err?.code;
   const serverMsg = typeof data === 'string'
     ? data
     : (data && typeof data === 'object' && typeof data.message === 'string'
@@ -20,5 +20,22 @@ export function apiErrorMessage(err, fallback) {
   if (status === 403) {
     return serverMsg || '권한이 없습니다.';
   }
-  return serverMsg || fallback;
+  if (serverMsg) {
+    return serverMsg;
+  }
+
+  // 서버 메시지가 없는 경우: 원인을 분류해서 사용자에게 힌트 제공
+  if (code === 'ECONNABORTED' || code === 'ETIMEDOUT') {
+    return `${fallback} (요청 시간이 초과되었습니다)`;
+  }
+  if (code === 'ERR_NETWORK' || !err?.response) {
+    return `${fallback} (서버에 연결할 수 없습니다)`;
+  }
+  if (typeof status === 'number') {
+    if (status >= 500) return `${fallback} (서버 오류 ${status})`;
+    if (status === 404) return `${fallback} (대상을 찾을 수 없습니다)`;
+    if (status === 409) return `${fallback} (중복되거나 충돌하는 데이터가 있습니다)`;
+    if (status >= 400) return `${fallback} (요청 오류 ${status})`;
+  }
+  return fallback;
 }
