@@ -129,8 +129,8 @@
         </div>
       </div>
       <p class="schedule-note">
-        🇰🇷 KRX 공식 API · 전일 종가 기준 · 🇺🇸 Yahoo Finance v8 기반 ·
-        캐시 유효 시간 6시간 · 순위 변동(▲▼)은 직전 갱신 대비
+        🇰🇷 KRX 공식 API · 전일 종가 기준 · 🇺🇸 Yahoo Finance Screener (시총 실시간 동적 조회, ADR 포함) ·
+        캐시 유효 시간 2분 · 순위 변동(▲▼)은 직전 갱신 대비
       </p>
     </div>
 
