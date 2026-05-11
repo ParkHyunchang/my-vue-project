@@ -1,97 +1,27 @@
-﻿<template>
+<template>
   <div class="expense-container">
     <div class="page-header">
       <h2>가계부</h2>
     </div>
 
-    <div class="summary-cards">
-      <div class="summary-card income">
-        <h3>총 수입</h3>
-        <p class="amount">{{ formatCurrency(currentPeriodSummary.totalIncome) }}원</p>
-      </div>
-      <div class="summary-card expense">
-        <h3>총 지출</h3>
-        <p class="amount">{{ formatCurrency(currentPeriodSummary.totalExpense) }}원</p>
-      </div>
-      <div class="summary-card balance" :class="{ negative: currentPeriodSummary.balance < 0 }">
-        <h3>잔액</h3>
-        <p class="amount">{{ formatCurrency(currentPeriodSummary.balance) }}원</p>
-      </div>
-      <div class="summary-card fixed">
-        <h3>고정 지출 합계</h3>
-        <p class="amount">{{ formatCurrency(currentPeriodSummary.totalFixedExpense) }}원</p>
-      </div>
-    </div>
+    <ExpenseSummaryCards
+      :summary="currentPeriodSummary"
+      :format-currency="formatCurrency"
+    />
 
     <div class="filter-toolbar">
-      <div class="period-section">
-        <div class="period-buttons">
-          <button
-            :class="['period-button', { active: periodFilter === 'current-month' }]"
-            @click="setPeriod('current-month')"
-          >
-            이번 달
-          </button>
-          <button
-            :class="['period-button', { active: periodFilter === 'previous-month' }]"
-            @click="setPeriod('previous-month')"
-          >
-            지난 달
-          </button>
-          <button
-            :class="['period-button', { active: periodFilter === 'custom-month' }]"
-            @click="setPeriod('custom-month')"
-          >
-            달 선택
-          </button>
-          <button
-            :class="['period-button', { active: periodFilter === 'custom-range' }]"
-            @click="setPeriod('custom-range')"
-          >
-            기간 선택
-          </button>
-          <button
-            :class="['period-button', { active: periodFilter === 'all' }]"
-            @click="setPeriod('all')"
-          >
-            전체
-          </button>
-        </div>
-
-        <div v-if="periodFilter === 'custom-month'" class="period-inputs">
-          <label class="period-label-text" for="periodMonth">조회할 달</label>
-          <input
-            id="periodMonth"
-            type="month"
-            v-model="selectedMonth"
-            class="period-input"
-          />
-        </div>
-
-        <div v-if="periodFilter === 'custom-range'" class="period-inputs range-inputs">
-          <label class="period-label-text">조회 기간</label>
-          <div class="range-fields">
-            <input
-              type="date"
-              v-model="customStartDate"
-              class="period-input"
-            />
-            <span class="range-separator">~</span>
-            <input
-              type="date"
-              v-model="customEndDate"
-              class="period-input"
-            />
-          </div>
-        </div>
-
-        <div v-if="periodLabel" class="period-label">
-          {{ periodLabel }}
-        </div>
-        <div v-if="dateRangeError" class="period-error">
-          {{ dateRangeError }}
-        </div>
-      </div>
+      <ExpensePeriodFilter
+        :period-filter="periodFilter"
+        :selected-month="selectedMonth"
+        :custom-start-date="customStartDate"
+        :custom-end-date="customEndDate"
+        :period-label="periodLabel"
+        :date-range-error="dateRangeError"
+        @set-period="setPeriod"
+        @update:selected-month="selectedMonth = $event"
+        @update:custom-start-date="customStartDate = $event"
+        @update:custom-end-date="customEndDate = $event"
+      />
 
       <div class="top-action-buttons">
         <button
@@ -109,94 +39,22 @@
       </div>
     </div>
 
-    <div class="fixed-section" :class="{ collapsed: fixedCollapsed }">
-      <div class="section-header">
-        <div class="section-header-left">
-          <div>
-            <h3>고정 지출 관리</h3>
-            <p class="section-subtitle">
-              매달 반복되는 지출을 별도로 기록하고 확인하세요.
-            </p>
-          </div>
-        </div>
-        <div class="section-actions">
-          <div class="fixed-summary compact-summary">
-            <span>총 {{ fixedExpenses.length }}건</span>
-            <span>합계 {{ formatCurrency(fixedExpensesTotal) }}원</span>
-          </div>
-          <button
-            type="button"
-            class="collapse-toggle"
-            @click="toggleFixedSection"
-            :aria-expanded="!fixedCollapsed"
-          >
-            <span>{{ fixedCollapsed ? '열기' : '접기' }}</span>
-            <span class="collapse-icon">{{ fixedCollapsed ? '＋' : '－' }}</span>
-          </button>
-          <button class="btn btn-secondary" @click="openCreateFixedModal">
-            + 고정 지출 추가
-          </button>
-        </div>
-      </div>
-      <div v-if="fixedCollapsed" class="fixed-collapsed-summary">
-        총 {{ fixedExpenses.length }}건 · 합계 {{ formatCurrency(fixedExpensesTotal) }}원
-      </div>
-      <div v-else>
-        <div class="fixed-toolbar">
-          <div class="fixed-summary">
-            <span>총 {{ fixedExpenses.length }}건</span>
-            <span>합계 {{ formatCurrency(fixedExpensesTotal) }}원</span>
-          </div>
-          <button
-            class="btn btn-primary"
-            @click="importFixedExpenses"
-            :disabled="isImportingFixed || fixedExpenses.length === 0 || !canImportToCurrentView"
-            :title="canImportToCurrentView ? '' : '현재 선택한 기간에는 고정 지출을 일괄 추가할 수 없습니다.'"
-          >
-            <span v-if="isImportingFixed">추가 중...</span>
-            <span v-else>{{ importButtonLabel }}</span>
-          </button>
-        </div>
-        <div v-if="fixedLoading" class="fixed-loading">
-          고정 지출을 불러오는 중입니다...
-        </div>
-        <div v-else-if="fixedExpenses.length === 0" class="empty-state">
-          등록된 고정 지출이 없습니다.
-        </div>
-        <div v-else class="fixed-list">
-          <div
-            v-for="expense in fixedExpenses"
-            :key="expense.id"
-            class="fixed-item"
-          >
-            <div class="fixed-item-main">
-              <div class="fixed-item-title">
-                <h4>{{ expense.title }}</h4>
-                <span class="badge badge-fixed">고정</span>
-              </div>
-              <p v-if="expense.description" class="description">
-                {{ expense.description }}
-              </p>
-              <div class="meta">
-                <span class="category">{{ expense.category }}</span>
-                <span class="date">{{ formatDate(expense.createdAt) }}</span>
-              </div>
-            </div>
-            <div class="fixed-item-amount">
-              - {{ formatCurrency(expense.amount) }}원
-            </div>
-            <div class="fixed-item-actions">
-              <button @click="openEditModal(expense)" class="btn btn-sm btn-primary">
-                수정
-              </button>
-              <button @click="openDeleteModal(expense)" class="btn btn-sm btn-danger">
-                삭제
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <FixedExpenseSection
+      :fixed-expenses="fixedExpenses"
+      :fixed-expenses-total="fixedExpensesTotal"
+      :fixed-collapsed="fixedCollapsed"
+      :fixed-loading="fixedLoading"
+      :is-importing-fixed="isImportingFixed"
+      :can-import-to-current-view="canImportToCurrentView"
+      :import-button-label="importButtonLabel"
+      :format-currency="formatCurrency"
+      :format-date="formatDate"
+      @toggle="toggleFixedSection"
+      @create-fixed="openCreateFixedModal"
+      @import-fixed="importFixedExpenses"
+      @edit="openEditModal"
+      @delete="openDeleteModal"
+    />
 
     <div class="view-mode-toggle">
       <button
@@ -252,100 +110,26 @@
       {{ error }}
     </div>
 
-    <div v-if="!loading && !error" class="expense-list">
-      <div v-if="paginatedExpenses.length === 0" class="empty-state">
-        가계부 항목이 없습니다.
-      </div>
-      <div
-        v-else
-        v-for="expense in paginatedExpenses"
-        :key="expense.id"
-        class="expense-item"
-      >
-        <div class="expense-info">
-          <div class="expense-header">
-            <h4>{{ expense.title }}</h4>
-            <div class="expense-tags">
-              <span
-                class="badge"
-                :class="expense.type === 'INCOME' ? 'badge-income' : 'badge-expense'"
-              >
-                {{ expense.type === 'INCOME' ? '수입' : '지출' }}
-              </span>
-              <span v-if="expense.fixed" class="badge badge-fixed">
-                고정
-              </span>
-            </div>
-          </div>
-          <p v-if="expense.description" class="description">
-            {{ expense.description }}
-          </p>
-          <div class="meta">
-            <span class="category">{{ expense.category }}</span>
-            <span class="date">{{ formatDate(expense.createdAt) }}</span>
-          </div>
-        </div>
-        <div class="expense-amount" :class="expense.type.toLowerCase()">
-          <span v-if="expense.type === 'INCOME'">+</span>
-          <span v-else>-</span>
-          {{ formatCurrency(expense.amount) }}원
-        </div>
-        <div class="expense-actions">
-          <button @click="openEditModal(expense)" class="btn btn-sm btn-primary">수정</button>
-          <button @click="openDeleteModal(expense)" class="btn btn-sm btn-danger">삭제</button>
-        </div>
-      </div>
-    </div>
+    <ExpenseList
+      v-if="!loading && !error"
+      :expenses="paginatedExpenses"
+      :format-currency="formatCurrency"
+      :format-date="formatDate"
+      @edit="openEditModal"
+      @delete="openDeleteModal"
+    />
 
-    <div
+    <ExpensePagination
       v-if="!loading && !error && filteredExpenses.length > 0"
-      class="pagination"
-    >
-      <div class="pagination-controls">
-        <button
-          @click="goToPage(currentPage - 1)"
-          :disabled="currentPage === 1"
-          class="pagination-btn nav-btn"
-        >
-          ← 이전
-        </button>
-
-        <div v-if="totalPages > 1" class="page-input-container">
-          <span class="page-label">페이지</span>
-          <input
-            v-model.number="pageInput"
-            @keyup.enter="goToInputPage"
-            @blur="goToInputPage"
-            type="number"
-            :min="1"
-            :max="totalPages"
-            class="page-input"
-            :class="{ error: pageInputError }"
-          />
-          <span class="page-total">/ {{ totalPages }}</span>
-        </div>
-
-        <button
-          @click="goToPage(currentPage + 1)"
-          :disabled="currentPage === totalPages"
-          class="pagination-btn nav-btn"
-        >
-          다음 →
-        </button>
-      </div>
-
-      <div v-if="totalPages > 1" class="pagination-pages">
-        <button
-          v-for="page in visiblePages"
-          :key="page"
-          @click="goToPage(page)"
-          :class="['pagination-btn page-btn', { active: page === currentPage }]"
-          :disabled="page === '...'"
-        >
-          {{ page }}
-        </button>
-      </div>
-    </div>
+      :current-page="currentPage"
+      :total-pages="totalPages"
+      :visible-pages="visiblePages"
+      :page-input="pageInput"
+      :page-input-error="pageInputError"
+      @go-to-page="goToPage"
+      @go-to-input-page="goToInputPage"
+      @update:page-input="pageInput = $event"
+    />
 
     <div
       v-if="!loading && !error && filteredExpenses.length > 0"
@@ -354,111 +138,15 @@
       {{ (currentPage - 1) * itemsPerPage + 1 }}-{{ Math.min(currentPage * itemsPerPage, filteredExpenses.length) }} / {{ filteredExpenses.length }}개 항목
     </div>
 
-    <teleport to="#modal">
-      <Modal v-if="showExpenseModal" @close="closeExpenseModal">
-        <template #header>
-          <h3>{{ isEditing ? '가계부 수정' : '새 항목 추가' }}</h3>
-        </template>
-        <template #body>
-          <form @submit.prevent="saveExpense" class="expense-form">
-            <div class="form-group">
-              <label>내역</label>
-              <input
-                v-model="currentExpense.title"
-                type="text"
-                class="form-control"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label>날짜</label>
-              <input
-                v-model="currentExpense.date"
-                type="date"
-                class="form-control"
-                required
-              />
-              <span v-if="currentExpense.fixed" class="form-hint">
-                고정 지출은 선택한 날짜 기준으로 매달 자동 등록됩니다.
-              </span>
-            </div>
-            <div class="form-group">
-              <label>금액</label>
-              <input
-                v-model.number="currentExpense.amount"
-                type="number"
-                class="form-control"
-                required
-                min="0"
-              />
-            </div>
-            <div class="form-group">
-              <label>유형</label>
-              <select
-                v-model="currentExpense.type"
-                class="form-control"
-                required
-              >
-                <option value="INCOME">수입</option>
-                <option value="EXPENSE">지출</option>
-              </select>
-            </div>
-            <div class="form-group category-group">
-              <label>카테고리</label>
-              <div class="category-grid">
-                <button
-                  type="button"
-                  v-for="category in formCategoryOptions"
-                  :key="category"
-                  :class="['category-option', { active: currentExpense.category === category }]"
-                  @click="currentExpense.category = category"
-                >
-                  {{ category }}
-                </button>
-              </div>
-              <input type="hidden" :value="currentExpense.category" required>
-            </div>
-            <div
-              v-if="currentExpense.type === 'EXPENSE'"
-              class="form-group form-group-inline"
-            >
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  v-model="currentExpense.fixed"
-                />
-                고정 지출 항목
-              </label>
-              <span class="form-hint">
-                매달 반복되는 지출일 때 체크하세요.
-              </span>
-            </div>
-          </form>
-        </template>
-        <template #footer>
-          <div class="modal-footer-buttons">
-            <button type="button" class="btn btn-primary" @click="saveExpense">
-              {{ isEditing ? '수정' : '저장' }}
-            </button>
-            <button
-              type="button"
-              class="btn btn-danger"
-              @click="openDeleteModal(currentExpense)"
-              v-if="isEditing"
-            >
-              삭제
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              @click="closeExpenseModal"
-            >
-              취소
-            </button>
-          </div>
-        </template>
-      </Modal>
-    </teleport>
+    <ExpenseFormModal
+      :show="showExpenseModal"
+      :is-editing="isEditing"
+      v-model="currentExpense"
+      :form-category-options="formCategoryOptions"
+      @close="closeExpenseModal"
+      @save="saveExpense"
+      @delete="openDeleteModal"
+    />
 
     <teleport to="#modal">
       <DeleteModal
@@ -474,8 +162,13 @@
 
 <script>
 import { ref, computed, onMounted, watch } from 'vue';
-import Modal from '@/components/Modal.vue';
 import DeleteModal from '@/components/DeleteModal.vue';
+import ExpenseSummaryCards from '@/components/expense/ExpenseSummaryCards.vue';
+import ExpensePeriodFilter from '@/components/expense/ExpensePeriodFilter.vue';
+import FixedExpenseSection from '@/components/expense/FixedExpenseSection.vue';
+import ExpenseList from '@/components/expense/ExpenseList.vue';
+import ExpensePagination from '@/components/expense/ExpensePagination.vue';
+import ExpenseFormModal from '@/components/expense/ExpenseFormModal.vue';
 import { useToast } from '@/composables/toast';
 import { logger } from '@/utils/logger';
 import { apiErrorMessage } from '@/utils/apiError';
@@ -495,8 +188,13 @@ import {
 
 export default {
   components: {
-    Modal,
     DeleteModal,
+    ExpenseSummaryCards,
+    ExpensePeriodFilter,
+    FixedExpenseSection,
+    ExpenseList,
+    ExpensePagination,
+    ExpenseFormModal,
   },
   setup() {
     const { showToast } = useToast();
@@ -580,8 +278,6 @@ export default {
     };
 
     // ── 컴포저블 (API 함수 정의 후 생성) ─────────────────────────
-    // period.getPeriodRange() / filters.resetPagination() 은
-    // 콜백이 실행될 시점(사용자 인터랙션)에는 이미 할당돼 있음
     const filters = useExpenseFilters(expenses, fixedExpenses);
     const period  = useExpensePeriod(async () => {
       const range = period.getPeriodRange();
