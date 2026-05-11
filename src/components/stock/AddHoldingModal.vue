@@ -12,13 +12,13 @@
         </div>
 
         <div class="mform-row">
-          <label>종목 검색 ( 종목코드 )</label>
+          <label>종목 검색 (이름 · 티커)</label>
           <div class="stock-search-box">
             <input
               :value="searchQ"
               @input="onSearchQInput"
               type="text"
-              placeholder="삼성전자, Tesla, NVDA, 005930.KS..."
+              placeholder="삼성전자, 테슬라, Tesla, NVDA, 005930.KS..."
               class="stock-search-inp"
               autocomplete="off"
               @focus="$emit('update:showDropdown', true)"
