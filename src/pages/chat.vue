@@ -6,7 +6,7 @@
       <div class="sidebar-header">
         <button class="new-chat-btn" @click="startNewChat">+ 새 대화</button>
       </div>
-      <div class="session-list">
+      <div class="session-list" data-lenis-prevent>
         <div
           v-for="s in sessions"
           :key="s.sessionKey"
@@ -31,7 +31,7 @@
         </div>
       </div>
 
-      <div class="messages" ref="messagesEl">
+      <div class="messages" ref="messagesEl" data-lenis-prevent>
         <!-- 새 채팅 환영 화면 -->
         <div v-if="!sessionKey && !historyLoading" class="welcome-screen">
           <h1 class="welcome-title">
@@ -50,18 +50,18 @@
             :class="msg.role"
           >
             <div class="message__bubble">
-              <pre class="message__text">{{ msg.content }}</pre>
+              <pre class="message__text">{{ msg.content }}<span v-if="msg.streaming" class="stream-cursor">▌</span></pre>
+              <span v-if="msg.streaming && !msg.content" class="loading-dots"><span>.</span><span>.</span><span>.</span></span>
             </div>
           </div>
         </template>
-        <div v-if="loading" class="message assistant">
-          <div class="message__bubble">
-            <span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>
-          </div>
-        </div>
       </div>
 
-      <form class="chat-input-area" @submit.prevent="send">
+      <div v-if="!username" class="chat-login-prompt">
+        <span>채팅을 사용하려면 로그인이 필요합니다.</span>
+        <button class="login-btn" type="button" @click="goToLogin">로그인</button>
+      </div>
+      <form v-else class="chat-input-area" @submit.prevent="send">
         <textarea
           v-model="input"
           class="chat-input"
@@ -164,7 +164,9 @@ export default {
         .finally(() => { this.historyLoading = false })
     },
 
-    // ── 메시지 전송 ────────────────────────────────────────────
+    // ── 메시지 전송 (SSE 스트리밍) ─────────────────────────────
+    // 백엔드 /api/chat/stream 이 토큰을 SSE 이벤트(delta/done/error)로 흘려보냄.
+    // 어시스턴트 메시지를 빈 상태로 먼저 push 한 뒤 delta가 올 때마다 content에 append.
 
     async send() {
       const text = this.input.trim()
@@ -175,23 +177,86 @@ export default {
       }
 
       this.messages.push({ role: 'user', content: text })
+      const assistantIndex = this.messages.length
+      this.messages.push({ role: 'assistant', content: '', streaming: true })
+
+      const userContent = text
       this.input = ''
       this.$nextTick(() => this.autoResize())
       this.loading = true
       this.scrollToBottom()
 
       try {
-        const res = await axios.post('/api/chat', {
-          sessionKey: this.sessionKey,
-          content: text,
-        })
-        this.messages.push({ role: 'assistant', content: res.data.content })
-      } catch {
-        this.messages.push({ role: 'assistant', content: '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.' })
+        await this.streamChat(userContent, assistantIndex)
+      } catch (e) {
+        if (!this.messages[assistantIndex].content) {
+          this.messages[assistantIndex].content = '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.'
+        }
       } finally {
+        this.messages[assistantIndex].streaming = false
         this.refreshSessions()
         this.loading = false
         this.$nextTick(() => this.scrollToBottom())
+      }
+    },
+
+    async streamChat(userContent, assistantIndex) {
+      const url = `${process.env.VUE_APP_API_URL || ''}/api/chat/stream`
+      const res = await fetch(url, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'text/event-stream',
+        },
+        body: JSON.stringify({ sessionKey: this.sessionKey, content: userContent }),
+      })
+
+      if (!res.ok || !res.body) {
+        throw new Error(`HTTP ${res.status}`)
+      }
+
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder('utf-8')
+      let buffer = ''
+      let currentEvent = null
+
+      for (;;) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+
+        // SSE는 빈 줄(\n\n)로 이벤트가 끝나지만, 라인 단위로 누적 파싱하는 게 더 안전
+        let newlineIdx
+        while ((newlineIdx = buffer.indexOf('\n')) !== -1) {
+          const line = buffer.slice(0, newlineIdx).replace(/\r$/, '')
+          buffer = buffer.slice(newlineIdx + 1)
+
+          if (line === '') { currentEvent = null; continue }
+          if (line.startsWith('event:')) {
+            currentEvent = line.slice(6).trim()
+          } else if (line.startsWith('data:')) {
+            const data = line.slice(5).trim()
+            if (!data) continue
+            this.handleSseData(currentEvent, data, assistantIndex)
+          }
+        }
+      }
+    },
+
+    handleSseData(eventName, data, assistantIndex) {
+      let parsed
+      try { parsed = JSON.parse(data) } catch { return }
+
+      if (eventName === 'delta' && parsed.text) {
+        this.messages[assistantIndex].content += parsed.text
+        this.scrollToBottom()
+      } else if (eventName === 'error') {
+        // 중간에 에러가 나면 지금까지 받은 부분 응답 뒤에 에러 메시지를 덧붙임
+        const err = parsed.message || '오류가 발생했습니다.'
+        const m = this.messages[assistantIndex]
+        m.content = m.content ? `${m.content}\n\n${err}` : err
       }
     },
 
@@ -216,6 +281,10 @@ export default {
       if (!el) return
       el.style.height = 'auto'
       el.style.height = Math.min(el.scrollHeight, 160) + 'px'
+    },
+
+    goToLogin() {
+      this.$router.push('/login')
     },
 
     formatDate(dateStr) {
@@ -448,6 +517,17 @@ export default {
   color: inherit;
 }
 
+.stream-cursor {
+  display: inline-block;
+  margin-left: 2px;
+  color: var(--accent, #7c6fff);
+  animation: stream-blink 1s steps(2, start) infinite;
+}
+
+@keyframes stream-blink {
+  to { visibility: hidden; }
+}
+
 .loading-dots { display: inline-flex; gap: 2px; }
 
 .loading-dots span {
@@ -506,6 +586,32 @@ export default {
 
 .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .send-btn:not(:disabled):hover { opacity: 0.85; }
+
+.chat-login-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid var(--card-border, #2a2a2a);
+  flex-shrink: 0;
+  color: var(--text-muted, #888);
+  font-size: 0.9rem;
+}
+
+.login-btn {
+  background: var(--accent, #7c6fff);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.45rem 1rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.login-btn:hover { opacity: 0.85; }
 
 /* ── 모바일 ──────────────────────────────────── */
 .sidebar-overlay {
