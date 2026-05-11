@@ -50,10 +50,11 @@
             <td class="td-r">{{ fmtHoldVal(h) }}</td>
             <td class="td-r">
               <input
-                :value="editForm.avgPrice"
-                @input="$emit('update:editForm', { ...editForm, avgPrice: $event.target.value === '' ? null : Number($event.target.value) })"
-                type="number"
-                min="0"
+                :value="editForm.avgPrice ?? ''"
+                @input="$emit('update:editForm', { ...editForm, avgPrice: $event.target.value === '' ? null : $event.target.value })"
+                type="text"
+                inputmode="decimal"
+                pattern="[0-9]*[.,]?[0-9]*"
                 class="inline-inp"
                 placeholder="미입력"
               />

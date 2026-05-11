@@ -244,6 +244,12 @@ export default {
       emit("holdings-changed", holdings.value);
     }
 
+    function toNum(v) {
+      if (v == null || v === "") return null;
+      const n = Number(String(v).replace(",", "."));
+      return Number.isFinite(n) ? n : null;
+    }
+
     async function initPortfolio() {
       try {
         holdings.value = JSON.parse(localStorage.getItem(PORTFOLIO_KEY)) || [];
@@ -374,7 +380,7 @@ export default {
       try {
         const res = await axios.post("/api/portfolio/holdings", {
           market, name: h.name.trim(), symbol: sym,
-          quantity: h.quantity, avgPrice: h.avgPrice || null,
+          quantity: h.quantity, avgPrice: toNum(h.avgPrice),
         });
         holdings.value.push(res.data);
         emitHoldingsChanged();
@@ -401,7 +407,7 @@ export default {
     async function saveEdit(h) {
       const payload = {
         quantity: editForm.value.quantity,
-        avgPrice: editForm.value.avgPrice || null,
+        avgPrice: toNum(editForm.value.avgPrice),
       };
       try {
         const res = await axios.put(`/api/portfolio/holdings/${h.id}`, payload);

@@ -106,10 +106,11 @@
         <div class="mform-row">
           <label>평단가 <span class="opt-label">(선택)</span></label>
           <input
-            :value="newHolding.avgPrice"
-            @input="updateNewField('avgPrice', $event.target.value === '' ? null : Number($event.target.value))"
-            type="number"
-            min="0"
+            :value="newHolding.avgPrice ?? ''"
+            @input="updateNewField('avgPrice', $event.target.value === '' ? null : $event.target.value)"
+            type="text"
+            inputmode="decimal"
+            pattern="[0-9]*[.,]?[0-9]*"
             :placeholder="newHolding.market === 'KR' ? '원 단위' : 'USD'"
           />
         </div>
