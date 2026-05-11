@@ -721,77 +721,6 @@
   opacity: 0.8;
 }
 
-/* ── 스케줄 안내 박스 ── */
-.schedule-info {
-  margin-top: 20px;
-  padding: 16px 20px;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-}
-
-.schedule-info-title {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  display: block;
-  margin-bottom: 12px;
-}
-
-.schedule-items {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.schedule-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.schedule-flag {
-  font-size: 1.3rem;
-  line-height: 1;
-}
-
-.schedule-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-}
-
-.schedule-detail strong {
-  font-size: 0.85rem;
-  color: var(--text-primary);
-}
-
-.schedule-detail span {
-  font-size: 0.77rem;
-  color: var(--text-muted);
-}
-
-.schedule-time {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--accent);
-  font-variant-numeric: tabular-nums;
-  min-width: 42px;
-  text-align: right;
-}
-
-.schedule-note {
-  margin: 12px 0 0;
-  padding-top: 10px;
-  border-top: 1px solid var(--card-border);
-  font-size: 0.73rem;
-  color: var(--text-muted);
-  opacity: 0.75;
-}
-
 .top10-table-wrap {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
@@ -1445,6 +1374,32 @@
   /* 포트폴리오 요약 금액 */
   .ps-totals { flex-wrap: wrap; }
 
+  /* 한국/미국 분리 요약: 라벨은 그대로, 손익은 다음 줄로 내려서 들여쓰기 */
+  .ps-bd-row,
+  .ps-bd-total,
+  .ps-pnl {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+  .ps-bd-row > .ps-bd-pnl {
+    flex-basis: 100%;
+    margin-left: 62px;
+    font-size: 0.82rem;
+  }
+  /* 전체 줄: '투자원금'은 새 줄, 손익액·퍼센트는 그 다음 줄에 같이 */
+  .ps-bd-total > .ps-cost-label {
+    flex-basis: 100%;
+    margin-left: 60px;
+    font-size: 0.78rem;
+  }
+  .ps-bd-total > .ps-pnl-val {
+    margin-left: 60px;
+  }
+  /* 단일 마켓 보기(else 분기): 투자원금만 새 줄로 */
+  .ps-pnl > .ps-cost-label {
+    flex-basis: 100%;
+  }
+
   /* top10 테이블 → 카드 전환 */
   .top10-table-wrap { display: none; }
 
@@ -1456,10 +1411,6 @@
 
   /* 카드 내 rank-chg 정렬 */
   .t10c-rank-wrap .rank-chg { margin-left: 0; }
-
-  /* 스케줄 안내 */
-  .schedule-detail span { word-break: keep-all; }
-  .schedule-note { word-break: keep-all; font-size: 0.71rem; }
 
   .news-grid { columns: 1; }
 

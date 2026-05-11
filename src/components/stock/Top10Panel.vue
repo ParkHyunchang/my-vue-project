@@ -108,33 +108,10 @@
       </div>
     </template>
 
-    <div class="schedule-info">
-      <span class="schedule-info-title">⏰ 자동 갱신 스케줄</span>
-      <div class="schedule-items">
-        <div class="schedule-item">
-          <span class="schedule-flag">🇰🇷</span>
-          <div class="schedule-detail">
-            <strong>코스피 / 코스닥</strong>
-            <span>매일 09:00 KST — KRX 공식 API, 한국 장 개장 직전 갱신</span>
-          </div>
-          <span class="schedule-time">09:00</span>
-        </div>
-        <div class="schedule-item">
-          <span class="schedule-flag">🇺🇸</span>
-          <div class="schedule-detail">
-            <strong>미국 (NYSE/NASDAQ)</strong>
-            <span>매일 23:30 KST — 미국 장 개장 직전 갱신</span>
-          </div>
-          <span class="schedule-time">23:30</span>
-        </div>
-      </div>
-      <p class="schedule-note">
-        🇰🇷 KRX 공식 API · 전일 종가 기준 · 🇺🇸 Yahoo Finance Screener (시총 실시간 동적 조회, ADR 포함) ·
-        캐시 유효 시간 2분 · 순위 변동(▲▼)은 직전 갱신 대비
-      </p>
-    </div>
-
-    <p class="data-credit">시세 데이터: KRX 공식 API · Naver Finance · Yahoo Finance</p>
+    <p class="data-credit">
+      시세 데이터: KRX 공식 API · Naver Finance · Yahoo Finance ·
+      순위 변동(▲▼)은 직전 갱신 대비
+    </p>
   </div>
 </template>
 
