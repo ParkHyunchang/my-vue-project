@@ -183,6 +183,7 @@
 <script>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
 import axios from "@/axios";
+import { logAudit } from "@/utils/audit";
 import { useStockFormatters } from "@/composables/useStockFormatters";
 import { usePortfolioStats } from "@/composables/usePortfolioStats";
 import PortfolioSummary from "@/components/stock/PortfolioSummary.vue";
@@ -532,7 +533,10 @@ export default {
     watch(
       () => props.active,
       (isActive) => {
-        if (isActive) fetchPrices();
+        if (isActive) {
+          logAudit("STOCK/HOLDING");
+          fetchPrices();
+        }
       },
     );
 
@@ -542,7 +546,10 @@ export default {
       } finally {
         initialLoading.value = false;
       }
-      if (props.active) fetchPrices();
+      if (props.active) {
+        logAudit("STOCK/HOLDING");
+        fetchPrices();
+      }
       refreshTimer = setInterval(() => {
         if (props.active) fetchPrices();
       }, 120000);

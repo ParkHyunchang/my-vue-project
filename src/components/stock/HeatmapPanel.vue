@@ -71,6 +71,7 @@
 <script>
 import { ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import axios from "@/axios";
+import { logAudit } from "@/utils/audit";
 import * as echarts from "echarts";
 
 export default {
@@ -292,13 +293,21 @@ export default {
 
     watch(
       () => props.active,
-      (isActive) => { if (isActive) activate(); },
+      (isActive) => {
+        if (isActive) {
+          logAudit("STOCK/HEATMAP", "VIEW", `market=${heatmapMarket.value}`);
+          activate();
+        }
+      },
     );
 
     onMounted(() => {
       window.addEventListener("resize", onResizeKrChart);
       window.addEventListener("orientationchange", onOrientationChange);
-      if (props.active) activate();
+      if (props.active) {
+        logAudit("STOCK/HEATMAP", "VIEW", `market=${heatmapMarket.value}`);
+        activate();
+      }
     });
 
     onBeforeUnmount(() => {

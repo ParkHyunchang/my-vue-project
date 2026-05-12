@@ -5,6 +5,7 @@ import Portfolio from '../pages/portfolio.vue';
 import Projects from '../pages/projects.vue';
 import Auth from '../pages/auth.vue';
 import { ROUTE_COMPONENTS } from '../config/routes';
+import { categoryFromPath, logAudit } from '../utils/audit';
 
 const router = createRouter({
     history: createWebHashHistory(),
@@ -198,6 +199,16 @@ router.beforeEach(async (to, from, next) => {
     }
 
     next();
+});
+
+// 라우트 변경 시 감사 로그 한 줄 — 로그인 사용자의 메뉴 이동을 [CATEGORY] VIEW 로 기록.
+// 동일 path 재진입(쿼리만 바뀜)도 별도 액션으로 간주해 기록한다.
+router.afterEach((to, from) => {
+    if (to.path === from.path) return; // 같은 path 내에서 쿼리만 변경되는 경우는 제외
+    if (!store.getters['auth/isAuthenticated']) return; // 비로그인은 제외
+    const category = categoryFromPath(to.path);
+    if (!category) return;
+    logAudit(category, 'VIEW');
 });
 
 export default router;

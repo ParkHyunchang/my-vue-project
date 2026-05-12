@@ -118,6 +118,7 @@
 <script>
 import { ref, watch, onMounted, onBeforeUnmount } from "vue";
 import axios from "@/axios";
+import { logAudit } from "@/utils/audit";
 import { useStockFormatters } from "@/composables/useStockFormatters";
 
 export default {
@@ -171,12 +172,18 @@ export default {
     watch(
       () => props.active,
       (isActive) => {
-        if (isActive && top10Data.value.length === 0) loadTop10();
+        if (isActive) {
+          logAudit("STOCK/TOP10", "VIEW", `market=${top10Market.value}`);
+          if (top10Data.value.length === 0) loadTop10();
+        }
       },
     );
 
     onMounted(() => {
-      if (props.active) loadTop10();
+      if (props.active) {
+        logAudit("STOCK/TOP10", "VIEW", `market=${top10Market.value}`);
+        loadTop10();
+      }
       refreshTimer = setInterval(() => {
         if (props.active) loadTop10();
       }, 120000);

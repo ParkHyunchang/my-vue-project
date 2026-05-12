@@ -90,6 +90,7 @@
 <script>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import axios from "@/axios";
+import { logAudit } from "@/utils/audit";
 import { useStockFormatters } from "@/composables/useStockFormatters";
 
 export default {
@@ -226,6 +227,7 @@ export default {
       () => props.active,
       (isActive) => {
         if (isActive) {
+          logAudit("STOCK/NEWS", "VIEW", `market=${newsMarket.value}`);
           if (newsData.value.length === 0) loadNews(newsMarket.value);
           startAutoRefresh();
         } else {
@@ -236,6 +238,7 @@ export default {
 
     onMounted(async () => {
       if (props.active) {
+        logAudit("STOCK/NEWS", "VIEW", `market=${newsMarket.value}`);
         if (newsData.value.length === 0) loadNews(newsMarket.value);
         startAutoRefresh();
       }
