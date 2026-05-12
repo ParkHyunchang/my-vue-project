@@ -368,6 +368,16 @@ export default {
       setTimeout(() => { showDropdown.value = false; }, 200);
     }
 
+    function describeApiError(err, fallback) {
+      const status = err?.response?.status;
+      const body = err?.response?.data;
+      const serverMsg = typeof body === "string" ? body : body?.message;
+      if (status === 403) return serverMsg || "해당 작업에 대한 권한이 없습니다. 관리자에게 문의하세요.";
+      if (status === 401) return "로그인이 만료되었습니다. 다시 로그인해주세요.";
+      if (serverMsg) return serverMsg;
+      return fallback;
+    }
+
     async function addHolding() {
       const h = newHolding.value;
       const sym = h.symbol.trim().toUpperCase();
@@ -386,7 +396,9 @@ export default {
         emitHoldingsChanged();
         closeAddModal();
         fetchPrices();
-      } catch { /* noop */ }
+      } catch (err) {
+        alert(describeApiError(err, "종목 추가에 실패했습니다."));
+      }
     }
 
     async function removeHolding(id) {
@@ -397,7 +409,9 @@ export default {
         await axios.delete(`/api/portfolio/holdings/${id}`);
         holdings.value = holdings.value.filter((h) => h.id !== id);
         emitHoldingsChanged();
-      } catch { /* noop */ }
+      } catch (err) {
+        alert(describeApiError(err, "종목 삭제에 실패했습니다."));
+      }
     }
 
     function startEdit(h) {
@@ -416,7 +430,9 @@ export default {
         editingId.value = null;
         emitHoldingsChanged();
         fetchPrices();
-      } catch { /* noop */ }
+      } catch (err) {
+        alert(describeApiError(err, "종목 수정에 실패했습니다."));
+      }
     }
 
     const canAdd = computed(
