@@ -1,5 +1,4 @@
 import { syncDynamicRoutes } from '../../router/index.js';
-import { PREMIUM_MENU_PATHS } from '../../config/routes';
 import { logger } from '@/utils/logger';
 
 // 메뉴 정의 로드 완료 후 동적 라우트 동기화 헬퍼
@@ -18,7 +17,6 @@ async function applyDynamicRoutes(rootGetters) {
 const state = {
   user: null,
   isAuthenticated: false,
-  crudPermissions: [],
 };
 
 const mutations = {
@@ -32,10 +30,6 @@ const mutations = {
   LOGOUT(state) {
     state.user = null;
     state.isAuthenticated = false;
-    state.crudPermissions = [];
-  },
-  SET_CRUD_PERMISSIONS(state, permissions) {
-    state.crudPermissions = permissions;
   },
 };
 
@@ -46,11 +40,6 @@ async function loadAuthContext(dispatch, rootGetters) {
     await applyDynamicRoutes(rootGetters);
   } catch (error) {
     logger.error("메뉴 권한 로드 실패:", error);
-  }
-  try {
-    await dispatch("loadCrudPermissions");
-  } catch (error) {
-    logger.error("CRUD 권한 로드 실패:", error);
   }
 }
 
@@ -164,30 +153,16 @@ const actions = {
       return false;
     }
   },
-
-  async loadCrudPermissions({ commit, state }) {
-    if (!state.user) {
-      return;
-    }
-
-    try {
-      const axios = (await import("@/axios")).default;
-      const response = await axios.get("/api/admin/user-crud-permissions");
-      commit("SET_CRUD_PERMISSIONS", response.data);
-    } catch (error) {
-      // 403 에러는 권한이 없는 것이므로 조용히 처리
-      if (error.response?.status === 403) {
-        logger.error("CRUD 권한 로드 권한 없음 - 기본 권한 사용");
-      } else {
-        logger.error("CRUD 권한 로드 실패:", error);
-      }
-      commit("SET_CRUD_PERMISSIONS", []);
-    }
-  },
 };
 
-const isPremiumDatingMenu = (userRole, menuPath) =>
-  userRole === "PREMIUM" && PREMIUM_MENU_PATHS.includes(menuPath);
+// 메뉴 접근 권한 기반 통합 체크: 접근 가능한 메뉴면 모든 CRUD 허용.
+// canCreate/canRead/canUpdate/canDelete 4개 getter는 동일 결과를 반환해
+// 기존 호출부(@/components/dating/MemoryFormModal.vue 등)와 호환된다.
+const hasMenuAccess = (rootGetters, user, menuPath) => {
+  if (!user) return false;
+  if (user.role === "ADMIN") return true;
+  return !!rootGetters["menu/canAccessMenu"]?.(menuPath);
+};
 
 const getters = {
   isAuthenticated: (state) => state.isAuthenticated,
@@ -202,39 +177,14 @@ const getters = {
       return state.user.role === "PREMIUM" || state.user.role === "ADMIN";
     return state.user.role === role;
   },
-  crudPermissions: (state) => state.crudPermissions,
-  canCreate: (state) => (menuPath) => {
-    if (state.user?.role === "ADMIN") return true;
-    if (isPremiumDatingMenu(state.user?.role, menuPath)) return true;
-    const permission = state.crudPermissions.find(
-      (p) => p.menuPath === menuPath
-    );
-    return permission?.canCreate || false;
-  },
-  canRead: (state) => (menuPath) => {
-    if (state.user?.role === "ADMIN") return true;
-    if (isPremiumDatingMenu(state.user?.role, menuPath)) return true;
-    const permission = state.crudPermissions.find(
-      (p) => p.menuPath === menuPath
-    );
-    return permission?.canRead || false;
-  },
-  canUpdate: (state) => (menuPath) => {
-    if (state.user?.role === "ADMIN") return true;
-    if (isPremiumDatingMenu(state.user?.role, menuPath)) return true;
-    const permission = state.crudPermissions.find(
-      (p) => p.menuPath === menuPath
-    );
-    return permission?.canUpdate || false;
-  },
-  canDelete: (state) => (menuPath) => {
-    if (state.user?.role === "ADMIN") return true;
-    if (isPremiumDatingMenu(state.user?.role, menuPath)) return true;
-    const permission = state.crudPermissions.find(
-      (p) => p.menuPath === menuPath
-    );
-    return permission?.canDelete || false;
-  },
+  canCreate: (state, _getters, _rootState, rootGetters) => (menuPath) =>
+    hasMenuAccess(rootGetters, state.user, menuPath),
+  canRead: (state, _getters, _rootState, rootGetters) => (menuPath) =>
+    hasMenuAccess(rootGetters, state.user, menuPath),
+  canUpdate: (state, _getters, _rootState, rootGetters) => (menuPath) =>
+    hasMenuAccess(rootGetters, state.user, menuPath),
+  canDelete: (state, _getters, _rootState, rootGetters) => (menuPath) =>
+    hasMenuAccess(rootGetters, state.user, menuPath),
 };
 
 export default {

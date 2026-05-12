@@ -55,7 +55,7 @@
                 {{ getCurrentRoleDisplayName() }} 접근 메뉴 설정
                 <span v-if="dirtyRoles.has(activeRole)" class="unsaved-badge">● 미저장</span>
               </h2>
-              <p class="panel-desc">체크된 메뉴는 해당 권한 사용자가 접근할 수 있습니다</p>
+              <p class="panel-desc">체크된 메뉴는 해당 권한 사용자가 접근할 수 있습니다 (접근 시 CRUD 모두 허용)</p>
             </div>
             <div class="panel-actions">
               <button v-if="dirtyRoles.has(activeRole)" @click="resetRole" class="btn btn-outline">↺ 초기화</button>
@@ -164,19 +164,6 @@
                     </span>
                   </div>
 
-                  <!-- CRUD 권한 행 (접근 허용된 메뉴만 표시, GUEST 제외) -->
-                  <div v-if="isMenuSelectedForRole(menu, activeRole) && activeRole !== 'GUEST'" class="crud-row">
-                    <label v-for="op in crudOps" :key="op.key" class="crud-label">
-                      <input
-                        type="checkbox"
-                        :checked="getCrud(menu.path, op.key)"
-                        :disabled="op.key === 'canRead'"
-                        :title="op.key === 'canRead' ? '접근 허용 메뉴는 조회 권한이 항상 활성화됩니다' : ''"
-                        @change="setCrud(menu.path, op.key, $event.target.checked)"
-                      />
-                      <span>{{ op.label }}</span>
-                    </label>
-                  </div>
                 </div>
               </div>
             </div>
@@ -260,18 +247,10 @@ export default {
     const showSaveModal = ref(false);
     const menuPermissions = ref({});
     const roles = ref([]);
-    const allCrudPermissions = ref({}); // { roleKey: { menuPath: { canCreate, ... } } }
     const dirtyRoles = ref(new Set()); // 미저장 변경사항이 있는 권한 키 집합
     const savedMenuPermissions = ref({}); // 마지막 저장 시점의 메뉴 권한 스냅샷
-    const savedCrudPermissions = ref({}); // 마지막 저장 시점의 CRUD 권한 스냅샷
     const pendingRoleSwitch = ref(null);
     const showUnsavedModal = ref(false);
-    const crudOps = [
-      { key: 'canCreate', label: '생성(C)' },
-      { key: 'canRead',   label: '조회(R)' },
-      { key: 'canUpdate', label: '수정(U)' },
-      { key: 'canDelete', label: '삭제(D)' },
-    ];
 
     // ===== 메뉴 정의 (DB에서 동적 로드) =====
     const allMenus = ref([]);
@@ -298,48 +277,13 @@ export default {
       return r ? r.name : activeRole.value;
     };
 
-    // ===== CRUD getter/setter =====
-    const getCrud = (menuPath, opKey) => {
-      if (opKey === 'canRead') return true; // 접근 허용 메뉴는 조회 권한 항상 true
-      return allCrudPermissions.value[activeRole.value]?.[menuPath]?.[opKey] || false;
-    };
-    const setCrud = (menuPath, opKey, value) => {
-      if (opKey === 'canRead' && !value) return; // 접근 허용 메뉴는 조회 권한 항상 활성화
-      const role = activeRole.value;
-      if (!allCrudPermissions.value[role]) allCrudPermissions.value[role] = {};
-      if (!allCrudPermissions.value[role][menuPath]) {
-        allCrudPermissions.value[role][menuPath] = { canCreate: false, canRead: true, canUpdate: false, canDelete: false };
-      }
-      allCrudPermissions.value[role][menuPath][opKey] = value;
-      dirtyRoles.value = new Set([...dirtyRoles.value, role]);
-    };
-
     // ===== 권한 선택 =====
-    const doSetActiveRole = async (key) => {
+    const doSetActiveRole = (key) => {
       activeRole.value = key;
       if (!menuPermissions.value[key]) {
         menuPermissions.value[key] = allMenus.value
           .filter(m => m.defaultRoles && m.defaultRoles.includes(key))
           .map(m => m.path);
-      }
-      // CRUD 권한: 캐시 없을 때만 서버에서 로드
-      if (!allCrudPermissions.value[key]) {
-        try {
-          const res = await axios.get(`/api/admin/crud-permissions/${key}`);
-          const map = {};
-          (res.data || []).forEach(p => {
-            map[p.menuPath] = {
-              canCreate: p.canCreate,
-              canRead:   p.canRead,
-              canUpdate: p.canUpdate,
-              canDelete: p.canDelete,
-            };
-          });
-          allCrudPermissions.value[key] = map;
-        } catch (_) {
-          allCrudPermissions.value[key] = {};
-        }
-        savedCrudPermissions.value[key] = JSON.parse(JSON.stringify(allCrudPermissions.value[key]));
       }
     };
 
@@ -368,7 +312,6 @@ export default {
       const role = activeRole.value;
       if (!role) return;
       menuPermissions.value[role] = JSON.parse(JSON.stringify(savedMenuPermissions.value[role] ?? []));
-      allCrudPermissions.value[role] = JSON.parse(JSON.stringify(savedCrudPermissions.value[role] ?? {}));
       const next = new Set(dirtyRoles.value);
       next.delete(role);
       dirtyRoles.value = next;
@@ -395,14 +338,11 @@ export default {
     const toggleMenuForRole = (menu, role) => {
       if (isMenuLocked(menu)) return;
       if (!menuPermissions.value[role]) menuPermissions.value[role] = [];
-      if (!allCrudPermissions.value[role]) allCrudPermissions.value[role] = {};
       const idx = menuPermissions.value[role].indexOf(menu.path);
       if (idx === -1) {
         menuPermissions.value[role].push(menu.path);
-        allCrudPermissions.value[role][menu.path] = { canCreate: true, canRead: true, canUpdate: true, canDelete: true };
       } else {
         menuPermissions.value[role].splice(idx, 1);
-        allCrudPermissions.value[role][menu.path] = { canCreate: false, canRead: false, canUpdate: false, canDelete: false };
       }
       dirtyRoles.value = new Set([...dirtyRoles.value, role]);
     };
@@ -427,13 +367,9 @@ export default {
         menuPermissions.value[activeRole.value] = menuPermissions.value[activeRole.value]
           .filter(p => !editableMenus.map(m => m.path).includes(p));
       } else {
-        if (!allCrudPermissions.value[activeRole.value]) allCrudPermissions.value[activeRole.value] = {};
         editableMenus.forEach(m => {
           if (!menuPermissions.value[activeRole.value].includes(m.path)) {
             menuPermissions.value[activeRole.value].push(m.path);
-            if (!allCrudPermissions.value[activeRole.value][m.path]) {
-              allCrudPermissions.value[activeRole.value][m.path] = { canCreate: true, canRead: true, canUpdate: true, canDelete: true };
-            }
           }
         });
       }
@@ -444,14 +380,6 @@ export default {
     const selectAllMenus = () => {
       if (!activeRole.value) return;
       const role = activeRole.value;
-      if (!allCrudPermissions.value[role]) allCrudPermissions.value[role] = {};
-      allMenus.value
-        .filter(m => !isMenuLocked(m))
-        .forEach(m => {
-          if (!allCrudPermissions.value[role][m.path]) {
-            allCrudPermissions.value[role][m.path] = { canCreate: true, canRead: true, canUpdate: true, canDelete: true };
-          }
-        });
       menuPermissions.value[role] = allMenus.value
         .filter(m => !isMenuLocked(m))
         .map(m => m.path);
@@ -513,7 +441,7 @@ export default {
 
         // 첫 번째 권한 선택
         if (roles.value.length > 0) {
-          await doSetActiveRole(roles.value[0].key);
+          doSetActiveRole(roles.value[0].key);
         }
       } catch (err) {
         store.dispatch('toast/showToast', { message: apiErrorMessage(err, '데이터를 불러오는 데 실패했습니다.'), type: 'error' });
@@ -538,24 +466,8 @@ export default {
         }
         // 2) 메뉴 접근 권한 저장 (전체 권한 한번에)
         await axios.post('/api/admin/menu-permissions', { permissions: menuPermissions.value });
-        // 3) CRUD 권한 저장 (로드된 모든 권한 대상)
-        await Promise.all(
-          Object.keys(allCrudPermissions.value).map(roleKey => {
-            const allowedPaths = menuPermissions.value[roleKey] || [];
-            const crudData = {};
-            allowedPaths.forEach(path => {
-              crudData[path] = allCrudPermissions.value[roleKey][path] || {
-                canCreate: false, canRead: true, canUpdate: false, canDelete: false
-              };
-            });
-            return axios.post(`/api/admin/crud-permissions/${roleKey}`, crudData);
-          })
-        );
         dirtyRoles.value = new Set();
         savedMenuPermissions.value = JSON.parse(JSON.stringify(menuPermissions.value));
-        Object.keys(allCrudPermissions.value).forEach(k => {
-          savedCrudPermissions.value[k] = JSON.parse(JSON.stringify(allCrudPermissions.value[k]));
-        });
         store.dispatch('toast/showToast', { message: '메뉴 권한이 저장되었습니다.', type: 'success' });
         try { await store.dispatch('menu/refreshUserMenus'); } catch (_) { /* ignore */ }
         closeSaveModal();
@@ -701,7 +613,6 @@ export default {
       navSectionCollapsed,
       roles, menuCategories,
       dirtyRoles, showUnsavedModal,
-      crudOps, getCrud, setCrud,
       getRoleIcon, getCurrentRoleDisplayName, setActiveRole,
       confirmRoleSwitch, cancelRoleSwitch, resetRole,
       getMenuCountForRole, isMenuLocked, isMenuSelectedForRole,
