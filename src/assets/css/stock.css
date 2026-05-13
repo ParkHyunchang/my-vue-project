@@ -1427,4 +1427,14 @@
   .tradingview-widget-container { height: 70vh; }
   .heatmap-loading,
   .heatmap-error           { height: 70vh; }
+
+  /* 데이터 출처 크레딧: 모바일에서 줄바꿈 깔끔하게 */
+  .widget-credit,
+  .data-credit {
+    text-align: left;
+    font-size: 0.7rem;
+    line-height: 1.45;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
 }
