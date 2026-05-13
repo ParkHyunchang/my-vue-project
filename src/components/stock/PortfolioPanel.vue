@@ -551,7 +551,7 @@ export default {
         fetchPrices();
       }
       refreshTimer = setInterval(() => {
-        if (props.active) fetchPrices();
+        if (props.active && editingId.value === null) fetchPrices();
       }, 120000);
       relativeTimer = setInterval(updateRelativeTime, 10000);
       document.addEventListener("keydown", onKeydown);
