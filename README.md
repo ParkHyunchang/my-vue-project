@@ -77,6 +77,19 @@ npm run lint
 
 ---
 
+## nginx 구성 메모
+
+컨테이너 내부 nginx([nginx.conf](nginx.conf))는 SPA 정적 호스팅 + 백엔드 리버스 프록시를 담당합니다.
+
+- **HTTPS 오프로드(TLS 처리)** 는 Synology 역방향 프록시에서 수행되므로 컨테이너는 `listen 80` 평문으로 동작합니다. `X-Forwarded-Proto=https` 가 들어오는 환경이라 HSTS는 활성화되어 있습니다.
+- **백엔드 업스트림**은 NAS 호스트의 도커 브리지 게이트웨이(`172.17.0.1:3200`)로 잡혀 있습니다. 공인 IP/hairpin NAT에 의존하지 않으므로 외부 3200 포트가 닫혀도 `/api/*` 프록시가 정상 동작합니다.
+- **캐시 정책**
+  - 해시 붙은 정적 자산(`*.js`, `*.css`, `*.woff2` 등) → `Cache-Control: public, immutable`, 1년
+  - `index.html` / SPA 라우팅 → `expires -1` (캐시 금지) — 새 배포가 즉시 반영되도록
+- **CSP**: `connect-src`는 same-origin만 허용. 외부 폰트 CDN(`fonts.googleapis.com`, `fonts.gstatic.com`, `websfont.github.io`, `stackpath.bootstrapcdn.com`)은 `style-src` / `font-src` 에 명시되어 있습니다.
+
+---
+
 ## 참고
 
 - [Vue CLI Configuration Reference](https://cli.vuejs.org/config/)
