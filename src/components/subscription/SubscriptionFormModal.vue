@@ -182,7 +182,7 @@ export const CYCLE_OPTIONS = [
 
 export const CATEGORY_OPTIONS = [
   // 디지털 콘텐츠
-  'OTT/스트리밍', '음악', 'AI',
+  'OTT', '음악', 'AI',
   // 생활/고정비
   '통신', '보험', '쇼핑 멤버십', '렌탈',
   // 자기계발
