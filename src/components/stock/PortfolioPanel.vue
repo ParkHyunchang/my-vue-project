@@ -51,6 +51,14 @@
         @add="openAddModal"
       />
 
+      <!-- AI 포트폴리오 진단 액션 바 -->
+      <div class="portfolio-ai-bar">
+        <button class="portfolio-ai-btn" @click="openPortfolioAnalysis">
+          📊 AI 포트폴리오 진단
+        </button>
+        <span class="portfolio-ai-hint">보유 종목 시그널 + 추천 종목 2개</span>
+      </div>
+
       <!-- 마켓 필터 바 -->
       <div class="balance-filter-bar">
         <button :class="['bfb-btn', { active: marketFilter === 'all' }]" @click="marketFilter = 'all'">
@@ -186,6 +194,12 @@
       :holding="analysisTarget"
       @close="closeAnalysis"
     />
+
+    <!-- AI 포트폴리오 진단 모달 -->
+    <PortfolioAnalysisModal
+      :show="showPortfolioAnalysis"
+      @close="closePortfolioAnalysis"
+    />
   </div>
 </template>
 
@@ -201,6 +215,7 @@ import HoldingsCards from "@/components/stock/HoldingsCards.vue";
 import PortfolioChart from "@/components/stock/PortfolioChart.vue";
 import AddHoldingModal from "@/components/stock/AddHoldingModal.vue";
 import StockAnalysisModal from "@/components/stock/StockAnalysisModal.vue";
+import PortfolioAnalysisModal from "@/components/stock/PortfolioAnalysisModal.vue";
 
 const PORTFOLIO_KEY = "stock_portfolio";
 
@@ -213,6 +228,7 @@ export default {
     PortfolioChart,
     AddHoldingModal,
     StockAnalysisModal,
+    PortfolioAnalysisModal,
   },
   props: {
     active: { type: Boolean, default: false },
@@ -233,6 +249,7 @@ export default {
     const showAddModal = ref(false);
     const showAnalysisModal = ref(false);
     const analysisTarget = ref(null);
+    const showPortfolioAnalysis = ref(false);
     const searchQ = ref("");
     const showDropdown = ref(false);
     const searchResults = ref([]);
@@ -347,6 +364,14 @@ export default {
     function closeAnalysis() {
       showAnalysisModal.value = false;
       analysisTarget.value = null;
+    }
+
+    function openPortfolioAnalysis() {
+      showPortfolioAnalysis.value = true;
+      logAudit("STOCK/AI-PORTFOLIO", "OPEN");
+    }
+    function closePortfolioAnalysis() {
+      showPortfolioAnalysis.value = false;
     }
 
     function closeAddModal() {
@@ -592,7 +617,7 @@ export default {
       holdings, prices, priceLoading, initialLoading, portfolioView, marketFilter,
       exchangeRate, exRateAt, lastUpdatedAt, relativeUpdated,
       sortKey, sortDir, hoveredSegId, hoveredSegment,
-      showAddModal, showAnalysisModal, analysisTarget,
+      showAddModal, showAnalysisModal, analysisTarget, showPortfolioAnalysis,
       searchQ, showDropdown, searchResults, searchLoading,
       newHolding, editingId, editForm, canAdd,
       filteredHoldings, sortedHoldings,
@@ -604,6 +629,7 @@ export default {
       totalValKRW, totalCostKRW, totalPnlKRW, totalPnlKRWPct,
       chartSegments,
       openAddModal, closeAddModal, openAnalysis, closeAnalysis,
+      openPortfolioAnalysis, closePortfolioAnalysis,
       onSearchInput, selectStock, onSearchBlur,
       addHolding, removeHolding, startEdit, saveEdit, fetchPrices,
       fmtKRW, fmtUSD, fmtByMkt, pnlCls,
