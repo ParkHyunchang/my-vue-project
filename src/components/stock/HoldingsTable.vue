@@ -92,6 +92,7 @@
             <td class="td-r"><span :class="pnlCls(holdPnl(h))">{{ fmtHoldPnl(h) }}</span></td>
             <td class="td-r"><span :class="['pnl-pct', pnlCls(holdPnlPct(h))]">{{ fmtHoldPnlPct(h) }}</span></td>
             <td class="td-act">
+              <button class="act-btn act-analyze" @click="$emit('analyze', h)">✨ 분석</button>
               <button class="act-btn act-edit" @click="$emit('start-edit', h)">수정</button>
               <button class="act-btn act-del" @click="$emit('remove', h.id)">삭제</button>
             </td>
@@ -124,7 +125,7 @@ export default {
     fmtHoldPnlPct: { type: Function, required: true },
     pnlCls: { type: Function, required: true },
   },
-  emits: ['toggle-sort', 'start-edit', 'save-edit', 'cancel-edit', 'remove', 'update:editForm'],
+  emits: ['toggle-sort', 'start-edit', 'save-edit', 'cancel-edit', 'remove', 'update:editForm', 'analyze'],
 };
 </script>
 

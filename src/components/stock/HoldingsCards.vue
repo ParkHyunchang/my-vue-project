@@ -81,6 +81,7 @@
           </div>
         </div>
         <div class="hcard-actions">
+          <button class="act-btn act-analyze" @click="$emit('analyze', h)">✨ AI 분석</button>
           <button class="act-btn act-edit" @click="$emit('start-edit', h)">수정</button>
           <button class="act-btn act-del" @click="$emit('remove', h.id)">삭제</button>
         </div>
@@ -107,7 +108,7 @@ export default {
     fmtHoldPnlPct: { type: Function, required: true },
     pnlCls: { type: Function, required: true },
   },
-  emits: ['start-edit', 'save-edit', 'cancel-edit', 'remove', 'update:editForm'],
+  emits: ['start-edit', 'save-edit', 'cancel-edit', 'remove', 'update:editForm', 'analyze'],
 };
 </script>
 

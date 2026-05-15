@@ -344,6 +344,12 @@
 .act-del:hover  { color: #ef4444; border-color: rgba(239,68,68,.3); }
 .act-save   { background: var(--accent-dim); border-color: var(--card-border-strong); color: var(--accent); }
 .act-cancel { background: transparent; color: var(--text-muted); }
+.act-analyze {
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.35);
+  color: #c4b5fd;
+}
+.act-analyze:hover { background: rgba(139, 92, 246, 0.22); color: #ddd6fe; }
 
 /* 차트 뷰 */
 .chart-view { padding: 8px 0; }

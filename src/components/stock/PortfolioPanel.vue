@@ -128,6 +128,7 @@
           @save-edit="saveEdit"
           @cancel-edit="editingId = null"
           @remove="removeHolding"
+          @analyze="openAnalysis"
         />
 
         <HoldingsCards
@@ -148,6 +149,7 @@
           @save-edit="saveEdit"
           @cancel-edit="editingId = null"
           @remove="removeHolding"
+          @analyze="openAnalysis"
         />
       </template>
 
@@ -177,6 +179,13 @@
       @search-blur="onSearchBlur"
       @search-input="onSearchInput"
     />
+
+    <!-- AI 분석 모달 -->
+    <StockAnalysisModal
+      :show="showAnalysisModal"
+      :holding="analysisTarget"
+      @close="closeAnalysis"
+    />
   </div>
 </template>
 
@@ -191,6 +200,7 @@ import HoldingsTable from "@/components/stock/HoldingsTable.vue";
 import HoldingsCards from "@/components/stock/HoldingsCards.vue";
 import PortfolioChart from "@/components/stock/PortfolioChart.vue";
 import AddHoldingModal from "@/components/stock/AddHoldingModal.vue";
+import StockAnalysisModal from "@/components/stock/StockAnalysisModal.vue";
 
 const PORTFOLIO_KEY = "stock_portfolio";
 
@@ -202,6 +212,7 @@ export default {
     HoldingsCards,
     PortfolioChart,
     AddHoldingModal,
+    StockAnalysisModal,
   },
   props: {
     active: { type: Boolean, default: false },
@@ -220,6 +231,8 @@ export default {
     const exRateAt = ref("");
 
     const showAddModal = ref(false);
+    const showAnalysisModal = ref(false);
+    const analysisTarget = ref(null);
     const searchQ = ref("");
     const showDropdown = ref(false);
     const searchResults = ref([]);
@@ -325,6 +338,17 @@ export default {
     }
 
     function openAddModal() { showAddModal.value = true; }
+
+    function openAnalysis(h) {
+      analysisTarget.value = h;
+      showAnalysisModal.value = true;
+      logAudit("STOCK/AI-ANALYSIS", "OPEN", h?.symbol);
+    }
+    function closeAnalysis() {
+      showAnalysisModal.value = false;
+      analysisTarget.value = null;
+    }
+
     function closeAddModal() {
       showAddModal.value = false;
       searchQ.value = "";
@@ -568,7 +592,8 @@ export default {
       holdings, prices, priceLoading, initialLoading, portfolioView, marketFilter,
       exchangeRate, exRateAt, lastUpdatedAt, relativeUpdated,
       sortKey, sortDir, hoveredSegId, hoveredSegment,
-      showAddModal, searchQ, showDropdown, searchResults, searchLoading,
+      showAddModal, showAnalysisModal, analysisTarget,
+      searchQ, showDropdown, searchResults, searchLoading,
       newHolding, editingId, editForm, canAdd,
       filteredHoldings, sortedHoldings,
       krHoldingsCount, usHoldingsCount,
@@ -578,7 +603,8 @@ export default {
       usPnl, usPnlPct, usHasAvgPrice,
       totalValKRW, totalCostKRW, totalPnlKRW, totalPnlKRWPct,
       chartSegments,
-      openAddModal, closeAddModal, onSearchInput, selectStock, onSearchBlur,
+      openAddModal, closeAddModal, openAnalysis, closeAnalysis,
+      onSearchInput, selectStock, onSearchBlur,
       addHolding, removeHolding, startEdit, saveEdit, fetchPrices,
       fmtKRW, fmtUSD, fmtByMkt, pnlCls,
       fmtAbsPnl, fmtCurPrice, fmtHoldVal, fmtHoldPnl, fmtHoldPnlPct,
