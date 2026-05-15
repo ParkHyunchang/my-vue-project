@@ -1,0 +1,459 @@
+/* ==========================================================
+   subscription.css
+   subscription.vue + components/subscription/* 전용 스타일
+   ========================================================== */
+
+.subscription-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.page-header { margin-bottom: 24px; }
+
+.page-header h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-family: "Playfair Display", serif;
+  font-size: 1.6rem;
+  letter-spacing: 0.04em;
+}
+
+.page-subtitle {
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ── 요약 카드 ───────────────────────────────────────────── */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.summary-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summary-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.summary-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.summary-unit {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.summary-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ── 필터 툴바 ──────────────────────────────────────────── */
+.filter-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.status-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-chip:hover {
+  border-color: var(--accent-glow);
+  color: var(--text-primary);
+}
+
+.filter-chip.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--card-border-strong);
+}
+
+.filter-count {
+  font-size: 11px;
+  opacity: 0.7;
+  font-weight: 500;
+}
+
+/* ── 카드 그리드 ────────────────────────────────────────── */
+.subscription-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.sub-card {
+  display: flex;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sub-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--card-border-strong);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.sub-card.status-paused,
+.sub-card.status-canceled {
+  opacity: 0.6;
+}
+
+.sub-card-accent {
+  width: 6px;
+  flex-shrink: 0;
+}
+
+.sub-card-body {
+  flex: 1;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.sub-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sub-name-wrap {
+  min-width: 0;
+  flex: 1;
+}
+
+.sub-name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sub-category {
+  display: inline-block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--card-bg-hover);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.status-badge {
+  flex-shrink: 0;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+.status-badge.status-active   { background: rgba(106, 173, 106, 0.18); color: #8fce8f; }
+.status-badge.status-paused   { background: rgba(201, 169, 110, 0.18); color: var(--accent-light); }
+.status-badge.status-canceled { background: rgba(138, 133, 128, 0.18); color: var(--text-muted); }
+
+.sub-card-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.amount-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.amount-cycle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.sub-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+.meta-label { color: var(--text-muted); flex-shrink: 0; }
+.meta-value {
+  color: var(--text-secondary);
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.memo-row { margin-top: 4px; }
+.memo-text {
+  font-style: italic;
+  color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-align: left;
+}
+
+.dday-chip {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.dday-chip.dday-normal  { background: rgba(125, 175, 240, 0.15); color: #a8c8f0; }
+.dday-chip.dday-soon    { background: rgba(232, 213, 176, 0.18); color: var(--accent-light); }
+.dday-chip.dday-urgent  { background: rgba(196, 90, 90, 0.22);   color: #e89a9a; }
+.dday-chip.dday-overdue { background: rgba(196, 90, 90, 0.32);   color: #f0b8b8; }
+.dday-chip.dday-mute    { background: rgba(138, 133, 128, 0.15); color: var(--text-muted); }
+
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+  border: 1px dashed var(--card-border);
+  border-radius: 10px;
+}
+
+.loading { padding: 40px; text-align: center; color: var(--text-muted); }
+.error-message {
+  padding: 16px;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-color);
+  color: var(--danger-color);
+  border-radius: 8px;
+}
+
+/* ── 폼 모달 ─────────────────────────────────────────────── */
+.subscription-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.form-control {
+  padding: 8px 12px;
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--input-text);
+  font-size: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--input-focus-shadow);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.segment-group {
+  display: flex;
+  gap: 6px;
+}
+
+.segment-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.segment-btn:hover { border-color: var(--accent-glow); color: var(--text-primary); }
+.segment-btn.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--card-border-strong);
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 6px;
+}
+
+.category-option {
+  padding: 6px 10px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.category-option:hover { border-color: var(--accent-glow); color: var(--text-primary); }
+.category-option.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--card-border-strong);
+}
+
+.color-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.color-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  /* 모바일에서 충분한 터치 영역 확보 */
+  position: relative;
+}
+.color-dot::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+}
+
+.color-dot:hover { transform: scale(1.1); }
+.color-dot.active {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 2px var(--card-bg);
+}
+
+.modal-footer-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ── 반응형 ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .subscription-container { padding: 16px; }
+
+  .summary-cards { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .summary-card { padding: 14px 16px; }
+  .summary-value { font-size: 1.4rem; }
+
+  .filter-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .filter-toolbar .btn-primary { width: 100%; }
+  .status-filters { width: 100%; }
+
+  .subscription-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .sub-card-body { padding: 14px 16px; gap: 8px; }
+  .sub-name { font-size: 0.98rem; }
+  .amount-value { font-size: 1.2rem; }
+
+  .form-row { grid-template-columns: 1fr; }
+  .category-grid { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); }
+  .segment-btn { padding: 10px 12px; }
+  .filter-chip { padding: 8px 14px; }
+
+  .modal-footer-buttons {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+  .modal-footer-buttons .btn { width: 100%; }
+}
+
+@media (max-width: 420px) {
+  .subscription-container { padding: 12px; }
+  .summary-cards { grid-template-columns: 1fr; }
+  .page-header h2 { font-size: 1.4rem; }
+}

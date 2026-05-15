@@ -36,7 +36,7 @@ export function categoryFromPath(path) {
     '/history': 'HISTORY',
     '/dating': 'DATING',
     '/diary': 'DIARY',
-    '/expense': 'EXPENSE',
+    '/subscription': 'SUBSCRIPTION',
     '/chat': 'CHAT',
     '/mypage': 'MYPAGE',
   };
