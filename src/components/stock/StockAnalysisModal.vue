@@ -21,12 +21,19 @@
 
         <!-- 모든 AI 차단됨 -->
         <div v-else-if="blocked" class="ana-blocked">
-          <div class="ana-blocked-icon">🔒</div>
-          <h4 class="ana-blocked-title">AI 분석 잠시 이용 불가</h4>
+          <div class="ana-blocked-icon">{{ allDisabled ? '⚙️' : '🔒' }}</div>
+          <h4 class="ana-blocked-title">
+            {{ allDisabled ? 'AI 분석 비활성화' : 'AI 분석 잠시 이용 불가' }}
+          </h4>
           <p class="ana-blocked-desc">
-            모든 AI 서비스가 일시 한도 초과 상태입니다.
+            <template v-if="allDisabled">
+              AI provider API 키가 백엔드에 설정되어 있지 않습니다. 관리자에게 문의해주세요.
+            </template>
+            <template v-else>
+              모든 AI 서비스가 일시 한도 초과 상태입니다.
+            </template>
           </p>
-          <div v-if="retryCountdown" class="ana-retry-time">
+          <div v-if="!allDisabled && retryCountdown" class="ana-retry-time">
             다음 가능: <strong>{{ retryCountdown }}</strong>
           </div>
           <div v-if="providersStatus?.length" class="ana-providers">
@@ -255,6 +262,12 @@ export default {
       return Math.max(0, 30 - elapsed);
     });
 
+    // provider 모두 미설정 상태 (한도 초과와 구분)
+    const allDisabled = computed(() =>
+      providersStatus.value.length > 0 &&
+      providersStatus.value.every((ps) => !ps.enabled),
+    );
+
     onBeforeUnmount(() => {
       clearInterval(loadingTimer);
       clearInterval(tickerTimer);
@@ -291,7 +304,7 @@ export default {
     return {
       loading, error, blocked, result, sources,
       providerName, model, analyzedAt,
-      providersStatus, retryCountdown, cooldownSec,
+      providersStatus, retryCountdown, cooldownSec, allDisabled,
       loadingText,
       fetchAnalysis,
       sentimentCls, sentimentIcon,
