@@ -383,7 +383,9 @@ hr {
   color: var(--text-primary);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
   animation: slideIn 0.3s ease-out;
-  pointer-events: auto;
+  /* 토스트 위에서도 아래 버튼/메뉴 클릭이 통과되도록 한다.
+     10초 후 자동 dismiss 되므로 수동 닫기 인터랙션은 불필요. */
+  pointer-events: none;
   font-weight: 500;
 }
 
