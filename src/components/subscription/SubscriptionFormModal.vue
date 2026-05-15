@@ -13,7 +13,7 @@
               @input="updateField('name', $event.target.value)"
               type="text"
               class="form-control"
-              placeholder="예: Netflix, ChatGPT Plus"
+              placeholder="예: Netflix, Claude Pro, 쿠팡 와우"
               required
             />
           </div>
@@ -181,8 +181,13 @@ export const CYCLE_OPTIONS = [
 ];
 
 export const CATEGORY_OPTIONS = [
-  '엔터테인먼트', '음악', 'AI', '생산성',
-  '클라우드', '뉴스', '게임', '운동/건강', '기타',
+  // 디지털 콘텐츠
+  'OTT/스트리밍', '음악', 'AI',
+  // 생활/고정비
+  '통신', '보험', '쇼핑 멤버십', '렌탈',
+  // 자기계발
+  '학습/교육', '도서/전자책', '운동/건강',
+  '기타',
 ];
 
 export const COLOR_OPTIONS = [

@@ -89,7 +89,7 @@ function emptySubscription() {
     billingCycle: 'MONTHLY',
     nextBillingDate: todayIso(),
     startedAt: '',
-    category: '엔터테인먼트',
+    category: 'OTT/스트리밍',
     paymentMethod: '',
     status: 'ACTIVE',
     color: '#3b82f6',
