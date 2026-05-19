@@ -41,7 +41,7 @@ const router = createRouter({
             path: '/todos/:id',
             name: 'Todo',
             component: () => import('../pages/todos/_id.vue'),
-            meta: { requiresAuth: true }
+            meta: { requiresAuth: true, menuPath: '/todos' }
         },
         {
             path: '/mypage',
@@ -174,9 +174,11 @@ router.beforeEach(async (to, from, next) => {
     }
 
     // DB 기반 메뉴 접근 권한 확인 (시스템 경로는 제외)
+    // 동적 라우트(/todos/:id 등)는 meta.menuPath 로 부모 메뉴 경로를 지정해 그쪽 권한을 체크.
     const skipMenuCheck = to.matched.some(record => record.meta.skipMenuCheck);
     if (isAuthenticated && !isAdminRoute && requiresAuth && !skipMenuCheck) {
-        const canAccessMenu = store.getters['menu/canAccessMenu'](to.path);
+        const menuPath = to.matched.reduce((acc, r) => r.meta.menuPath || acc, null) || to.path;
+        const canAccessMenu = store.getters['menu/canAccessMenu'](menuPath);
         if (!canAccessMenu) {
             store.dispatch('toast/showToast', { message: '해당 메뉴에 접근할 권한이 없습니다.', type: 'error' });
             next('/');
