@@ -5,7 +5,315 @@
    ========================================================== */
 
 /* =============================================
-   TodoList — 완료된 할 일 취소선
+   페이지 헤더 / 툴바
+   ============================================= */
+.todos-page {
+  color: var(--text-primary);
+}
+.todos-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.todos-header h2 {
+  margin: 0;
+  color: var(--text-primary);
+}
+.todos-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.todos-bulk-del {
+  font-size: 13px;
+  padding: 6px 12px;
+}
+
+.todos-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  margin-bottom: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+}
+.todos-search {
+  width: 100%;
+}
+.todos-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+.todos-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.tfg-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-right: 2px;
+}
+.tfg-btn {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--card-border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.tfg-btn:hover {
+  background: var(--card-bg-hover);
+  color: var(--text-primary);
+}
+.tfg-btn.active {
+  background: var(--accent-dim);
+  color: var(--accent-light);
+  border-color: var(--card-border-strong);
+}
+.tfg-btn.tfg-reset {
+  border-color: var(--danger-color);
+  color: var(--danger-color);
+}
+.tfg-btn.tfg-reset:hover {
+  background: var(--danger-bg);
+}
+.tfg-btn.dir-btn {
+  min-width: 32px;
+  text-align: center;
+  font-weight: 700;
+}
+.todos-sort {
+  margin-left: auto;
+}
+.tfg-select {
+  width: auto;
+  min-width: 110px;
+  display: inline-block;
+  background: var(--input-bg);
+  color: var(--input-text);
+  border: 1px solid var(--input-border);
+  font-size: 12px;
+  padding: 4px 8px;
+  height: auto;
+}
+.todos-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.todos-meta strong {
+  color: var(--text-primary);
+}
+
+/* =============================================
+   목록 카드 (TodoList)
+   ============================================= */
+.todo-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+.todo-row:hover {
+  background: var(--card-bg-hover);
+}
+.todo-check {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+.todo-body {
+  flex: 1;
+  min-width: 0;
+}
+.todo-line-1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.todo-priority {
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.todo-title {
+  flex: 1;
+  font-size: 15px;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.todo-title.todo-done {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+.todo-line-2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+.todo-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--card-border);
+}
+.todo-badge.cat {
+  color: var(--accent-light);
+  border-color: var(--card-border-strong);
+}
+.todo-badge.due {
+  color: var(--text-secondary);
+}
+.todo-badge.due-soon {
+  background: var(--warning-bg);
+  color: var(--warning-color);
+  border-color: var(--warning-color);
+}
+.todo-badge.due-overdue {
+  background: var(--danger-bg);
+  color: var(--danger-color);
+  border-color: var(--danger-color);
+}
+.todo-badge.due-done {
+  opacity: 0.5;
+}
+.todo-del {
+  flex-shrink: 0;
+}
+
+/* =============================================
+   빈 상태 / 로딩 / 페이지네이션
+   ============================================= */
+.todos-loading {
+  text-align: center;
+  padding: 48px 0;
+  color: var(--text-muted);
+}
+.todos-empty {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--text-muted);
+}
+.todos-empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+.todos-pagination {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+/* =============================================
+   폼 (TodoForm)
+   ============================================= */
+.todo-form .form-group {
+  margin-bottom: 12px;
+}
+.todo-form label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+.todo-form input[type="date"],
+.todo-form select,
+.todo-form textarea,
+.todo-form input[type="text"] {
+  background: var(--input-bg);
+  color: var(--input-text);
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  width: 100%;
+}
+.todo-form input[type="date"]:focus,
+.todo-form select:focus,
+.todo-form textarea:focus,
+.todo-form input[type="text"]:focus {
+  outline: none;
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 2px var(--input-focus-shadow);
+}
+
+/* 마감일 date input wrapper — 어디든 클릭하면 달력 열림 */
+.date-wrap {
+  position: relative;
+  cursor: pointer;
+}
+.date-wrap .date-input {
+  padding-right: 56px; /* 아이콘 + 클리어 버튼 공간 */
+  cursor: pointer;
+  color-scheme: dark; /* 다크 테마 datepicker 힌트 */
+}
+.date-wrap .date-icon {
+  position: absolute;
+  right: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 14px;
+  opacity: 0.75;
+}
+.date-wrap .date-clear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.date-wrap .date-clear:hover {
+  background: var(--danger-bg);
+  color: var(--danger-color);
+}
+/* Webkit native calendar 아이콘 숨김 — 우리가 만든 📅로 대체 */
+.date-wrap .date-input::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+/* =============================================
+   TodoList — 완료된 할 일 취소선 (구버전 호환)
    ============================================= */
 .todo {
   color: var(--text-muted);
@@ -43,3 +351,40 @@
 
 .mt-3 { margin-top: 1rem; }
 .ml-2 { margin-left: 0.5rem; }
+
+/* =============================================
+   모바일 (≤ 768px)
+   ============================================= */
+@media (max-width: 768px) {
+  .todos-filter-row {
+    gap: 8px;
+  }
+  .todos-sort {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .tfg-btn {
+    padding: 6px 10px; /* 터치 타깃 약간 키움 */
+  }
+  .todo-row {
+    padding: 12px;
+  }
+  .todo-title {
+    font-size: 14px;
+  }
+  .todo-del {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  .todos-header h2 {
+    font-size: 18px;
+  }
+  .todos-header .btn {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+}

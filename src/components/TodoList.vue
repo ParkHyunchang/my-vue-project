@@ -1,18 +1,35 @@
-﻿<template>
+<template>
     <List :items="todos">
         <template #default="{ item }">
-            <div class="card-body p-2 d-flex align-items-center" style="cursor: pointer" @click="moveToPage(item.id)">
-                <div class="flex-grow-1">
-                    <input class="ml-2 mr-2" type="checkbox" :checked="item.done" @change="toggleTodo(item)" @click.stop>
-                    <span :class="{ todo: item.done }">
-                        {{ item.title }}
-                    </span>
+            <div class="todo-row" @click="moveToPage(item.id)">
+                <input
+                    class="todo-check"
+                    type="checkbox"
+                    :checked="!!item.done"
+                    @change="toggleTodo(item)"
+                    @click.stop
+                />
+                <div class="todo-body">
+                    <div class="todo-line-1">
+                        <span class="todo-priority" :class="'pri-' + priorityKey(item.priority)" :title="priorityLabel(item.priority)">
+                            {{ priorityIcon(item.priority) }}
+                        </span>
+                        <span class="todo-title" :class="{ 'todo-done': item.done }">{{ item.title }}</span>
+                    </div>
+                    <div v-if="item.category || item.dueDate" class="todo-line-2">
+                        <span v-if="item.category" class="todo-badge cat">#{{ item.category }}</span>
+                        <span
+                            v-if="item.dueDate"
+                            class="todo-badge due"
+                            :class="dueStateClass(item)"
+                        >
+                            {{ dueLabel(item) }}
+                        </span>
+                    </div>
                 </div>
-                <div>
-                    <button class="btn btn-danger btn-sm" @click.stop="openModal(item.id)">
-                        Delete
-                    </button>
-                </div>
+                <button class="btn btn-danger btn-sm todo-del" @click.stop="openModal(item.id)">
+                    삭제
+                </button>
             </div>
         </template>
     </List>
@@ -21,7 +38,7 @@
         <Modal v-if="showModal" @close="closeModal" @delete="deleteTodo" />
     </teleport>
 </template>
-  
+
 <script>
 import { useRouter } from 'vue-router';
 import Modal from '@/components/DeleteModal.vue';
@@ -91,6 +108,50 @@ export default {
             });
         };
 
+        // ── 우선순위 ────────────────────────────
+        const priorityKey = (p) => {
+            if (p === 3) return 'high';
+            if (p === 1) return 'low';
+            return 'mid';
+        };
+        const priorityIcon = (p) => {
+            if (p === 3) return '🔴';
+            if (p === 1) return '🟢';
+            return '🟡';
+        };
+        const priorityLabel = (p) => {
+            if (p === 3) return '우선순위 높음';
+            if (p === 1) return '우선순위 낮음';
+            return '우선순위 보통';
+        };
+
+        // ── 마감일 ────────────────────────────
+        const diffDays = (dueDateStr) => {
+            if (!dueDateStr) return null;
+            const d = new Date(dueDateStr);
+            d.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return Math.round((d - today) / (1000 * 60 * 60 * 24));
+        };
+        const dueLabel = (item) => {
+            const d = diffDays(item.dueDate);
+            if (d === null) return '';
+            if (item.done) return `📅 ${item.dueDate}`;
+            if (d === 0) return '📅 오늘 마감';
+            if (d === 1) return '📅 내일 마감';
+            if (d > 1) return `📅 D-${d}`;
+            return `📅 ${-d}일 지남`;
+        };
+        const dueStateClass = (item) => {
+            if (item.done) return 'due-done';
+            const d = diffDays(item.dueDate);
+            if (d === null) return '';
+            if (d < 0) return 'due-overdue';
+            if (d <= 1) return 'due-soon';
+            return '';
+        };
+
         return {
             toggleTodo,
             deleteTodo,
@@ -98,9 +159,14 @@ export default {
             showModal,
             openModal,
             closeModal,
+            priorityKey,
+            priorityIcon,
+            priorityLabel,
+            dueLabel,
+            dueStateClass,
         };
     }
 }
 </script>
-  
+
 <style src="@/assets/css/todos.css" scoped></style>
