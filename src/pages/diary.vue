@@ -43,6 +43,14 @@
           <h2>AI 일기</h2>
           <p>오늘의 하루를 기록하고 AI의 감정 분석을 받아보세요</p>
         </div>
+        <button
+          class="btn-insights"
+          @click="showInsights = true"
+          :disabled="!entries.length"
+          :title="!entries.length ? '먼저 일기를 작성해주세요' : '월별 추이 · 키워드 · 검색'"
+        >
+          📊 인사이트
+        </button>
       </div>
 
       <!-- 2컬럼 콘텐츠 -->
@@ -122,15 +130,26 @@
 
       </div>
     </div>
+
+    <teleport to="#modal">
+      <DiaryInsightsModal
+        v-if="showInsights"
+        :entries="entries"
+        @close="showInsights = false"
+        @select="onSelectFromInsights"
+      />
+    </teleport>
   </div>
 </template>
 
 <script>
 import axios from '@/axios'
 import { apiErrorMessage } from '@/utils/apiError'
+import DiaryInsightsModal from '@/components/diary/DiaryInsightsModal.vue'
 
 export default {
   name: 'DiaryPage',
+  components: { DiaryInsightsModal },
   data() {
     return {
       entries: [],
@@ -142,6 +161,7 @@ export default {
       saving: false,
       analyzing: false,
       sidebarOpen: false,
+      showInsights: false,
     }
   },
   computed: {
@@ -279,6 +299,11 @@ export default {
     onTextareaWheel(e) {
       const ta = this.$refs.diaryTextarea
       if (ta) ta.scrollTop += e.deltaY
+    },
+
+    onSelectFromInsights(entry) {
+      this.openEntry(entry)
+      this.showInsights = false
     },
   },
 }
@@ -420,6 +445,29 @@ export default {
   margin: 0;
   font-size: 0.8rem;
   color: var(--text-muted, #8a8580);
+}
+
+.btn-insights {
+  margin-left: auto;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--card-border-strong, rgba(201,169,110,0.28));
+  background: transparent;
+  color: var(--accent, #c9a96e);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-insights:hover:not(:disabled) {
+  background: var(--accent-dim, rgba(201,169,110,0.15));
+  border-color: var(--accent, #c9a96e);
+}
+.btn-insights:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 /* ══════════════════════════════════════════
@@ -774,5 +822,10 @@ export default {
     font-size: 0.84rem;
   }
   .btn-delete { margin-left: 0; }
+
+  .btn-insights {
+    padding: 6px 10px;
+    font-size: 0.76rem;
+  }
 }
 </style>
