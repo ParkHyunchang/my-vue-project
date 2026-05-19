@@ -134,17 +134,11 @@ export function syncDynamicRoutes(menuPaths) {
 }
 
 // 라우트 가드
-router.beforeEach(async (to, from, next) => {
+// 인증 복원(/api/auth/me)은 main.js의 initializeApp 에서 앱 마운트 전에 1회 await 으로 끝낸다.
+// 가드에서 await 하면 모바일 네트워크 지연 시 next() 가 호출 안 돼 router-view 가 빈 채로 남는 문제가 있어 제거.
+router.beforeEach((to, from, next) => {
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
     const guestOnly = to.matched.some(record => record.meta.guestOnly);
-
-    // 인증 상태 미초기화(예: 깊은 링크 진입) 시 한 번만 복원 시도.
-    // httpOnly 쿠키 기반이라 토큰 존재 여부는 서버 응답으로만 알 수 있다.
-    if (!store.getters['auth/isAuthenticated'] && !store.getters['auth/user']) {
-        try {
-            await store.dispatch('auth/checkAuth');
-        } catch (_) { /* 네트워크 에러는 무시 */ }
-    }
 
     const isAuthenticated = store.getters['auth/isAuthenticated'];
 
