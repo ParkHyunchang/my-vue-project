@@ -10,6 +10,24 @@
       :format-currency="formatCurrency"
     />
 
+    <!-- 인사이트 패널: 중복 경고 + 추이 차트 + 카테고리 도넛 -->
+    <div v-if="!loading && subscriptions.length > 0" class="insights-section">
+      <SubscriptionDuplicatesAlert
+        :subscriptions="subscriptions"
+        :format-currency="formatCurrency"
+      />
+      <div class="insights-grid">
+        <SubscriptionTrendChart
+          :subscriptions="subscriptions"
+          :format-currency="formatCurrency"
+        />
+        <SubscriptionCategoryChart
+          :subscriptions="subscriptions"
+          :format-currency="formatCurrency"
+        />
+      </div>
+    </div>
+
     <div class="filter-toolbar">
       <div class="status-filters">
         <button
@@ -64,6 +82,9 @@ import DeleteModal from '@/components/DeleteModal.vue';
 import SubscriptionSummary from '@/components/subscription/SubscriptionSummary.vue';
 import SubscriptionCards from '@/components/subscription/SubscriptionCards.vue';
 import SubscriptionFormModal from '@/components/subscription/SubscriptionFormModal.vue';
+import SubscriptionTrendChart from '@/components/subscription/SubscriptionTrendChart.vue';
+import SubscriptionCategoryChart from '@/components/subscription/SubscriptionCategoryChart.vue';
+import SubscriptionDuplicatesAlert from '@/components/subscription/SubscriptionDuplicatesAlert.vue';
 import { useToast } from '@/composables/toast';
 import { logger } from '@/utils/logger';
 import { apiErrorMessage } from '@/utils/apiError';
@@ -104,6 +125,9 @@ export default {
     SubscriptionSummary,
     SubscriptionCards,
     SubscriptionFormModal,
+    SubscriptionTrendChart,
+    SubscriptionCategoryChart,
+    SubscriptionDuplicatesAlert,
   },
   setup() {
     const { showToast } = useToast();
