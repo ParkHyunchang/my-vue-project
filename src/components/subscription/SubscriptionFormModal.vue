@@ -22,13 +22,19 @@
             <div class="form-group">
               <label>금액</label>
               <input
-                :value="modelValue.amount"
-                @input="updateField('amount', $event.target.value === '' ? null : Number($event.target.value))"
-                type="number"
+                :value="formattedAmount"
+                @input="onAmountInput"
+                type="text"
+                inputmode="numeric"
                 class="form-control"
-                min="0"
                 required
               />
+              <div v-if="modelValue.currency === 'KRW'" class="quick-add-btns">
+                <button type="button" class="quick-btn" @click="addAmount(1000)">+1천</button>
+                <button type="button" class="quick-btn" @click="addAmount(5000)">+5천</button>
+                <button type="button" class="quick-btn" @click="addAmount(10000)">+1만</button>
+                <button type="button" class="quick-btn" @click="addAmount(100000)">+10만</button>
+              </div>
             </div>
             <div class="form-group">
               <label>통화</label>
@@ -172,6 +178,7 @@
 </template>
 
 <script>
+import { computed } from 'vue';
 import Modal from '@/components/Modal.vue';
 
 export const CYCLE_OPTIONS = [
@@ -208,7 +215,28 @@ export default {
     const updateField = (key, value) => {
       emit('update:modelValue', { ...props.modelValue, [key]: value });
     };
-    return { updateField, CYCLE_OPTIONS, CATEGORY_OPTIONS, COLOR_OPTIONS };
+    const formattedAmount = computed(() => {
+      const v = props.modelValue.amount;
+      if (v == null || v === '') return '';
+      return Number(v).toLocaleString('ko-KR');
+    });
+    const onAmountInput = (e) => {
+      const raw = e.target.value.replace(/,/g, '');
+      if (raw === '') {
+        updateField('amount', null);
+        return;
+      }
+      const num = Number(raw);
+      if (Number.isFinite(num)) updateField('amount', num);
+    };
+    const addAmount = (n) => {
+      const current = Number(props.modelValue.amount) || 0;
+      updateField('amount', current + n);
+    };
+    return {
+      updateField, formattedAmount, onAmountInput, addAmount,
+      CYCLE_OPTIONS, CATEGORY_OPTIONS, COLOR_OPTIONS,
+    };
   },
 };
 </script>

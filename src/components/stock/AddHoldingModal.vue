@@ -106,13 +106,19 @@
         <div class="mform-row">
           <label>평단가 <span class="opt-label">(선택)</span></label>
           <input
-            :value="newHolding.avgPrice ?? ''"
-            @input="updateNewField('avgPrice', $event.target.value === '' ? null : $event.target.value)"
+            :value="formattedAvgPrice"
+            @input="onAvgPriceInput"
             type="text"
             inputmode="decimal"
-            pattern="[0-9]*[.,]?[0-9]*"
-            :placeholder="newHolding.market === 'KR' ? '원 단위' : 'USD'"
+            pattern="[0-9,]*[.]?[0-9]*"
+            :placeholder="isKR ? '원 단위' : 'USD'"
           />
+          <div v-if="isKR" class="quick-add-btns">
+            <button type="button" class="quick-btn" @click="addAvgPrice(1000)">+1천</button>
+            <button type="button" class="quick-btn" @click="addAvgPrice(5000)">+5천</button>
+            <button type="button" class="quick-btn" @click="addAvgPrice(10000)">+1만</button>
+            <button type="button" class="quick-btn" @click="addAvgPrice(100000)">+10만</button>
+          </div>
         </div>
 
         <div class="modal-actions">
@@ -127,6 +133,8 @@
 </template>
 
 <script>
+import { computed } from 'vue';
+
 export default {
   name: 'AddHoldingModal',
   props: {
@@ -156,7 +164,44 @@ export default {
     const updateNewField = (key, value) => {
       emit('update:newHolding', { ...props.newHolding, [key]: value });
     };
-    return { onSearchQInput, updateNewField };
+
+    const isKR = computed(() => {
+      const sym = (props.newHolding.symbol || '').toUpperCase();
+      if (sym.endsWith('.KS') || sym.endsWith('.KQ')) return true;
+      return props.newHolding.market === 'KR';
+    });
+
+    const formattedAvgPrice = computed(() => {
+      const v = props.newHolding.avgPrice;
+      if (v == null || v === '') return '';
+      const s = String(v);
+      const [intPart, decPart] = s.split('.');
+      const intNum = intPart.replace(/[^\d-]/g, '');
+      const formatted = intNum === '' || intNum === '-'
+        ? intNum
+        : Number(intNum).toLocaleString('en-US');
+      return decPart !== undefined ? `${formatted}.${decPart}` : formatted;
+    });
+
+    const onAvgPriceInput = (e) => {
+      const raw = e.target.value.replace(/,/g, '');
+      if (raw === '') {
+        updateNewField('avgPrice', null);
+        return;
+      }
+      if (!/^-?\d*\.?\d*$/.test(raw)) return;
+      updateNewField('avgPrice', raw);
+    };
+
+    const addAvgPrice = (n) => {
+      const current = Number(props.newHolding.avgPrice) || 0;
+      updateNewField('avgPrice', String(current + n));
+    };
+
+    return {
+      onSearchQInput, updateNewField,
+      isKR, formattedAvgPrice, onAvgPriceInput, addAvgPrice,
+    };
   },
 };
 </script>

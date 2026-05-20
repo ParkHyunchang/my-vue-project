@@ -332,6 +332,29 @@
   gap: 12px;
 }
 
+.quick-add-btns {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.quick-add-btns .quick-btn {
+  flex: 1;
+  padding: 6px 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.quick-add-btns .quick-btn:hover {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--card-border-strong);
+}
+
 .segment-group {
   display: flex;
   gap: 6px;

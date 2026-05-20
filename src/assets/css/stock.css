@@ -496,6 +496,28 @@
 .mform-hint { font-size: 0.72rem; color: var(--text-muted); }
 .opt-label  { color: var(--text-muted); font-weight: 400; font-size: 0.75rem; }
 
+.quick-add-btns {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.quick-add-btns .quick-btn {
+  flex: 1;
+  padding: 6px 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.13s;
+}
+.quick-add-btns .quick-btn:hover {
+  background: var(--accent-dim);
+  border-color: var(--card-border-strong);
+  color: var(--accent);
+}
+
 /* 시장 토글 */
 .seg-ctrl {
   display: flex;
