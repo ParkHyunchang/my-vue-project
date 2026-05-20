@@ -23,6 +23,7 @@
       <!-- 요약 바 -->
       <PortfolioSummary
         :market-filter="marketFilter"
+        :display-currency="displayCurrency"
         :filtered-holdings="filteredHoldings"
         :kr-holdings-count="krHoldingsCount"
         :us-holdings-count="usHoldingsCount"
@@ -70,6 +71,18 @@
         <button :class="['bfb-btn', { active: marketFilter === 'us' }]" @click="marketFilter = 'us'">
           🇺🇸 미국 <span class="bfb-count">{{ usHoldingsCount }}</span>
         </button>
+        <div v-if="showCurrencyToggle" class="ccy-toggle" role="group" aria-label="미국 주식 표시 통화">
+          <button
+            type="button"
+            :class="['ccy-btn', { active: displayCurrency === 'native' }]"
+            @click="setDisplayCurrency('native')"
+          >외화</button>
+          <button
+            type="button"
+            :class="['ccy-btn', { active: displayCurrency === 'krw' }]"
+            @click="setDisplayCurrency('krw')"
+          >원화</button>
+        </div>
         <div v-if="exchangeRate > 0" class="exrate-info">
           <span class="exrate-val">1$ = {{ fmtKRW(exchangeRate) }}</span>
           <span v-if="exRateAt" class="exrate-at">{{ exRateAt }} 기준</span>
@@ -118,12 +131,13 @@
           :sort-key="sortKey"
           :sort-dir="sortDir"
           :editing-id="editingId"
+          :display-currency="displayCurrency"
           v-model:edit-form="editForm"
           :fmt-cur-price="fmtCurPrice"
           :fmt-change-pct-display="fmtChangePctDisplay"
           :change-pct-cls="changePctCls"
           :fmt-hold-val="fmtHoldVal"
-          :fmt-by-mkt="fmtByMkt"
+          :fmt-by-mkt="fmtMoney"
           :fmt-k-r-w="fmtKRW"
           :hold-val-k-r-w="holdValKRW"
           :hold-pnl="holdPnl"
@@ -147,7 +161,7 @@
           :fmt-change-pct-display="fmtChangePctDisplay"
           :change-pct-cls="changePctCls"
           :fmt-hold-val="fmtHoldVal"
-          :fmt-by-mkt="fmtByMkt"
+          :fmt-by-mkt="fmtMoney"
           :hold-pnl="holdPnl"
           :fmt-hold-pnl="fmtHoldPnl"
           :hold-pnl-pct="holdPnlPct"
@@ -218,6 +232,7 @@ import StockAnalysisModal from "@/components/stock/StockAnalysisModal.vue";
 import PortfolioAnalysisModal from "@/components/stock/PortfolioAnalysisModal.vue";
 
 const PORTFOLIO_KEY = "stock_portfolio";
+const DISPLAY_CCY_KEY = "stock_displayCurrency";
 
 export default {
   name: "PortfolioPanel",
@@ -245,6 +260,13 @@ export default {
     const marketFilter = ref("all");
     const exchangeRate = ref(0);
     const exRateAt = ref("");
+    const displayCurrency = ref(
+      localStorage.getItem(DISPLAY_CCY_KEY) === "krw" ? "krw" : "native",
+    );
+    function setDisplayCurrency(v) {
+      displayCurrency.value = v;
+      localStorage.setItem(DISPLAY_CCY_KEY, v);
+    }
 
     const showAddModal = ref(false);
     const showAnalysisModal = ref(false);
@@ -507,25 +529,39 @@ export default {
       holdPnl, holdPnlPct, holdValKRW,
     } = stats;
 
+    function usToKRW(v) {
+      return exchangeRate.value > 0 ? v * exchangeRate.value : v;
+    }
+    function inKRWMode(market) {
+      return market === "US" && displayCurrency.value === "krw" && exchangeRate.value > 0;
+    }
+    function fmtMoney(v, market) {
+      if (v == null) return "—";
+      if (market === "KR") return fmtKRW(v);
+      return inKRWMode(market) ? fmtKRW(usToKRW(v)) : fmtUSD(v);
+    }
     function fmtAbsPnl(v) {
       const abs = Math.abs(v);
       const krPart = filteredHoldings.value.filter(
         (h) => h.market === "KR" && h.avgPrice,
       ).length;
-      return krPart > 0 ? fmtKRW(abs) : fmtUSD(abs);
+      if (krPart > 0) return fmtKRW(abs);
+      return displayCurrency.value === "krw" && exchangeRate.value > 0
+        ? fmtKRW(usToKRW(abs))
+        : fmtUSD(abs);
     }
     function fmtCurPrice(h) {
       const p = prices.value[h.symbol];
-      return p ? fmtByMkt(p.price, h.market) : "—";
+      return p ? fmtMoney(p.price, h.market) : "—";
     }
     function fmtHoldVal(h) {
       const p = prices.value[h.symbol];
-      return p ? fmtByMkt(p.price * h.quantity, h.market) : "—";
+      return p ? fmtMoney(p.price * h.quantity, h.market) : "—";
     }
     function fmtHoldPnl(h) {
       const v = holdPnl(h);
       if (v === null) return "—";
-      return (v >= 0 ? "+" : "") + fmtByMkt(v, h.market);
+      return (v >= 0 ? "+" : "") + fmtMoney(v, h.market);
     }
     function fmtHoldPnlPct(h) {
       const v = holdPnlPct(h);
@@ -575,6 +611,13 @@ export default {
       hoveredSegId.value ? chartSegments.value.find((s) => s.id === hoveredSegId.value) : null,
     );
 
+    const showCurrencyToggle = computed(
+      () =>
+        usHoldingsCount.value > 0 &&
+        marketFilter.value !== "kr" &&
+        exchangeRate.value > 0,
+    );
+
     function onKeydown(e) {
       if (e.key === "Escape" && showAddModal.value) closeAddModal();
     }
@@ -615,6 +658,7 @@ export default {
 
     return {
       holdings, prices, priceLoading, initialLoading, portfolioView, marketFilter,
+      displayCurrency, setDisplayCurrency, showCurrencyToggle,
       exchangeRate, exRateAt, lastUpdatedAt, relativeUpdated,
       sortKey, sortDir, hoveredSegId, hoveredSegment,
       showAddModal, showAnalysisModal, analysisTarget, showPortfolioAnalysis,
@@ -632,7 +676,7 @@ export default {
       openPortfolioAnalysis, closePortfolioAnalysis,
       onSearchInput, selectStock, onSearchBlur,
       addHolding, removeHolding, startEdit, saveEdit, fetchPrices,
-      fmtKRW, fmtUSD, fmtByMkt, pnlCls,
+      fmtKRW, fmtUSD, fmtByMkt, fmtMoney, pnlCls,
       fmtAbsPnl, fmtCurPrice, fmtHoldVal, fmtHoldPnl, fmtHoldPnlPct,
       fmtLegVal, holdPnl, holdPnlPct, holdValKRW,
       toggleSort, fmtChangePctDisplay, changePctCls,

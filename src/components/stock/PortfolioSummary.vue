@@ -18,11 +18,12 @@
           <div class="ps-bd-row">
             <span class="ps-bd-label">🇺🇸 미국</span>
             <div class="ps-bd-val-group">
-              <span class="ps-bd-val">{{ fmtUSD(usTotal) }}</span>
-              <span v-if="usTotalKRW > 0" class="ps-us-krw">≈ {{ fmtKRW(usTotalKRW) }}</span>
+              <span class="ps-bd-val">{{ usShowKRW ? fmtKRW(usTotalKRW) : fmtUSD(usTotal) }}</span>
+              <span v-if="!usShowKRW && usTotalKRW > 0" class="ps-us-krw">≈ {{ fmtKRW(usTotalKRW) }}</span>
             </div>
             <span v-if="usHasAvgPrice" :class="['ps-bd-pnl', pnlCls(usPnl)]">
-              {{ usPnl >= 0 ? "▲" : "▼" }} {{ fmtUSD(Math.abs(usPnl)) }}
+              {{ usPnl >= 0 ? "▲" : "▼" }}
+              {{ usShowKRW ? fmtKRW(Math.abs(usPnl) * exchangeRate) : fmtUSD(Math.abs(usPnl)) }}
               <span class="ps-bd-pct">({{ usPnlPct >= 0 ? "+" : "" }}{{ usPnlPct.toFixed(2) }}%)</span>
             </span>
           </div>
@@ -47,8 +48,8 @@
           <span v-if="krTotal > 0" class="ps-total-val">🇰🇷 {{ fmtKRW(krTotal) }}</span>
           <span v-if="krTotal > 0 && usTotal > 0" class="ps-sep">·</span>
           <div v-if="usTotal > 0" class="ps-us-wrap">
-            <span class="ps-total-val">🇺🇸 {{ fmtUSD(usTotal) }}</span>
-            <span v-if="usTotalKRW > 0" class="ps-us-krw">≈ {{ fmtKRW(usTotalKRW) }}</span>
+            <span class="ps-total-val">🇺🇸 {{ usShowKRW ? fmtKRW(usTotalKRW) : fmtUSD(usTotal) }}</span>
+            <span v-if="!usShowKRW && usTotalKRW > 0" class="ps-us-krw">≈ {{ fmtKRW(usTotalKRW) }}</span>
           </div>
         </div>
         <div v-if="hasAvgPrice" class="ps-pnl">
@@ -67,10 +68,13 @@
 </template>
 
 <script>
+import { computed } from 'vue';
+
 export default {
   name: 'PortfolioSummary',
   props: {
     marketFilter: { type: String, required: true },
+    displayCurrency: { type: String, default: 'native' },
     filteredHoldings: { type: Array, required: true },
     krHoldingsCount: { type: Number, required: true },
     usHoldingsCount: { type: Number, required: true },
@@ -98,6 +102,12 @@ export default {
     pnlCls: { type: Function, required: true },
   },
   emits: ['add'],
+  setup(props) {
+    const usShowKRW = computed(
+      () => props.displayCurrency === 'krw' && props.exchangeRate > 0,
+    );
+    return { usShowKRW };
+  },
 };
 </script>
 

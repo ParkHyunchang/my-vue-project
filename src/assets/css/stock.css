@@ -203,12 +203,45 @@
   background: rgba(201,169,110,0.18);
 }
 
+/* 표시 통화 토글 (외화 / 원화) */
+.ccy-toggle {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  padding: 2px;
+  background: var(--card-bg);
+}
+.ccy-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+.ccy-btn:hover {
+  color: var(--text-primary);
+}
+.ccy-btn.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
 /* 환율 정보 */
 .exrate-info {
   margin-left: auto;
   display: flex;
   align-items: center;
   gap: 6px;
+}
+.ccy-toggle + .exrate-info {
+  margin-left: 12px;
 }
 .exrate-val {
   font-size: 0.79rem;

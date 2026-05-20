@@ -81,7 +81,10 @@
             </td>
             <td class="td-r">
               {{ fmtHoldVal(h) }}
-              <div v-if="h.market === 'US' && holdValKRW(h) > 0" class="td-krw-sub">
+              <div
+                v-if="h.market === 'US' && holdValKRW(h) > 0 && displayCurrency !== 'krw'"
+                class="td-krw-sub"
+              >
                 ≈ {{ fmtKRW(holdValKRW(h)) }}
               </div>
             </td>
@@ -111,6 +114,7 @@ export default {
     sortKey: { type: String, default: '' },
     sortDir: { type: String, default: 'asc' },
     editingId: { default: null },
+    displayCurrency: { type: String, default: 'native' },
     editForm: { type: Object, required: true },
     fmtCurPrice: { type: Function, required: true },
     fmtChangePctDisplay: { type: Function, required: true },
