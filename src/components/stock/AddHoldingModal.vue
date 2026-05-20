@@ -101,6 +101,12 @@
             min="1"
             placeholder="0"
           />
+          <div class="quick-add-btns">
+            <button type="button" class="quick-btn quick-minus" @click="addQuantity(-10)">-10</button>
+            <button type="button" class="quick-btn quick-minus" @click="addQuantity(-1)">-1</button>
+            <button type="button" class="quick-btn" @click="addQuantity(1)">+1</button>
+            <button type="button" class="quick-btn" @click="addQuantity(10)">+10</button>
+          </div>
         </div>
 
         <div class="mform-row">
@@ -198,9 +204,16 @@ export default {
       updateNewField('avgPrice', String(current + n));
     };
 
+    const addQuantity = (n) => {
+      const current = Number(props.newHolding.quantity) || 0;
+      const next = Math.max(0, current + n);
+      updateNewField('quantity', next === 0 ? null : next);
+    };
+
     return {
       onSearchQInput, updateNewField,
       isKR, formattedAvgPrice, onAvgPriceInput, addAvgPrice,
+      addQuantity,
     };
   },
 };

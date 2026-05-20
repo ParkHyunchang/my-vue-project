@@ -18,13 +18,21 @@
         <div class="hcard-edit-body">
           <div class="hcard-edit-row">
             <label class="hcard-edit-label">보유수량</label>
-            <input
-              :value="editForm.quantity"
-              @input="$emit('update:editForm', { ...editForm, quantity: $event.target.value === '' ? null : Number($event.target.value) })"
-              type="number"
-              min="1"
-              class="hcard-edit-inp"
-            />
+            <div class="hcard-edit-field">
+              <input
+                :value="editForm.quantity"
+                @input="$emit('update:editForm', { ...editForm, quantity: $event.target.value === '' ? null : Number($event.target.value) })"
+                type="number"
+                min="1"
+                class="hcard-edit-inp"
+              />
+              <div class="quick-add-btns">
+                <button type="button" class="quick-btn quick-minus" @click="addQuantity(-10)">-10</button>
+                <button type="button" class="quick-btn quick-minus" @click="addQuantity(-1)">-1</button>
+                <button type="button" class="quick-btn" @click="addQuantity(1)">+1</button>
+                <button type="button" class="quick-btn" @click="addQuantity(10)">+10</button>
+              </div>
+            </div>
           </div>
           <div class="hcard-edit-row">
             <label class="hcard-edit-label">평단가 <span class="opt-label">(선택)</span></label>
@@ -141,7 +149,12 @@ export default {
       const current = Number(props.editForm.avgPrice) || 0;
       emit('update:editForm', { ...props.editForm, avgPrice: String(current + n) });
     };
-    return { formatAvgPrice, onAvgPriceInput, addAvgPrice };
+    const addQuantity = (n) => {
+      const current = Number(props.editForm.quantity) || 0;
+      const next = Math.max(0, current + n);
+      emit('update:editForm', { ...props.editForm, quantity: next === 0 ? null : next });
+    };
+    return { formatAvgPrice, onAvgPriceInput, addAvgPrice, addQuantity };
   },
 };
 </script>

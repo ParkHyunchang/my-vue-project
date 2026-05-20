@@ -479,6 +479,12 @@
   .subscription-container { padding: 12px; }
   .summary-cards { grid-template-columns: 1fr; }
   .page-header h2 { font-size: 1.4rem; }
+
+  .quick-add-btns { gap: 4px; }
+  .quick-add-btns .quick-btn {
+    padding: 6px 2px;
+    font-size: 11px;
+  }
 }
 
 /* =============================================================
