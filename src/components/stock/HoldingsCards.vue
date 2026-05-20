@@ -28,20 +28,22 @@
           </div>
           <div class="hcard-edit-row">
             <label class="hcard-edit-label">평단가 <span class="opt-label">(선택)</span></label>
-            <input
-              :value="formatAvgPrice(editForm.avgPrice)"
-              @input="onAvgPriceInput($event)"
-              type="text"
-              inputmode="decimal"
-              pattern="[0-9,]*[.]?[0-9]*"
-              class="hcard-edit-inp"
-              :placeholder="h.market === 'KR' ? '원 단위' : 'USD'"
-            />
-            <div v-if="h.market === 'KR'" class="quick-add-btns">
-              <button type="button" class="quick-btn" @click="addAvgPrice(1000)">+1천</button>
-              <button type="button" class="quick-btn" @click="addAvgPrice(5000)">+5천</button>
-              <button type="button" class="quick-btn" @click="addAvgPrice(10000)">+1만</button>
-              <button type="button" class="quick-btn" @click="addAvgPrice(100000)">+10만</button>
+            <div class="hcard-edit-field">
+              <input
+                :value="formatAvgPrice(editForm.avgPrice)"
+                @input="onAvgPriceInput($event)"
+                type="text"
+                inputmode="decimal"
+                pattern="[0-9,]*[.]?[0-9]*"
+                class="hcard-edit-inp"
+                :placeholder="h.market === 'KR' ? '원 단위' : 'USD'"
+              />
+              <div v-if="h.market === 'KR'" class="quick-add-btns">
+                <button type="button" class="quick-btn" @click="addAvgPrice(1000)">+1천</button>
+                <button type="button" class="quick-btn" @click="addAvgPrice(5000)">+5천</button>
+                <button type="button" class="quick-btn" @click="addAvgPrice(10000)">+1만</button>
+                <button type="button" class="quick-btn" @click="addAvgPrice(100000)">+10만</button>
+              </div>
             </div>
           </div>
         </div>

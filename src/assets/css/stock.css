@@ -500,10 +500,12 @@
   display: flex;
   gap: 6px;
   margin-top: 6px;
+  width: 100%;
 }
 .quick-add-btns .quick-btn {
   flex: 1;
-  padding: 6px 8px;
+  min-width: 0;
+  padding: 6px 4px;
   background: var(--surface-2);
   border: 1px solid var(--card-border);
   border-radius: 6px;
@@ -511,6 +513,7 @@
   font-size: 0.78rem;
   cursor: pointer;
   transition: all 0.13s;
+  white-space: nowrap;
 }
 .quick-add-btns .quick-btn:hover {
   background: var(--accent-dim);
@@ -1348,6 +1351,16 @@
   background: var(--input-bg, var(--card-bg));
   color: var(--text-primary);
   font-size: 0.9rem;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+.hcard-edit-field {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 /* ── Top10 모바일 카드 ── */
