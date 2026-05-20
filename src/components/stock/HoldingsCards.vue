@@ -29,14 +29,20 @@
           <div class="hcard-edit-row">
             <label class="hcard-edit-label">평단가 <span class="opt-label">(선택)</span></label>
             <input
-              :value="editForm.avgPrice ?? ''"
-              @input="$emit('update:editForm', { ...editForm, avgPrice: $event.target.value === '' ? null : $event.target.value })"
+              :value="formatAvgPrice(editForm.avgPrice)"
+              @input="onAvgPriceInput($event)"
               type="text"
               inputmode="decimal"
-              pattern="[0-9]*[.,]?[0-9]*"
+              pattern="[0-9,]*[.]?[0-9]*"
               class="hcard-edit-inp"
               :placeholder="h.market === 'KR' ? '원 단위' : 'USD'"
             />
+            <div v-if="h.market === 'KR'" class="quick-add-btns">
+              <button type="button" class="quick-btn" @click="addAvgPrice(1000)">+1천</button>
+              <button type="button" class="quick-btn" @click="addAvgPrice(5000)">+5천</button>
+              <button type="button" class="quick-btn" @click="addAvgPrice(10000)">+1만</button>
+              <button type="button" class="quick-btn" @click="addAvgPrice(100000)">+10만</button>
+            </div>
           </div>
         </div>
         <div class="hcard-actions">
@@ -109,6 +115,32 @@ export default {
     pnlCls: { type: Function, required: true },
   },
   emits: ['start-edit', 'save-edit', 'cancel-edit', 'remove', 'update:editForm', 'analyze'],
+  setup(props, { emit }) {
+    const formatAvgPrice = (v) => {
+      if (v == null || v === '') return '';
+      const s = String(v);
+      const [intPart, decPart] = s.split('.');
+      const intNum = intPart.replace(/[^\d-]/g, '');
+      const formatted = intNum === '' || intNum === '-'
+        ? intNum
+        : Number(intNum).toLocaleString('en-US');
+      return decPart !== undefined ? `${formatted}.${decPart}` : formatted;
+    };
+    const onAvgPriceInput = (e) => {
+      const raw = e.target.value.replace(/,/g, '');
+      if (raw === '') {
+        emit('update:editForm', { ...props.editForm, avgPrice: null });
+        return;
+      }
+      if (!/^-?\d*\.?\d*$/.test(raw)) return;
+      emit('update:editForm', { ...props.editForm, avgPrice: raw });
+    };
+    const addAvgPrice = (n) => {
+      const current = Number(props.editForm.avgPrice) || 0;
+      emit('update:editForm', { ...props.editForm, avgPrice: String(current + n) });
+    };
+    return { formatAvgPrice, onAvgPriceInput, addAvgPrice };
+  },
 };
 </script>
 

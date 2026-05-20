@@ -50,11 +50,11 @@
             <td class="td-r">{{ fmtHoldVal(h) }}</td>
             <td class="td-r">
               <input
-                :value="editForm.avgPrice ?? ''"
-                @input="$emit('update:editForm', { ...editForm, avgPrice: $event.target.value === '' ? null : $event.target.value })"
+                :value="formatAvgPrice(editForm.avgPrice)"
+                @input="onAvgPriceInput($event)"
                 type="text"
                 inputmode="decimal"
-                pattern="[0-9]*[.,]?[0-9]*"
+                pattern="[0-9,]*[.]?[0-9]*"
                 class="inline-inp"
                 placeholder="미입력"
               />
@@ -126,6 +126,28 @@ export default {
     pnlCls: { type: Function, required: true },
   },
   emits: ['toggle-sort', 'start-edit', 'save-edit', 'cancel-edit', 'remove', 'update:editForm', 'analyze'],
+  setup(props, { emit }) {
+    const formatAvgPrice = (v) => {
+      if (v == null || v === '') return '';
+      const s = String(v);
+      const [intPart, decPart] = s.split('.');
+      const intNum = intPart.replace(/[^\d-]/g, '');
+      const formatted = intNum === '' || intNum === '-'
+        ? intNum
+        : Number(intNum).toLocaleString('en-US');
+      return decPart !== undefined ? `${formatted}.${decPart}` : formatted;
+    };
+    const onAvgPriceInput = (e) => {
+      const raw = e.target.value.replace(/,/g, '');
+      if (raw === '') {
+        emit('update:editForm', { ...props.editForm, avgPrice: null });
+        return;
+      }
+      if (!/^-?\d*\.?\d*$/.test(raw)) return;
+      emit('update:editForm', { ...props.editForm, avgPrice: raw });
+    };
+    return { formatAvgPrice, onAvgPriceInput };
+  },
 };
 </script>
 
