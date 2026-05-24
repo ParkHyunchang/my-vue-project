@@ -238,7 +238,7 @@
                 <div class="progress-bar">
                   <div class="progress-fill"></div>
                 </div>
-                <p>업로드 중...</p>
+                <p>{{ converting ? 'HEIC 변환 중...' : '업로드 중...' }}</p>
               </div>
             </div>
           </div>
@@ -315,6 +315,7 @@ import { useStore } from "vuex";
 import axios from "@/axios";
 import Modal from "@/components/Modal.vue";
 import DeleteModal from "@/components/DeleteModal.vue";
+import heic2any from "heic2any";
 import { useToast } from "@/composables/toast";
 import { apiErrorMessage } from "@/utils/apiError";
 import { useUploadLimits } from "@/composables/useUploadLimits";
@@ -354,6 +355,7 @@ export default {
 
     const localMemory = ref({ ...EMPTY_MEMORY });
     const uploading = ref(false);
+    const converting = ref(false);
     const isSelectingFiles = ref(false);
     const postUploadSettling = ref(false);
     const isMobileLike = ref(false);
@@ -626,8 +628,17 @@ export default {
           if (isVideo && file.size > maxVideoSizeBytes) {
             throw new Error(`${file.name}: 동영상 파일 크기는 ${maxVideoLimitLabel} 이하여야 합니다.`);
           }
+          let uploadFile = file;
+          const ext = file.name.split(".").pop().toLowerCase();
+          if (ext === "heic" || ext === "heif") {
+            converting.value = true;
+            const converted = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.8 });
+            const blob = Array.isArray(converted) ? converted[0] : converted;
+            uploadFile = new File([blob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), { type: "image/jpeg" });
+            converting.value = false;
+          }
           const formData = new FormData();
-          formData.append("file", file);
+          formData.append("file", uploadFile);
           const response = await axios.post("/api/dating/upload", formData, {
             headers: { "Content-Type": "multipart/form-data" },
           });
@@ -708,7 +719,7 @@ export default {
 
     return {
       localMemory,
-      uploading, isSelectingFiles, postUploadSettling,
+      uploading, converting, isSelectingFiles, postUploadSettling,
       isMobileLike, modalLock,
       fileInput, previewVideos,
       showImageDeleteModal,
