@@ -171,7 +171,7 @@
               <input
                 ref="fileInput"
                 type="file"
-                accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.mov,.mkv,.webm,.avi,.m4v,.3gp"
+                accept=".jpg,.jpeg,.png,.gif,.webp,.heic,.heif,.mp4,.mov,.mkv,.webm,.avi,.m4v,.3gp"
                 multiple
                 style="display: none"
                 @change="handleFileUpload"
@@ -639,7 +639,9 @@ export default {
         await new Promise((r) => setTimeout(r, 300));
       } catch (error) {
         showToast(
-          apiErrorMessage(error, `미디어 업로드에 실패했습니다: ${error.message}`),
+          error?.response
+            ? apiErrorMessage(error, "미디어 업로드에 실패했습니다.")
+            : error.message || "미디어 업로드에 실패했습니다.",
           "danger",
         );
       } finally {

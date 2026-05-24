@@ -1,6 +1,6 @@
 import axios from "@/axios";
 
-const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"];
+const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp", "heic", "heif"];
 const VIDEO_EXTENSIONS = ["mp4", "mov", "mkv", "webm", "avi", "m4v", "3gp"];
 
 export function useMediaUtils() {
