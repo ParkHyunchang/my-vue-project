@@ -216,7 +216,12 @@
                     :src="getImageUrl(image)"
                     :alt="`미디어 ${index + 1}`"
                     class="media-preview"
+                    @error="(e) => { e.target.style.display='none'; e.target.nextElementSibling.style.display='flex'; }"
                   />
+                  <div class="media-error-placeholder" style="display:none">
+                    <i class="fas fa-image"></i>
+                    <span>미리보기 불가</span>
+                  </div>
                   <button
                     v-if="canDelete"
                     type="button"
@@ -310,6 +315,7 @@ import { useStore } from "vuex";
 import axios from "@/axios";
 import Modal from "@/components/Modal.vue";
 import DeleteModal from "@/components/DeleteModal.vue";
+import heic2any from "heic2any";
 import { useToast } from "@/composables/toast";
 import { apiErrorMessage } from "@/utils/apiError";
 import { useUploadLimits } from "@/composables/useUploadLimits";
@@ -621,8 +627,15 @@ export default {
           if (isVideo && file.size > maxVideoSizeBytes) {
             throw new Error(`${file.name}: 동영상 파일 크기는 ${maxVideoLimitLabel} 이하여야 합니다.`);
           }
+          let uploadFile = file;
+          const ext = file.name.split(".").pop().toLowerCase();
+          if (ext === "heic" || ext === "heif") {
+            const converted = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.85 });
+            const blob = Array.isArray(converted) ? converted[0] : converted;
+            uploadFile = new File([blob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), { type: "image/jpeg" });
+          }
           const formData = new FormData();
-          formData.append("file", file);
+          formData.append("file", uploadFile);
           const response = await axios.post("/api/dating/upload", formData, {
             headers: { "Content-Type": "multipart/form-data" },
           });

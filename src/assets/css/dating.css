@@ -138,6 +138,7 @@
 .image-preview-item .media-preview { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: transform 0.3s ease; }
 .image-preview-item .media-preview:hover { transform: scale(1.05); }
 .image-preview-item .media-preview-video { background: #000; }
+.image-preview-item .media-error-placeholder { width: 100%; height: 120px; border-radius: 8px; background: var(--bg-secondary, #2a2a2a); flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--text-muted, #888); font-size: 11px; }
 .video-type-badge { position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.7); color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 10px; pointer-events: none; z-index: 1; }
 .image-preview-item .remove-image-item { position: absolute; top: -8px; right: -8px; background: var(--danger-color); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; transition: all 0.3s ease; box-shadow: 0 2px 6px rgba(0,0,0,0.35); }
 .image-preview-item .remove-image-item:hover { background: var(--danger-hover); transform: scale(1.1); }
