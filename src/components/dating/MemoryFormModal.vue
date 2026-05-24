@@ -238,7 +238,7 @@
                 <div class="progress-bar">
                   <div class="progress-fill"></div>
                 </div>
-                <p>업로드 중...</p>
+                <p>{{ converting ? 'HEIC 변환 중...' : '업로드 중...' }}</p>
               </div>
             </div>
           </div>
@@ -355,6 +355,7 @@ export default {
 
     const localMemory = ref({ ...EMPTY_MEMORY });
     const uploading = ref(false);
+    const converting = ref(false);
     const isSelectingFiles = ref(false);
     const postUploadSettling = ref(false);
     const isMobileLike = ref(false);
@@ -630,9 +631,11 @@ export default {
           let uploadFile = file;
           const ext = file.name.split(".").pop().toLowerCase();
           if (ext === "heic" || ext === "heif") {
+            converting.value = true;
             const converted = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.85 });
             const blob = Array.isArray(converted) ? converted[0] : converted;
             uploadFile = new File([blob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), { type: "image/jpeg" });
+            converting.value = false;
           }
           const formData = new FormData();
           formData.append("file", uploadFile);
@@ -716,7 +719,7 @@ export default {
 
     return {
       localMemory,
-      uploading, isSelectingFiles, postUploadSettling,
+      uploading, converting, isSelectingFiles, postUploadSettling,
       isMobileLike, modalLock,
       fileInput, previewVideos,
       showImageDeleteModal,
