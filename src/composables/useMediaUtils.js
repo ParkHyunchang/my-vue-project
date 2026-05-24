@@ -14,14 +14,16 @@ export function useMediaUtils() {
 
   function isImageFile(file) {
     if (!file) return false;
-    if (file.type && file.type.startsWith("image/")) return true;
-    return IMAGE_EXTENSIONS.includes(getExtensionFromName(file.name));
+    const ext = getExtensionFromName(file.name);
+    if (ext) return IMAGE_EXTENSIONS.includes(ext);
+    return file.type && file.type.startsWith("image/");
   }
 
   function isVideoFile(file) {
     if (!file) return false;
-    if (file.type && file.type.startsWith("video/")) return true;
-    return VIDEO_EXTENSIONS.includes(getExtensionFromName(file.name));
+    const ext = getExtensionFromName(file.name);
+    if (ext) return VIDEO_EXTENSIONS.includes(ext);
+    return file.type && file.type.startsWith("video/");
   }
 
   function extractPath(value) {

@@ -171,7 +171,7 @@
               <input
                 ref="fileInput"
                 type="file"
-                accept="image/*,video/*"
+                accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.mov,.mkv,.webm,.avi,.m4v,.3gp"
                 multiple
                 style="display: none"
                 @change="handleFileUpload"
