@@ -83,7 +83,7 @@
 
           <!-- 3. 추천 종목 -->
           <section v-if="result.recommendations?.length" class="pana-section">
-            <h4 class="pana-section-title">💡 추천 종목</h4>
+            <h4 class="pana-section-title">📰 뉴스 기반 추천 종목</h4>
             <div class="pana-recs">
               <div
                 v-for="(r, idx) in result.recommendations"
@@ -98,9 +98,13 @@
                       <span class="pana-rec-sym">{{ r.symbol }}</span>
                     </div>
                   </div>
-                  <span :class="['pana-rec-source', r.source === 'TOP10' ? 'src-top10' : 'src-free']">
-                    {{ r.source === 'TOP10' ? '시총 Top10' : 'AI 자유 추천' }}
-                  </span>
+                  <div class="pana-rec-badges">
+                    <span v-if="r.held" class="pana-rec-source src-held">＋ 보유 중·추가 매수</span>
+                    <span class="pana-rec-source src-news">📰 뉴스 기반</span>
+                  </div>
+                </div>
+                <div v-if="r.newsBasis" class="pana-rec-news">
+                  📰 {{ r.newsBasis }}
                 </div>
                 <div class="pana-rec-row">
                   <span class="pana-rec-label">추천 이유</span>
@@ -114,8 +118,8 @@
                   <span class="pana-rec-label">포트폴리오 적합도</span>
                   <span class="pana-rec-text">{{ r.fitForPortfolio }}</span>
                 </div>
-                <div v-if="r.source === 'FREE'" class="pana-rec-warn">
-                  ⚠️ AI 자유 추천 종목은 실재성·정확성이 검증되지 않을 수 있습니다.
+                <div class="pana-rec-warn">
+                  ⚠️ AI 가 뉴스를 근거로 고른 종목입니다. 실재성·정확성을 직접 확인하세요.
                 </div>
               </div>
             </div>
@@ -178,8 +182,8 @@ export default {
 
     const loadingMessages = [
       '보유 종목 시세를 확인하는 중...',
-      '시총 Top10·시장 뉴스를 모으는 중...',
-      'AI 가 포트폴리오를 분석하는 중...',
+      '최근 시장 뉴스를 모으는 중...',
+      'AI 가 뉴스 기반으로 분석하는 중...',
     ];
     const loadingMsgIdx = ref(0);
     let loadingTimer = null;
@@ -504,9 +508,22 @@ export default {
 .pana-rec-sym { font-size: 11px; color: var(--text-muted); font-weight: 500; }
 .pana-rec-source {
   font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: 600;
+  white-space: nowrap;
 }
-.pana-rec-source.src-top10 { background: rgba(125, 175, 240, 0.18); color: #a8c8f0; }
-.pana-rec-source.src-free  { background: var(--accent-dim);         color: var(--accent-light); }
+.pana-rec-source.src-news { background: rgba(125, 175, 240, 0.18); color: #a8c8f0; }
+.pana-rec-source.src-held { background: rgba(106, 173, 106, 0.20); color: #8fce8f; }
+.pana-rec-badges { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+.pana-rec-news {
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: rgba(125, 175, 240, 0.08);
+  border-left: 2px solid var(--accent);
+  border-radius: 4px;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  line-height: 1.45;
+}
 
 .pana-rec-row {
   display: flex; gap: 8px; font-size: 12px; margin-top: 4px;
