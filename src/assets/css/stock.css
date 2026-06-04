@@ -471,7 +471,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 10001; /* navbar(#header z-index:10000) 위로 올려 모달 상단이 가려지지 않도록 */
   padding: 16px;
 }
 .modal-box {
@@ -482,6 +482,10 @@
   max-width: 440px;
   padding: 28px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  /* 내용이 화면보다 길면 모달 내부에서 스크롤 (overlay 패딩 16px*2 = 32px 제외) */
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain; /* 스크롤이 뒤 배경으로 전파되지 않도록 */
 }
 .modal-hdr {
   display: flex;

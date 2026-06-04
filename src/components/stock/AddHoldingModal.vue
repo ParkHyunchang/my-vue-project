@@ -5,7 +5,7 @@
       class="modal-overlay"
       @click.self="$emit('close')"
     >
-      <div class="modal-box">
+      <div class="modal-box" data-lenis-prevent>
         <div class="modal-hdr">
           <h3>종목 추가</h3>
           <button class="modal-close" @click="$emit('close')">✕</button>
@@ -139,7 +139,8 @@
 </template>
 
 <script>
-import { computed } from 'vue';
+import { computed, watch, onBeforeUnmount } from 'vue';
+import { lenis } from '@/assets/js/smooth.js';
 
 export default {
   name: 'AddHoldingModal',
@@ -163,6 +164,18 @@ export default {
     'update:newHolding',
   ],
   setup(props, { emit }) {
+    // 모달이 열려 있는 동안 뒤 배경 스크롤 잠금 — 모달 내부만 스크롤되도록.
+    // 이 사이트는 Lenis(JS 스무스 스크롤)를 쓰므로 CSS overflow:hidden만으로는 안 막힌다.
+    // Lenis를 stop()/start()로 직접 제어하고, 폴백으로 body/html overflow도 함께 잠근다.
+    const setBgScrollLock = (locked) => {
+      const v = locked ? 'hidden' : '';
+      document.body.style.overflow = v;
+      document.documentElement.style.overflow = v;
+      if (lenis) locked ? lenis.stop() : lenis.start();
+    };
+    watch(() => props.show, setBgScrollLock, { immediate: true });
+    onBeforeUnmount(() => setBgScrollLock(false));
+
     const onSearchQInput = (e) => {
       emit('update:searchQ', e.target.value);
       emit('search-input');
