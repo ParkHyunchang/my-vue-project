@@ -20,6 +20,10 @@ export function apiErrorMessage(err, fallback) {
   if (status === 403) {
     return serverMsg || '권한이 없습니다.';
   }
+  // 401은 서버가 "Unauthorized"라는 모호한 문구를 주므로 사용자용으로 치환
+  if (status === 401) {
+    return '세션이 만료되었거나 로그인이 필요합니다. 다시 로그인해주세요.';
+  }
   if (serverMsg) {
     return serverMsg;
   }

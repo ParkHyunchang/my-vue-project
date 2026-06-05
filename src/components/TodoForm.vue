@@ -83,13 +83,17 @@
 <script>
 import { useRoute, useRouter } from 'vue-router';
 import axios from '@/axios';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useToast } from '@/composables/toast';
 import { logger } from '@/utils/logger';
 import { apiErrorMessage } from '@/utils/apiError';
 import AppInput from '@/components/Input.vue';
 
 const DEFAULT_CATEGORIES = ['업무', '공부', '운동', '집안일', '개인'];
+
+// 신규 작성 중인 내용을 임시 저장하는 키. 세션 만료로 로그인 페이지로 튕기거나
+// 실수로 페이지를 벗어나도 작성한 내용이 날아가지 않도록 한다.
+const DRAFT_KEY = 'todo_create_draft';
 
 export default {
     components: {
@@ -170,10 +174,35 @@ export default {
             router.push('/todos');
         };
 
+        // ---- 임시 저장(draft) 처리: 신규 작성에만 적용 ----
+        const saveDraft = () => {
+            try {
+                localStorage.setItem(DRAFT_KEY, JSON.stringify(todo.value));
+            } catch { /* 저장 실패는 무시 */ }
+        };
+        const clearDraft = () => {
+            try { localStorage.removeItem(DRAFT_KEY); } catch { /* 무시 */ }
+        };
+        const restoreDraft = () => {
+            try {
+                const raw = localStorage.getItem(DRAFT_KEY);
+                if (!raw) return;
+                const saved = JSON.parse(raw);
+                if (saved && typeof saved === 'object') {
+                    todo.value = { ...todo.value, ...saved };
+                    showToast('이전에 작성하던 내용을 복원했습니다.', 'info');
+                }
+            } catch { /* 손상된 draft는 무시 */ }
+        };
+
         onMounted(() => {
             loadCategories();
             if (props.editing) {
                 getTodo();
+            } else {
+                restoreDraft();
+                // 입력이 바뀔 때마다 임시 저장 (세션 만료/이탈 대비)
+                watch(todo, saveDraft, { deep: true });
             }
         });
 
@@ -200,12 +229,18 @@ export default {
                     moveToTodoListPage();
                 } else {
                     await axios.post('/api/todos', data);
+                    clearDraft();
                     showToast('Successfully Created!');
                     moveToTodoListPage();
                 }
             } catch (error) {
                 logger.error('할 일 저장 실패:', error);
-                showToast(apiErrorMessage(error, 'Something went wrong'), 'danger');
+                // 401(세션 만료)인 경우 작성 내용은 draft로 보존되어 있으므로 안심시킨다.
+                if (error.response?.status === 401) {
+                    showToast('세션이 만료되었습니다. 작성 내용은 임시 저장되었으니 다시 로그인 후 등록해주세요.', 'danger');
+                } else {
+                    showToast(apiErrorMessage(error, '할 일 저장에 실패했습니다.'), 'danger');
+                }
             }
         };
 
