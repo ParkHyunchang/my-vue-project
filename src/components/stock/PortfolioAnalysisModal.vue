@@ -43,6 +43,26 @@
             <span class="pana-summary-text">{{ result.summary }}</span>
           </div>
 
+          <!-- 1-1. 거시 정합성 -->
+          <div v-if="result.macroFit" class="pana-macro">
+            🌐 <span>{{ result.macroFit }}</span>
+          </div>
+
+          <!-- 1-2. 종합 등급 -->
+          <div v-if="hasGrades" class="pana-grades">
+            <div
+              v-for="g in gradeItems"
+              :key="g.key"
+              class="pana-grade-card"
+            >
+              <div class="pana-grade-top">
+                <span class="pana-grade-label">{{ g.label }}</span>
+                <span :class="['pana-grade-badge', gradeCls(g.grade)]">{{ g.grade || '-' }}</span>
+              </div>
+              <div v-if="g.comment" class="pana-grade-comment">{{ g.comment }}</div>
+            </div>
+          </div>
+
           <!-- 2. 보유 종목 시그널 -->
           <section class="pana-section">
             <h4 class="pana-section-title">🔍 보유 종목 점검</h4>
@@ -77,6 +97,28 @@
                 <div v-if="h.newsHint" class="pana-holding-news">
                   📰 {{ h.newsHint }}
                 </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 2-1. 핵심 / 취약 고리 -->
+          <section v-if="result.coreHolding || result.weakestLink" class="pana-section">
+            <div class="pana-keys">
+              <div v-if="result.coreHolding" class="pana-key-card key-core">
+                <div class="pana-key-head">⭐ 핵심 종목</div>
+                <div class="pana-key-name">
+                  {{ result.coreHolding.name }}
+                  <span class="pana-key-sym">{{ result.coreHolding.symbol }}</span>
+                </div>
+                <div class="pana-key-reason">{{ result.coreHolding.reason }}</div>
+              </div>
+              <div v-if="result.weakestLink" class="pana-key-card key-weak">
+                <div class="pana-key-head">⚠️ 가장 취약한 고리</div>
+                <div class="pana-key-name">
+                  {{ result.weakestLink.name }}
+                  <span class="pana-key-sym">{{ result.weakestLink.symbol }}</span>
+                </div>
+                <div class="pana-key-reason">{{ result.weakestLink.reason }}</div>
               </div>
             </div>
           </section>
@@ -124,6 +166,44 @@
               </div>
             </div>
           </section>
+
+          <!-- 3-1. 우선순위 액션 -->
+          <section v-if="result.priorityActions?.length" class="pana-section">
+            <h4 class="pana-section-title">✅ 우선순위 액션</h4>
+            <ol class="pana-actions">
+              <li v-for="(a, idx) in result.priorityActions" :key="idx">{{ a }}</li>
+            </ol>
+          </section>
+
+          <!-- 3-2. 강세 / 약세 시나리오 -->
+          <section v-if="result.bullScenario || result.bearScenario" class="pana-section">
+            <h4 class="pana-section-title">🔀 강세 / 약세 시나리오</h4>
+            <div class="pana-scenarios">
+              <div v-if="result.bullScenario" class="pana-scenario sc-bull">
+                <div class="pana-scenario-head">📈 강세</div>
+                <div v-if="result.bullScenario.trigger" class="pana-scenario-row">
+                  <span class="pana-scenario-label">트리거</span>{{ result.bullScenario.trigger }}
+                </div>
+                <div v-if="result.bullScenario.outlook" class="pana-scenario-row">
+                  <span class="pana-scenario-label">전개</span>{{ result.bullScenario.outlook }}
+                </div>
+              </div>
+              <div v-if="result.bearScenario" class="pana-scenario sc-bear">
+                <div class="pana-scenario-head">📉 약세</div>
+                <div v-if="result.bearScenario.trigger" class="pana-scenario-row">
+                  <span class="pana-scenario-label">트리거</span>{{ result.bearScenario.trigger }}
+                </div>
+                <div v-if="result.bearScenario.outlook" class="pana-scenario-row">
+                  <span class="pana-scenario-label">전개</span>{{ result.bearScenario.outlook }}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 3-3. 자기반박 -->
+          <div v-if="result.selfRebuttal" class="pana-rebuttal">
+            🤔 <strong>자기반박:</strong> {{ result.selfRebuttal }}
+          </div>
 
           <!-- 4. 메타 + 디스클레이머 -->
           <div class="pana-meta">
@@ -283,6 +363,17 @@ export default {
       providersStatus.value.every((ps) => !ps.enabled),
     );
 
+    const gradeItems = computed(() => {
+      const g = result.value?.grades;
+      if (!g) return [];
+      return [
+        { key: 'diversification', label: '분산', ...(g.diversification || {}) },
+        { key: 'risk', label: '리스크', ...(g.risk || {}) },
+        { key: 'growth', label: '성장성', ...(g.growth || {}) },
+      ].filter((x) => x.grade || x.comment);
+    });
+    const hasGrades = computed(() => gradeItems.value.length > 0);
+
     onBeforeUnmount(() => {
       clearInterval(loadingTimer);
       clearInterval(tickerTimer);
@@ -300,6 +391,7 @@ export default {
     }
     function actionLabel(a) {
       return {
+        ADD: '비중 확대',
         TAKE_PROFIT: '이익실현',
         HOLD: '보유',
         CUT_LOSS: '손절 검토',
@@ -308,6 +400,7 @@ export default {
     }
     function actionIcon(a) {
       return {
+        ADD: '➕',
         TAKE_PROFIT: '💰',
         HOLD: '✋',
         CUT_LOSS: '🚪',
@@ -316,6 +409,13 @@ export default {
     }
     function actionCls(a) {
       return ('act-' + (a || 'HOLD').toLowerCase()).replace('_', '-');
+    }
+    function gradeCls(g) {
+      const c = (g || '').trim().toUpperCase().charAt(0);
+      if (c === 'A' || c === 'B') return 'grade-good';
+      if (c === 'C') return 'grade-mid';
+      if (c === 'D' || c === 'F' || c === 'E') return 'grade-bad';
+      return 'grade-mid';
     }
     function pnlCls(v) {
       if (v === null || v === undefined) return '';
@@ -340,6 +440,7 @@ export default {
       providerName, model, analyzedAt,
       retryCountdown, cooldownSec, allDisabled,
       loadingText,
+      hasGrades, gradeItems, gradeCls,
       fetchAnalysis,
       sentimentCls, sentimentIcon,
       actionLabel, actionIcon, actionCls,
@@ -442,6 +543,7 @@ export default {
   background: var(--card-bg-hover);
   border-left: 3px solid var(--card-border);
 }
+.pana-holding-card.act-add         { border-left-color: #e0b15e; }
 .pana-holding-card.act-take-profit { border-left-color: #8fce8f; }
 .pana-holding-card.act-hold        { border-left-color: #a8c8f0; }
 .pana-holding-card.act-cut-loss    { border-left-color: #e89a9a; }
@@ -465,6 +567,7 @@ export default {
   font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600;
   white-space: nowrap;
 }
+.pana-action-pill.act-add         { background: rgba(224, 177, 94, 0.22);  color: #e0b15e; }
 .pana-action-pill.act-take-profit { background: rgba(106, 173, 106, 0.22); color: #8fce8f; }
 .pana-action-pill.act-hold        { background: rgba(125, 175, 240, 0.18); color: #a8c8f0; }
 .pana-action-pill.act-cut-loss    { background: rgba(196, 90, 90, 0.25);   color: #e89a9a; }
@@ -556,6 +659,100 @@ export default {
   text-align: center; font-style: italic;
 }
 
+/* 거시 정합성 */
+.pana-macro {
+  display: flex; gap: 8px; align-items: flex-start;
+  font-size: 13px; color: var(--text-secondary); line-height: 1.5;
+  padding: 2px 2px;
+}
+
+/* 종합 등급 */
+.pana-grades {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.pana-grade-card {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--card-bg-hover);
+  border: 1px solid var(--card-border);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.pana-grade-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.pana-grade-label { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+.pana-grade-badge {
+  font-size: 13px; font-weight: 800;
+  min-width: 24px; height: 24px; padding: 0 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 6px;
+}
+.pana-grade-badge.grade-good { background: rgba(106, 173, 106, 0.20); color: #8fce8f; }
+.pana-grade-badge.grade-mid  { background: rgba(224, 177, 94, 0.20);  color: #e0b15e; }
+.pana-grade-badge.grade-bad  { background: rgba(196, 90, 90, 0.22);   color: #e89a9a; }
+.pana-grade-comment { font-size: 11px; color: var(--text-muted); line-height: 1.45; }
+
+/* 핵심 / 취약 고리 */
+.pana-keys {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.pana-key-card {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--card-bg-hover);
+  border-left: 3px solid var(--card-border);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.pana-key-card.key-core { border-left-color: #8fce8f; }
+.pana-key-card.key-weak { border-left-color: #e89a9a; }
+.pana-key-head { font-size: 12px; font-weight: 700; color: var(--text-secondary); }
+.pana-key-name { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.pana-key-sym { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+.pana-key-reason { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+/* 우선순위 액션 */
+.pana-actions {
+  margin: 0; padding-left: 20px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.pana-actions li {
+  font-size: 13px; color: var(--text-primary); line-height: 1.5;
+}
+
+/* 시나리오 */
+.pana-scenarios {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.pana-scenario {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--card-bg-hover);
+  border-left: 3px solid var(--card-border);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.pana-scenario.sc-bull { border-left-color: #8fce8f; }
+.pana-scenario.sc-bear { border-left-color: #e89a9a; }
+.pana-scenario-head { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.pana-scenario-row { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+.pana-scenario-label {
+  display: inline-block; min-width: 44px;
+  color: var(--text-muted); font-weight: 600; margin-right: 6px;
+}
+
+/* 자기반박 */
+.pana-rebuttal {
+  font-size: 12px; color: var(--text-secondary); line-height: 1.55;
+  padding: 10px 12px;
+  background: rgba(125, 175, 240, 0.07);
+  border: 1px dashed var(--card-border);
+  border-radius: 8px;
+}
+.pana-rebuttal strong { color: var(--text-primary); }
+
 .pana-footer-btns { display: flex; gap: 8px; justify-content: flex-end; }
 
 @media (max-width: 640px) {
@@ -564,5 +761,8 @@ export default {
   .pana-meta { flex-direction: column; gap: 2px; }
   .pana-footer-btns { flex-direction: column-reverse; }
   .pana-footer-btns .btn { width: 100%; }
+  .pana-grades { grid-template-columns: 1fr; }
+  .pana-keys { grid-template-columns: 1fr; }
+  .pana-scenarios { grid-template-columns: 1fr; }
 }
 </style>
