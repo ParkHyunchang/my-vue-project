@@ -18,6 +18,7 @@ export const ROUTE_COMPONENTS = {
     '/todos/create': { component: () => import('../pages/todos/create/index.vue'), requiresAuth: true },
     '/subscription': { component: () => import('../pages/subscription.vue'),        requiresAuth: true },
     '/stock':        { component: () => import('../pages/stock.vue'),               requiresAuth: true },
+    '/realestate':   { component: () => import('../pages/realestate.vue'),          requiresAuth: true },
     '/chat':         { component: () => import('../pages/chat.vue'),                requiresAuth: false },
     '/diary':        { component: () => import('../pages/diary.vue'),               requiresAuth: true },
 };
@@ -53,7 +54,7 @@ export function getDefaultMenusForRole(role) {
         'PREMIUM': ['/', '/history', '/dating', '/todos', '/todos/create', '/chat', '/diary'],
         'ADMIN':   [
             '/', '/history', '/dating',
-            '/todos', '/todos/create', '/subscription', '/chat', '/diary',
+            '/todos', '/todos/create', '/subscription', '/realestate', '/chat', '/diary',
             '/admin', '/admin/users', '/admin/menu-management',
             '/admin/role-management', '/admin/menu-definition',
         ],
