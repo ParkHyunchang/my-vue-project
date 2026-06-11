@@ -192,6 +192,10 @@ router.beforeEach((to, from, next) => {
             next({ ...resolved, replace: true });
             return;
         }
+        // 매칭되는 라우트가 없음(동적 라우트 미등록 / 존재하지 않는 경로).
+        // 빈 router-view(까만 화면) 대신 안전한 곳으로 보낸다.
+        next(isAuthenticated ? '/' : '/login');
+        return;
     }
 
     next();

@@ -13,7 +13,6 @@ import './assets/css/components.css';
 const app = createApp(App);
 
 app.use(store);
-app.use(router);
 
 // 앱 시작 시 인증 상태 확인 (httpOnly 쿠키 → 서버에 /api/auth/me 호출로 복원)
 async function initializeApp() {
@@ -35,6 +34,10 @@ async function initializeApp() {
     }
   }
 
+  // 라우터는 인증 복원·동적 라우트 등록이 끝난 뒤 설치한다.
+  // (먼저 설치하면 초기 네비게이션 가드가 인증/라우트 준비 전에 실행돼
+  //  딥링크 새로고침 시 빈 화면이나 잘못된 /login 이동이 발생함)
+  app.use(router);
   app.mount('#app');
 }
 

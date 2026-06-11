@@ -134,6 +134,9 @@ const actions = {
   // 클라이언트 측 강제 정리 (서버 호출 없이) — axios 인터셉터에서 사용
   logoutLocal({ commit }) {
     commit("LOGOUT");
+    // 메뉴 접근 권한도 비로그인(guest) 상태로 초기화한다.
+    // (auth만 비우고 userMenus를 남기면 stale 메뉴로 접근/노출되는 불일치 발생)
+    commit("menu/SET_USER_MENUS", ["/", "/chat"], { root: true });
   },
 
   async checkAuth({ commit, dispatch, rootGetters }) {
