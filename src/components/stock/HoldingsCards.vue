@@ -67,6 +67,12 @@
             <div>
               <div class="h-name">{{ h.name }}</div>
               <div class="h-sym">{{ h.symbol }}</div>
+              <button
+                type="button"
+                :class="['core-toggle', { 'is-core': h.core }]"
+                :title="h.core ? '코어(장기 적립) · 클릭하면 위성으로' : '위성(단타) · 클릭하면 코어로'"
+                @click="$emit('toggle-core', h)"
+              >{{ h.core ? '★ 코어' : '☆ 위성' }}</button>
             </div>
           </div>
           <div class="hcard-price-wrap">
@@ -124,7 +130,7 @@ export default {
     fmtHoldPnlPct: { type: Function, required: true },
     pnlCls: { type: Function, required: true },
   },
-  emits: ['start-edit', 'save-edit', 'cancel-edit', 'remove', 'update:editForm', 'analyze'],
+  emits: ['start-edit', 'save-edit', 'cancel-edit', 'remove', 'toggle-core', 'update:editForm', 'analyze'],
   setup(props, { emit }) {
     const formatAvgPrice = (v) => {
       if (v == null || v === '') return '';

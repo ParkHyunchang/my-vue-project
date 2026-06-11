@@ -150,6 +150,7 @@
           @save-edit="saveEdit"
           @cancel-edit="editingId = null"
           @remove="removeHolding"
+          @toggle-core="toggleCore"
           @analyze="openAnalysis"
         />
 
@@ -171,6 +172,7 @@
           @save-edit="saveEdit"
           @cancel-edit="editingId = null"
           @remove="removeHolding"
+          @toggle-core="toggleCore"
           @analyze="openAnalysis"
         />
       </template>
@@ -473,6 +475,18 @@ export default {
       }
     }
 
+    async function toggleCore(h) {
+      const next = !h.core;
+      try {
+        const res = await axios.put(`/api/portfolio/holdings/${h.id}/core`, { core: next });
+        const idx = holdings.value.findIndex((x) => x.id === h.id);
+        if (idx !== -1) holdings.value[idx] = res.data;
+        emitHoldingsChanged();
+      } catch (err) {
+        alert(describeApiError(err, "코어 설정 변경에 실패했습니다."));
+      }
+    }
+
     async function removeHolding(id) {
       const target = holdings.value.find((h) => h.id === id);
       const name = target ? target.name : "이 종목";
@@ -675,7 +689,7 @@ export default {
       openAddModal, closeAddModal, openAnalysis, closeAnalysis,
       openPortfolioAnalysis, closePortfolioAnalysis,
       onSearchInput, selectStock, onSearchBlur,
-      addHolding, removeHolding, startEdit, saveEdit, fetchPrices,
+      addHolding, removeHolding, toggleCore, startEdit, saveEdit, fetchPrices,
       fmtKRW, fmtUSD, fmtByMkt, fmtMoney, pnlCls,
       fmtAbsPnl, fmtCurPrice, fmtHoldVal, fmtHoldPnl, fmtHoldPnlPct,
       fmtLegVal, holdPnl, holdPnlPct, holdValKRW,
