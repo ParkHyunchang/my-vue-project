@@ -2,7 +2,7 @@
   <div class="re-container">
     <div class="page-header">
       <h2>부동산</h2>
-      <p class="page-subtitle">아파트 실거래가 · 시세 · 뉴스 (국토교통부 공개데이터)</p>
+      <p class="page-subtitle">아파트·토지 실거래가 · 시세 · 뉴스 (국토교통부 공개데이터)</p>
     </div>
 
     <!-- API 미설정 안내 -->

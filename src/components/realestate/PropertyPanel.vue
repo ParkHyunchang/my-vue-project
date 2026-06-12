@@ -16,56 +16,116 @@
     <div v-else class="pp-grid">
       <div v-for="h in holdings" :key="h.id" class="pp-card">
         <div class="pp-card-top">
-          <span :class="['pp-badge', 'pp-badge-' + h.dealType.toLowerCase()]">
+          <span v-if="isLand(h)" class="pp-badge pp-badge-land">토지</span>
+          <span v-else :class="['pp-badge', 'pp-badge-' + h.dealType.toLowerCase()]">
             {{ dealLabel(h.dealType) }}
           </span>
           <button class="pp-del" title="삭제" @click="removeHolding(h)">🗑</button>
         </div>
 
         <div class="pp-name">{{ h.name }}</div>
-        <div class="pp-region">
-          {{ h.sigungu }}
-          <span v-if="h.areaM2"> · {{ h.areaM2 }}㎡ ({{ (h.areaM2 / 3.3058).toFixed(1) }}평)</span>
-        </div>
 
-        <div class="pp-rows">
-          <div class="pp-line">
-            <span class="pp-k">{{ h.dealType === 'SALE' ? '매입가' : '보증금' }}</span>
-            <span class="pp-v">
-              {{ formatMoney(h.purchasePrice) }}
-              <span v-if="h.purchaseDate" class="pp-date">· {{ h.purchaseDate }}</span>
-            </span>
+        <!-- 토지 -->
+        <template v-if="isLand(h)">
+          <div class="pp-region">
+            {{ h.sigungu }}<span v-if="h.umdName"> {{ h.umdName }}</span><span v-if="h.jibun"> {{ h.jibun }}</span>
           </div>
-          <div v-if="h.dealType === 'MONTHLY'" class="pp-line">
-            <span class="pp-k">월세</span>
-            <span class="pp-v">{{ h.monthlyRent ? h.monthlyRent + '만원' : '-' }}</span>
+          <div class="pp-tags">
+            <span v-if="h.jimok" class="pp-tag">지목 {{ h.jimok }}</span>
+            <span v-if="h.useZone" class="pp-tag">{{ h.useZone }}</span>
+            <span v-if="h.areaM2" class="pp-tag">{{ h.areaM2 }}㎡ ({{ (h.areaM2 / 3.3058).toFixed(1) }}평)</span>
           </div>
 
-          <!-- 추정 시세 -->
-          <div class="pp-line pp-quote">
-            <span class="pp-k">추정 시세</span>
-            <span class="pp-v">
-              <template v-if="quotes[h.id]?.loading">조회중…</template>
-              <template v-else-if="quotes[h.id]?.found">
-                {{ formatMoney(quotes[h.id].recentPrice) }}
-                <span class="pp-quote-meta">({{ quotes[h.id].recentDate }} · {{ quotes[h.id].matchCount }}건)</span>
-              </template>
-              <template v-else>실거래 없음</template>
-            </span>
+          <div class="pp-rows">
+            <div class="pp-line">
+              <span class="pp-k">매입가</span>
+              <span class="pp-v">
+                {{ formatMoney(h.purchasePrice) }}
+                <span v-if="h.purchaseDate" class="pp-date">· {{ h.purchaseDate }}</span>
+              </span>
+            </div>
+
+            <!-- 추정 시세 (단가 × 면적) -->
+            <div class="pp-line pp-quote">
+              <span class="pp-k">추정 시세</span>
+              <span class="pp-v">
+                <template v-if="quotes[h.id]?.loading">조회중…</template>
+                <template v-else-if="quotes[h.id]?.found && quotes[h.id].estimate">
+                  {{ formatMoney(quotes[h.id].estimate) }}
+                  <span class="pp-quote-meta">({{ quotes[h.id].recentDate }} · {{ quotes[h.id].matchCount }}건)</span>
+                </template>
+                <template v-else>실거래 단가 없음</template>
+              </span>
+            </div>
+
+            <!-- 단가 (만원/평) -->
+            <div v-if="quotes[h.id]?.found" class="pp-line">
+              <span class="pp-k">주변 단가</span>
+              <span class="pp-v pp-unit">{{ formatUnit(quotes[h.id].pricePerM2Avg) }}/평</span>
+            </div>
+
+            <!-- 개별공시지가 -->
+            <div v-if="h.officialPricePerM2" class="pp-line">
+              <span class="pp-k">공시지가</span>
+              <span class="pp-v">
+                {{ h.officialPricePerM2.toLocaleString() }}원/㎡
+                <span v-if="h.officialPriceYear" class="pp-quote-meta">({{ h.officialPriceYear }}년)</span>
+              </span>
+            </div>
+
+            <!-- 현재 대비 -->
+            <div v-if="quotes[h.id]?.found && quotes[h.id].estimate && h.purchasePrice" class="pp-line pp-diff">
+              <span class="pp-k">현재 대비</span>
+              <span :class="['pp-v', diffClass(h)]">
+                {{ formatDiff(quotes[h.id].estimate - h.purchasePrice) }} ({{ diffRate(h) }})
+              </span>
+            </div>
+          </div>
+        </template>
+
+        <!-- 아파트 -->
+        <template v-else>
+          <div class="pp-region">
+            {{ h.sigungu }}
+            <span v-if="h.areaM2"> · {{ h.areaM2 }}㎡ ({{ (h.areaM2 / 3.3058).toFixed(1) }}평)</span>
           </div>
 
-          <!-- 차이 (매매·전세 보증금 기준) -->
-          <div
-            v-if="quotes[h.id]?.found && h.purchasePrice"
-            class="pp-line pp-diff"
-          >
-            <span class="pp-k">현재 대비</span>
-            <span :class="['pp-v', diffClass(h)]">
-              {{ formatDiff(quotes[h.id].recentPrice - h.purchasePrice) }}
-              ({{ diffRate(h) }})
-            </span>
+          <div class="pp-rows">
+            <div class="pp-line">
+              <span class="pp-k">{{ h.dealType === 'SALE' ? '매입가' : '보증금' }}</span>
+              <span class="pp-v">
+                {{ formatMoney(h.purchasePrice) }}
+                <span v-if="h.purchaseDate" class="pp-date">· {{ h.purchaseDate }}</span>
+              </span>
+            </div>
+            <div v-if="h.dealType === 'MONTHLY'" class="pp-line">
+              <span class="pp-k">월세</span>
+              <span class="pp-v">{{ h.monthlyRent ? h.monthlyRent + '만원' : '-' }}</span>
+            </div>
+
+            <!-- 추정 시세 -->
+            <div class="pp-line pp-quote">
+              <span class="pp-k">추정 시세</span>
+              <span class="pp-v">
+                <template v-if="quotes[h.id]?.loading">조회중…</template>
+                <template v-else-if="quotes[h.id]?.found">
+                  {{ formatMoney(quotes[h.id].recentPrice) }}
+                  <span class="pp-quote-meta">({{ quotes[h.id].recentDate }} · {{ quotes[h.id].matchCount }}건)</span>
+                </template>
+                <template v-else>실거래 없음</template>
+              </span>
+            </div>
+
+            <!-- 차이 (매매·전세 보증금 기준) -->
+            <div v-if="quotes[h.id]?.found && h.purchasePrice" class="pp-line pp-diff">
+              <span class="pp-k">현재 대비</span>
+              <span :class="['pp-v', diffClass(h)]">
+                {{ formatDiff(quotes[h.id].recentPrice - h.purchasePrice) }}
+                ({{ diffRate(h) }})
+              </span>
+            </div>
           </div>
-        </div>
+        </template>
 
         <div v-if="h.memo" class="pp-memo">{{ h.memo }}</div>
       </div>
@@ -112,14 +172,23 @@ export default {
     async function fetchQuote(h) {
       quotes[h.id] = { loading: true, found: false };
       try {
-        const res = await axios.get("/api/realestate/quote", {
-          params: {
-            lawdCd: h.lawdCd,
-            dealType: h.dealType,
-            aptName: h.name,
-            areaM2: h.areaM2 || undefined,
-          },
-        });
+        const res = isLand(h)
+          ? await axios.get("/api/realestate/land/quote", {
+              params: {
+                lawdCd: h.lawdCd,
+                jimok: h.jimok || undefined,
+                useZone: h.useZone || undefined,
+                areaM2: h.areaM2 || undefined,
+              },
+            })
+          : await axios.get("/api/realestate/quote", {
+              params: {
+                lawdCd: h.lawdCd,
+                dealType: h.dealType,
+                aptName: h.name,
+                areaM2: h.areaM2 || undefined,
+              },
+            });
         quotes[h.id] = { loading: false, ...res.data };
       } catch {
         quotes[h.id] = { loading: false, found: false };
@@ -140,8 +209,26 @@ export default {
       loadHoldings();
     }
 
+    function isLand(h) {
+      return h.propertyType === "LAND";
+    }
+
     function dealLabel(t) {
       return { SALE: "매매", JEONSE: "전세", MONTHLY: "월세" }[t] || t;
+    }
+
+    // 추정 시세의 "현재가" — 아파트=recentPrice, 토지=estimate (모두 만원)
+    function currentValue(h) {
+      const q = quotes[h.id];
+      if (!q?.found) return null;
+      return isLand(h) ? q.estimate : q.recentPrice;
+    }
+
+    // 단가(원/㎡) → "만원/평" 표기
+    function formatUnit(perM2) {
+      if (!perM2) return "-";
+      const perPyeongManwon = (perM2 * 3.3058) / 10000;
+      return `${perPyeongManwon.toLocaleString(undefined, { maximumFractionDigits: 0 })}만`;
     }
 
     function formatMoney(manwon) {
@@ -160,16 +247,16 @@ export default {
     }
 
     function diffRate(h) {
-      const q = quotes[h.id];
-      if (!q?.found || !h.purchasePrice) return "-";
-      const rate = ((q.recentPrice - h.purchasePrice) / h.purchasePrice) * 100;
+      const cur = currentValue(h);
+      if (cur == null || !h.purchasePrice) return "-";
+      const rate = ((cur - h.purchasePrice) / h.purchasePrice) * 100;
       return (rate > 0 ? "+" : "") + rate.toFixed(1) + "%";
     }
 
     function diffClass(h) {
-      const q = quotes[h.id];
-      if (!q?.found) return "";
-      const diff = q.recentPrice - h.purchasePrice;
+      const cur = currentValue(h);
+      if (cur == null) return "";
+      const diff = cur - h.purchasePrice;
       return diff > 0 ? "pp-up" : diff < 0 ? "pp-down" : "";
     }
 
@@ -187,7 +274,7 @@ export default {
     return {
       holdings, quotes, loading, showModal,
       removeHolding, onSaved,
-      dealLabel, formatMoney, formatDiff, diffRate, diffClass,
+      isLand, dealLabel, formatMoney, formatUnit, formatDiff, diffRate, diffClass,
     };
   },
 };
@@ -223,11 +310,20 @@ export default {
 .pp-badge-sale { background: #dbeafe; color: #1e40af; }
 .pp-badge-jeonse { background: #dcfce7; color: #166534; }
 .pp-badge-monthly { background: #fef3c7; color: #92400e; }
+.pp-badge-land { background: #e0e7ff; color: #3730a3; }
 .pp-del { border: none; background: none; cursor: pointer; font-size: 14px; opacity: 0.6; }
 .pp-del:hover { opacity: 1; }
 
 .pp-name { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-top: 8px; }
 .pp-region { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+
+.pp-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+.pp-tag {
+  font-size: 11px; padding: 2px 8px; border-radius: 6px;
+  background: rgba(99, 102, 241, 0.08); color: var(--text-muted);
+  border: 1px solid var(--card-border);
+}
+.pp-unit { color: #4f46e5; }
 
 .pp-rows { display: flex; flex-direction: column; gap: 5px; }
 .pp-line { display: flex; justify-content: space-between; font-size: 13px; }
