@@ -20,7 +20,7 @@
         <label class="re-label">지역</label>
         <div class="re-region-input">
           <input
-            v-model="regionQuery"
+            :value="regionQuery"
             type="text"
             class="re-input"
             placeholder="시/군/구 검색 (예: 강남구, 분당구)"
@@ -121,10 +121,11 @@
     <template v-else>
       <div v-if="searched && !loading && landDeals.length" class="re-land-filters">
         <input
-          v-model="dongFilter"
+          :value="dongFilter"
           type="text"
           class="re-input re-dong-filter"
           placeholder="법정동 검색 (예: 돌산읍, 군내리)"
+          @input="dongFilter = $event.target.value"
         />
         <select v-model="jimokFilter" class="re-input re-select">
           <option value="">지목 전체</option>
@@ -273,7 +274,9 @@ export default {
       errorMsg.value = "";
     }
 
-    function onRegionInput() {
+    function onRegionInput(e) {
+      // v-model 대신 :value+수동 갱신: 한글 IME 조합 중에도 즉시 반영
+      regionQuery.value = e.target.value;
       selectedRegion.value = null;
       showRegionList.value = true;
       clearTimeout(debounceTimer);

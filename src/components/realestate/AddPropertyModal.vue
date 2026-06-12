@@ -39,7 +39,7 @@
         <div class="rem-row rem-region">
           <label>지역</label>
           <input
-            v-model="regionQuery"
+            :value="regionQuery"
             type="text"
             placeholder="시/군/구 검색 (예: 강남구)"
             autocomplete="off"
@@ -62,7 +62,7 @@
           <div class="rem-row rem-region">
             <label>단지명</label>
             <input
-              v-model="aptQuery"
+              :value="aptQuery"
               type="text"
               :placeholder="form.lawdCd ? '단지명 검색·선택' : '먼저 지역을 선택하세요'"
               :disabled="!form.lawdCd"
@@ -100,7 +100,7 @@
           <div class="rem-row rem-region">
             <label>읍면동 <span class="rem-opt">(공시지가 조회용, 선택)</span></label>
             <input
-              v-model="umdQuery"
+              :value="umdQuery"
               type="text"
               :placeholder="form.lawdCd ? (umdLoading ? '불러오는 중…' : '읍면동·리 검색 (예: 화양면 나진)') : '먼저 지역을 선택하세요'"
               :disabled="!form.lawdCd"
@@ -352,7 +352,9 @@ export default {
       }
     }
 
-    function onRegionInput() {
+    function onRegionInput(e) {
+      // v-model 대신 :value+수동 갱신: 한글 IME 조합 중에도 즉시 반영
+      regionQuery.value = e.target.value;
       form.lawdCd = "";
       form.sigungu = "";
       showRegionList.value = true;
@@ -397,7 +399,8 @@ export default {
         aptLoading.value = false;
       }
     }
-    function onAptInput() {
+    function onAptInput(e) {
+      aptQuery.value = e.target.value;
       form.name = aptQuery.value;
       showAptList.value = true;
       areaList.value = [];
@@ -453,7 +456,8 @@ export default {
         umdLoading.value = false;
       }
     }
-    function onUmdInput() {
+    function onUmdInput(e) {
+      umdQuery.value = e.target.value;
       showUmdList.value = true;
       // 타이핑 중에는 선택·공시지가 무효화 (재선택 유도)
       form.bdongCode = "";
