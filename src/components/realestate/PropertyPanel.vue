@@ -20,7 +20,10 @@
           <span v-else :class="['pp-badge', 'pp-badge-' + h.dealType.toLowerCase()]">
             {{ dealLabel(h.dealType) }}
           </span>
-          <button class="pp-del" title="삭제" @click="removeHolding(h)">🗑</button>
+          <div class="pp-actions">
+            <button class="pp-edit" title="수정" @click="openEdit(h)">✏️</button>
+            <button class="pp-del" title="삭제" @click="removeHolding(h)">🗑</button>
+          </div>
         </div>
 
         <div class="pp-name">{{ h.name }}</div>
@@ -132,6 +135,7 @@
     </div>
 
     <AddPropertyModal :show="showModal" @close="showModal = false" @saved="onSaved" />
+    <EditPropertyModal :show="!!editTarget" :holding="editTarget" @close="editTarget = null" @saved="onEditSaved" />
   </div>
 </template>
 
@@ -139,10 +143,11 @@
 import { ref, reactive, watch, onMounted } from "vue";
 import axios from "@/axios";
 import AddPropertyModal from "./AddPropertyModal.vue";
+import EditPropertyModal from "./EditPropertyModal.vue";
 
 export default {
   name: "PropertyPanel",
-  components: { AddPropertyModal },
+  components: { AddPropertyModal, EditPropertyModal },
   props: { active: { type: Boolean, default: false } },
   emits: ["holdings-changed"],
   setup(props, { emit }) {
@@ -150,6 +155,7 @@ export default {
     const quotes = reactive({});
     const loading = ref(false);
     const showModal = ref(false);
+    const editTarget = ref(null);
 
     async function loadHoldings() {
       loading.value = true;
@@ -206,6 +212,14 @@ export default {
     }
 
     function onSaved() {
+      loadHoldings();
+    }
+
+    function openEdit(h) {
+      editTarget.value = h;
+    }
+    function onEditSaved() {
+      editTarget.value = null;
       loadHoldings();
     }
 
@@ -272,8 +286,8 @@ export default {
     });
 
     return {
-      holdings, quotes, loading, showModal,
-      removeHolding, onSaved,
+      holdings, quotes, loading, showModal, editTarget,
+      removeHolding, onSaved, openEdit, onEditSaved,
       isLand, dealLabel, formatMoney, formatUnit, formatDiff, diffRate, diffClass,
     };
   },
@@ -311,8 +325,9 @@ export default {
 .pp-badge-jeonse { background: #dcfce7; color: #166534; }
 .pp-badge-monthly { background: #fef3c7; color: #92400e; }
 .pp-badge-land { background: #e0e7ff; color: #3730a3; }
-.pp-del { border: none; background: none; cursor: pointer; font-size: 14px; opacity: 0.6; }
-.pp-del:hover { opacity: 1; }
+.pp-actions { display: flex; align-items: center; gap: 2px; }
+.pp-edit, .pp-del { border: none; background: none; cursor: pointer; font-size: 14px; opacity: 0.6; padding: 2px 4px; }
+.pp-edit:hover, .pp-del:hover { opacity: 1; }
 
 .pp-name { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-top: 8px; }
 .pp-region { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
