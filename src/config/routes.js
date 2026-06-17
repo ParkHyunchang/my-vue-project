@@ -19,6 +19,7 @@ export const ROUTE_COMPONENTS = {
     '/subscription': { component: () => import('../pages/subscription.vue'),        requiresAuth: true },
     '/stock':        { component: () => import('../pages/stock.vue'),               requiresAuth: true },
     '/realestate':   { component: () => import('../pages/realestate.vue'),          requiresAuth: true },
+    '/travel':       { component: () => import('../pages/travel.vue'),              requiresAuth: true },
     '/chat':         { component: () => import('../pages/chat.vue'),                requiresAuth: false },
     '/diary':        { component: () => import('../pages/diary.vue'),               requiresAuth: true },
 };
@@ -37,6 +38,7 @@ export function getDefaultMenuDefinitions() {
         { path: '/todos',                 name: '할일 목록',          icon: '📝', description: '할일 관리',            category: 'productivity',isRequired: false, showInNav: true,  navLabel: 'TODOS',            isAdminSubMenu: false, parentPath: null },
         { path: '/todos/create',          name: '할일 생성',          icon: '➕', description: '새로운 할일 추가',     category: 'productivity',isRequired: false, showInNav: false, navLabel: '할일 생성',         isAdminSubMenu: false, parentPath: null },
         { path: '/subscription',          name: '구독 관리',          icon: '💳', description: '정기 결제 서비스 관리', category: 'finance',     isRequired: false, showInNav: true,  navLabel: '구독',              isAdminSubMenu: false, parentPath: null },
+        { path: '/travel',                name: '여행',              icon: '✈️', description: 'AI 여행 플래너·다녀온 곳·버킷리스트', category: 'personal', isRequired: false, showInNav: true,  navLabel: '여행',              isAdminSubMenu: false, parentPath: null },
         { path: '/admin',                 name: '관리자 대시보드',    icon: '🎛️', description: '관리자 메인 대시보드', category: 'admin',       isRequired: false, showInNav: false, navLabel: '관리자 대시보드',   isAdminSubMenu: false, parentPath: null },
         { path: '/admin/users',           name: '사용자 관리',        icon: '👥', description: '사용자 계정 관리',    category: 'admin',       isRequired: false, showInNav: false, navLabel: '사용자 관리',       isAdminSubMenu: true,  parentPath: null },
         { path: '/admin/menu-management', name: '권한별 접근메뉴관리', icon: '🔐', description: '메뉴 접근 권한 설정', category: 'admin',       isRequired: false, showInNav: false, navLabel: '권한별 접근메뉴관리', isAdminSubMenu: true,  parentPath: null },
@@ -54,7 +56,7 @@ export function getDefaultMenusForRole(role) {
         'PREMIUM': ['/', '/history', '/dating', '/todos', '/todos/create', '/chat', '/diary'],
         'ADMIN':   [
             '/', '/history', '/dating',
-            '/todos', '/todos/create', '/subscription', '/realestate', '/chat', '/diary',
+            '/todos', '/todos/create', '/subscription', '/realestate', '/travel', '/chat', '/diary',
             '/admin', '/admin/users', '/admin/menu-management',
             '/admin/role-management', '/admin/menu-definition',
         ],
