@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h1>프롬프트 관리</h1>
-        <p>주식·여행·부동산·포트폴리오·일기 AI가 사용하는 프롬프트를 직접 수정합니다. 저장하지 않으면 코드의 기본 프롬프트로 동작합니다.</p>
+        <p>각 AI가 "어떻게 분석·답변할지" 지침을 직접 수정합니다. 데이터·응답 형식은 시스템이 자동 처리하며, 수정한 지침은 DB에 저장됩니다.</p>
       </div>
     </div>
 
@@ -48,39 +48,40 @@
           <div class="amodal-body">
             <p class="amodal-desc">{{ selected.description }}</p>
 
-            <div class="amodal-section">
-              <p class="amodal-section-label">사용 가능한 변수 <span class="amodal-hint">(클릭하면 커서 위치에 삽입)</span></p>
-              <div class="amodal-chips">
-                <button
-                  v-for="v in selected.variables"
-                  :key="v.name"
-                  class="amodal-chip"
-                  :title="v.description"
-                  @click="insertVariable(v.name)"
-                >{{ varToken(v.name) }}</button>
-              </div>
+            <div class="amodal-note">
+              AI가 <b>어떻게 분석·답변할지</b> 지침만 수정하면 됩니다.
+              분석 데이터와 응답 형식(JSON)은 시스템이 자동으로 덧붙이며 여기서 수정할 수 없습니다.
             </div>
 
+            <p class="amodal-section-label">지침 (편집 가능)</p>
             <textarea
               ref="editor"
               v-model="editContent"
               class="amodal-textarea thin-scrollbar"
               spellcheck="false"
-              placeholder="프롬프트 내용을 입력하세요"
+              placeholder="예) 당신은 ○○ 분석가입니다. 아래 데이터만 근거로 간결하게 분석하세요..."
             ></textarea>
 
             <div v-if="validationError" class="amodal-error">⚠ {{ validationError }}</div>
 
             <div class="amodal-tools">
-              <button class="amodal-btn amodal-btn-ghost" @click="toggleDefault">
-                {{ showDefault ? '기본값 닫기' : '기본값 보기' }}
+              <button class="amodal-btn amodal-btn-ghost" @click="toggleFixed">
+                {{ showFixed ? '고정 영역 닫기' : '자동으로 붙는 데이터·응답형식 보기' }}
               </button>
-              <span v-if="isDirty" class="amodal-tools-note">저장하지 않은 변경사항</span>
+              <button class="amodal-btn amodal-btn-ghost" @click="toggleDefault">
+                {{ showDefault ? '기본 지침 닫기' : '기본 지침 보기' }}
+              </button>
+              <span v-if="isDirty" class="amodal-tools-note">저장 안 됨</span>
+            </div>
+
+            <div v-if="showFixed" class="amodal-preview">
+              <p class="amodal-preview-label">자동으로 붙는 고정 영역 (수정 불가) — {{ varExample }} 는 실행 시 실제 값으로 채워집니다</p>
+              <pre class="amodal-preview-pre thin-scrollbar">{{ selected.fixedPreview }}</pre>
             </div>
 
             <div v-if="showDefault" class="amodal-preview">
-              <p class="amodal-preview-label">코드 기본 프롬프트</p>
-              <pre class="amodal-preview-pre thin-scrollbar">{{ selected.defaultTemplate }}</pre>
+              <p class="amodal-preview-label">코드 기본 지침</p>
+              <pre class="amodal-preview-pre thin-scrollbar">{{ selected.defaultInstruction }}</pre>
             </div>
           </div>
 
@@ -89,7 +90,7 @@
               class="amodal-btn amodal-btn-danger"
               :disabled="saving || !selected.customized"
               @click="resetToDefault"
-              title="커스텀을 지우고 코드 기본값으로 되돌립니다"
+              title="커스텀 지침을 지우고 코드 기본 지침으로 되돌립니다"
             >기본값으로 되돌리기</button>
             <div class="amodal-foot-right">
               <button class="amodal-btn amodal-btn-ghost" :disabled="saving" @click="closeEditor">취소</button>
@@ -115,10 +116,12 @@ export default {
       loading: true,
       error: '',
       selected: null,        // 편집 중인 프롬프트
-      editContent: '',
+      editContent: '',       // 편집 중인 지침 텍스트
       saving: false,
       validationError: '',
-      showDefault: false,
+      showDefault: false,    // 기본 지침 미리보기
+      showFixed: false,      // 고정 영역(데이터+응답형식) 미리보기
+      varExample: '{{변수}}',
     }
   },
   computed: {
@@ -133,17 +136,13 @@ export default {
     },
     isDirty() {
       if (!this.selected) return false
-      const baseline = this.selected.effectiveContent || ''
-      return this.editContent !== baseline
+      return this.editContent !== (this.selected.effectiveInstruction || '')
     },
   },
   mounted() {
     this.load()
   },
   methods: {
-    varToken(name) {
-      return '{{' + name + '}}'
-    },
     load() {
       this.loading = true
       this.error = ''
@@ -161,9 +160,10 @@ export default {
     },
     openEditor(p) {
       this.selected = p
-      this.editContent = p.effectiveContent || ''
+      this.editContent = p.effectiveInstruction || ''
       this.validationError = ''
       this.showDefault = false
+      this.showFixed = false
     },
     closeEditor() {
       if (this.isDirty && !window.confirm('저장하지 않은 변경사항이 있습니다. 닫으시겠습니까?')) return
@@ -171,25 +171,13 @@ export default {
       this.editContent = ''
       this.validationError = ''
       this.showDefault = false
+      this.showFixed = false
     },
     toggleDefault() {
       this.showDefault = !this.showDefault
     },
-    insertVariable(name) {
-      const token = '{{' + name + '}}'
-      const el = this.$refs.editor
-      if (!el || el.selectionStart == null) {
-        this.editContent += token
-        return
-      }
-      const start = el.selectionStart
-      const end = el.selectionEnd
-      this.editContent = this.editContent.slice(0, start) + token + this.editContent.slice(end)
-      this.$nextTick(() => {
-        const pos = start + token.length
-        el.focus()
-        el.setSelectionRange(pos, pos)
-      })
+    toggleFixed() {
+      this.showFixed = !this.showFixed
     },
     save() {
       this.saving = true
@@ -197,7 +185,7 @@ export default {
       axios.put(`/api/admin/prompts/${this.selected.key}`, { content: this.editContent })
         .then(res => {
           this.applyUpdated(res.data)
-          this.$store.dispatch('toast/showToast', { message: '프롬프트가 저장되었습니다.', type: 'success' })
+          this.$store.dispatch('toast/showToast', { message: '지침이 저장되었습니다.', type: 'success' })
           this.selected = null
         })
         .catch(err => {
@@ -209,14 +197,14 @@ export default {
         .finally(() => { this.saving = false })
     },
     resetToDefault() {
-      if (!window.confirm('커스텀 프롬프트를 지우고 코드 기본값으로 되돌립니다. 계속할까요?')) return
+      if (!window.confirm('커스텀 지침을 지우고 코드 기본 지침으로 되돌립니다. 계속할까요?')) return
       this.saving = true
       this.validationError = ''
       axios.post(`/api/admin/prompts/${this.selected.key}/reset`)
         .then(res => {
           this.applyUpdated(res.data)
-          this.$store.dispatch('toast/showToast', { message: '기본값으로 되돌렸습니다.', type: 'success' })
-          this.editContent = res.data.effectiveContent || ''
+          this.$store.dispatch('toast/showToast', { message: '기본 지침으로 되돌렸습니다.', type: 'success' })
+          this.editContent = res.data.effectiveInstruction || ''
         })
         .catch(() => {
           this.$store.dispatch('toast/showToast', { message: '되돌리기에 실패했습니다.', type: 'error' })
@@ -232,7 +220,7 @@ export default {
 }
 </script>
 
-<!-- 페이지(목록) 스타일 — scoped -->
+<!-- 페이지(목록) 스타일 — scoped. 모달 스타일은 전역 admin-modal.css(amodal-*) 사용 -->
 <style scoped>
 .page-container {
   max-width: 960px;
