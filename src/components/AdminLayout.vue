@@ -66,6 +66,15 @@
           <span class="link-text">메뉴 관리</span>
         </router-link>
         <router-link
+          to="/admin/prompt-management"
+          class="sidebar-link"
+          :class="{ active: $route.path === '/admin/prompt-management' }"
+          @click="closeSidebar"
+        >
+          <span class="link-icon">🤖</span>
+          <span class="link-text">프롬프트 관리</span>
+        </router-link>
+        <router-link
           to="/admin/chat-history"
           class="sidebar-link"
           :class="{ active: $route.path === '/admin/chat-history' }"
@@ -147,6 +156,7 @@ export default {
       '/admin/menu-management': '권한별 접근메뉴관리',
       '/admin/role-management': '권한 관리',
       '/admin/menu-definition': '메뉴 정의 관리',
+      '/admin/prompt-management': '프롬프트 관리',
       '/admin/chat-history': '채팅 히스토리',
       '/admin/career': '경력 관리',
       '/admin/experience': '교육·경험 관리',
@@ -185,3 +195,27 @@ export default {
 </script>
 
 <style src="@/assets/css/layout.css" scoped></style>
+
+<!-- 사이드바 스크롤바를 얇고 은은하게 (메뉴가 길어지면 기본 스크롤바가 투박해 보임) -->
+<style scoped>
+.admin-sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: #33333f transparent;
+}
+.admin-sidebar::-webkit-scrollbar {
+  width: 7px;
+}
+.admin-sidebar::-webkit-scrollbar-thumb {
+  background: #33333f;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.admin-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #44444f;
+  background-clip: content-box;
+}
+.admin-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+</style>

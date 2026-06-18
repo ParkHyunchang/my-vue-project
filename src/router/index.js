@@ -86,6 +86,11 @@ const router = createRouter({
                     component: () => import('../pages/admin-menu-definition.vue'),
                 },
                 {
+                    path: 'prompt-management',
+                    name: 'AdminPromptManagement',
+                    component: () => import('../pages/admin-prompt-management.vue'),
+                },
+                {
                     path: 'chat-history',
                     name: 'AdminChatHistory',
                     component: () => import('../pages/admin-chat-history.vue'),
