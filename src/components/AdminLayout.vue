@@ -10,7 +10,7 @@
     </transition>
 
     <!-- 사이드바 -->
-    <aside :class="['admin-sidebar', { open: sidebarOpen }]">
+    <aside :class="['admin-sidebar', 'thin-scrollbar', { open: sidebarOpen }]">
       <div class="sidebar-header">
         <div class="sidebar-brand">
           <span class="brand-icon">⚙️</span>
@@ -195,27 +195,3 @@ export default {
 </script>
 
 <style src="@/assets/css/layout.css" scoped></style>
-
-<!-- 사이드바 스크롤바를 얇고 은은하게 (메뉴가 길어지면 기본 스크롤바가 투박해 보임) -->
-<style scoped>
-.admin-sidebar {
-  scrollbar-width: thin;
-  scrollbar-color: #33333f transparent;
-}
-.admin-sidebar::-webkit-scrollbar {
-  width: 7px;
-}
-.admin-sidebar::-webkit-scrollbar-thumb {
-  background: #33333f;
-  border-radius: 8px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-.admin-sidebar::-webkit-scrollbar-thumb:hover {
-  background: #44444f;
-  background-clip: content-box;
-}
-.admin-sidebar::-webkit-scrollbar-track {
-  background: transparent;
-}
-</style>

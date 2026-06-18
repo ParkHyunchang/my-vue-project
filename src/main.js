@@ -9,6 +9,7 @@ import './assets/css/base/fonts.css';
 import './assets/css/base/vars.css';
 import './assets/css/base/reset.css';
 import './assets/css/components.css';
+import './assets/css/admin-modal.css';
 
 const app = createApp(App);
 

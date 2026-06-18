@@ -31,30 +31,30 @@
       </div>
     </template>
 
-    <!-- 편집 모달 (body로 teleport — 전역 스타일 pm-* 사용) -->
+    <!-- 편집 모달 (body로 teleport — 전역 공통 스타일 admin-modal.css 의 amodal-* 사용) -->
     <teleport to="body">
-      <div v-if="selected" class="pm-overlay" data-lenis-prevent @click.self="closeEditor">
-        <div class="pm-box">
-          <div class="pm-head">
+      <div v-if="selected" class="amodal-overlay" data-lenis-prevent @click.self="closeEditor">
+        <div class="amodal-box">
+          <div class="amodal-head">
             <div>
               <h2>{{ selected.displayName }}</h2>
-              <span class="pm-badge" :class="selected.customized ? 'pm-badge-on' : 'pm-badge-off'">
+              <span class="amodal-badge" :class="selected.customized ? 'amodal-badge-on' : 'amodal-badge-off'">
                 {{ selected.customized ? '커스텀 적용 중' : '기본값 사용 중' }}
               </span>
             </div>
-            <button class="pm-close" @click="closeEditor" aria-label="닫기">✕</button>
+            <button class="amodal-close" @click="closeEditor" aria-label="닫기">✕</button>
           </div>
 
-          <div class="pm-body">
-            <p class="pm-desc">{{ selected.description }}</p>
+          <div class="amodal-body">
+            <p class="amodal-desc">{{ selected.description }}</p>
 
-            <div class="pm-vars">
-              <p class="pm-vars-label">사용 가능한 변수 <span class="pm-vars-hint">(클릭하면 커서 위치에 삽입)</span></p>
-              <div class="pm-chips">
+            <div class="amodal-section">
+              <p class="amodal-section-label">사용 가능한 변수 <span class="amodal-hint">(클릭하면 커서 위치에 삽입)</span></p>
+              <div class="amodal-chips">
                 <button
                   v-for="v in selected.variables"
                   :key="v.name"
-                  class="pm-chip"
+                  class="amodal-chip"
                   :title="v.description"
                   @click="insertVariable(v.name)"
                 >{{ varToken(v.name) }}</button>
@@ -64,36 +64,36 @@
             <textarea
               ref="editor"
               v-model="editContent"
-              class="pm-textarea"
+              class="amodal-textarea thin-scrollbar"
               spellcheck="false"
               placeholder="프롬프트 내용을 입력하세요"
             ></textarea>
 
-            <div v-if="validationError" class="pm-error">⚠ {{ validationError }}</div>
+            <div v-if="validationError" class="amodal-error">⚠ {{ validationError }}</div>
 
-            <div class="pm-tools">
-              <button class="pm-btn pm-ghost" @click="toggleDefault">
+            <div class="amodal-tools">
+              <button class="amodal-btn amodal-btn-ghost" @click="toggleDefault">
                 {{ showDefault ? '기본값 닫기' : '기본값 보기' }}
               </button>
-              <span v-if="isDirty" class="pm-dirty">저장하지 않은 변경사항</span>
+              <span v-if="isDirty" class="amodal-tools-note">저장하지 않은 변경사항</span>
             </div>
 
-            <div v-if="showDefault" class="pm-default">
-              <p class="pm-default-label">코드 기본 프롬프트</p>
-              <pre class="pm-default-pre">{{ selected.defaultTemplate }}</pre>
+            <div v-if="showDefault" class="amodal-preview">
+              <p class="amodal-preview-label">코드 기본 프롬프트</p>
+              <pre class="amodal-preview-pre thin-scrollbar">{{ selected.defaultTemplate }}</pre>
             </div>
           </div>
 
-          <div class="pm-foot">
+          <div class="amodal-foot">
             <button
-              class="pm-btn pm-reset"
+              class="amodal-btn amodal-btn-danger"
               :disabled="saving || !selected.customized"
               @click="resetToDefault"
               title="커스텀을 지우고 코드 기본값으로 되돌립니다"
             >기본값으로 되돌리기</button>
-            <div class="pm-foot-right">
-              <button class="pm-btn pm-ghost" :disabled="saving" @click="closeEditor">취소</button>
-              <button class="pm-btn pm-save" :disabled="saving || !isDirty" @click="save">
+            <div class="amodal-foot-right">
+              <button class="amodal-btn amodal-btn-ghost" :disabled="saving" @click="closeEditor">취소</button>
+              <button class="amodal-btn amodal-btn-primary" :disabled="saving || !isDirty" @click="save">
                 {{ saving ? '저장 중...' : '저장' }}
               </button>
             </div>
@@ -359,321 +359,6 @@ export default {
   }
   .btn-edit {
     width: 100%;
-  }
-}
-</style>
-
-<!-- 모달 스타일 — teleport 대상이라 전역(non-scoped)으로 둠. pm- 접두사로 충돌 방지 -->
-<style>
-.pm-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 1rem;
-  overflow: hidden;
-  box-sizing: border-box;
-  z-index: 10001;
-}
-
-.pm-box {
-  background: #16161f;
-  border: 1px solid #2f2f3d;
-  border-radius: 14px;
-  width: 100%;
-  max-width: 720px;
-  height: min(82vh, 780px);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  flex-shrink: 0;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
-}
-
-.pm-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 1.1rem 1.25rem;
-  border-bottom: 1px solid #2a2a36;
-  flex-shrink: 0;
-}
-
-.pm-head h2 {
-  font-size: 1.12rem;
-  font-weight: 600;
-  color: #f0ece4;
-  margin: 0 0.6rem 0 0;
-  display: inline;
-}
-
-.pm-close {
-  background: none;
-  border: none;
-  color: #888;
-  font-size: 1.15rem;
-  cursor: pointer;
-  padding: 0.2rem 0.45rem;
-  border-radius: 6px;
-  line-height: 1;
-}
-
-.pm-close:hover {
-  color: #f0ece4;
-  background: #2a2a36;
-}
-
-.pm-badge {
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
-.pm-badge-on {
-  color: #9d92ff;
-  background: rgba(124, 111, 255, 0.16);
-}
-
-.pm-badge-off {
-  color: #999;
-  background: rgba(255, 255, 255, 0.07);
-}
-
-.pm-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 1rem 1.25rem;
-  overflow: hidden;
-}
-
-.pm-desc {
-  color: #999;
-  font-size: 0.83rem;
-  margin: 0 0 0.9rem;
-  line-height: 1.5;
-  flex-shrink: 0;
-}
-
-.pm-vars {
-  margin-bottom: 0.75rem;
-  flex-shrink: 0;
-}
-
-.pm-vars-label {
-  font-size: 0.78rem;
-  color: #aaa;
-  margin: 0 0 0.5rem;
-}
-
-.pm-vars-hint {
-  color: #666;
-  font-weight: 400;
-}
-
-.pm-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.pm-chip {
-  font-family: monospace;
-  font-size: 0.78rem;
-  color: #9d92ff;
-  background: rgba(124, 111, 255, 0.1);
-  border: 1px solid rgba(124, 111, 255, 0.25);
-  border-radius: 6px;
-  padding: 0.25rem 0.5rem;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.pm-chip:hover {
-  background: rgba(124, 111, 255, 0.22);
-}
-
-.pm-textarea {
-  flex: 1 1 auto;
-  width: 100%;
-  min-height: 120px;
-  resize: none;
-  background: #0e0e15;
-  border: 1px solid #2f2f3d;
-  border-radius: 10px;
-  color: #ddd;
-  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-  font-size: 0.82rem;
-  line-height: 1.6;
-  padding: 0.8rem;
-  box-sizing: border-box;
-  overflow: auto;
-}
-
-.pm-textarea:focus {
-  outline: none;
-  border-color: #7c6fff;
-}
-
-.pm-error {
-  color: #ffab91;
-  background: rgba(255, 112, 67, 0.1);
-  border: 1px solid rgba(255, 112, 67, 0.3);
-  border-radius: 8px;
-  padding: 0.55rem 0.7rem;
-  font-size: 0.82rem;
-  margin-top: 0.6rem;
-  line-height: 1.5;
-  flex-shrink: 0;
-}
-
-.pm-tools {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  margin-top: 0.7rem;
-  flex-shrink: 0;
-}
-
-.pm-dirty {
-  font-size: 0.76rem;
-  color: #c9a227;
-}
-
-.pm-default {
-  margin-top: 0.7rem;
-  border: 1px solid #2a2a36;
-  border-radius: 8px;
-  overflow: hidden;
-  flex: 0 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.pm-default-label {
-  margin: 0;
-  padding: 0.45rem 0.7rem;
-  font-size: 0.76rem;
-  color: #888;
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid #2a2a36;
-  flex-shrink: 0;
-}
-
-.pm-default-pre {
-  margin: 0;
-  padding: 0.7rem;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: auto;
-  font-size: 0.78rem;
-  line-height: 1.55;
-  color: #aaa;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-/* 얇은 커스텀 스크롤바 (모달 내부) */
-.pm-textarea,
-.pm-default-pre {
-  scrollbar-width: thin;
-  scrollbar-color: #3a3a48 transparent;
-}
-.pm-textarea::-webkit-scrollbar,
-.pm-default-pre::-webkit-scrollbar {
-  width: 8px;
-}
-.pm-textarea::-webkit-scrollbar-thumb,
-.pm-default-pre::-webkit-scrollbar-thumb {
-  background: #3a3a48;
-  border-radius: 8px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-.pm-textarea::-webkit-scrollbar-thumb:hover,
-.pm-default-pre::-webkit-scrollbar-thumb:hover {
-  background: #4a4a5a;
-  background-clip: content-box;
-}
-.pm-textarea::-webkit-scrollbar-track,
-.pm-default-pre::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.pm-foot {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.9rem 1.25rem;
-  border-top: 1px solid #2a2a36;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-}
-
-.pm-foot-right {
-  display: flex;
-  gap: 0.5rem;
-  margin-left: auto;
-}
-
-.pm-btn {
-  border: none;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0.5rem 0.9rem;
-  transition: background 0.15s, opacity 0.15s;
-}
-
-.pm-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.pm-ghost {
-  background: transparent;
-  color: #aaa;
-  border: 1px solid #383844;
-}
-
-.pm-ghost:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.pm-reset {
-  background: transparent;
-  color: #e57373;
-  border: 1px solid rgba(229, 115, 115, 0.4);
-}
-
-.pm-reset:hover:not(:disabled) {
-  background: rgba(229, 115, 115, 0.1);
-}
-
-.pm-save {
-  background: #7c6fff;
-  color: #fff;
-}
-
-.pm-save:hover:not(:disabled) {
-  background: #6a5df0;
-}
-
-@media (max-width: 640px) {
-  .pm-overlay {
-    padding: 0.75rem 0.6rem;
-  }
-  .pm-box {
-    height: calc(100vh - 1.5rem);
   }
 }
 </style>
