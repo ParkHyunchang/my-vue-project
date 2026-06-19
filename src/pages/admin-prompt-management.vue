@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h1>프롬프트 관리</h1>
-        <p>각 AI가 "어떻게 분석·답변할지" 지침을 직접 수정합니다. 데이터·응답 형식은 시스템이 자동 처리하며, 수정한 지침은 DB에 저장됩니다.</p>
+        <p>각 AI가 어떻게 분석·답변할지 지침을 관리합니다. 개선한 지침은 저장되어 이후 분석에 그대로 사용됩니다.</p>
       </div>
     </div>
 
@@ -20,9 +20,6 @@
           <div class="card-main">
             <div class="card-title-row">
               <span class="card-title">{{ p.displayName }}</span>
-              <span class="badge" :class="p.customized ? 'badge-custom' : 'badge-default'">
-                {{ p.customized ? '커스텀 적용 중' : '기본값 사용 중' }}
-              </span>
             </div>
             <p class="card-desc">{{ p.description }}</p>
           </div>
@@ -38,9 +35,6 @@
           <div class="amodal-head">
             <div>
               <h2>{{ selected.displayName }}</h2>
-              <span class="amodal-badge" :class="selected.customized ? 'amodal-badge-on' : 'amodal-badge-off'">
-                {{ selected.customized ? '커스텀 적용 중' : '기본값 사용 중' }}
-              </span>
             </div>
             <button class="amodal-close" @click="closeEditor" aria-label="닫기">✕</button>
           </div>
@@ -49,11 +43,11 @@
             <p class="amodal-desc">{{ selected.description }}</p>
 
             <div class="amodal-note">
-              AI가 <b>어떻게 분석·답변할지</b> 지침만 수정하면 됩니다.
-              분석 데이터와 응답 형식(JSON)은 시스템이 자동으로 덧붙이며 여기서 수정할 수 없습니다.
+              이 화면에서는 <b>지침만</b> 수정하면 됩니다.
+              분석 데이터와 응답 형식(JSON)은 실행 시 시스템이 자동으로 붙입니다.
             </div>
 
-            <p class="amodal-section-label">지침 (편집 가능)</p>
+            <p class="amodal-section-label">지침</p>
             <textarea
               ref="editor"
               v-model="editContent"
@@ -65,33 +59,19 @@
             <div v-if="validationError" class="amodal-error">⚠ {{ validationError }}</div>
 
             <div class="amodal-tools">
-              <button class="amodal-btn amodal-btn-ghost" @click="toggleFixed">
-                {{ showFixed ? '고정 영역 닫기' : '자동으로 붙는 데이터·응답형식 보기' }}
-              </button>
-              <button class="amodal-btn amodal-btn-ghost" @click="toggleDefault">
-                {{ showDefault ? '기본 지침 닫기' : '기본 지침 보기' }}
+              <button class="amodal-btn amodal-btn-ghost" @click="toggleAdvanced">
+                {{ showAdvanced ? '고급 보기 닫기' : '고급 보기' }}
               </button>
               <span v-if="isDirty" class="amodal-tools-note">저장 안 됨</span>
             </div>
 
-            <div v-if="showFixed" class="amodal-preview">
-              <p class="amodal-preview-label">자동으로 붙는 고정 영역 (수정 불가) — {{ varExample }} 는 실행 시 실제 값으로 채워집니다</p>
+            <div v-if="showAdvanced" class="amodal-preview">
+              <p class="amodal-preview-label">자동으로 붙는 데이터·응답 형식 (수정 불가) — {{ varExample }} 는 실행 시 실제 값으로 채워집니다</p>
               <pre class="amodal-preview-pre thin-scrollbar">{{ selected.fixedPreview }}</pre>
-            </div>
-
-            <div v-if="showDefault" class="amodal-preview">
-              <p class="amodal-preview-label">코드 기본 지침</p>
-              <pre class="amodal-preview-pre thin-scrollbar">{{ selected.defaultInstruction }}</pre>
             </div>
           </div>
 
           <div class="amodal-foot">
-            <button
-              class="amodal-btn amodal-btn-danger"
-              :disabled="saving || !selected.customized"
-              @click="resetToDefault"
-              title="커스텀 지침을 지우고 코드 기본 지침으로 되돌립니다"
-            >기본값으로 되돌리기</button>
             <div class="amodal-foot-right">
               <button class="amodal-btn amodal-btn-ghost" :disabled="saving" @click="closeEditor">취소</button>
               <button class="amodal-btn amodal-btn-primary" :disabled="saving || !isDirty" @click="save">
@@ -119,8 +99,7 @@ export default {
       editContent: '',       // 편집 중인 지침 텍스트
       saving: false,
       validationError: '',
-      showDefault: false,    // 기본 지침 미리보기
-      showFixed: false,      // 고정 영역(데이터+응답형식) 미리보기
+      showAdvanced: false,   // 자동 데이터·응답 형식 참고 보기
       varExample: '{{변수}}',
     }
   },
@@ -162,22 +141,17 @@ export default {
       this.selected = p
       this.editContent = p.effectiveInstruction || ''
       this.validationError = ''
-      this.showDefault = false
-      this.showFixed = false
+      this.showAdvanced = false
     },
     closeEditor() {
       if (this.isDirty && !window.confirm('저장하지 않은 변경사항이 있습니다. 닫으시겠습니까?')) return
       this.selected = null
       this.editContent = ''
       this.validationError = ''
-      this.showDefault = false
-      this.showFixed = false
+      this.showAdvanced = false
     },
-    toggleDefault() {
-      this.showDefault = !this.showDefault
-    },
-    toggleFixed() {
-      this.showFixed = !this.showFixed
+    toggleAdvanced() {
+      this.showAdvanced = !this.showAdvanced
     },
     save() {
       this.saving = true
@@ -193,21 +167,6 @@ export default {
             ? err.response.data
             : '저장에 실패했습니다.'
           this.validationError = msg
-        })
-        .finally(() => { this.saving = false })
-    },
-    resetToDefault() {
-      if (!window.confirm('커스텀 지침을 지우고 코드 기본 지침으로 되돌립니다. 계속할까요?')) return
-      this.saving = true
-      this.validationError = ''
-      axios.post(`/api/admin/prompts/${this.selected.key}/reset`)
-        .then(res => {
-          this.applyUpdated(res.data)
-          this.$store.dispatch('toast/showToast', { message: '기본 지침으로 되돌렸습니다.', type: 'success' })
-          this.editContent = res.data.effectiveInstruction || ''
-        })
-        .catch(() => {
-          this.$store.dispatch('toast/showToast', { message: '되돌리기에 실패했습니다.', type: 'error' })
         })
         .finally(() => { this.saving = false })
     },
@@ -303,24 +262,6 @@ export default {
   font-size: 0.82rem;
   margin: 0.3rem 0 0;
   line-height: 1.5;
-}
-
-.badge {
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
-.badge-custom {
-  color: #7c6fff;
-  background: rgba(124, 111, 255, 0.14);
-}
-
-.badge-default {
-  color: #888;
-  background: rgba(255, 255, 255, 0.06);
 }
 
 .btn-edit {
