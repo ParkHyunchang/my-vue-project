@@ -38,7 +38,7 @@
               <tr v-if="expandedKey === session.sessionKey" class="messages-row">
                 <td colspan="5">
                   <div v-if="messagesLoading" class="messages-loading">불러오는 중...</div>
-                  <div v-else class="messages-list">
+                  <div v-else class="messages-list thin-scrollbar">
                     <div
                       v-for="(msg, i) in expandedMessages"
                       :key="i"

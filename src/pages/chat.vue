@@ -6,7 +6,7 @@
       <div class="sidebar-header">
         <button class="new-chat-btn" @click="startNewChat">+ 새 대화</button>
       </div>
-      <div class="session-list" data-lenis-prevent>
+      <div class="session-list thin-scrollbar" data-lenis-prevent>
         <div
           v-for="s in sessions"
           :key="s.sessionKey"
@@ -31,7 +31,7 @@
         </div>
       </div>
 
-      <div class="messages" ref="messagesEl" data-lenis-prevent>
+      <div class="messages thin-scrollbar" ref="messagesEl" data-lenis-prevent>
         <!-- 새 채팅 환영 화면 -->
         <div v-if="!sessionKey && !historyLoading" class="welcome-screen">
           <h1 class="welcome-title">
@@ -64,7 +64,7 @@
       <form v-else class="chat-input-area" @submit.prevent="send">
         <textarea
           v-model="input"
-          class="chat-input"
+          class="chat-input thin-scrollbar"
           placeholder="메시지를 입력하세요..."
           rows="1"
           @keydown.enter.exact.prevent="send"

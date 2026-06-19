@@ -8,27 +8,52 @@
    - 스크롤바는 어디서든 class="thin-scrollbar" 로 통일.
    ========================================================== */
 
-/* ---- 얇은 커스텀 스크롤바 유틸 (textarea/pre/사이드바 등 어디든) ---- */
+/* ---- 얇은 커스텀 스크롤바 공통 (페이지/textarea/pre/사이드바 등) ---- */
+:root {
+  --scrollbar-thumb: #3a3a48;
+  --scrollbar-thumb-hover: #4a4a5a;
+  --scrollbar-track: transparent;
+}
+
+*,
+html,
+body,
 .thin-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #3a3a48 transparent;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
+
+*::-webkit-scrollbar,
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
 .thin-scrollbar::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
+
+*::-webkit-scrollbar-thumb,
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
 .thin-scrollbar::-webkit-scrollbar-thumb {
-  background: #3a3a48;
+  background: var(--scrollbar-thumb);
   border-radius: 8px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
+
+*::-webkit-scrollbar-thumb:hover,
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover,
 .thin-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #4a4a5a;
+  background: var(--scrollbar-thumb-hover);
   background-clip: content-box;
 }
+
+*::-webkit-scrollbar-track,
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
 .thin-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scrollbar-track);
 }
 
 /* ---- 오버레이 + 박스 (헤더/푸터 고정, 본문만 스크롤하는 프레임) ---- */

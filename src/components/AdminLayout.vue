@@ -10,7 +10,7 @@
     </transition>
 
     <!-- 사이드바 -->
-    <aside :class="['admin-sidebar', 'thin-scrollbar', { open: sidebarOpen }]">
+    <aside :class="['admin-sidebar', 'thin-scrollbar', { open: sidebarOpen }]" data-lenis-prevent>
       <div class="sidebar-header">
         <div class="sidebar-brand">
           <span class="brand-icon">⚙️</span>

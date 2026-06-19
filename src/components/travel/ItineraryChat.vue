@@ -3,7 +3,7 @@
     <div class="ic-title">💬 AI로 일정 다듬기</div>
     <p class="ic-hint">예: "Day2 오후를 온천 위주로 다시 짜줘" · "Day1 점심은 이치란 라멘으로 정했어"</p>
 
-    <div v-if="messages.length" class="ic-log">
+    <div v-if="messages.length" class="ic-log thin-scrollbar">
       <div
         v-for="(m, i) in messages"
         :key="i"
@@ -14,13 +14,14 @@
     </div>
 
     <div class="ic-input-row">
-      <input
+      <textarea
         v-model="input"
-        type="text"
+        class="thin-scrollbar"
         :disabled="loading"
         placeholder="어떻게 바꿀지 말해보세요"
-        @keyup.enter="send"
-      />
+        rows="1"
+        @keydown.enter.exact.prevent="send"
+      ></textarea>
       <button class="ic-send" :disabled="!canSend || loading" @click="send">
         {{ loading ? "수정 중…" : "보내기" }}
       </button>
@@ -111,10 +112,15 @@ export default {
 }
 
 .ic-input-row { display: flex; gap: 6px; }
-.ic-input-row input {
+.ic-input-row textarea {
   flex: 1; min-width: 0; padding: 9px 11px;
   border: 1px solid var(--input-border); border-radius: 7px;
   background: var(--input-bg); color: var(--input-text); font-size: 14px;
+  line-height: 1.4;
+  resize: vertical;
+  min-height: 38px;
+  max-height: 120px;
+  overflow-y: auto;
 }
 .ic-send {
   padding: 9px 16px; border: none; border-radius: 7px;
