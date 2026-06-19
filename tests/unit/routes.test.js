@@ -12,7 +12,7 @@ describe('getDefaultMenusForRole', () => {
         const menus = getDefaultMenusForRole('ADMIN');
         expect(menus).toContain('/admin');
         expect(menus).toContain('/admin/users');
-        expect(menus).toContain('/expense');
+        expect(menus).toContain('/subscription');
     });
 
     it('PREMIUM 역할은 dating/history 메뉴를 포함한다', () => {
@@ -46,5 +46,10 @@ describe('getDefaultMenuDefinitions', () => {
         const home = defs.find(d => d.path === '/');
         expect(home).toBeDefined();
         expect(home.isRequired).toBe(true);
+    });
+
+    it('구독 관리 경로가 포함된다', () => {
+        const defs = getDefaultMenuDefinitions();
+        expect(defs.find(d => d.path === '/subscription')).toBeDefined();
     });
 });
