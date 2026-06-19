@@ -72,12 +72,6 @@
               <div>
                 <div class="h-name">{{ h.name }}</div>
                 <div class="h-sym">{{ h.symbol }}</div>
-                <button
-                  type="button"
-                  :class="['core-toggle', { 'is-core': h.core }]"
-                  :title="h.core ? '코어(장기 적립) · 클릭하면 위성으로' : '위성(단타) · 클릭하면 코어로'"
-                  @click="$emit('toggle-core', h)"
-                >{{ h.core ? '★ 코어' : '☆ 위성' }}</button>
               </div>
             </td>
             <td class="td-r">{{ h.quantity.toLocaleString() }}</td>

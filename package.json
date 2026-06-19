@@ -12,10 +12,12 @@
     "@studio-freight/lenis": "^1.0.42",
     "axios": "^1.10.0",
     "core-js": "^3.8.3",
+    "dompurify": "^3.4.11",
     "echarts": "^6.0.0",
     "heic2any": "^0.0.4",
     "leaflet": "^1.9.4",
     "lodash": "^4.17.21",
+    "marked": "^18.0.5",
     "vue": "^3.2.13",
     "vue-router": "^4.5.1",
     "vuex": "^4.0.2"

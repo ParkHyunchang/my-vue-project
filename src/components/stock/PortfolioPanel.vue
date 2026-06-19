@@ -214,6 +214,7 @@
     <!-- AI 포트폴리오 진단 모달 -->
     <PortfolioAnalysisModal
       :show="showPortfolioAnalysis"
+      :portfolio-context="portfolioAnalysisContext"
       @close="closePortfolioAnalysis"
     />
   </div>
@@ -625,6 +626,47 @@ export default {
       hoveredSegId.value ? chartSegments.value.find((s) => s.id === hoveredSegId.value) : null,
     );
 
+    const portfolioAnalysisContext = computed(() => {
+      const totalKRW = chartSegments.value.reduce((sum, seg) => sum + (seg.valKRW || 0), 0);
+      const segmentById = new Map(chartSegments.value.map((seg) => [seg.id, seg]));
+      const enrichedHoldings = holdings.value.map((h) => {
+        const quote = prices.value[h.symbol] || {};
+        const seg = segmentById.get(h.id);
+        const currentPrice = quote.price ?? null;
+        const marketValue = currentPrice != null ? currentPrice * h.quantity : null;
+        const marketValueKRW = h.market === "KR"
+          ? marketValue
+          : (marketValue != null && exchangeRate.value > 0 ? marketValue * exchangeRate.value : null);
+        const weightPct = totalKRW > 0 && marketValueKRW != null
+          ? (marketValueKRW / totalKRW) * 100
+          : null;
+
+        return {
+          id: h.id,
+          market: h.market,
+          name: h.name,
+          symbol: h.symbol,
+          quantity: h.quantity,
+          avgPrice: h.avgPrice ?? null,
+          currentPrice,
+          marketValue,
+          marketValueKRW,
+          weightPct,
+          changePercent: quote.changePercent ?? null,
+          pnlPct: holdPnlPct(h),
+          chartWeightPct: seg ? seg.pct * 100 : null,
+        };
+      });
+
+      return {
+        asOf: lastUpdatedAt.value ? lastUpdatedAt.value.toISOString() : new Date().toISOString(),
+        exchangeRate: exchangeRate.value || null,
+        totalValueKRW: totalKRW || totalValKRW.value || null,
+        holdings: enrichedHoldings,
+        instruction: "Use holdings[].weightPct as the current portfolio weight. If weightPct is present, do not ask the user for weights.",
+      };
+    });
+
     const showCurrencyToggle = computed(
       () =>
         usHoldingsCount.value > 0 &&
@@ -685,7 +727,7 @@ export default {
       krPnl, krPnlPct, krHasAvgPrice,
       usPnl, usPnlPct, usHasAvgPrice,
       totalValKRW, totalCostKRW, totalPnlKRW, totalPnlKRWPct,
-      chartSegments,
+      chartSegments, portfolioAnalysisContext,
       openAddModal, closeAddModal, openAnalysis, closeAnalysis,
       openPortfolioAnalysis, closePortfolioAnalysis,
       onSearchInput, selectStock, onSearchBlur,

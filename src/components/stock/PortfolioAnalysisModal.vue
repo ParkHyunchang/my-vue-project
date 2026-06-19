@@ -34,184 +34,141 @@
         <div v-else-if="error" class="pana-error">{{ error }}</div>
 
         <!-- 결과 -->
-        <div v-else-if="result" class="pana-result">
-          <!-- 1. 종합 요약 -->
-          <div class="pana-summary-row">
-            <span :class="['pana-sentiment', sentimentCls(result.sentiment)]">
-              {{ sentimentIcon(result.sentiment) }} {{ result.sentiment }}
-            </span>
-            <span class="pana-summary-text">{{ result.summary }}</span>
-          </div>
-
-          <!-- 1-1. 거시 정합성 -->
-          <div v-if="result.macroFit" class="pana-macro">
-            🌐 <span>{{ result.macroFit }}</span>
-          </div>
-
-          <!-- 1-2. 종합 등급 -->
-          <div v-if="hasGrades" class="pana-grades">
-            <div
-              v-for="g in gradeItems"
-              :key="g.key"
-              class="pana-grade-card"
-            >
-              <div class="pana-grade-top">
-                <span class="pana-grade-label">{{ g.label }}</span>
-                <span :class="['pana-grade-badge', gradeCls(g.grade)]">{{ g.grade || '-' }}</span>
+        <div v-else-if="uiReport || report" class="pana-result">
+          <template v-if="uiReport">
+            <section v-if="uiReport.health" class="pana-hero-card">
+              <div class="pana-score-wrap">
+                <div class="pana-score-ring">
+                  <strong>{{ uiReport.health.score || '-' }}</strong>
+                  <span>/ 10</span>
+                </div>
+                <div>
+                  <div class="pana-eyebrow">포트폴리오 건강 점수</div>
+                  <h4 class="pana-hero-title">{{ uiReport.health.prescription || '진단 결과' }}</h4>
+                </div>
               </div>
-              <div v-if="g.comment" class="pana-grade-comment">{{ g.comment }}</div>
-            </div>
-          </div>
+              <p v-if="uiReport.health.summary" class="pana-hero-summary">
+                {{ uiReport.health.summary }}
+              </p>
+            </section>
 
-          <!-- 2. 보유 종목 시그널 -->
-          <section class="pana-section">
-            <h4 class="pana-section-title">🔍 보유 종목 점검</h4>
-            <div v-if="!result.holdings?.length" class="pana-empty-mini">
-              보유 종목이 없습니다.
-            </div>
-            <div v-else class="pana-holdings">
-              <div
-                v-for="h in result.holdings"
-                :key="h.symbol"
-                :class="['pana-holding-card', actionCls(h.action)]"
-              >
-                <div class="pana-holding-head">
-                  <div class="pana-holding-name-wrap">
-                    <span class="pana-flag">{{ h.market === 'KR' ? '🇰🇷' : '🇺🇸' }}</span>
-                    <div>
-                      <div class="pana-holding-name">{{ h.name }}</div>
-                      <div class="pana-holding-sym">{{ h.symbol }}</div>
+            <section v-if="uiReport.holdings.length" class="pana-section">
+              <div class="pana-section-head">
+                <h4 class="pana-section-title">종목별 액션</h4>
+                <span class="pana-section-hint">AI 판단</span>
+              </div>
+              <div class="pana-stock-actions">
+                <article v-for="item in uiReport.holdings" :key="item.key" class="pana-stock-card">
+                  <div class="pana-stock-head">
+                    <div class="pana-stock-name">
+                      <strong>{{ item.name }}</strong>
+                      <span>{{ [item.ticker, item.country, item.sector].filter(Boolean).join(' · ') }}</span>
                     </div>
-                  </div>
-                  <div class="pana-holding-right">
-                    <span :class="['pana-action-pill', actionCls(h.action)]">
-                      {{ actionIcon(h.action) }} {{ actionLabel(h.action) }}
-                    </span>
-                    <span v-if="h.currentPnlPct !== null && h.currentPnlPct !== undefined"
-                          :class="['pana-pnl', pnlCls(h.currentPnlPct)]">
-                      {{ fmtPnl(h.currentPnlPct) }}
+                    <span :class="['pana-action-badge', actionBadgeClass(item.action)]">
+                      {{ actionText(item.action) }}
                     </span>
                   </div>
-                </div>
-                <div class="pana-holding-reason">{{ h.reason }}</div>
-                <div v-if="h.newsHint" class="pana-holding-news">
-                  📰 {{ h.newsHint }}
-                </div>
+                  <div class="pana-stock-metrics">
+                    <span v-if="item.currentWeight !== null && item.currentWeight !== undefined">
+                      현재 {{ formatPercent(item.currentWeight) }}
+                    </span>
+                    <span v-if="item.proposedWeight !== null && item.proposedWeight !== undefined">
+                      제안 {{ formatPercent(item.proposedWeight) }}
+                    </span>
+                    <span
+                      v-if="item.change !== null && item.change !== undefined"
+                      :class="weightChangeClass(item.change)"
+                    >
+                      {{ formatSignedPercent(item.change) }}
+                    </span>
+                  </div>
+                  <p v-if="item.reason" class="pana-stock-reason">{{ item.reason }}</p>
+                </article>
               </div>
-            </div>
-          </section>
+            </section>
 
-          <!-- 2-1. 핵심 / 취약 고리 -->
-          <section v-if="result.coreHolding || result.weakestLink" class="pana-section">
-            <div class="pana-keys">
-              <div v-if="result.coreHolding" class="pana-key-card key-core">
-                <div class="pana-key-head">⭐ 핵심 종목</div>
-                <div class="pana-key-name">
-                  {{ result.coreHolding.name }}
-                  <span class="pana-key-sym">{{ result.coreHolding.symbol }}</span>
-                </div>
-                <div class="pana-key-reason">{{ result.coreHolding.reason }}</div>
+            <section v-if="uiReport.weights.length && hasProposedWeights" class="pana-section">
+              <div class="pana-section-head">
+                <h4 class="pana-section-title">비중 조정 요약</h4>
+                <span class="pana-section-hint">현재 → 제안</span>
               </div>
-              <div v-if="result.weakestLink" class="pana-key-card key-weak">
-                <div class="pana-key-head">⚠️ 가장 취약한 고리</div>
-                <div class="pana-key-name">
-                  {{ result.weakestLink.name }}
-                  <span class="pana-key-sym">{{ result.weakestLink.symbol }}</span>
-                </div>
-                <div class="pana-key-reason">{{ result.weakestLink.reason }}</div>
-              </div>
-            </div>
-          </section>
-
-          <!-- 3. 추천 종목 -->
-          <section v-if="result.recommendations?.length" class="pana-section">
-            <h4 class="pana-section-title">📰 뉴스 기반 추천 종목</h4>
-            <div class="pana-recs">
-              <div
-                v-for="(r, idx) in result.recommendations"
-                :key="r.symbol + idx"
-                class="pana-rec-card"
-              >
-                <div class="pana-rec-head">
-                  <div>
-                    <div class="pana-rec-name">
-                      <span class="pana-flag">{{ r.market === 'KR' ? '🇰🇷' : '🇺🇸' }}</span>
-                      {{ r.name }}
-                      <span class="pana-rec-sym">{{ r.symbol }}</span>
+              <div class="pana-weight-list">
+                <div v-for="row in uiReport.weights" :key="row.key" class="pana-weight-row">
+                  <div class="pana-weight-top">
+                    <div class="pana-weight-main">
+                      <strong>{{ row.name }}</strong>
+                      <span>{{ [row.ticker, row.country, row.sector].filter(Boolean).join(' · ') }}</span>
+                    </div>
+                    <div class="pana-weight-values">
+                      <span>{{ formatPercent(row.currentWeight) }}</span>
+                      <template v-if="row.proposedWeight !== null && row.proposedWeight !== undefined">
+                        <span class="pana-arrow">→</span>
+                        <strong>{{ formatPercent(row.proposedWeight) }}</strong>
+                      </template>
+                      <em v-if="row.change !== null && row.change !== undefined" :class="weightChangeClass(row.change)">
+                        {{ formatSignedPercent(row.change) }}
+                      </em>
                     </div>
                   </div>
-                  <div class="pana-rec-badges">
-                    <span v-if="r.held" class="pana-rec-source src-held">＋ 보유 중·추가 매수</span>
-                    <span class="pana-rec-source src-news">📰 뉴스 기반</span>
-                  </div>
-                </div>
-                <div v-if="r.newsBasis" class="pana-rec-news">
-                  📰 {{ r.newsBasis }}
-                </div>
-                <div class="pana-rec-row">
-                  <span class="pana-rec-label">추천 이유</span>
-                  <span class="pana-rec-text">{{ r.reason }}</span>
-                </div>
-                <div v-if="r.risks" class="pana-rec-row">
-                  <span class="pana-rec-label">리스크</span>
-                  <span class="pana-rec-text">{{ r.risks }}</span>
-                </div>
-                <div v-if="r.fitForPortfolio" class="pana-rec-row">
-                  <span class="pana-rec-label">포트폴리오 적합도</span>
-                  <span class="pana-rec-text">{{ r.fitForPortfolio }}</span>
-                </div>
-                <div class="pana-rec-warn">
-                  ⚠️ AI 가 뉴스를 근거로 고른 종목입니다. 실재성·정확성을 직접 확인하세요.
+                  <p v-if="row.reason" class="pana-weight-reason">{{ row.reason }}</p>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
 
-          <!-- 3-1. 우선순위 액션 -->
-          <section v-if="result.priorityActions?.length" class="pana-section">
-            <h4 class="pana-section-title">✅ 우선순위 액션</h4>
-            <ol class="pana-actions">
-              <li v-for="(a, idx) in result.priorityActions" :key="idx">{{ a }}</li>
-            </ol>
-          </section>
-
-          <!-- 3-2. 강세 / 약세 시나리오 -->
-          <section v-if="result.bullScenario || result.bearScenario" class="pana-section">
-            <h4 class="pana-section-title">🔀 강세 / 약세 시나리오</h4>
-            <div class="pana-scenarios">
-              <div v-if="result.bullScenario" class="pana-scenario sc-bull">
-                <div class="pana-scenario-head">📈 강세</div>
-                <div v-if="result.bullScenario.trigger" class="pana-scenario-row">
-                  <span class="pana-scenario-label">트리거</span>{{ result.bullScenario.trigger }}
-                </div>
-                <div v-if="result.bullScenario.outlook" class="pana-scenario-row">
-                  <span class="pana-scenario-label">전개</span>{{ result.bullScenario.outlook }}
-                </div>
+            <section v-if="uiReport.scenarios.length" class="pana-section">
+              <div class="pana-section-head">
+                <h4 class="pana-section-title">스트레스 테스트</h4>
               </div>
-              <div v-if="result.bearScenario" class="pana-scenario sc-bear">
-                <div class="pana-scenario-head">📉 약세</div>
-                <div v-if="result.bearScenario.trigger" class="pana-scenario-row">
-                  <span class="pana-scenario-label">트리거</span>{{ result.bearScenario.trigger }}
-                </div>
-                <div v-if="result.bearScenario.outlook" class="pana-scenario-row">
-                  <span class="pana-scenario-label">전개</span>{{ result.bearScenario.outlook }}
-                </div>
+              <div class="pana-scenario-grid">
+                <article
+                  v-for="scenario in uiReport.scenarios"
+                  :key="scenario.name"
+                  class="pana-info-card"
+                >
+                  <h5>{{ scenario.name }}</h5>
+                  <p v-if="scenario.impact"><strong>영향</strong>{{ scenario.impact }}</p>
+                  <p v-if="scenario.response"><strong>대응</strong>{{ scenario.response }}</p>
+                </article>
               </div>
-            </div>
-          </section>
+            </section>
 
-          <!-- 3-3. 자기반박 -->
-          <div v-if="result.selfRebuttal" class="pana-rebuttal">
-            🤔 <strong>자기반박:</strong> {{ result.selfRebuttal }}
-          </div>
+            <section v-if="uiReport.actions.length" class="pana-section">
+              <div class="pana-section-head">
+                <h4 class="pana-section-title">우선순위 액션</h4>
+              </div>
+              <ol class="pana-action-list">
+                <li v-for="(action, idx) in uiReport.actions" :key="idx">
+                  <span>{{ idx + 1 }}</span>
+                  <p>{{ action }}</p>
+                </li>
+              </ol>
+            </section>
 
-          <!-- 4. 메타 + 디스클레이머 -->
+            <section v-if="uiReport.notes.length" class="pana-section">
+              <div class="pana-section-head">
+                <h4 class="pana-section-title">추가 체크포인트</h4>
+              </div>
+              <div class="pana-note-grid">
+                <article v-for="note in uiReport.notes" :key="note.title" class="pana-info-card">
+                  <h5>{{ note.title }}</h5>
+                  <p>{{ note.text }}</p>
+                </article>
+              </div>
+            </section>
+
+            <section v-if="uiReport.question" class="pana-question">
+              <div class="pana-eyebrow">Critical Question</div>
+              <p>{{ uiReport.question }}</p>
+            </section>
+          </template>
+          <MarkdownView v-else :text="report" />
+
           <div class="pana-meta">
             <span class="pana-provider-tag">{{ providerName }}<span v-if="model"> · {{ model }}</span></span>
             <span v-if="analyzedAt" class="pana-time">{{ formatTime(analyzedAt) }}</span>
           </div>
           <div class="pana-disclaimer">
-            ⚠️ {{ result.disclaimer || '본 분석은 AI가 생성한 정보 정리이며 투자 자문이 아닙니다.' }}
+            ⚠️ 본 분석은 AI가 생성한 정보 정리이며 투자 자문이 아닙니다.
           </div>
         </div>
       </template>
@@ -239,21 +196,375 @@
 import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import axios from '@/axios';
 import Modal from '@/components/Modal.vue';
+import MarkdownView from '@/components/common/MarkdownView.vue';
 import { apiErrorMessage } from '@/utils/apiError';
 import { logger } from '@/utils/logger';
 
+function parseJsonReport(value) {
+  if (!value || typeof value !== 'string') return null;
+
+  const trimmed = value.trim();
+  const jsonText = trimmed
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim();
+
+  if (!jsonText.startsWith('{') && !jsonText.startsWith('[')) return null;
+
+  try {
+    return JSON.parse(jsonText);
+  } catch (_) {
+    return null;
+  }
+}
+
+function parseReportPayload(value) {
+  if (value && typeof value === 'object') return value;
+  return parseJsonReport(value);
+}
+
+function pickText(obj, keys) {
+  if (!obj || typeof obj !== 'object') return '';
+  const key = keys.find((k) => obj[k] !== undefined && obj[k] !== null && obj[k] !== '');
+  return key ? obj[key] : '';
+}
+
+function formatValue(value) {
+  if (value === null || value === undefined || value === '') return '';
+  if (Array.isArray(value)) return value.map(formatValue).filter(Boolean).join(', ');
+  if (typeof value === 'object') {
+    return Object.entries(value)
+      .map(([key, val]) => {
+        const formatted = formatValue(val);
+        return formatted ? `${key}: ${formatted}` : '';
+      })
+      .filter(Boolean)
+      .join(' / ');
+  }
+  return String(value);
+}
+
+function asArray(value) {
+  if (!value) return [];
+  return Array.isArray(value) ? value : [value];
+}
+
+function findValue(obj, keys) {
+  if (!obj || typeof obj !== 'object') return '';
+  const foundKey = keys.find((key) => Object.prototype.hasOwnProperty.call(obj, key));
+  return foundKey ? obj[foundKey] : '';
+}
+
+function normalizeRows(rawRows, headers = []) {
+  if (!rawRows) return [];
+  if (typeof rawRows === 'string') {
+    const tokens = rawRows.split(',').map((item) => item.trim()).filter(Boolean);
+    const width = headers.length || 7;
+    const rows = [];
+    for (let i = 0; i < tokens.length; i += width) rows.push(tokens.slice(i, i + width));
+    return rows;
+  }
+  return Array.isArray(rawRows) ? rawRows : [];
+}
+
+function rowValue(row, headers, aliases, index) {
+  if (Array.isArray(row)) return row[index] ?? '';
+  const byAlias = findValue(row, aliases);
+  if (byAlias !== '') return byAlias;
+  const header = headers[index];
+  return header && row ? row[header] : '';
+}
+
+function toNumber(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const num = Number(String(value).replace(/[^\d.-]/g, ''));
+  return Number.isFinite(num) ? num : null;
+}
+
+function normalizeAction(value, change = null) {
+  const raw = String(value || '').trim().toUpperCase();
+  if (['ADD', 'BUY', '추가매수', '비중 확대', '확대'].some((v) => raw.includes(v))) return 'ADD';
+  if (['CUT_LOSS', 'STOP_LOSS', '손절', '손절 검토'].some((v) => raw.includes(v))) return 'CUT_LOSS';
+  if (['TAKE_PROFIT', 'PROFIT', '이익실현', '차익실현'].some((v) => raw.includes(v))) return 'TAKE_PROFIT';
+  if (['REDUCE', 'TRIM', '축소', '비중 축소'].some((v) => raw.includes(v))) return 'REDUCE';
+  if (['WATCH', '관망'].some((v) => raw.includes(v))) return 'WATCH';
+  if (['HOLD', '보유', '유지'].some((v) => raw.includes(v))) return 'HOLD';
+
+  const delta = toNumber(change);
+  if (delta !== null) {
+    if (delta >= 2) return 'ADD';
+    if (delta <= -15) return 'REDUCE';
+    if (delta <= -5) return 'REDUCE';
+    return 'HOLD';
+  }
+  return 'WATCH';
+}
+
+function actionFromRow(row, headers, change) {
+  return normalizeAction(rowValue(row, headers, [
+    '액션', 'action', 'recommendation', 'decision', 'signal', 'suggestion',
+  ], 7), change);
+}
+
+function buildUiReport(json) {
+  const root = json?.portfolio_analysis || json?.portfolioAnalysis || json?.analysis || json;
+  if (!root || typeof root !== 'object') return null;
+
+  const health = root.portfolio_health_check ||
+    root.portfolioHealthCheck ||
+    root.health_check ||
+    root.healthCheck ||
+    root.health;
+  const weightBlock = root.portfolio_status_and_proposed_weights ||
+    root.portfolioStatusAndProposedWeights ||
+    root.portfolio_summary_and_proposal ||
+    root.portfolioSummaryAndProposal ||
+    root.proposed_weights ||
+    root.weights;
+  const headers = weightBlock?.table_headers || weightBlock?.headers || [];
+  const weightRows = weightBlock?.table ||
+    weightBlock?.table_data ||
+    weightBlock?.rows ||
+    weightBlock;
+  const weights = normalizeRows(weightRows, headers)
+    .map((row, idx) => ({
+      key: `${idx}-${formatValue(row).slice(0, 24)}`,
+      name: rowValue(row, headers, ['종목명', 'name', 'stockName', 'stock_name'], 0) || `종목 ${idx + 1}`,
+      ticker: rowValue(row, headers, ['티커', 'ticker', 'symbol'], 1),
+      country: rowValue(row, headers, ['국가', 'country', 'market'], 2),
+      sector: rowValue(row, headers, ['섹터', 'sector'], 3),
+      currentWeight: toNumber(rowValue(row, headers, [
+        '현재 비중 (%)', '현재비중', 'currentWeight', 'current_weight', 'current_weight_pct',
+      ], 4)),
+      proposedWeight: toNumber(rowValue(row, headers, [
+        '제안 비중 (%)', '제안비중', 'proposedWeight', 'proposed_weight', 'proposed_weight_pct',
+      ], 5)),
+      change: toNumber(rowValue(row, headers, [
+        '변동 (%)', '변동', 'change', 'delta', 'change_pct',
+      ], 6)),
+      reason: pickText(row, ['조정 이유', 'reason', 'reasonForAdjustment', 'reason_for_adjustment']),
+    }))
+    .filter((row) => row.name);
+
+  const actionRows = root.holdings ||
+    root.holding_actions ||
+    root.holdingActions ||
+    root.stock_actions ||
+    root.stockActions ||
+    root.individual_stock_analysis ||
+    root.individualStockAnalysis ||
+    root.stock_analysis ||
+    root.stockAnalysis ||
+    root.positions;
+  const actionHeaders = actionRows?.table_headers || actionRows?.headers || [];
+  const parsedHoldings = normalizeRows(actionRows?.table || actionRows?.table_data || actionRows?.rows || actionRows, actionHeaders)
+    .map((row, idx) => {
+      const change = toNumber(rowValue(row, actionHeaders, [
+        '변동 (%)', '변동', 'change', 'delta', 'change_pct',
+      ], 6));
+      return {
+        key: `act-${idx}-${formatValue(row).slice(0, 24)}`,
+        name: rowValue(row, actionHeaders, ['종목명', 'name', 'stockName', 'stock_name'], 0) || `종목 ${idx + 1}`,
+        ticker: rowValue(row, actionHeaders, ['티커', 'ticker', 'symbol'], 1),
+        country: rowValue(row, actionHeaders, ['국가', 'country', 'market'], 2),
+        sector: rowValue(row, actionHeaders, ['섹터', 'sector'], 3),
+        currentWeight: toNumber(rowValue(row, actionHeaders, [
+          '현재 비중 (%)', '현재비중', 'currentWeight', 'current_weight', 'current_weight_pct',
+        ], 4)),
+        proposedWeight: toNumber(rowValue(row, actionHeaders, [
+          '제안 비중 (%)', '제안비중', 'proposedWeight', 'proposed_weight', 'proposed_weight_pct',
+        ], 5)),
+        change,
+        action: actionFromRow(row, actionHeaders, change),
+        reason: pickText(row, [
+          '분석', '근거', '조정 이유', 'reason', 'analysis', 'comment',
+          'reasonForAdjustment', 'reason_for_adjustment',
+        ]),
+      };
+    })
+    .filter((row) => row.name);
+
+  const holdings = parsedHoldings.length > 0
+    ? parsedHoldings
+    : weights.map((row) => ({
+      ...row,
+      key: `weight-action-${row.key}`,
+      action: normalizeAction('', row.change),
+      reason: row.reason || 'AI가 별도 종목 코멘트를 제공하지 않아 제안 비중 변화를 기준으로 액션을 산정했습니다.',
+    }));
+
+  const scenarios = asArray(root.stress_test ||
+    root.stressTest ||
+    root.stress_test_scenarios ||
+    root.stressTestScenarios ||
+    root.scenarios)
+    .map((scenario, idx) => ({
+      name: pickText(scenario, ['scenario_name', 'scenarioName', 'name', 'title']) || `시나리오 ${idx + 1}`,
+      impact: pickText(scenario, ['impact', 'effect', 'summary']),
+      response: pickText(scenario, ['response', 'hedge', 'hedge_plan', 'hedgePlan', 'strategy', 'action']),
+    }))
+    .filter((scenario) => scenario.impact || scenario.response);
+
+  const actions = asArray(root.action_items || root.actionItems || root.priorityActions || root.actions || root.nextSteps)
+    .map((item) => formatValue(item))
+    .filter(Boolean);
+
+  const notes = [
+    ['리밸런싱 전략', root.rebalancing_strategy || root.rebalancingStrategy],
+    ['핵심 리스크', root.key_risks || root.keyRisks || root.risk || root.riskSummary],
+    ['투자 관점', root.investment_view || root.investmentView || root.outlook],
+    ['데이터 기준일', root.api_data_as_of || root.apiDataAsOf || root.data_as_of || root.dataAsOf],
+  ]
+    .map(([title, value]) => ({ title, text: formatValue(value) }))
+    .filter((note) => note.text);
+
+  const healthCard = health && typeof health === 'object'
+    ? {
+      score: pickText(health, ['score', 'rating']),
+      prescription: pickText(health, ['prescription', 'title', 'diagnosis']),
+      summary: formatValue(pickText(health, ['summary', 'comment', 'reason']) || health.key_issues || health.keyIssues),
+    }
+    : null;
+
+  if (!healthCard && !holdings.length && !weights.length && !scenarios.length && !actions.length && !notes.length) {
+    return null;
+  }
+
+  return {
+    health: healthCard,
+    holdings,
+    weights,
+    scenarios,
+    actions,
+    notes,
+    question: pickText(root, ['critical_question', 'criticalQuestion', 'question']),
+  };
+}
+
+function contextHoldingActions(context) {
+  return (context?.holdings || [])
+    .filter((h) => h && h.name)
+    .map((h, idx) => ({
+      key: `ctx-action-${h.id || h.symbol || idx}`,
+      name: h.name,
+      ticker: h.symbol,
+      country: h.market,
+      sector: '',
+      currentWeight: toNumber(h.weightPct ?? h.chartWeightPct),
+      proposedWeight: null,
+      change: null,
+      action: 'WATCH',
+      reason: 'AI가 이 종목에 대한 개별 액션을 제공하지 않았습니다. 현재 비중과 최신 뉴스 확인 후 관망으로 표시합니다.',
+    }));
+}
+
+function formatBulletItems(items, formatter) {
+  if (!Array.isArray(items) || items.length === 0) return '';
+  return items
+    .map((item) => `- ${formatter(item)}`)
+    .filter((line) => line.trim() !== '-')
+    .join('\n');
+}
+
+function jsonReportToMarkdown(json) {
+  const data = Array.isArray(json) ? { items: json } : json;
+  if (!data || typeof data !== 'object') return '';
+
+  const sections = [];
+  const title = pickText(data, ['title', 'headline']) || '포트폴리오 AI 진단';
+  const summary = pickText(data, ['summary', 'overallSummary', 'overall', 'comment', 'diagnosis']);
+  const sentiment = pickText(data, ['sentiment', 'marketSentiment']);
+
+  sections.push(`# ${title}`);
+  if (summary) sections.push(`> ${summary}`);
+  if (sentiment) sections.push(`**시장 톤:** ${sentiment}`);
+
+  const grades = data.grades || data.score || data.scores;
+  if (grades && typeof grades === 'object') {
+    const gradeLines = Object.entries(grades)
+      .map(([key, value]) => {
+        if (value && typeof value === 'object') {
+          const grade = pickText(value, ['grade', 'score', 'rating']);
+          const comment = pickText(value, ['comment', 'reason', 'description']);
+          return `- **${key}**${grade ? `: ${grade}` : ''}${comment ? ` - ${comment}` : ''}`;
+        }
+        return `- **${key}**: ${formatValue(value)}`;
+      })
+      .join('\n');
+    if (gradeLines) sections.push(`## 종합 평가\n${gradeLines}`);
+  }
+
+  const holdings = data.holdings || data.holdingAnalysis || data.positions;
+  const holdingLines = formatBulletItems(holdings, (item) => {
+    const name = pickText(item, ['name', 'stockName', 'symbol', 'ticker']) || formatValue(item);
+    const action = pickText(item, ['action', 'recommendation', 'signal']);
+    const reason = pickText(item, ['reason', 'comment', 'analysis']);
+    return `**${name}**${action ? ` (${action})` : ''}${reason ? ` - ${reason}` : ''}`;
+  });
+  if (holdingLines) sections.push(`## 보유 종목 진단\n${holdingLines}`);
+
+  const recommendations = data.recommendations || data.recommendedStocks || data.recs;
+  const recommendationLines = formatBulletItems(recommendations, (item) => {
+    const name = pickText(item, ['name', 'stockName', 'symbol', 'ticker']) || formatValue(item);
+    const reason = pickText(item, ['reason', 'rationale', 'comment']);
+    const risk = pickText(item, ['risk', 'caution', 'warning']);
+    return `**${name}**${reason ? ` - ${reason}` : ''}${risk ? `\n  - 주의: ${risk}` : ''}`;
+  });
+  if (recommendationLines) sections.push(`## 추천 후보\n${recommendationLines}`);
+
+  const actions = data.priorityActions || data.actions || data.nextSteps;
+  const actionLines = formatBulletItems(actions, (item) => formatValue(item));
+  if (actionLines) sections.push(`## 우선순위 액션\n${actionLines}`);
+
+  const scenarios = data.scenarios || data.scenario;
+  const scenarioLines = Array.isArray(scenarios)
+    ? formatBulletItems(scenarios, (item) => formatValue(item))
+    : formatValue(scenarios);
+  if (scenarioLines) sections.push(`## 시나리오\n${scenarioLines}`);
+
+  const risk = pickText(data, ['risk', 'riskSummary', 'caution']);
+  if (risk) sections.push(`## 리스크 체크\n${risk}`);
+
+  const extraEntries = Object.entries(data).filter(([key]) => ![
+    'title', 'headline', 'summary', 'overallSummary', 'overall', 'comment', 'diagnosis',
+    'sentiment', 'marketSentiment', 'grades', 'score', 'scores', 'holdings',
+    'holdingAnalysis', 'positions', 'recommendations', 'recommendedStocks', 'recs',
+    'priorityActions', 'actions', 'nextSteps', 'scenarios', 'scenario', 'risk',
+    'riskSummary', 'caution',
+  ].includes(key));
+  const extraLines = extraEntries
+    .map(([key, value]) => {
+      const formatted = formatValue(value);
+      return formatted ? `- **${key}**: ${formatted}` : '';
+    })
+    .filter(Boolean)
+    .join('\n');
+  if (extraLines) sections.push(`## 추가 메모\n${extraLines}`);
+
+  return sections.filter(Boolean).join('\n\n');
+}
+
+function normalizeReport(value) {
+  if (value && typeof value === 'object') return jsonReportToMarkdown(value);
+  const parsed = parseJsonReport(value);
+  return parsed ? jsonReportToMarkdown(parsed) : (value || '');
+}
+
 export default {
   name: 'PortfolioAnalysisModal',
-  components: { Modal },
+  components: { Modal, MarkdownView },
   props: {
     show: { type: Boolean, required: true },
+    portfolioContext: { type: Object, default: null },
   },
   emits: ['close'],
   setup(props) {
     const loading = ref(false);
     const error = ref('');
     const blocked = ref(false);
-    const result = ref(null);
+    const result = ref(null);     // (구버전) 구조화 결과 — 자유리포트 전환 후 미사용
+    const report = ref('');
+    const uiReport = ref(null);
     const providerName = ref('');
     const model = ref('');
     const analyzedAt = ref(null);
@@ -261,9 +572,9 @@ export default {
     const providersStatus = ref([]);
 
     const loadingMessages = [
-      '보유 종목 시세를 확인하는 중...',
-      '최근 시장 뉴스를 모으는 중...',
-      'AI 가 뉴스 기반으로 분석하는 중...',
+      '보유 종목의 현재가와 비중을 계산하는 중...',
+      'KRX·Yahoo 재무 데이터와 시장 뉴스를 확인하는 중...',
+      'AI가 종목별 액션과 리밸런싱 전략을 정리하는 중...',
     ];
     const loadingMsgIdx = ref(0);
     let loadingTimer = null;
@@ -278,6 +589,8 @@ export default {
       error.value = '';
       blocked.value = false;
       result.value = null;
+      report.value = '';
+      uiReport.value = null;
       providerName.value = '';
       model.value = '';
       analyzedAt.value = null;
@@ -295,14 +608,27 @@ export default {
       }, 3500);
 
       try {
-        const res = await axios.post('/api/portfolio/analyze');
+        const context = props.portfolioContext || {};
+        const res = await axios.post('/api/portfolio/analyze', {
+          portfolio: context,
+          holdings: context.holdings || [],
+          totalValueKRW: context.totalValueKRW || null,
+          exchangeRate: context.exchangeRate || null,
+          asOf: context.asOf || null,
+        });
         const data = res.data || {};
         if (data.blocked) {
           blocked.value = true;
           retryAt.value = data.retryAt ? new Date(data.retryAt) : null;
           providersStatus.value = data.providersStatus || [];
         } else {
-          result.value = data;
+          const parsedReport = parseReportPayload(data.report) || data;
+          const parsedUiReport = buildUiReport(parsedReport);
+          if (parsedUiReport && parsedUiReport.holdings.length === 0) {
+            parsedUiReport.holdings = contextHoldingActions(context);
+          }
+          uiReport.value = parsedUiReport;
+          report.value = uiReport.value ? '' : normalizeReport(data.report || data);
           providerName.value = data.providerName || '';
           model.value = data.model || '';
           analyzedAt.value = data.analyzedAt ? new Date(data.analyzedAt) : new Date();
@@ -361,6 +687,9 @@ export default {
     const allDisabled = computed(() =>
       providersStatus.value.length > 0 &&
       providersStatus.value.every((ps) => !ps.enabled),
+    );
+    const hasProposedWeights = computed(() =>
+      (uiReport.value?.weights || []).some((row) => row.proposedWeight !== null && row.proposedWeight !== undefined),
     );
 
     const gradeItems = computed(() => {
@@ -434,17 +763,46 @@ export default {
         hour: '2-digit', minute: '2-digit',
       });
     }
+    function formatPercent(value) {
+      if (value === null || value === undefined || value === '') return '-';
+      return `${Number(value).toFixed(1)}%`;
+    }
+    function formatSignedPercent(value) {
+      if (value === null || value === undefined || value === '') return '';
+      const num = Number(value);
+      return `${num > 0 ? '+' : ''}${num.toFixed(1)}%`;
+    }
+    function weightChangeClass(value) {
+      const num = Number(value);
+      if (!Number.isFinite(num) || num === 0) return 'is-flat';
+      return num > 0 ? 'is-up' : 'is-down';
+    }
+    function actionText(action) {
+      return {
+        ADD: '추가매수',
+        REDUCE: '비중 축소',
+        TAKE_PROFIT: '이익실현',
+        CUT_LOSS: '손절 검토',
+        HOLD: '보유',
+        WATCH: '관망',
+      }[action] || '관망';
+    }
+    function actionBadgeClass(action) {
+      return `act-${String(action || 'WATCH').toLowerCase().replace('_', '-')}`;
+    }
 
     return {
-      loading, error, blocked, result,
+      loading, error, blocked, result, report, uiReport,
       providerName, model, analyzedAt,
-      retryCountdown, cooldownSec, allDisabled,
+      retryCountdown, cooldownSec, allDisabled, hasProposedWeights,
       loadingText,
       hasGrades, gradeItems, gradeCls,
       fetchAnalysis,
       sentimentCls, sentimentIcon,
       actionLabel, actionIcon, actionCls,
       pnlCls, fmtPnl, formatTime,
+      formatPercent, formatSignedPercent, weightChangeClass,
+      actionText, actionBadgeClass,
     };
   },
 };
@@ -502,6 +860,293 @@ export default {
 
 /* 결과 */
 .pana-result { display: flex; flex-direction: column; gap: 18px; }
+
+.pana-hero-card {
+  padding: 16px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(124, 111, 255, 0.16), rgba(106, 173, 106, 0.08));
+  border: 1px solid rgba(124, 111, 255, 0.28);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.pana-score-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.pana-score-ring {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 5px solid rgba(224, 177, 94, 0.55);
+  background: rgba(10, 10, 18, 0.38);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+.pana-score-ring strong {
+  color: #f0ece4;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+.pana-score-ring span {
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-top: 2px;
+}
+.pana-eyebrow {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+.pana-hero-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+.pana-hero-summary {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.pana-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.pana-section-hint {
+  color: var(--text-muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.pana-stock-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pana-stock-card {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.028);
+  border: 1px solid var(--card-border);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.pana-stock-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+.pana-stock-name {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pana-stock-name strong {
+  color: var(--text-primary);
+  font-size: 14px;
+}
+.pana-stock-name span {
+  color: var(--text-muted);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pana-action-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.pana-action-badge.act-add { color: #8fce8f; background: rgba(106, 173, 106, 0.18); }
+.pana-action-badge.act-reduce { color: #e0b15e; background: rgba(224, 177, 94, 0.18); }
+.pana-action-badge.act-take-profit { color: #a8c8f0; background: rgba(125, 175, 240, 0.18); }
+.pana-action-badge.act-cut-loss { color: #e89a9a; background: rgba(196, 90, 90, 0.20); }
+.pana-action-badge.act-hold { color: #d8d8e0; background: rgba(138, 133, 128, 0.14); }
+.pana-action-badge.act-watch { color: #c9c2e6; background: rgba(124, 111, 255, 0.16); }
+.pana-stock-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pana-stock-metrics span {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(10, 10, 18, 0.28);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+}
+.pana-stock-metrics span.is-up { color: #8fce8f; background: rgba(106, 173, 106, 0.12); }
+.pana-stock-metrics span.is-down { color: #e89a9a; background: rgba(196, 90, 90, 0.14); }
+.pana-stock-metrics span.is-flat { color: var(--text-muted); }
+.pana-stock-reason {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.pana-weight-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.pana-weight-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+.pana-weight-row + .pana-weight-row { border-top: 1px solid var(--card-border); }
+.pana-weight-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+.pana-weight-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pana-weight-main strong {
+  color: var(--text-primary);
+  font-size: 13px;
+}
+.pana-weight-main span {
+  color: var(--text-muted);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pana-weight-values {
+  display: grid;
+  grid-template-columns: 48px 14px 48px 58px;
+  gap: 6px;
+  align-items: center;
+  justify-items: end;
+  color: var(--text-secondary);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.pana-weight-values strong { color: var(--text-primary); }
+.pana-arrow { color: var(--text-muted); justify-self: center; }
+.pana-weight-values em {
+  font-style: normal;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+.pana-weight-values em.is-up { color: #8fce8f; background: rgba(106, 173, 106, 0.14); }
+.pana-weight-values em.is-down { color: #e89a9a; background: rgba(196, 90, 90, 0.16); }
+.pana-weight-values em.is-flat { color: var(--text-muted); background: rgba(138, 133, 128, 0.12); }
+.pana-weight-reason {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(10, 10, 18, 0.28);
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.pana-scenario-grid,
+.pana-note-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.pana-info-card {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--card-bg-hover);
+  border: 1px solid var(--card-border);
+}
+.pana-info-card h5 {
+  margin: 0 0 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.35;
+}
+.pana-info-card p {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.pana-info-card p strong {
+  display: inline-block;
+  margin-right: 6px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.pana-action-list {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+.pana-action-list li {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(125, 175, 240, 0.07);
+  border: 1px solid rgba(125, 175, 240, 0.16);
+}
+.pana-action-list span {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(224, 177, 94, 0.22);
+  color: #e0b15e;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+.pana-action-list p {
+  margin: 2px 0 0;
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.pana-question {
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: rgba(224, 177, 94, 0.10);
+  border: 1px solid rgba(224, 177, 94, 0.28);
+}
+.pana-question p {
+  margin: 4px 0 0;
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 600;
+}
 
 .pana-summary-row {
   display: flex;
@@ -756,6 +1401,18 @@ export default {
 .pana-footer-btns { display: flex; gap: 8px; justify-content: flex-end; }
 
 @media (max-width: 640px) {
+  .pana-score-wrap { align-items: flex-start; }
+  .pana-score-ring { width: 58px; height: 58px; border-width: 4px; }
+  .pana-score-ring strong { font-size: 1.1rem; }
+  .pana-stock-head { grid-template-columns: 1fr; align-items: flex-start; }
+  .pana-action-badge { width: fit-content; }
+  .pana-weight-top { grid-template-columns: 1fr; gap: 8px; }
+  .pana-weight-values {
+    grid-template-columns: 46px 14px 46px 58px;
+    justify-content: start;
+  }
+  .pana-scenario-grid,
+  .pana-note-grid { grid-template-columns: 1fr; }
   .pana-rec-row { flex-direction: column; gap: 2px; }
   .pana-rec-label { min-width: 0; }
   .pana-meta { flex-direction: column; gap: 2px; }

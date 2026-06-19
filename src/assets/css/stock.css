@@ -350,26 +350,6 @@
 .txt-muted { color: var(--text-muted); }
 
 /* 코어/위성 토글 — 보유 종목 행 인라인 */
-.core-toggle {
-  margin-top: 4px;
-  padding: 2px 8px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  line-height: 1.4;
-  border-radius: 999px;
-  border: 1px solid var(--card-border-strong);
-  background: var(--surface-2);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.core-toggle:hover { border-color: #f5b301; color: #f5b301; }
-.core-toggle.is-core {
-  border-color: #f5b301;
-  background: rgba(245, 179, 1, 0.14);
-  color: #f5b301;
-}
-
 .inline-inp {
   width: 90px;
   padding: 4px 8px;
