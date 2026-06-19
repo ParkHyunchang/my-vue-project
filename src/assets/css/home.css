@@ -196,6 +196,52 @@ html, body {
   opacity: 0.8;
 }
 
+.home-section-state {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem;
+  border: 1px solid rgba(201, 169, 110, 0.12);
+  border-left: 2px solid rgba(201, 169, 110, 0.35);
+  background: rgba(17, 17, 33, 0.72);
+  color: #c8c3bb;
+  text-align: center;
+  line-height: 1.7;
+  font-size: 0.9rem;
+}
+
+.home-section-state p {
+  margin: 0 0 1rem;
+}
+
+.home-section-state--error {
+  border-color: rgba(220, 92, 92, 0.35);
+  border-left-color: rgba(220, 92, 92, 0.65);
+  background: rgba(80, 24, 30, 0.28);
+  color: #f0ece4;
+}
+
+.home-section-state--portfolio {
+  margin-top: 3rem;
+}
+
+.home-section-retry {
+  border: 1px solid rgba(201, 169, 110, 0.45);
+  background: transparent;
+  color: #c9a96e;
+  padding: 0.55rem 1rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+.home-section-retry:hover {
+  border-color: #c9a96e;
+  background: rgba(201, 169, 110, 0.09);
+  color: #f0ece4;
+}
+
 /* ========================
    About Section
    ======================== */

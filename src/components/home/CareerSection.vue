@@ -4,7 +4,17 @@
       <h2 class="career__title">Career</h2>
       <div class="section-divider"></div>
       <span class="section-sub">Work History</span>
-      <div class="career__list">
+      <div v-if="loading" class="home-section-state" role="status" aria-live="polite">
+        경력 정보를 불러오는 중입니다...
+      </div>
+      <div v-else-if="error" class="home-section-state home-section-state--error" role="alert">
+        <p>{{ error }}</p>
+        <button type="button" class="home-section-retry" @click="$emit('retry')">다시 시도</button>
+      </div>
+      <div v-else-if="careers.length === 0" class="home-section-state">
+        등록된 경력이 없습니다.
+      </div>
+      <div v-else class="career__list">
         <div v-for="item in careers" :key="item.id" class="career__item">
           <div class="career__header">
             <div class="career__icon">{{ item.icon }}</div>
@@ -35,6 +45,9 @@ export default {
   props: {
     careers: { type: Array, required: true },
     parseJson: { type: Function, required: true },
+    loading: { type: Boolean, default: false },
+    error: { type: String, default: '' },
   },
+  emits: ['retry'],
 };
 </script>

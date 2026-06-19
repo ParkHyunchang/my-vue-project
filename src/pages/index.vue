@@ -39,15 +39,48 @@
         </div>
       </section>
 
-      <CareerSection :careers="careers" :parse-json="parseJson" />
-      <ExperienceSection :experiences="experiences" />
+      <CareerSection
+        :careers="careers"
+        :parse-json="parseJson"
+        :loading="sectionState.career.loading"
+        :error="sectionState.career.error"
+        @retry="loadCareers"
+      />
+      <ExperienceSection
+        :experiences="experiences"
+        :loading="sectionState.experience.loading"
+        :error="sectionState.experience.error"
+        @retry="loadExperiences"
+      />
       <SiteSection />
 
       <!-- Portfolio Section -->
       <section id="port" class="port-section">
         <div class="port__wrap-sticky">
           <div class="port__title">Portfolio</div>
-          <div class="port__wrap">
+          <div
+            v-if="sectionState.portfolio.loading"
+            class="home-section-state home-section-state--portfolio"
+            role="status"
+            aria-live="polite"
+          >
+            포트폴리오 정보를 불러오는 중입니다...
+          </div>
+          <div
+            v-else-if="sectionState.portfolio.error"
+            class="home-section-state home-section-state--error home-section-state--portfolio"
+            role="alert"
+          >
+            <p>{{ sectionState.portfolio.error }}</p>
+            <button type="button" class="home-section-retry" @click="loadPortfolioSkills">다시 시도</button>
+          </div>
+          <div
+            v-else-if="portfolioSkills.length === 0"
+            class="home-section-state home-section-state--portfolio"
+          >
+            등록된 포트폴리오 항목이 없습니다.
+          </div>
+          <div v-else class="port__wrap">
             <article
               v-for="(skill, index) in portfolioSkills"
               :key="skill.id"
@@ -72,6 +105,7 @@
 <script>
 import { port } from '@/assets/js/port.js';
 import axios from '@/axios';
+import { apiErrorMessage } from '@/utils/apiError';
 import CareerSection from '@/components/home/CareerSection.vue';
 import ExperienceSection from '@/components/home/ExperienceSection.vue';
 import SiteSection from '@/components/home/SiteSection.vue';
@@ -92,26 +126,79 @@ export default {
       careers: [],
       experiences: [],
       portfolioSkills: [],
+      portfolioScrollReady: false,
+      sectionState: {
+        career: {
+          loading: true,
+          error: '',
+        },
+        experience: {
+          loading: true,
+          error: '',
+        },
+        portfolio: {
+          loading: true,
+          error: '',
+        },
+      },
     };
   },
   async mounted() {
     await this.loadAll();
-    this.$nextTick(() => port());
+    this.initPortfolioScroll();
   },
   methods: {
     async loadAll() {
+      await Promise.all([
+        this.loadCareers(),
+        this.loadExperiences(),
+        this.loadPortfolioSkills(),
+      ]);
+    },
+    async loadHomeSection(key, request, assignData, fallbackMessage) {
+      this.sectionState[key].loading = true;
+      this.sectionState[key].error = '';
+
       try {
-        const [careerRes, expRes, skillRes] = await Promise.all([
-          axios.get('/api/public/career'),
-          axios.get('/api/public/experience'),
-          axios.get('/api/public/portfolio-skills'),
-        ]);
-        this.careers = careerRes.data;
-        this.experiences = expRes.data;
-        this.portfolioSkills = skillRes.data;
+        const { data } = await request();
+        assignData(Array.isArray(data) ? data : []);
       } catch (e) {
-        // API 실패 시 빈 배열 유지 (섹션이 비어 보임)
+        this.sectionState[key].error = apiErrorMessage(e, fallbackMessage);
+      } finally {
+        this.sectionState[key].loading = false;
       }
+    },
+    loadCareers() {
+      return this.loadHomeSection(
+        'career',
+        () => axios.get('/api/public/career'),
+        data => { this.careers = data; },
+        '경력 정보를 불러오지 못했습니다.'
+      );
+    },
+    loadExperiences() {
+      return this.loadHomeSection(
+        'experience',
+        () => axios.get('/api/public/experience'),
+        data => { this.experiences = data; },
+        '경험 정보를 불러오지 못했습니다.'
+      );
+    },
+    async loadPortfolioSkills() {
+      await this.loadHomeSection(
+        'portfolio',
+        () => axios.get('/api/public/portfolio-skills'),
+        data => { this.portfolioSkills = data; },
+        '포트폴리오 정보를 불러오지 못했습니다.'
+      );
+      this.initPortfolioScroll();
+    },
+    initPortfolioScroll() {
+      if (this.portfolioScrollReady || this.portfolioSkills.length === 0) return;
+      this.portfolioScrollReady = true;
+      this.$nextTick(() => {
+        port();
+      });
     },
     parseJson(json) {
       try { return JSON.parse(json) || []; } catch { return []; }
