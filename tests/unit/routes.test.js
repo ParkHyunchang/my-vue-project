@@ -1,4 +1,4 @@
-import { getDefaultMenusForRole, getDefaultMenuDefinitions } from '../../src/config/routes.js';
+import { ROUTE_COMPONENTS, getDefaultMenusForRole, getDefaultMenuDefinitions } from '../../src/config/routes.js';
 
 describe('getDefaultMenusForRole', () => {
     it('USER 역할은 기본 메뉴를 포함한다', () => {
@@ -12,7 +12,10 @@ describe('getDefaultMenusForRole', () => {
         const menus = getDefaultMenusForRole('ADMIN');
         expect(menus).toContain('/admin');
         expect(menus).toContain('/admin/users');
+        expect(menus).toContain('/stock');
         expect(menus).toContain('/subscription');
+        expect(menus).toContain('/realestate');
+        expect(menus).toContain('/travel');
     });
 
     it('PREMIUM 역할은 dating/history 메뉴를 포함한다', () => {
@@ -51,5 +54,36 @@ describe('getDefaultMenuDefinitions', () => {
     it('구독 관리 경로가 포함된다', () => {
         const defs = getDefaultMenuDefinitions();
         expect(defs.find(d => d.path === '/subscription')).toBeDefined();
+    });
+
+    it('current fallback menu paths are included', () => {
+        const paths = getDefaultMenuDefinitions().map(d => d.path);
+        [
+            '/portfolio',
+            '/projects',
+            '/stock',
+            '/subscription',
+            '/realestate',
+            '/travel',
+            '/admin/menu-definition',
+        ].forEach(path => {
+            expect(paths).toContain(path);
+        });
+    });
+
+    it('all dynamic route component paths have fallback menu definitions', () => {
+        const paths = getDefaultMenuDefinitions().map(d => d.path);
+        Object.keys(ROUTE_COMPONENTS).forEach(path => {
+            expect(paths).toContain(path);
+        });
+    });
+
+    it('all fallback role permissions point to defined menus', () => {
+        const paths = getDefaultMenuDefinitions().map(d => d.path);
+        ['GUEST', 'USER', 'PREMIUM', 'ADMIN'].forEach(role => {
+            getDefaultMenusForRole(role).forEach(path => {
+                expect(paths).toContain(path);
+            });
+        });
     });
 });
