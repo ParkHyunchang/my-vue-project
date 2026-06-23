@@ -16,7 +16,7 @@
           :disabled="holdings.length === 0"
           @click="newsFilterHoldings = !newsFilterHoldings"
         >
-          📊 내 보유 종목
+          📊 보유 종목
           <span v-if="newsFilterHoldings" class="news-match-count">{{ filteredNewsData.length }}</span>
         </button>
       </div>

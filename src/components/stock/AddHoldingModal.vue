@@ -11,7 +11,24 @@
           <button class="modal-close" @click="$emit('close')">✕</button>
         </div>
 
-        <div class="mform-row">
+        <div v-if="allowCash" class="asset-type-switch" role="group" aria-label="추가할 자산 유형">
+          <button
+            type="button"
+            :class="['asset-type-btn', { active: !isCashAsset }]"
+            @click="setStockAsset"
+          >
+            종목 검색
+          </button>
+          <button
+            type="button"
+            :class="['asset-type-btn', { active: isCashAsset }]"
+            @click="setCashAsset()"
+          >
+            현금성 자산
+          </button>
+        </div>
+
+        <div v-if="!isCashAsset" class="mform-row">
           <label>종목 검색 (이름 · 티커)</label>
           <div class="stock-search-box">
             <input
@@ -52,22 +69,35 @@
               "
               class="search-empty"
             >
-              검색 결과가 없습니다
+              <span>검색 결과가 없습니다</span>
+              <button
+                v-if="allowCash"
+                type="button"
+                class="search-empty-cash-btn"
+                @mousedown.prevent="setCashAsset(searchQ)"
+              >
+                이 이름으로 현금성 자산 추가
+              </button>
             </div>
           </div>
         </div>
 
+        <div v-else class="cash-asset-guide">
+          현금성 대기자산, 예수금, MMDA처럼 가격 조회가 없는 항목은 금액을 직접 입력하세요.
+        </div>
+
         <div class="mform-row">
-          <label>종목명</label>
+          <label>{{ isCashAsset ? '자산명' : '종목명' }}</label>
           <input
             :value="newHolding.name"
+            @input="isCashAsset && updateNewField('name', $event.target.value)"
             type="text"
-            placeholder="위에서 종목을 검색하세요"
-            readonly
-            class="inp-readonly"
+            :placeholder="isCashAsset ? '현금성 대기자산' : '위에서 종목을 검색하세요'"
+            :readonly="!isCashAsset"
+            :class="{ 'inp-readonly': !isCashAsset }"
           />
         </div>
-        <div class="mform-row">
+        <div v-if="!isCashAsset" class="mform-row">
           <label>심볼</label>
           <input
             :value="newHolding.symbol"
@@ -78,7 +108,7 @@
           />
         </div>
 
-        <div v-if="newHolding.symbol" class="detected-market">
+        <div v-if="newHolding.symbol && !isCashAsset" class="detected-market">
           <span>감지된 시장:</span>
           <span class="dm-badge">
             {{
@@ -93,15 +123,21 @@
         </div>
 
         <div class="mform-row">
-          <label>보유수량</label>
+          <label>{{ isCashAsset ? '금액' : '보유수량' }}</label>
           <input
             :value="newHolding.quantity"
             @input="updateNewField('quantity', $event.target.value === '' ? null : Number($event.target.value))"
             type="number"
             min="1"
-            placeholder="0"
+            :placeholder="isCashAsset ? '0원' : '0'"
           />
-          <div class="quick-add-btns">
+          <div v-if="isCashAsset" class="quick-add-btns">
+            <button type="button" class="quick-btn quick-minus" @click="addQuantity(-100000)">-10만</button>
+            <button type="button" class="quick-btn" @click="addQuantity(10000)">+1만</button>
+            <button type="button" class="quick-btn" @click="addQuantity(100000)">+10만</button>
+            <button type="button" class="quick-btn" @click="addQuantity(1000000)">+100만</button>
+          </div>
+          <div v-else class="quick-add-btns">
             <button type="button" class="quick-btn quick-minus" @click="addQuantity(-10)">-10</button>
             <button type="button" class="quick-btn quick-minus" @click="addQuantity(-1)">-1</button>
             <button type="button" class="quick-btn" @click="addQuantity(1)">+1</button>
@@ -109,7 +145,7 @@
           </div>
         </div>
 
-        <div class="mform-row">
+        <div v-if="!isCashAsset" class="mform-row">
           <label>평단가 <span class="opt-label">(선택)</span></label>
           <input
             :value="formattedAvgPrice"
@@ -146,6 +182,7 @@ export default {
   name: 'AddHoldingModal',
   props: {
     show: { type: Boolean, required: true },
+    allowCash: { type: Boolean, default: false },
     searchQ: { type: String, default: '' },
     showDropdown: { type: Boolean, default: false },
     searchResults: { type: Array, required: true },
@@ -182,6 +219,37 @@ export default {
     };
     const updateNewField = (key, value) => {
       emit('update:newHolding', { ...props.newHolding, [key]: value });
+    };
+    const isCashAsset = computed(() => props.newHolding.assetType === 'CASH');
+    const makeCashSymbol = () => `CASH-KRW-${Date.now()}`;
+    const setCashAsset = (name = '') => {
+      const existingCashName = props.newHolding.assetType === 'CASH' ? props.newHolding.name : '';
+      const assetName = String(name || '').trim() || existingCashName || '현금성 대기자산';
+      emit('update:searchQ', '');
+      emit('update:showDropdown', false);
+      emit('update:newHolding', {
+        ...props.newHolding,
+        assetType: 'CASH',
+        market: 'KR',
+        name: assetName,
+        symbol: props.newHolding.assetType === 'CASH' && props.newHolding.symbol
+          ? props.newHolding.symbol
+          : makeCashSymbol(),
+        quantity: props.newHolding.assetType === 'CASH' ? props.newHolding.quantity : null,
+        avgPrice: 1,
+      });
+    };
+    const setStockAsset = () => {
+      emit('update:newHolding', {
+        assetType: 'STOCK',
+        market: 'US',
+        name: '',
+        symbol: '',
+        quantity: null,
+        avgPrice: null,
+      });
+      emit('update:searchQ', '');
+      emit('update:showDropdown', false);
     };
 
     const isKR = computed(() => {
@@ -225,6 +293,7 @@ export default {
 
     return {
       onSearchQInput, updateNewField,
+      isCashAsset, setCashAsset, setStockAsset,
       isKR, formattedAvgPrice, onAvgPriceInput, addAvgPrice,
       addQuantity,
     };

@@ -3,17 +3,14 @@
     <!-- 초기 로딩 -->
     <div v-if="initialLoading" class="loading-state" style="padding: 48px 0">
       <div class="spinner"></div>
-      <span>보유 종목 불러오는 중...</span>
+      <span>{{ accountUi.label }} 보유 종목 불러오는 중...</span>
     </div>
 
     <!-- 빈 상태 -->
     <div v-else-if="holdings.length === 0" class="portfolio-empty">
       <div class="portfolio-empty-icon">📊</div>
-      <h3>보유 종목이 없습니다</h3>
-      <p>
-        보유 중인 주식을 추가하면 평가금액과 종목 비중을 한눈에 확인할 수
-        있습니다.
-      </p>
+      <h3>{{ accountUi.emptyTitle }}</h3>
+      <p>{{ accountUi.emptyDescription }}</p>
       <button class="btn-add-primary" @click="openAddModal">
         ＋ 종목 추가
       </button>
@@ -55,9 +52,9 @@
       <!-- AI 포트폴리오 진단 액션 바 -->
       <div class="portfolio-ai-bar">
         <button class="portfolio-ai-btn" @click="openPortfolioAnalysis">
-          📊 AI 포트폴리오 진단
+          {{ accountUi.aiButtonLabel }}
         </button>
-        <span class="portfolio-ai-hint">보유 종목 시그널 + 추천 종목 2개</span>
+        <span class="portfolio-ai-hint">{{ accountUi.aiHint }}</span>
       </div>
 
       <!-- 마켓 필터 바 -->
@@ -163,6 +160,7 @@
           :change-pct-cls="changePctCls"
           :fmt-hold-val="fmtHoldVal"
           :fmt-by-mkt="fmtMoney"
+          :fmt-k-r-w="fmtKRW"
           :hold-pnl="holdPnl"
           :fmt-hold-pnl="fmtHoldPnl"
           :hold-pnl-pct="holdPnlPct"
@@ -191,6 +189,7 @@
     <!-- 종목 추가 모달 -->
     <AddHoldingModal
       :show="showAddModal"
+      :allow-cash="accountUi.allowCash"
       v-model:search-q="searchQ"
       v-model:show-dropdown="showDropdown"
       :search-results="searchResults"
@@ -214,6 +213,7 @@
     <!-- AI 포트폴리오 진단 모달 -->
     <PortfolioAnalysisModal
       :show="showPortfolioAnalysis"
+      :title="accountUi.aiButtonLabel"
       :portfolio-context="portfolioAnalysisContext"
       @close="closePortfolioAnalysis"
     />
@@ -234,8 +234,74 @@ import AddHoldingModal from "@/components/stock/AddHoldingModal.vue";
 import StockAnalysisModal from "@/components/stock/StockAnalysisModal.vue";
 import PortfolioAnalysisModal from "@/components/stock/PortfolioAnalysisModal.vue";
 
-const PORTFOLIO_KEY = "stock_portfolio";
-const DISPLAY_CCY_KEY = "stock_displayCurrency";
+const ACCOUNT_CONFIGS = {
+  stock: {
+    label: "주식",
+    storageKey: "stock_portfolio",
+    apiPath: "/api/portfolio/holdings",
+    displayCurrencyKey: "stock_displayCurrency",
+    sortKey: "stock_sortKey",
+    sortDirKey: "stock_sortDir",
+    remote: true,
+    allowCash: false,
+    emptyTitle: "주식 보유 종목이 없습니다",
+    emptyDescription: "보유 중인 주식을 추가하면 평가금액과 종목 비중을 한눈에 확인할 수 있습니다.",
+    aiButtonLabel: "📊 주식 AI 포트폴리오 진단",
+    aiHint: "보유 종목 시그널 + 추천 종목 2개",
+    auditView: "STOCK/HOLDING",
+    auditAnalysis: "STOCK/AI-ANALYSIS",
+    auditPortfolio: "STOCK/AI-PORTFOLIO",
+    analysisNote: "일반 주식 포트폴리오입니다. 계좌 전체의 성장성, 리스크, 비중 조정을 중심으로 진단하세요.",
+  },
+  isa: {
+    label: "ISA",
+    storageKey: "stock_portfolio_isa",
+    apiPath: "/api/portfolio/isa/holdings",
+    displayCurrencyKey: "stock_isa_displayCurrency",
+    sortKey: "stock_isa_sortKey",
+    sortDirKey: "stock_isa_sortDir",
+    remote: true,
+    allowCash: true,
+    emptyTitle: "ISA 보유 종목이 없습니다",
+    emptyDescription: "ISA 계좌에 담은 종목을 추가하면 계좌별 평가금액과 비중을 따로 관리할 수 있습니다.",
+    aiButtonLabel: "📊 ISA AI 포트폴리오 진단",
+    aiHint: "ISA 계좌 기준 보유 종목 시그널 + 추천 종목 2개",
+    auditView: "STOCK/ISA",
+    auditAnalysis: "STOCK/ISA/AI-ANALYSIS",
+    auditPortfolio: "STOCK/ISA/AI-PORTFOLIO",
+    analysisNote: "ISA 계좌입니다. 절세 목적, 중장기 운용, 과도한 회전율 리스크를 함께 고려해 진단하세요.",
+  },
+  irp: {
+    label: "퇴직연금 IRP",
+    storageKey: "stock_portfolio_irp",
+    apiPath: "/api/portfolio/irp/holdings",
+    displayCurrencyKey: "stock_irp_displayCurrency",
+    sortKey: "stock_irp_sortKey",
+    sortDirKey: "stock_irp_sortDir",
+    remote: true,
+    allowCash: true,
+    emptyTitle: "퇴직연금 IRP 보유 종목이 없습니다",
+    emptyDescription: "퇴직연금 IRP 계좌에 담은 종목을 추가하면 은퇴 자산 관점의 비중과 리스크를 따로 볼 수 있습니다.",
+    aiButtonLabel: "📊 IRP AI 포트폴리오 진단",
+    aiHint: "퇴직연금 IRP 기준 보유 종목 시그널 + 추천 종목 2개",
+    auditView: "STOCK/IRP",
+    auditAnalysis: "STOCK/IRP/AI-ANALYSIS",
+    auditPortfolio: "STOCK/IRP/AI-PORTFOLIO",
+    analysisNote: "퇴직연금 IRP 계좌입니다. 장기 은퇴 자산, 분산, 변동성 관리, 방어적 리밸런싱을 함께 고려해 진단하세요.",
+  },
+};
+
+function normalizeAccountType(value) {
+  return Object.prototype.hasOwnProperty.call(ACCOUNT_CONFIGS, value) ? value : "stock";
+}
+
+function makeLocalHoldingId(accountType) {
+  return `${accountType}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function isCashHolding(holding) {
+  return holding?.assetType === "CASH";
+}
 
 export default {
   name: "PortfolioPanel",
@@ -250,10 +316,20 @@ export default {
   },
   props: {
     active: { type: Boolean, default: false },
+    accountType: { type: String, default: "stock" },
+    accountLabel: { type: String, default: "" },
   },
   emits: ["holdings-changed"],
   setup(props, { emit }) {
     const { fmtKRW, fmtUSD, fmtByMkt, pnlCls } = useStockFormatters();
+    const normalizedAccountType = normalizeAccountType(props.accountType);
+    const baseAccountConfig = ACCOUNT_CONFIGS[normalizedAccountType];
+    const accountUi = computed(() => ({
+      ...baseAccountConfig,
+      label: props.accountLabel || baseAccountConfig.label,
+    }));
+    const usesRemotePortfolio = baseAccountConfig.remote;
+    const portfolioApiPath = baseAccountConfig.apiPath;
 
     const holdings = ref([]);
     const prices = ref({});
@@ -264,11 +340,11 @@ export default {
     const exchangeRate = ref(0);
     const exRateAt = ref("");
     const displayCurrency = ref(
-      localStorage.getItem(DISPLAY_CCY_KEY) === "krw" ? "krw" : "native",
+      localStorage.getItem(baseAccountConfig.displayCurrencyKey) === "krw" ? "krw" : "native",
     );
     function setDisplayCurrency(v) {
       displayCurrency.value = v;
-      localStorage.setItem(DISPLAY_CCY_KEY, v);
+      localStorage.setItem(baseAccountConfig.displayCurrencyKey, v);
     }
 
     const showAddModal = ref(false);
@@ -280,7 +356,7 @@ export default {
     const searchResults = ref([]);
     const searchLoading = ref(false);
     const newHolding = ref({
-      market: "US", name: "", symbol: "", quantity: null, avgPrice: null,
+      assetType: "STOCK", market: "US", name: "", symbol: "", quantity: null, avgPrice: null,
     });
     let searchTimer = null;
 
@@ -289,8 +365,8 @@ export default {
 
     const lastUpdatedAt = ref(null);
     const relativeUpdated = ref("");
-    const sortKey = ref(localStorage.getItem("stock_sortKey") || "");
-    const sortDir = ref(localStorage.getItem("stock_sortDir") || "asc");
+    const sortKey = ref(localStorage.getItem(baseAccountConfig.sortKey) || "");
+    const sortDir = ref(localStorage.getItem(baseAccountConfig.sortDirKey) || "asc");
     const hoveredSegId = ref(null);
 
     let refreshTimer = null;
@@ -306,32 +382,76 @@ export default {
       return Number.isFinite(n) ? n : null;
     }
 
-    async function initPortfolio() {
+    function normalizeHoldingForAccount(holding) {
+      const assetType = holding.assetType || "STOCK";
+      return {
+        ...holding,
+        id: holding.id ?? makeLocalHoldingId(normalizedAccountType),
+        accountType: holding.accountType || normalizedAccountType,
+        assetType,
+        avgPrice: assetType === "CASH" ? 1 : holding.avgPrice,
+      };
+    }
+
+    function readLocalHoldings() {
       try {
-        holdings.value = JSON.parse(localStorage.getItem(PORTFOLIO_KEY)) || [];
+        const parsed = JSON.parse(localStorage.getItem(baseAccountConfig.storageKey)) || [];
+        return parsed.map(normalizeHoldingForAccount);
       } catch {
-        holdings.value = [];
+        return [];
       }
+    }
+
+    function writeLocalHoldings(list = holdings.value) {
+      localStorage.setItem(baseAccountConfig.storageKey, JSON.stringify(list));
+    }
+
+    function accountRequestConfig() {
+      return { params: { accountType: normalizedAccountType } };
+    }
+
+    function belongsToAccount(holding) {
+      if (normalizedAccountType === "stock") {
+        return !holding.accountType || holding.accountType === "stock" || holding.accountType === "general";
+      }
+      return !holding.accountType || holding.accountType === normalizedAccountType;
+    }
+
+    async function initPortfolio() {
+      holdings.value = readLocalHoldings();
       const localData = [...holdings.value];
+      if (!usesRemotePortfolio) {
+        emitHoldingsChanged();
+        return;
+      }
       try {
-        const res = await axios.get("/api/portfolio/holdings");
-        const serverData = res.data || [];
+        const res = await axios.get(portfolioApiPath, accountRequestConfig());
+        const serverData = (res.data || [])
+          .filter(belongsToAccount)
+          .map(normalizeHoldingForAccount);
         if (serverData.length > 0) {
           holdings.value = serverData;
-          localStorage.removeItem(PORTFOLIO_KEY);
+          localStorage.removeItem(baseAccountConfig.storageKey);
         } else if (localData.length > 0) {
           for (const h of localData) {
-            await axios.post("/api/portfolio/holdings", {
-              market: h.market, name: h.name, symbol: h.symbol,
-              quantity: h.quantity, avgPrice: h.avgPrice,
-            });
+            await axios.post(portfolioApiPath, {
+              assetType: h.assetType || "STOCK",
+              accountType: normalizedAccountType,
+              market: h.assetType === "CASH" ? "KR" : h.market,
+              name: h.name,
+              symbol: h.symbol || `CASH-${normalizedAccountType.toUpperCase()}-${Date.now()}`,
+              quantity: h.quantity,
+              avgPrice: h.assetType === "CASH" ? 1 : h.avgPrice,
+            }, accountRequestConfig());
           }
-          const refreshed = await axios.get("/api/portfolio/holdings");
-          holdings.value = refreshed.data || [];
-          localStorage.removeItem(PORTFOLIO_KEY);
+          const refreshed = await axios.get(portfolioApiPath, accountRequestConfig());
+          holdings.value = (refreshed.data || [])
+            .filter(belongsToAccount)
+            .map(normalizeHoldingForAccount);
+          localStorage.removeItem(baseAccountConfig.storageKey);
         }
       } catch {
-        holdings.value = localData;
+        holdings.value = normalizedAccountType === "stock" ? localData : [];
       }
       emitHoldingsChanged();
     }
@@ -340,7 +460,12 @@ export default {
       if (holdings.value.length === 0) return;
       priceLoading.value = true;
       const results = {};
-      const tasks = holdings.value.map(async (h) => {
+      holdings.value.forEach((h) => {
+        if (isCashHolding(h)) {
+          results[h.symbol] = { price: 1, changePercent: null };
+        }
+      });
+      const tasks = holdings.value.filter((h) => !isCashHolding(h)).map(async (h) => {
         try {
           const res = await axios.get("/api/stock/quote", {
             params: { symbol: h.symbol, market: h.market.toLowerCase() },
@@ -348,7 +473,7 @@ export default {
           results[h.symbol] = res.data;
         } catch { /* noop */ }
       });
-      const hasUs = holdings.value.some((h) => h.market === "US");
+      const hasUs = holdings.value.some((h) => !isCashHolding(h) && h.market === "US");
       if (hasUs) tasks.push(fetchExchangeRate());
       await Promise.all(tasks);
       prices.value = results;
@@ -384,7 +509,7 @@ export default {
     function openAnalysis(h) {
       analysisTarget.value = h;
       showAnalysisModal.value = true;
-      logAudit("STOCK/AI-ANALYSIS", "OPEN", h?.symbol);
+      logAudit(accountUi.value.auditAnalysis, "OPEN", h?.symbol);
     }
     function closeAnalysis() {
       showAnalysisModal.value = false;
@@ -393,7 +518,7 @@ export default {
 
     function openPortfolioAnalysis() {
       showPortfolioAnalysis.value = true;
-      logAudit("STOCK/AI-PORTFOLIO", "OPEN");
+      logAudit(accountUi.value.auditPortfolio, "OPEN");
     }
     function closePortfolioAnalysis() {
       showPortfolioAnalysis.value = false;
@@ -405,7 +530,7 @@ export default {
       showDropdown.value = false;
       searchResults.value = [];
       newHolding.value = {
-        market: "US", name: "", symbol: "", quantity: null, avgPrice: null,
+        assetType: "STOCK", market: "US", name: "", symbol: "", quantity: null, avgPrice: null,
       };
     }
 
@@ -433,6 +558,7 @@ export default {
     }
 
     function selectStock(s) {
+      newHolding.value.assetType = "STOCK";
       newHolding.value.name = s.name;
       newHolding.value.symbol = s.symbol;
       newHolding.value.market = s.market;
@@ -455,19 +581,38 @@ export default {
 
     async function addHolding() {
       const h = newHolding.value;
-      const sym = h.symbol.trim().toUpperCase();
+      const assetType = h.assetType === "CASH" ? "CASH" : "STOCK";
+      const sym = assetType === "CASH"
+        ? (h.symbol || `CASH-${normalizedAccountType.toUpperCase()}-${Date.now()}`).trim().toUpperCase()
+        : h.symbol.trim().toUpperCase();
       const market =
-        h.market || (sym.endsWith(".KS") || sym.endsWith(".KQ") ? "KR" : "US");
+        assetType === "CASH"
+          ? "KR"
+          : h.market || (sym.endsWith(".KS") || sym.endsWith(".KQ") ? "KR" : "US");
       if (holdings.value.some((x) => x.symbol.toUpperCase() === sym)) {
         alert(`'${h.name}' 종목은 이미 추가되어 있습니다.`);
         return;
       }
+      const payload = {
+        assetType,
+        accountType: normalizedAccountType,
+        market,
+        name: h.name.trim() || "현금성 대기자산",
+        symbol: sym,
+        quantity: h.quantity,
+        avgPrice: assetType === "CASH" ? 1 : toNum(h.avgPrice),
+      };
+      if (!usesRemotePortfolio) {
+        holdings.value.push(normalizeHoldingForAccount(payload));
+        writeLocalHoldings();
+        emitHoldingsChanged();
+        closeAddModal();
+        fetchPrices();
+        return;
+      }
       try {
-        const res = await axios.post("/api/portfolio/holdings", {
-          market, name: h.name.trim(), symbol: sym,
-          quantity: h.quantity, avgPrice: toNum(h.avgPrice),
-        });
-        holdings.value.push(res.data);
+        const res = await axios.post(portfolioApiPath, payload, accountRequestConfig());
+        holdings.value.push(normalizeHoldingForAccount(res.data));
         emitHoldingsChanged();
         closeAddModal();
         fetchPrices();
@@ -478,10 +623,22 @@ export default {
 
     async function toggleCore(h) {
       const next = !h.core;
-      try {
-        const res = await axios.put(`/api/portfolio/holdings/${h.id}/core`, { core: next });
+      if (!usesRemotePortfolio) {
         const idx = holdings.value.findIndex((x) => x.id === h.id);
-        if (idx !== -1) holdings.value[idx] = res.data;
+        if (idx !== -1) {
+          holdings.value[idx] = { ...holdings.value[idx], core: next };
+          writeLocalHoldings();
+          emitHoldingsChanged();
+        }
+        return;
+      }
+      try {
+        const res = await axios.put(`${portfolioApiPath}/${h.id}/core`, {
+          accountType: normalizedAccountType,
+          core: next,
+        }, accountRequestConfig());
+        const idx = holdings.value.findIndex((x) => x.id === h.id);
+        if (idx !== -1) holdings.value[idx] = normalizeHoldingForAccount(res.data);
         emitHoldingsChanged();
       } catch (err) {
         alert(describeApiError(err, "코어 설정 변경에 실패했습니다."));
@@ -492,8 +649,14 @@ export default {
       const target = holdings.value.find((h) => h.id === id);
       const name = target ? target.name : "이 종목";
       if (!confirm(`'${name}'을(를) 삭제하시겠습니까?`)) return;
+      if (!usesRemotePortfolio) {
+        holdings.value = holdings.value.filter((h) => h.id !== id);
+        writeLocalHoldings();
+        emitHoldingsChanged();
+        return;
+      }
       try {
-        await axios.delete(`/api/portfolio/holdings/${id}`);
+        await axios.delete(`${portfolioApiPath}/${id}`, accountRequestConfig());
         holdings.value = holdings.value.filter((h) => h.id !== id);
         emitHoldingsChanged();
       } catch (err) {
@@ -507,13 +670,28 @@ export default {
     }
     async function saveEdit(h) {
       const payload = {
+        accountType: normalizedAccountType,
         quantity: editForm.value.quantity,
-        avgPrice: toNum(editForm.value.avgPrice),
+        avgPrice: isCashHolding(h) ? 1 : toNum(editForm.value.avgPrice),
       };
-      try {
-        const res = await axios.put(`/api/portfolio/holdings/${h.id}`, payload);
+      if (!usesRemotePortfolio) {
         const idx = holdings.value.findIndex((x) => x.id === h.id);
-        if (idx !== -1) holdings.value[idx] = res.data;
+        if (idx !== -1) {
+          holdings.value[idx] = normalizeHoldingForAccount({
+            ...holdings.value[idx],
+            ...payload,
+          });
+        }
+        editingId.value = null;
+        writeLocalHoldings();
+        emitHoldingsChanged();
+        fetchPrices();
+        return;
+      }
+      try {
+        const res = await axios.put(`${portfolioApiPath}/${h.id}`, payload, accountRequestConfig());
+        const idx = holdings.value.findIndex((x) => x.id === h.id);
+        if (idx !== -1) holdings.value[idx] = normalizeHoldingForAccount(res.data);
         editingId.value = null;
         emitHoldingsChanged();
         fetchPrices();
@@ -523,10 +701,14 @@ export default {
     }
 
     const canAdd = computed(
-      () =>
-        newHolding.value.name.trim() &&
-        newHolding.value.symbol.trim() &&
-        newHolding.value.quantity > 0,
+      () => {
+        if (newHolding.value.assetType === "CASH") {
+          return newHolding.value.name.trim() && Number(newHolding.value.quantity) > 0;
+        }
+        return newHolding.value.name.trim() &&
+          newHolding.value.symbol.trim() &&
+          newHolding.value.quantity > 0;
+      },
     );
 
     const stats = usePortfolioStats({
@@ -566,19 +748,23 @@ export default {
         : fmtUSD(abs);
     }
     function fmtCurPrice(h) {
+      if (isCashHolding(h)) return "현금";
       const p = prices.value[h.symbol];
       return p ? fmtMoney(p.price, h.market) : "—";
     }
     function fmtHoldVal(h) {
+      if (isCashHolding(h)) return fmtKRW(Number(h.quantity) || 0);
       const p = prices.value[h.symbol];
       return p ? fmtMoney(p.price * h.quantity, h.market) : "—";
     }
     function fmtHoldPnl(h) {
+      if (isCashHolding(h)) return "—";
       const v = holdPnl(h);
       if (v === null) return "—";
       return (v >= 0 ? "+" : "") + fmtMoney(v, h.market);
     }
     function fmtHoldPnlPct(h) {
+      if (isCashHolding(h)) return "—";
       const v = holdPnlPct(h);
       if (v === null) return "—";
       return (v >= 0 ? "+" : "") + v.toFixed(2) + "%";
@@ -606,11 +792,12 @@ export default {
         sortKey.value = key;
         sortDir.value = (key === "value" || key === "pnlPct") ? "desc" : "asc";
       }
-      localStorage.setItem("stock_sortKey", sortKey.value);
-      localStorage.setItem("stock_sortDir", sortDir.value);
+      localStorage.setItem(baseAccountConfig.sortKey, sortKey.value);
+      localStorage.setItem(baseAccountConfig.sortDirKey, sortDir.value);
     }
 
     function fmtChangePct(h) {
+      if (isCashHolding(h)) return null;
       return prices.value[h.symbol]?.changePercent ?? null;
     }
     function fmtChangePctDisplay(h) {
@@ -619,6 +806,7 @@ export default {
       return (v >= 0 ? "+" : "") + v.toFixed(2) + "%";
     }
     function changePctCls(h) {
+      if (isCashHolding(h)) return "";
       return pnlCls(fmtChangePct(h));
     }
 
@@ -643,6 +831,7 @@ export default {
 
         return {
           id: h.id,
+          assetType: h.assetType || "STOCK",
           market: h.market,
           name: h.name,
           symbol: h.symbol,
@@ -659,11 +848,14 @@ export default {
       });
 
       return {
+        accountType: normalizedAccountType,
+        accountLabel: accountUi.value.label,
+        accountNote: accountUi.value.analysisNote,
         asOf: lastUpdatedAt.value ? lastUpdatedAt.value.toISOString() : new Date().toISOString(),
         exchangeRate: exchangeRate.value || null,
         totalValueKRW: totalKRW || totalValKRW.value || null,
         holdings: enrichedHoldings,
-        instruction: "Use holdings[].weightPct as the current portfolio weight. If weightPct is present, do not ask the user for weights.",
+        instruction: `This is the user's ${accountUi.value.label} account. Use holdings[].weightPct as the current portfolio weight. If weightPct is present, do not ask the user for weights. ${accountUi.value.analysisNote}`,
       };
     });
 
@@ -682,7 +874,7 @@ export default {
       () => props.active,
       (isActive) => {
         if (isActive) {
-          logAudit("STOCK/HOLDING");
+          logAudit(accountUi.value.auditView);
           fetchPrices();
         }
       },
@@ -695,7 +887,7 @@ export default {
         initialLoading.value = false;
       }
       if (props.active) {
-        logAudit("STOCK/HOLDING");
+        logAudit(accountUi.value.auditView);
         fetchPrices();
       }
       refreshTimer = setInterval(() => {
@@ -713,6 +905,7 @@ export default {
     });
 
     return {
+      accountUi,
       holdings, prices, priceLoading, initialLoading, portfolioView, marketFilter,
       displayCurrency, setDisplayCurrency, showCurrencyToggle,
       exchangeRate, exRateAt, lastUpdatedAt, relativeUpdated,

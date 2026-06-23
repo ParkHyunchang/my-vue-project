@@ -2,7 +2,7 @@
   <teleport to="#modal">
     <Modal v-if="show" @close="$emit('close')">
       <template #header>
-        <h3 class="pana-title">📊 포트폴리오 AI 진단</h3>
+        <h3 class="pana-title">{{ title }}</h3>
       </template>
 
       <template #body>
@@ -555,6 +555,7 @@ export default {
   components: { Modal, MarkdownView },
   props: {
     show: { type: Boolean, required: true },
+    title: { type: String, default: '📊 포트폴리오 AI 진단' },
     portfolioContext: { type: Object, default: null },
   },
   emits: ['close'],
@@ -611,6 +612,9 @@ export default {
         const context = props.portfolioContext || {};
         const res = await axios.post('/api/portfolio/analyze', {
           portfolio: context,
+          accountType: context.accountType || null,
+          accountLabel: context.accountLabel || null,
+          accountNote: context.accountNote || null,
           holdings: context.holdings || [],
           totalValueKRW: context.totalValueKRW || null,
           exchangeRate: context.exchangeRate || null,

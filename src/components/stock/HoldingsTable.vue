@@ -6,7 +6,7 @@
           <th class="sortable-th" @click="$emit('toggle-sort', 'name')">
             종목<span class="sort-ind">{{ sortKey === 'name' ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '' }}</span>
           </th>
-          <th class="th-r">보유수량</th>
+          <th class="th-r">수량/금액</th>
           <th class="th-r sortable-th" @click="$emit('toggle-sort', 'curPrice')">
             현재가<span class="sort-ind">{{ sortKey === 'curPrice' ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '' }}</span>
           </th>
@@ -28,10 +28,10 @@
         <tr v-for="h in sortedHoldings" :key="h.id">
           <template v-if="editingId === h.id">
             <td class="hname-cell">
-              <span class="mkt-flag">{{ h.market === "KR" ? "🇰🇷" : "🇺🇸" }}</span>
+              <span class="mkt-flag">{{ isCashHolding(h) ? "💵" : h.market === "KR" ? "🇰🇷" : "🇺🇸" }}</span>
               <div>
                 <div class="h-name">{{ h.name }}</div>
-                <div class="h-sym">{{ h.symbol }}</div>
+                <div class="h-sym">{{ isCashHolding(h) ? "현금성 자산" : h.symbol }}</div>
               </div>
             </td>
             <td class="td-r">
@@ -45,11 +45,14 @@
             </td>
             <td class="td-r">{{ fmtCurPrice(h) }}</td>
             <td class="td-r">
-              <span :class="['change-badge', changePctCls(h) || 'neutral']">{{ fmtChangePctDisplay(h) }}</span>
+              <span v-if="isCashHolding(h)" class="txt-muted">—</span>
+              <span v-else :class="['change-badge', changePctCls(h) || 'neutral']">{{ fmtChangePctDisplay(h) }}</span>
             </td>
             <td class="td-r">{{ fmtHoldVal(h) }}</td>
             <td class="td-r">
+              <span v-if="isCashHolding(h)" class="txt-muted">—</span>
               <input
+                v-else
                 :value="formatAvgPrice(editForm.avgPrice)"
                 @input="onAvgPriceInput($event)"
                 type="text"
@@ -68,16 +71,17 @@
           </template>
           <template v-else>
             <td class="hname-cell">
-              <span class="mkt-flag">{{ h.market === "KR" ? "🇰🇷" : "🇺🇸" }}</span>
+              <span class="mkt-flag">{{ isCashHolding(h) ? "💵" : h.market === "KR" ? "🇰🇷" : "🇺🇸" }}</span>
               <div>
                 <div class="h-name">{{ h.name }}</div>
-                <div class="h-sym">{{ h.symbol }}</div>
+                <div class="h-sym">{{ isCashHolding(h) ? "현금성 자산" : h.symbol }}</div>
               </div>
             </td>
-            <td class="td-r">{{ h.quantity.toLocaleString() }}</td>
+            <td class="td-r">{{ isCashHolding(h) ? fmtKRW(Number(h.quantity) || 0) : h.quantity.toLocaleString() }}</td>
             <td class="td-r">{{ fmtCurPrice(h) }}</td>
             <td class="td-r">
-              <span :class="['change-badge', changePctCls(h) || 'neutral']">{{ fmtChangePctDisplay(h) }}</span>
+              <span v-if="isCashHolding(h)" class="txt-muted">—</span>
+              <span v-else :class="['change-badge', changePctCls(h) || 'neutral']">{{ fmtChangePctDisplay(h) }}</span>
             </td>
             <td class="td-r">
               {{ fmtHoldVal(h) }}
@@ -89,13 +93,20 @@
               </div>
             </td>
             <td class="td-r">
-              <span v-if="h.avgPrice">{{ fmtByMkt(h.avgPrice, h.market) }}</span>
+              <span v-if="isCashHolding(h)" class="txt-muted">—</span>
+              <span v-else-if="h.avgPrice">{{ fmtByMkt(h.avgPrice, h.market) }}</span>
               <span v-else class="txt-muted">—</span>
             </td>
-            <td class="td-r"><span :class="pnlCls(holdPnl(h))">{{ fmtHoldPnl(h) }}</span></td>
-            <td class="td-r"><span :class="['pnl-pct', pnlCls(holdPnlPct(h))]">{{ fmtHoldPnlPct(h) }}</span></td>
+            <td class="td-r">
+              <span v-if="isCashHolding(h)" class="txt-muted">—</span>
+              <span v-else :class="pnlCls(holdPnl(h))">{{ fmtHoldPnl(h) }}</span>
+            </td>
+            <td class="td-r">
+              <span v-if="isCashHolding(h)" class="txt-muted">—</span>
+              <span v-else :class="['pnl-pct', pnlCls(holdPnlPct(h))]">{{ fmtHoldPnlPct(h) }}</span>
+            </td>
             <td class="td-act">
-              <button class="act-btn act-analyze" @click="$emit('analyze', h)">✨ 분석</button>
+              <button v-if="!isCashHolding(h)" class="act-btn act-analyze" @click="$emit('analyze', h)">✨ 분석</button>
               <button class="act-btn act-edit" @click="$emit('start-edit', h)">수정</button>
               <button class="act-btn act-del" @click="$emit('remove', h.id)">삭제</button>
             </td>
@@ -131,6 +142,7 @@ export default {
   },
   emits: ['toggle-sort', 'start-edit', 'save-edit', 'cancel-edit', 'remove', 'toggle-core', 'update:editForm', 'analyze'],
   setup(props, { emit }) {
+    const isCashHolding = (holding) => holding?.assetType === 'CASH';
     const formatAvgPrice = (v) => {
       if (v == null || v === '') return '';
       const s = String(v);
@@ -150,7 +162,7 @@ export default {
       if (!/^-?\d*\.?\d*$/.test(raw)) return;
       emit('update:editForm', { ...props.editForm, avgPrice: raw });
     };
-    return { formatAvgPrice, onAvgPriceInput };
+    return { isCashHolding, formatAvgPrice, onAvgPriceInput };
   },
 };
 </script>

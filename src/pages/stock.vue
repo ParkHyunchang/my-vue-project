@@ -51,10 +51,30 @@
       </button>
     </div>
 
-    <div v-show="activeTab === 'balance'" class="tab-content">
+    <div v-show="activeTab === 'stock'" class="tab-content">
       <PortfolioPanel
-        :active="activeTab === 'balance'"
-        @holdings-changed="onHoldingsChanged"
+        account-type="stock"
+        account-label="주식"
+        :active="activeTab === 'stock'"
+        @holdings-changed="onHoldingsChanged('stock', $event)"
+      />
+    </div>
+
+    <div v-show="activeTab === 'isa'" class="tab-content">
+      <PortfolioPanel
+        account-type="isa"
+        account-label="ISA"
+        :active="activeTab === 'isa'"
+        @holdings-changed="onHoldingsChanged('isa', $event)"
+      />
+    </div>
+
+    <div v-show="activeTab === 'irp'" class="tab-content">
+      <PortfolioPanel
+        account-type="irp"
+        account-label="퇴직연금 IRP"
+        :active="activeTab === 'irp'"
+        @holdings-changed="onHoldingsChanged('irp', $event)"
       />
     </div>
 
@@ -67,7 +87,7 @@
     </div>
 
     <div v-show="activeTab === 'news'" class="tab-content">
-      <NewsPanel :active="activeTab === 'news'" :holdings="holdings" />
+      <NewsPanel :active="activeTab === 'news'" :holdings="allHoldings" />
     </div>
   </div>
 </template>
@@ -87,26 +107,44 @@ export default {
   setup() {
     const route = useRoute();
     const router = useRouter();
-    const VALID_TABS = ["balance", "heatmap", "top10", "news"];
+    const VALID_TABS = ["stock", "isa", "irp", "heatmap", "top10", "news"];
 
-    const activeTab = ref("balance");
-    const holdings = ref([]);
+    const activeTab = ref("stock");
+    const holdingsByAccount = ref({
+      stock: [],
+      isa: [],
+      irp: [],
+    });
 
     const tabs = [
-      { id: "balance", icon: "💰", label: "내 잔고" },
+      { id: "stock", icon: "💰", label: "주식" },
+      { id: "isa", icon: "🏦", label: "ISA" },
+      { id: "irp", icon: "🛡️", label: "퇴직연금 IRP" },
       { id: "heatmap", icon: "🗺️", label: "히트맵" },
-      { id: "top10", icon: "🏆", label: "시총 Top 10" },
+      { id: "top10", icon: "🏆", label: "시총 top10" },
       { id: "news", icon: "📰", label: "주식 뉴스" },
     ];
 
+    const allHoldings = computed(() =>
+      Object.values(holdingsByAccount.value).flat(),
+    );
+
+    function normalizeTab(id) {
+      return id === "balance" ? "stock" : id;
+    }
+
     function switchTab(id) {
-      activeTab.value = id;
-      router.replace({ query: { ...route.query, tab: id } });
+      const nextTab = normalizeTab(id);
+      activeTab.value = nextTab;
+      router.replace({ query: { ...route.query, tab: nextTab } });
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    function onHoldingsChanged(list) {
-      holdings.value = list;
+    function onHoldingsChanged(accountType, list) {
+      holdingsByAccount.value = {
+        ...holdingsByAccount.value,
+        [accountType]: list,
+      };
     }
 
     // ── KRX Open API 상태 ─────────────────────────────────────
@@ -139,7 +177,7 @@ export default {
     });
 
     onMounted(async () => {
-      const tabFromUrl = route.query.tab;
+      const tabFromUrl = normalizeTab(route.query.tab);
       if (tabFromUrl && VALID_TABS.includes(tabFromUrl)) {
         activeTab.value = tabFromUrl;
       }
@@ -153,7 +191,7 @@ export default {
 
     return {
       activeTab,
-      holdings,
+      allHoldings,
       tabs,
       switchTab,
       onHoldingsChanged,

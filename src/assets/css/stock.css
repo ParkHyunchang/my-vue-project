@@ -534,6 +534,46 @@
 .mform-hint { font-size: 0.72rem; color: var(--text-muted); }
 .opt-label  { color: var(--text-muted); font-weight: 400; font-size: 0.75rem; }
 
+.asset-type-switch {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 3px;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+}
+.asset-type-btn {
+  flex: 1;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.asset-type-btn:hover {
+  color: var(--text-primary);
+}
+.asset-type-btn.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.cash-asset-guide {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(139, 92, 246, 0.24);
+  border-radius: 8px;
+  background: rgba(139, 92, 246, 0.08);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
 .quick-add-btns {
   display: flex;
   gap: 6px;
@@ -645,6 +685,25 @@
   border: 1px solid var(--card-border-strong);
   border-radius: 10px;
   margin-top: 4px;
+}
+.search-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.search-empty-cash-btn {
+  align-self: center;
+  padding: 6px 12px;
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.12);
+  color: #ddd6fe;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.search-empty-cash-btn:hover {
+  background: rgba(139, 92, 246, 0.22);
 }
 
 /* 감지된 시장 배지 */
