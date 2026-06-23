@@ -38,12 +38,13 @@
           <template v-if="uiReport">
             <section v-if="uiReport.health" class="pana-hero-card">
               <div class="pana-score-wrap">
-                <div class="pana-score-ring">
+                <div v-if="uiReport.health.score" class="pana-score-ring">
                   <strong>{{ uiReport.health.score || '-' }}</strong>
-                  <span>/ 10</span>
+                  <span v-if="uiReport.health.scoreUnit">{{ uiReport.health.scoreUnit }}</span>
                 </div>
+                <div v-else class="pana-account-badge">{{ uiReport.account?.badge || 'AI' }}</div>
                 <div>
-                  <div class="pana-eyebrow">포트폴리오 건강 점수</div>
+                  <div class="pana-eyebrow">{{ uiReport.account?.heroEyebrow || '포트폴리오 건강 점수' }}</div>
                   <h4 class="pana-hero-title">{{ uiReport.health.prescription || '진단 결과' }}</h4>
                 </div>
               </div>
@@ -54,8 +55,8 @@
 
             <section v-if="uiReport.holdings.length" class="pana-section">
               <div class="pana-section-head">
-                <h4 class="pana-section-title">종목별 액션</h4>
-                <span class="pana-section-hint">AI 판단</span>
+                <h4 class="pana-section-title">{{ uiReport.account?.holdingTitle || '종목별 액션' }}</h4>
+                <span class="pana-section-hint">{{ uiReport.account?.holdingHint || 'AI 판단' }}</span>
               </div>
               <div class="pana-stock-actions">
                 <article v-for="item in uiReport.holdings" :key="item.key" class="pana-stock-card">
@@ -69,6 +70,7 @@
                     </span>
                   </div>
                   <div class="pana-stock-metrics">
+                    <span v-if="item.assetType">{{ item.assetType === 'CASH' ? '현금성 자산' : '주식/ETF' }}</span>
                     <span v-if="item.currentWeight !== null && item.currentWeight !== undefined">
                       현재 {{ formatPercent(item.currentWeight) }}
                     </span>
@@ -146,7 +148,7 @@
 
             <section v-if="uiReport.notes.length" class="pana-section">
               <div class="pana-section-head">
-                <h4 class="pana-section-title">추가 체크포인트</h4>
+                <h4 class="pana-section-title">{{ uiReport.account?.notesTitle || '추가 체크포인트' }}</h4>
               </div>
               <div class="pana-note-grid">
                 <article v-for="note in uiReport.notes" :key="note.title" class="pana-info-card">
@@ -286,9 +288,9 @@ function normalizeAction(value, change = null) {
   if (['ADD', 'BUY', '추가매수', '비중 확대', '확대'].some((v) => raw.includes(v))) return 'ADD';
   if (['CUT_LOSS', 'STOP_LOSS', '손절', '손절 검토'].some((v) => raw.includes(v))) return 'CUT_LOSS';
   if (['TAKE_PROFIT', 'PROFIT', '이익실현', '차익실현'].some((v) => raw.includes(v))) return 'TAKE_PROFIT';
-  if (['REDUCE', 'TRIM', '축소', '비중 축소'].some((v) => raw.includes(v))) return 'REDUCE';
-  if (['WATCH', '관망'].some((v) => raw.includes(v))) return 'WATCH';
-  if (['HOLD', '보유', '유지'].some((v) => raw.includes(v))) return 'HOLD';
+  if (['REDUCE', 'TRIM', '축소', '비중 축소', '감소', '줄이기'].some((v) => raw.includes(v))) return 'REDUCE';
+  if (['WATCH', '관망', '점검', '주의', '위험', '리밸런싱', '변동성', '공격적'].some((v) => raw.includes(v))) return 'WATCH';
+  if (['HOLD', '보유', '유지', '안정', '안전', '양호', '좋음', '장기'].some((v) => raw.includes(v))) return 'HOLD';
 
   const delta = toNumber(change);
   if (delta !== null) {
@@ -304,6 +306,332 @@ function actionFromRow(row, headers, change) {
   return normalizeAction(rowValue(row, headers, [
     '액션', 'action', 'recommendation', 'decision', 'signal', 'suggestion',
   ], 7), change);
+}
+
+const ACCOUNT_REPORT_UI = {
+  stock: {
+    badge: 'AI',
+    heroEyebrow: '포트폴리오 건강 점수',
+    holdingTitle: '종목별 액션',
+    holdingHint: 'AI 판단',
+    notesTitle: '추가 체크포인트',
+  },
+  isa: {
+    badge: 'ISA',
+    heroEyebrow: 'ISA 계좌 진단',
+    holdingTitle: '보유 자산별 판단',
+    holdingHint: '절세 계좌 관점',
+    notesTitle: 'ISA 체크포인트',
+  },
+  irp: {
+    badge: 'IRP',
+    heroEyebrow: '퇴직연금 IRP 계좌 진단',
+    holdingTitle: '보유 자산별 판단',
+    holdingHint: '은퇴자산 관점',
+    notesTitle: 'IRP 체크포인트',
+  },
+};
+
+const ACCOUNT_SECTION_KEYWORDS = [
+  '종합 진단', '계좌 종합', '포트폴리오 진단', '요약',
+  '위험 점검', '리스크', '스트레스',
+  '현금성', '현금',
+  '보유 자산별', '보유 종목별', '자산별 판단', '보유 자산', '보유 종목',
+  '리밸런싱', '우선순위', '액션',
+  '참고', '공지', '고지', '주의', '체크포인트', '메모', '자산 구성',
+];
+
+const REPORT_METADATA_KEYS = new Set([
+  'blocked', 'retryAt', 'providerName', 'provider', 'model', 'analyzedAt',
+  'providersStatus', 'createdAt', 'updatedAt',
+]);
+
+function stripMarkdownSyntax(value) {
+  return String(value || '')
+    .replace(/\r\n/g, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/^```(?:\w+)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/`([^`]+)`/g, '$1');
+}
+
+function cleanInlineText(value) {
+  return stripMarkdownSyntax(value)
+    .replace(/^[\s>*•-]+/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function normalizeAnalysisAccount(context = {}, rawText = '') {
+  const source = [
+    context?.accountType,
+    context?.accountLabel,
+    context?.accountNote,
+    rawText,
+  ].filter(Boolean).join(' ').toLowerCase();
+
+  if (source.includes('irp') || source.includes('퇴직연금')) return 'irp';
+  if (source.includes('isa')) return 'isa';
+  return 'stock';
+}
+
+function accountReportMeta(type) {
+  const normalizedType = type === 'isa' || type === 'irp' ? type : 'stock';
+  return {
+    type: normalizedType,
+    ...ACCOUNT_REPORT_UI[normalizedType],
+  };
+}
+
+function sectionTitleLooksKnown(title) {
+  const normalized = cleanInlineText(title);
+  return ACCOUNT_SECTION_KEYWORDS.some((keyword) => normalized.includes(keyword));
+}
+
+function pushAccountSection(sections, section) {
+  const title = cleanInlineText(section?.title);
+  const text = cleanInlineText(section?.text);
+  if (title && text) sections.push({ title, text });
+}
+
+function extractTextSections(value) {
+  const text = stripMarkdownSyntax(value);
+  const lines = text.split('\n').map((line) => line.trim()).filter(Boolean);
+  const sections = [];
+  let current = null;
+
+  lines.forEach((rawLine) => {
+    const line = rawLine.replace(/^\d+[.)]\s*/, '').replace(/^[-*]\s*/, '').trim();
+    const heading = line.match(/^#{1,6}\s+(.+)$/);
+    if (heading) {
+      pushAccountSection(sections, current);
+      current = { title: heading[1], text: '' };
+      return;
+    }
+
+    const labeled = line.match(/^([^:：]{2,60})[:：]\s*(.+)$/);
+    if (labeled && sectionTitleLooksKnown(labeled[1])) {
+      pushAccountSection(sections, current);
+      current = { title: labeled[1], text: labeled[2] };
+      return;
+    }
+
+    if (current) {
+      current.text = [current.text, line].filter(Boolean).join('\n');
+    } else {
+      current = { title: '요약', text: line };
+    }
+  });
+
+  pushAccountSection(sections, current);
+  return sections;
+}
+
+function extractObjectSections(value) {
+  if (!value || typeof value !== 'object') return [];
+  if (typeof value.report === 'string' || (value.report && typeof value.report === 'object')) {
+    const nestedSections = extractAccountSections(value.report);
+    if (nestedSections.length) return nestedSections;
+  }
+
+  const root = value.portfolio_analysis || value.portfolioAnalysis || value.analysis || value;
+  if (typeof root === 'string') return extractTextSections(root);
+  if (!root || typeof root !== 'object') return [];
+
+  // Handle {sections: [{heading, content}]} structure from AI JSON output
+  const rawSectionsList = root.sections || root.items || root.checkpoints;
+  if (Array.isArray(rawSectionsList) && rawSectionsList.length > 0 &&
+      rawSectionsList.some((s) => s && typeof s === 'object' &&
+        ('heading' in s || 'content' in s || ('title' in s && 'text' in s)))) {
+    const expanded = rawSectionsList
+      .map((s) => {
+        if (typeof s === 'string') return { title: '요약', text: stripMarkdownSyntax(s).trim() };
+        if (!s || typeof s !== 'object') return null;
+        const rawTitle = pickText(s, ['heading', 'title', 'name', 'label']) || '';
+        const title = cleanInlineText(rawTitle).replace(/^#{1,6}\s+/, '');
+        const rawText = pickText(s, ['content', 'text', 'body', 'description']) || '';
+        const text = stripMarkdownSyntax(rawText).trim();
+        return { title, text };
+      })
+      .filter(Boolean)
+      .filter((s) => s.title && s.text);
+    if (expanded.length) return expanded;
+  }
+
+  return Object.entries(root)
+    .filter(([key, val]) => !REPORT_METADATA_KEYS.has(key) && val !== null && val !== undefined && val !== '')
+    .map(([key, val]) => ({
+      title: cleanInlineText(String(key).replace(/_/g, ' ')),
+      text: cleanInlineText(formatValue(val)),
+    }))
+    .filter((section) => section.title && section.text);
+}
+
+function extractAccountSections(value) {
+  if (!value) return [];
+  if (typeof value === 'string') return extractTextSections(value);
+  if (typeof value === 'object') return extractObjectSections(value);
+  return [];
+}
+
+function sectionIncludes(section, keywords) {
+  const title = section?.title || '';
+  return keywords.some((keyword) => title.includes(keyword));
+}
+
+function findSection(sections, keywords, exclude = new Set()) {
+  return sections.find((section) => !exclude.has(section) && sectionIncludes(section, keywords));
+}
+
+function splitListItems(text) {
+  return stripMarkdownSyntax(text)
+    .replace(/\s+\/\s+/g, '\n')
+    .replace(/[;；]/g, '\n')
+    .split('\n')
+    .map((line) => cleanInlineText(line.replace(/^\d+[.)]\s*/, '').replace(/^[-*]\s*/, '')))
+    .filter(Boolean);
+}
+
+function splitKeyValueItems(text) {
+  return splitListItems(text)
+    .map((item) => {
+      const match = item.match(/^([^:：]{2,50})[:：]\s*(.+)$/);
+      return match ? { key: cleanInlineText(match[1]), value: cleanInlineText(match[2]) } : null;
+    })
+    .filter(Boolean);
+}
+
+function normalizeIdentity(value) {
+  return String(value || '').replace(/\s+/g, '').toUpperCase();
+}
+
+function contextHoldings(context) {
+  return Array.isArray(context?.holdings) ? context.holdings : [];
+}
+
+function matchContextHolding(name, context) {
+  const holdings = contextHoldings(context);
+  const normalizedName = normalizeIdentity(name);
+  const isCashName = /현금|CASH/i.test(name || '');
+
+  if (isCashName) {
+    return holdings.find((holding) =>
+      String(holding.assetType || '').toUpperCase() === 'CASH' ||
+      /현금|CASH/i.test(holding.name || ''),
+    ) || null;
+  }
+
+  return holdings.find((holding) => {
+    const identities = [holding.name, holding.symbol, holding.ticker]
+      .map(normalizeIdentity)
+      .filter(Boolean);
+    return identities.some((identity) =>
+      normalizedName.includes(identity) || identity.includes(normalizedName),
+    );
+  }) || null;
+}
+
+function parseHoldingJudgements(text, context) {
+  const parts = stripMarkdownSyntax(text)
+    .split(/\n|(?:\s+\/\s+)(?=[^/：:]{2,80}[：:])/)
+    .map((part) => cleanInlineText(part))
+    .filter(Boolean);
+
+  return parts
+    .map((part, idx) => {
+      const match = part.match(/^(.{2,80}?)[：:]\s*(.+)$/);
+      if (!match) return null;
+
+      const label = cleanInlineText(match[1]);
+      const reason = cleanInlineText(match[2]);
+      const matchedHolding = matchContextHolding(label, context);
+      const assetType = String(matchedHolding?.assetType || (/현금|CASH/i.test(label) ? 'CASH' : 'STOCK')).toUpperCase();
+
+      return {
+        key: `account-holding-${matchedHolding?.id || matchedHolding?.symbol || idx}`,
+        name: matchedHolding?.name || label,
+        ticker: matchedHolding?.symbol || '',
+        country: matchedHolding?.market || '',
+        sector: '',
+        currentWeight: toNumber(matchedHolding?.weightPct ?? matchedHolding?.chartWeightPct),
+        proposedWeight: null,
+        change: null,
+        assetType,
+        action: normalizeAction(reason),
+        reason,
+      };
+    })
+    .filter(Boolean);
+}
+
+function scenarioFromRiskSection(section) {
+  const pairs = splitKeyValueItems(section.text);
+  const impact = pairs.find((item) => /요인|영향|위험/i.test(item.key))?.value;
+  const response = pairs.find((item) => /관리|대응|방어|전략/i.test(item.key))?.value;
+
+  return {
+    name: section.title || '위험 점검',
+    impact: impact || cleanInlineText(section.text),
+    response: response || '',
+  };
+}
+
+function buildAccountUiReport(raw, context = {}) {
+  const rawText = typeof raw === 'string' ? raw : formatValue(raw);
+  const accountType = normalizeAnalysisAccount(context, rawText);
+  if (accountType !== 'isa' && accountType !== 'irp') return null;
+
+  const sections = extractAccountSections(raw);
+  if (!sections.length) return null;
+
+  const meta = accountReportMeta(accountType);
+  const summarySection = findSection(sections, ['종합 진단', '계좌 종합', '포트폴리오 진단', '요약']) || sections[0];
+  const holdingSection = findSection(sections, ['보유 자산별', '보유 종목별', '자산별 판단', '보유 자산', '보유 종목']);
+  const riskSection = findSection(sections, ['위험 점검', '리스크', '스트레스']);
+  const cashSection = findSection(sections, ['현금성', '현금']);
+
+  const used = new Set([summarySection, holdingSection, riskSection].filter(Boolean));
+  const actionSection = findSection(sections, ['우선순위', '액션'], used) ||
+    sections.find((section) => !used.has(section) && sectionIncludes(section, ['리밸런싱']) && section !== cashSection);
+  if (actionSection) used.add(actionSection);
+
+  const rawHoldings = holdingSection ? parseHoldingJudgements(holdingSection.text, context) : [];
+  const ctxList = contextHoldings(context);
+  const anyMatchesContext = !ctxList.length || rawHoldings.some((h) => {
+    const n = normalizeIdentity(h.name);
+    return ctxList.some((ch) =>
+      [ch.name, ch.symbol, ch.ticker].map(normalizeIdentity).filter(Boolean)
+        .some((id) => n.includes(id) || id.includes(n)));
+  });
+  const holdings = anyMatchesContext ? rawHoldings : [];
+  const actions = actionSection ? splitListItems(actionSection.text) : [];
+  const scenarios = riskSection ? [scenarioFromRiskSection(riskSection)].filter((scenario) => scenario.impact || scenario.response) : [];
+  const notes = sections
+    .filter((section) => !used.has(section) && section.text)
+    .map((section) => ({ title: section.title, text: section.text }))
+    .slice(0, 6);
+
+  if (!summarySection?.text && !holdings.length && !actions.length && !scenarios.length && !notes.length) {
+    return null;
+  }
+
+  return {
+    account: meta,
+    health: {
+      score: null,
+      scoreUnit: '',
+      prescription: summarySection?.title || `${meta.badge} AI 진단`,
+      summary: summarySection?.text || '',
+    },
+    holdings,
+    weights: [],
+    scenarios,
+    actions,
+    notes,
+    question: '',
+  };
 }
 
 function buildUiReport(json) {
@@ -444,18 +772,24 @@ function buildUiReport(json) {
 function contextHoldingActions(context) {
   return (context?.holdings || [])
     .filter((h) => h && h.name)
-    .map((h, idx) => ({
-      key: `ctx-action-${h.id || h.symbol || idx}`,
-      name: h.name,
-      ticker: h.symbol,
-      country: h.market,
-      sector: '',
-      currentWeight: toNumber(h.weightPct ?? h.chartWeightPct),
-      proposedWeight: null,
-      change: null,
-      action: 'WATCH',
-      reason: 'AI가 이 종목에 대한 개별 액션을 제공하지 않았습니다. 현재 비중과 최신 뉴스 확인 후 관망으로 표시합니다.',
-    }));
+    .map((h, idx) => {
+      const assetType = String(h.assetType || 'STOCK').toUpperCase();
+      return {
+        key: `ctx-action-${h.id || h.symbol || idx}`,
+        name: h.name,
+        ticker: h.symbol,
+        country: h.market,
+        sector: '',
+        currentWeight: toNumber(h.weightPct ?? h.chartWeightPct),
+        proposedWeight: null,
+        change: null,
+        assetType,
+        action: 'WATCH',
+        reason: assetType === 'CASH'
+          ? 'AI가 현금성 자산에 대한 별도 판단을 제공하지 않았습니다. 리밸런싱 여력으로 표시합니다.'
+          : 'AI가 이 종목에 대한 개별 액션을 제공하지 않았습니다. 현재 비중과 최신 뉴스 확인 후 관망으로 표시합니다.',
+      };
+    });
 }
 
 function formatBulletItems(items, formatter) {
@@ -626,8 +960,9 @@ export default {
           retryAt.value = data.retryAt ? new Date(data.retryAt) : null;
           providersStatus.value = data.providersStatus || [];
         } else {
-          const parsedReport = parseReportPayload(data.report) || data;
-          const parsedUiReport = buildUiReport(parsedReport);
+          const parsedReport = parseReportPayload(data.report);
+          const parsedUiReport = buildUiReport(parsedReport || data) ||
+            buildAccountUiReport(parsedReport || data.report || data, context);
           if (parsedUiReport && parsedUiReport.holdings.length === 0) {
             parsedUiReport.holdings = contextHoldingActions(context);
           }
@@ -901,6 +1236,22 @@ export default {
   font-size: 11px;
   margin-top: 2px;
 }
+.pana-account-badge {
+  width: 70px;
+  height: 70px;
+  border-radius: 18px;
+  background: rgba(224, 177, 94, 0.16);
+  border: 1px solid rgba(224, 177, 94, 0.36);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  color: #e0b15e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
 .pana-eyebrow {
   color: var(--text-muted);
   font-size: 11px;
@@ -1072,7 +1423,11 @@ export default {
   font-size: 12px;
   line-height: 1.55;
 }
-.pana-scenario-grid,
+.pana-scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+}
 .pana-note-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1095,12 +1450,17 @@ export default {
   color: var(--text-secondary);
   font-size: 12px;
   line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 .pana-info-card p strong {
-  display: inline-block;
-  margin-right: 6px;
+  display: block;
+  margin-bottom: 4px;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 .pana-action-list {
   margin: 0;
@@ -1407,6 +1767,7 @@ export default {
 @media (max-width: 640px) {
   .pana-score-wrap { align-items: flex-start; }
   .pana-score-ring { width: 58px; height: 58px; border-width: 4px; }
+  .pana-account-badge { width: 58px; height: 58px; border-radius: 14px; font-size: 0.9rem; }
   .pana-score-ring strong { font-size: 1.1rem; }
   .pana-stock-head { grid-template-columns: 1fr; align-items: flex-start; }
   .pana-action-badge { width: fit-content; }
