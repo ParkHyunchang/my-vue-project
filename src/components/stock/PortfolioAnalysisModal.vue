@@ -257,6 +257,98 @@ function formatValue(value) {
   return String(value);
 }
 
+const STRUCTURED_KEY_LABELS = {
+  add: '추가매수 후보',
+  additional: '추가매수 후보',
+  additionalBuy: '추가매수 후보',
+  additional_buy: '추가매수 후보',
+  buyCandidates: '추가매수 후보',
+  buy_candidates: '추가매수 후보',
+  addCandidates: '추가매수 후보',
+  add_candidates: '추가매수 후보',
+  cutLoss: '손절/축소 검토 후보',
+  cut_loss: '손절/축소 검토 후보',
+  reduce: '손절/축소 검토 후보',
+  reduceCandidates: '손절/축소 검토 후보',
+  reduce_candidates: '손절/축소 검토 후보',
+  sellCandidates: '손절/축소 검토 후보',
+  sell_candidates: '손절/축소 검토 후보',
+  trimCandidates: '손절/축소 검토 후보',
+  trim_candidates: '손절/축소 검토 후보',
+  none: '해당 없음',
+};
+
+function humanizeKey(key) {
+  const raw = String(key || '').trim();
+  if (!raw) return '';
+  return STRUCTURED_KEY_LABELS[raw] ||
+    raw
+      .replace(/_/g, ' ')
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .trim();
+}
+
+function formatStructuredItem(item) {
+  if (item === null || item === undefined || item === '') return '';
+  if (typeof item !== 'object') return String(item);
+  if (Array.isArray(item)) return formatStructuredText(item);
+
+  const name = item.name || item.assetName || item.stockName || item.symbol || item.ticker || item.title || '';
+  const symbol = item.symbol || item.ticker || '';
+  const action = item.action || item.decision || item.recommendation || item.signal || '';
+  const reason = item.reason || item.rationale || item.comment || item.analysis || item.basis || '';
+  const risk = item.risk || item.risks || item.caution || item.warning || '';
+  const source = item.source || item.newsBasis || item.news_basis || item.dataBasis || item.data_basis || '';
+
+  if (name || reason || action || risk || source) {
+    const label = [name, symbol && !String(name).includes(symbol) ? `(${symbol})` : '']
+      .filter(Boolean)
+      .join(' ')
+      .trim();
+    const details = [action, reason, risk ? `주의: ${formatValue(risk)}` : '', source ? `근거: ${formatValue(source)}` : '']
+      .map(formatValue)
+      .filter(Boolean);
+    return [label || '후보', details.join(' - ')].filter(Boolean).join(': ');
+  }
+
+  return Object.entries(item)
+    .map(([key, value]) => {
+      const formatted = formatStructuredText(value);
+      return formatted ? `${humanizeKey(key)}: ${formatted}` : '';
+    })
+    .filter(Boolean)
+    .join(' / ');
+}
+
+function formatStructuredText(value) {
+  if (value === null || value === undefined || value === '') return '';
+  if (typeof value !== 'object') return String(value);
+  if (Array.isArray(value)) {
+    return value
+      .map(formatStructuredItem)
+      .filter(Boolean)
+      .map((line) => (/^[-*]\s+/.test(line) ? line : `- ${line}`))
+      .join('\n');
+  }
+
+  return Object.entries(value)
+    .map(([key, val]) => {
+      const label = humanizeKey(key);
+      if (Array.isArray(val)) {
+        const formatted = formatStructuredText(val);
+        return formatted ? `${label}:\n${formatted}` : '';
+      }
+      if (val && typeof val === 'object') {
+        const formatted = formatStructuredItem(val);
+        return formatted ? `${label}: ${formatted}` : '';
+      }
+      const formatted = formatStructuredText(val);
+      return formatted ? `${label}: ${formatted}` : '';
+    })
+    .filter(Boolean)
+    .join('\n');
+}
+
 function asArray(value) {
   if (!value) return [];
   return Array.isArray(value) ? value : [value];
@@ -359,7 +451,8 @@ const REPORT_METADATA_KEYS = new Set([
 ]);
 
 function stripMarkdownSyntax(value) {
-  return String(value || '')
+  const source = value && typeof value === 'object' ? formatStructuredText(value) : String(value || '');
+  return source
     .replace(/\r\n/g, '\n')
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/^```(?:\w+)?\s*/i, '')
@@ -558,6 +651,26 @@ function contextHoldings(context) {
   return Array.isArray(context?.holdings) ? context.holdings : [];
 }
 
+function escapeRegExp(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function insertContextHoldingBreaks(text, context) {
+  const labels = contextHoldings(context)
+    .flatMap((holding) => [holding.name, holding.symbol])
+    .map((label) => String(label || '').trim())
+    .filter((label) => label.length >= 3)
+    .sort((a, b) => b.length - a.length);
+
+  return labels.reduce((out, label) => {
+    const suffix = /^[A-Z0-9.-]+$/i.test(label)
+      ? '\\s*[:：]'
+      : '(?:\\s*\\([^)]+\\))?\\s*[:：]';
+    const pattern = new RegExp(`([^\\n])\\s+(${escapeRegExp(label)}${suffix})`, 'gi');
+    return out.replace(pattern, '$1\n$2');
+  }, String(text || ''));
+}
+
 function matchContextHolding(name, context) {
   const holdings = contextHoldings(context);
   const normalizedName = normalizeIdentity(name);
@@ -646,6 +759,7 @@ function fallbackActionForHolding(holding, accountType, riskSnapshot) {
 function holdingJudgementFromParts(label, reason, context, idx, actionValue = '') {
   const matchedHolding = matchContextHolding(label, context);
   const assetType = String(matchedHolding?.assetType || (/현금|CASH/i.test(label) ? 'CASH' : 'STOCK')).toUpperCase();
+  const cleanReason = truncateHoldingReason(reason, context, matchedHolding?.name || label);
 
   return {
     key: `account-holding-${matchedHolding?.id || matchedHolding?.symbol || idx}`,
@@ -657,9 +771,33 @@ function holdingJudgementFromParts(label, reason, context, idx, actionValue = ''
     proposedWeight: null,
     change: null,
     assetType,
-    action: normalizeAction(actionValue || reason),
-    reason,
+    action: normalizeAction(actionValue || cleanReason),
+    reason: cleanReason,
   };
+}
+
+function truncateHoldingReason(reason, context, currentLabel = '') {
+  let text = cleanInlineText(reason);
+  const markers = [
+    '추가매수 후보', '손절/축소 검토 후보', '손절·축소 검토 후보',
+    '손절 검토 후보', '축소 검토 후보', 'IRP 체크포인트', 'ISA 체크포인트',
+  ];
+  markers.forEach((marker) => {
+    const idx = text.indexOf(marker);
+    if (idx > 12) text = text.slice(0, idx).trim();
+  });
+
+  const current = normalizeIdentity(currentLabel);
+  contextHoldings(context).forEach((holding) => {
+    const names = [holding.name, holding.symbol].filter(Boolean);
+    names.forEach((name) => {
+      if (normalizeIdentity(name) === current) return;
+      const pattern = new RegExp(`\\s+${escapeRegExp(name)}(?:\\s*\\([^)]+\\))?\\s*[:：]`, 'i');
+      const match = text.match(pattern);
+      if (match && match.index > 12) text = text.slice(0, match.index).trim();
+    });
+  });
+  return text;
 }
 
 function headerIndex(headers, keywords) {
@@ -708,12 +846,18 @@ function parseHoldingJudgements(text, context) {
   const tableRows = parseHoldingTableJudgements(text, context);
   if (tableRows.length) return tableRows;
 
-  const parts = stripMarkdownSyntax(text)
+  const prepared = insertContextHoldingBreaks(stripMarkdownSyntax(text), context)
+    .replace(/\s+(?=(?:추가매수 후보|손절\/축소 검토 후보|손절·축소 검토 후보|손절 검토 후보|축소 검토 후보)[:：])/g, '\n')
+    .replace(/\s+(?=(?:[A-Za-z0-9가-힣][A-Za-z0-9가-힣\s&+·./-]{1,80}(?:\s*\([^)]+\))?|CASH-[A-Za-z0-9-]+)[:：]\s*(?:보유|추가매수|추가 매수|관망|손절|축소|ADD|HOLD|WATCH|CUT|REDUCE))/g, '\n');
+
+  return prepared
     .split(/\n|(?:\s+\/\s+)(?=[^/：:]{2,80}[：:])/)
     .map((part) => cleanInlineText(part))
     .filter(Boolean);
+}
 
-  return parts
+function parsedHoldingItems(text, context) {
+  return parseHoldingJudgements(text, context)
     .map((part, idx) => {
       const match = part.match(/^(.{2,80}?)[：:]\s*(.+)$/);
       if (!match) return null;
@@ -723,6 +867,12 @@ function parseHoldingJudgements(text, context) {
       return holdingJudgementFromParts(label, reason, context, idx);
     })
     .filter(Boolean);
+}
+
+function isContextHoldingItem(item, context) {
+  const holdings = contextHoldings(context);
+  if (!holdings.length) return true;
+  return Boolean(matchContextHolding([item?.name, item?.ticker].filter(Boolean).join(' '), context));
 }
 
 function scenarioFromRiskSection(section) {
@@ -756,7 +906,7 @@ function buildAccountUiReport(raw, context = {}) {
     sections.find((section) => !used.has(section) && sectionIncludes(section, ['리밸런싱']) && section !== cashSection);
   if (actionSection) used.add(actionSection);
 
-  const rawHoldings = holdingSection ? parseHoldingJudgements(holdingSection.text, context) : [];
+  const rawHoldings = holdingSection ? parsedHoldingItems(holdingSection.text, context) : [];
   const ctxList = contextHoldings(context);
   const anyMatchesContext = !ctxList.length || rawHoldings.some((h) => {
     const n = normalizeIdentity(h.name);
@@ -764,7 +914,9 @@ function buildAccountUiReport(raw, context = {}) {
       [ch.name, ch.symbol, ch.ticker].map(normalizeIdentity).filter(Boolean)
         .some((id) => n.includes(id) || id.includes(n)));
   });
-  const holdings = anyMatchesContext ? rawHoldings : [];
+  const holdings = anyMatchesContext
+    ? rawHoldings.filter((item) => isContextHoldingItem(item, context))
+    : [];
   const actions = actionSection ? splitListItems(actionSection.text) : [];
   const scenarios = riskSection ? [scenarioFromRiskSection(riskSection)].filter((scenario) => scenario.impact || scenario.response) : [];
   const notes = sections
