@@ -269,7 +269,7 @@ const ACCOUNT_CONFIGS = {
     auditView: "STOCK/ISA",
     auditAnalysis: "STOCK/ISA/AI-ANALYSIS",
     auditPortfolio: "STOCK/ISA/AI-PORTFOLIO",
-    analysisNote: "ISA 계좌입니다. 절세 목적, 중장기 운용, 과도한 회전율 리스크를 함께 고려해 진단하세요.",
+    analysisNote: "ISA 계좌입니다. 2026-06-24 신규 개설한 서민형 ISA라는 기본정보는 내부 판단 기준으로만 사용하고, 세제·의무기간 판단에 직접 필요할 때만 언급하세요.",
   },
   irp: {
     label: "퇴직연금 IRP",
@@ -287,7 +287,7 @@ const ACCOUNT_CONFIGS = {
     auditView: "STOCK/IRP",
     auditAnalysis: "STOCK/IRP/AI-ANALYSIS",
     auditPortfolio: "STOCK/IRP/AI-PORTFOLIO",
-    analysisNote: "퇴직연금 IRP 계좌입니다. 장기 은퇴 자산, 분산, 변동성 관리, 방어적 리밸런싱을 함께 고려해 진단하세요.",
+    analysisNote: "퇴직연금 IRP 계좌입니다. 장기 은퇴 자산, 분산, 변동성 관리를 우선하고, 위험자산 70% 한도와 안전자산 약 30% 기준은 리밸런싱 판단에 직접 필요할 때만 언급하세요.",
   },
 };
 
@@ -835,6 +835,7 @@ export default {
           market: h.market,
           name: h.name,
           symbol: h.symbol,
+          core: !!h.core,
           quantity: h.quantity,
           avgPrice: h.avgPrice ?? null,
           currentPrice,

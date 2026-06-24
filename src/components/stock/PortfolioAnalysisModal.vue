@@ -153,7 +153,18 @@
               <div class="pana-note-grid">
                 <article v-for="note in uiReport.notes" :key="note.title" class="pana-info-card">
                   <h5>{{ note.title }}</h5>
-                  <p>{{ note.text }}</p>
+                  <div class="pana-note-lines">
+                    <p
+                      v-for="(line, lineIdx) in noteTextLines(note.text)"
+                      :key="`${note.title}-${lineIdx}`"
+                      :class="{
+                        'is-note-subhead': isNoteSubheading(line),
+                        'is-note-bullet': isNoteBullet(line),
+                      }"
+                    >
+                      {{ noteLineText(line) }}
+                    </p>
+                  </div>
                 </article>
               </div>
             </section>
@@ -285,7 +296,7 @@ function toNumber(value) {
 
 function normalizeAction(value, change = null) {
   const raw = String(value || '').trim().toUpperCase();
-  if (['ADD', 'BUY', '추가매수', '비중 확대', '확대'].some((v) => raw.includes(v))) return 'ADD';
+  if (['ADD', 'BUY', '추가매수', '추가 매수', '비중 확대', '확대'].some((v) => raw.includes(v))) return 'ADD';
   if (['CUT_LOSS', 'STOP_LOSS', '손절', '손절 검토'].some((v) => raw.includes(v))) return 'CUT_LOSS';
   if (['TAKE_PROFIT', 'PROFIT', '이익실현', '차익실현'].some((v) => raw.includes(v))) return 'TAKE_PROFIT';
   if (['REDUCE', 'TRIM', '축소', '비중 축소', '감소', '줄이기'].some((v) => raw.includes(v))) return 'REDUCE';
@@ -304,7 +315,7 @@ function normalizeAction(value, change = null) {
 
 function actionFromRow(row, headers, change) {
   return normalizeAction(rowValue(row, headers, [
-    '액션', 'action', 'recommendation', 'decision', 'signal', 'suggestion',
+    '판단', '액션', 'action', 'recommendation', 'decision', 'signal', 'suggestion',
   ], 7), change);
 }
 
@@ -338,6 +349,7 @@ const ACCOUNT_SECTION_KEYWORDS = [
   '현금성', '현금',
   '보유 자산별', '보유 종목별', '자산별 판단', '보유 자산', '보유 종목',
   '리밸런싱', '우선순위', '액션',
+  '추천', '후보', '추가매수', '손절', '축소',
   '참고', '공지', '고지', '주의', '체크포인트', '메모', '자산 구성',
 ];
 
@@ -361,6 +373,15 @@ function cleanInlineText(value) {
   return stripMarkdownSyntax(value)
     .replace(/^[\s>*•-]+/, '')
     .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function cleanBlockText(value) {
+  return stripMarkdownSyntax(value)
+    .split('\n')
+    .map((line) => line.replace(/^[\s>*•]+/, '').trim())
+    .filter(Boolean)
+    .join('\n')
     .trim();
 }
 
@@ -392,7 +413,7 @@ function sectionTitleLooksKnown(title) {
 
 function pushAccountSection(sections, section) {
   const title = cleanInlineText(section?.title);
-  const text = cleanInlineText(section?.text);
+  const text = cleanBlockText(section?.text);
   if (title && text) sections.push({ title, text });
 }
 
@@ -464,7 +485,7 @@ function extractObjectSections(value) {
     .filter(([key, val]) => !REPORT_METADATA_KEYS.has(key) && val !== null && val !== undefined && val !== '')
     .map(([key, val]) => ({
       title: cleanInlineText(String(key).replace(/_/g, ' ')),
-      text: cleanInlineText(formatValue(val)),
+      text: cleanBlockText(formatValue(val)),
     }))
     .filter((section) => section.title && section.text);
 }
@@ -503,6 +524,32 @@ function splitKeyValueItems(text) {
     .filter(Boolean);
 }
 
+function noteTextLines(text) {
+  const normalized = cleanBlockText(text)
+    .replace(/\s+(?=(?:추가매수 후보|손절\/축소 검토 후보|손절·축소 검토 후보|손절 검토 후보|축소 검토 후보)[:：])/g, '\n')
+    .replace(/\n\s*\/\s*(?=\n|$)/g, '\n')
+    .replace(/\s+\/\s+(?=(?:[-*]\s*)?[A-Za-z0-9가-힣][^:\n]{1,80}[:：])/g, '\n')
+    .replace(/([:：])\s*[-*]\s+/g, '$1\n- ')
+    .replace(/\s+[-*]\s+(?=[A-Za-z0-9가-힣][^:\n]{1,80}[:：])/g, '\n- ')
+    .replace(/\s+[-*]\s+(?=[A-Za-z0-9가-힣].{1,80}\([^)]+\)[:：]?)/g, '\n- ');
+  return normalized
+    .split('\n')
+    .map((line) => line.trim().replace(/^\/\s+/, '- '))
+    .filter((line) => line && !/^\/+$/.test(line));
+}
+
+function isNoteSubheading(line) {
+  return /^(추가매수 후보|손절\/축소 검토 후보|손절·축소 검토 후보|손절 검토 후보|축소 검토 후보)[:：]?$/.test(String(line || '').trim());
+}
+
+function isNoteBullet(line) {
+  return /^[-*]\s+/.test(String(line || '').trim());
+}
+
+function noteLineText(line) {
+  return String(line || '').trim().replace(/^[-*]\s+/, '');
+}
+
 function normalizeIdentity(value) {
   return String(value || '').replace(/\s+/g, '').toUpperCase();
 }
@@ -533,7 +580,134 @@ function matchContextHolding(name, context) {
   }) || null;
 }
 
+function signedPctText(value) {
+  const num = toNumber(value);
+  if (num === null) return null;
+  return `${num >= 0 ? '+' : ''}${num.toFixed(2)}%`;
+}
+
+function pctText(value) {
+  const num = toNumber(value);
+  if (num === null) return null;
+  return `${num.toFixed(1)}%`;
+}
+
+function accountRiskSnapshot(context) {
+  return contextHoldings(context).reduce((acc, holding) => {
+    const weight = toNumber(holding.weightPct ?? holding.chartWeightPct);
+    if (weight === null) return acc;
+    if (String(holding.assetType || '').toUpperCase() === 'CASH') acc.cashPct += weight;
+    else acc.riskyPct += weight;
+    return acc;
+  }, { riskyPct: 0, cashPct: 0 });
+}
+
+function fallbackActionForHolding(holding, accountType, riskSnapshot) {
+  const assetType = String(holding.assetType || 'STOCK').toUpperCase();
+  const weight = toNumber(holding.weightPct ?? holding.chartWeightPct);
+  const pnl = toNumber(holding.pnlPct);
+  const change = toNumber(holding.changePercent);
+  const basis = [
+    weight !== null ? `현재 비중 ${pctText(weight)}` : '',
+    pnl !== null ? `평가손익률 ${signedPctText(pnl)}` : '',
+    change !== null ? `일변동률 ${signedPctText(change)}` : '',
+  ].filter(Boolean).join(', ') || '현재 비중/손익률 데이터 부족';
+
+  if (assetType === 'CASH') {
+    const role = accountType === 'irp'
+      ? 'IRP의 안전자산/대기자금 역할'
+      : '리밸런싱 재원과 방어적 완충 역할';
+    return { action: 'WATCH', reason: `${basis}. 현금성 자산은 ${role}로 보며, 개별 매수 액션보다 전체 비중 점검 대상입니다.` };
+  }
+
+  const weak = (pnl !== null && pnl <= -8) || (change !== null && change <= -3);
+  const lowWeight = weight !== null && weight <= 7;
+  const positive = (pnl !== null && pnl >= 0) || (change !== null && change >= 0.8);
+  const resilient = (pnl !== null && pnl >= -3) || (change !== null && change >= -1) || holding.core;
+
+  if (weak) {
+    return { action: 'WATCH', reason: `${basis}. 손익 또는 단기 변동성이 약해 추가매수보다 뉴스와 회복 흐름 확인이 우선입니다.` };
+  }
+
+  if (lowWeight && positive) {
+    if (accountType === 'irp' && (riskSnapshot.riskyPct >= 70 || riskSnapshot.cashPct < 30)) {
+      return { action: 'WATCH', reason: `${basis}. 추가매수 후보지만 IRP 위험자산 70% 한도와 안전자산 30% 기준상 안전자산 비중 확인이 먼저입니다.` };
+    }
+    return { action: 'ADD', reason: `${basis}. 비중은 낮고 흐름은 양호해 소액 추가매수 후보로 분류합니다.` };
+  }
+
+  if (resilient) {
+    return { action: 'HOLD', reason: `${basis}. 현재 보유 상태를 유지하면서 비중과 뉴스 흐름을 점검하는 쪽이 적절합니다.` };
+  }
+
+  return { action: 'WATCH', reason: `${basis}. 방향성이 뚜렷하지 않아 추가매수보다 관망으로 분류합니다.` };
+}
+
+function holdingJudgementFromParts(label, reason, context, idx, actionValue = '') {
+  const matchedHolding = matchContextHolding(label, context);
+  const assetType = String(matchedHolding?.assetType || (/현금|CASH/i.test(label) ? 'CASH' : 'STOCK')).toUpperCase();
+
+  return {
+    key: `account-holding-${matchedHolding?.id || matchedHolding?.symbol || idx}`,
+    name: matchedHolding?.name || label,
+    ticker: matchedHolding?.symbol || '',
+    country: matchedHolding?.market || '',
+    sector: '',
+    currentWeight: toNumber(matchedHolding?.weightPct ?? matchedHolding?.chartWeightPct),
+    proposedWeight: null,
+    change: null,
+    assetType,
+    action: normalizeAction(actionValue || reason),
+    reason,
+  };
+}
+
+function headerIndex(headers, keywords) {
+  const idx = headers.findIndex((header) => {
+    const normalized = cleanInlineText(header).toLowerCase();
+    return keywords.some((keyword) => normalized.includes(String(keyword).toLowerCase()));
+  });
+  return idx >= 0 ? idx : null;
+}
+
+function parseHoldingTableJudgements(text, context) {
+  const rows = stripMarkdownSyntax(text)
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.includes('|'));
+  if (!rows.length) return [];
+
+  let headers = null;
+  const parsed = [];
+  rows.forEach((line) => {
+    const cells = line.split('|').map((cell) => cleanInlineText(cell)).filter(Boolean);
+    if (cells.length < 2 || cells.every((cell) => /^:?-{2,}:?$/.test(cell))) return;
+
+    if (!headers && cells.some((cell) => /자산|종목|티커|판단|액션|근거|설명/i.test(cell))) {
+      headers = cells;
+      return;
+    }
+
+    const nameIdx = headers ? (headerIndex(headers, ['자산', '종목', '이름', 'name']) ?? 0) : 0;
+    const tickerIdx = headers ? headerIndex(headers, ['티커', 'symbol', 'ticker']) : null;
+    const actionIdx = headers ? headerIndex(headers, ['판단', '액션', 'action']) : null;
+    const reasonIdx = headers ? headerIndex(headers, ['근거', '설명', 'reason', 'comment']) : null;
+
+    const name = cells[nameIdx] || cells[0];
+    const ticker = tickerIdx !== null ? cells[tickerIdx] : '';
+    const action = actionIdx !== null ? cells[actionIdx] : cells.find((cell) => /보유|추가매수|추가 매수|관망/i.test(cell)) || '';
+    const reason = reasonIdx !== null ? cells[reasonIdx] : cells[cells.length - 1];
+    const label = ticker && !name.includes(ticker) ? `${name} (${ticker})` : name;
+    if (label && reason) parsed.push(holdingJudgementFromParts(label, `${action ? `${action} - ` : ''}${reason}`, context, parsed.length, action));
+  });
+
+  return parsed;
+}
+
 function parseHoldingJudgements(text, context) {
+  const tableRows = parseHoldingTableJudgements(text, context);
+  if (tableRows.length) return tableRows;
+
   const parts = stripMarkdownSyntax(text)
     .split(/\n|(?:\s+\/\s+)(?=[^/：:]{2,80}[：:])/)
     .map((part) => cleanInlineText(part))
@@ -546,22 +720,7 @@ function parseHoldingJudgements(text, context) {
 
       const label = cleanInlineText(match[1]);
       const reason = cleanInlineText(match[2]);
-      const matchedHolding = matchContextHolding(label, context);
-      const assetType = String(matchedHolding?.assetType || (/현금|CASH/i.test(label) ? 'CASH' : 'STOCK')).toUpperCase();
-
-      return {
-        key: `account-holding-${matchedHolding?.id || matchedHolding?.symbol || idx}`,
-        name: matchedHolding?.name || label,
-        ticker: matchedHolding?.symbol || '',
-        country: matchedHolding?.market || '',
-        sector: '',
-        currentWeight: toNumber(matchedHolding?.weightPct ?? matchedHolding?.chartWeightPct),
-        proposedWeight: null,
-        change: null,
-        assetType,
-        action: normalizeAction(reason),
-        reason,
-      };
+      return holdingJudgementFromParts(label, reason, context, idx);
     })
     .filter(Boolean);
 }
@@ -770,10 +929,13 @@ function buildUiReport(json) {
 }
 
 function contextHoldingActions(context) {
+  const accountType = normalizeAnalysisAccount(context, '');
+  const riskSnapshot = accountRiskSnapshot(context);
   return (context?.holdings || [])
     .filter((h) => h && h.name)
     .map((h, idx) => {
       const assetType = String(h.assetType || 'STOCK').toUpperCase();
+      const fallback = fallbackActionForHolding(h, accountType, riskSnapshot);
       return {
         key: `ctx-action-${h.id || h.symbol || idx}`,
         name: h.name,
@@ -784,10 +946,8 @@ function contextHoldingActions(context) {
         proposedWeight: null,
         change: null,
         assetType,
-        action: 'WATCH',
-        reason: assetType === 'CASH'
-          ? 'AI가 현금성 자산에 대한 별도 판단을 제공하지 않았습니다. 리밸런싱 여력으로 표시합니다.'
-          : 'AI가 이 종목에 대한 개별 액션을 제공하지 않았습니다. 현재 비중과 최신 뉴스 확인 후 관망으로 표시합니다.',
+        action: fallback.action,
+        reason: `AI 개별 판단이 없어 보유 데이터 기준으로 임시 산정했습니다. ${fallback.reason}`,
       };
     });
 }
@@ -1142,6 +1302,7 @@ export default {
       pnlCls, fmtPnl, formatTime,
       formatPercent, formatSignedPercent, weightChangeClass,
       actionText, actionBadgeClass,
+      noteTextLines, isNoteSubheading, isNoteBullet, noteLineText,
     };
   },
 };
@@ -1452,6 +1613,34 @@ export default {
   line-height: 1.55;
   white-space: pre-wrap;
   word-break: break-word;
+}
+.pana-note-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.pana-note-lines p {
+  margin: 0;
+}
+.pana-note-lines .is-note-subhead {
+  margin-top: 4px;
+  color: var(--text-primary);
+  font-weight: 800;
+}
+.pana-note-lines .is-note-bullet {
+  position: relative;
+  padding-left: 12px;
+}
+.pana-note-lines .is-note-bullet::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.72em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.85;
 }
 .pana-info-card p strong {
   display: block;
