@@ -65,20 +65,4 @@ export default {
 };
 </script>
 
-<style>
-body {
-  background: var(--mainBg-color);
-  margin: 0;
-}
-
-.main-wrapper {
-  padding-top: 68px;
-  width: 100%;
-  margin: 0;
-  padding-left: 0;
-  padding-right: 0;
-  overflow-x: hidden;
-  min-height: 100vh;
-  background: var(--mainBg-color);
-}
-</style>
+<style src="@/assets/css/app.css"></style>

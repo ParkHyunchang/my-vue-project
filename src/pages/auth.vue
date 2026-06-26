@@ -23,8 +23,4 @@ export default {
 };
 </script>
 
-<style scoped>
-.auth-page {
-  min-height: 100vh;
-}
-</style>
+<style src="@/assets/css/pages/auth.css" scoped></style>

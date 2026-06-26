@@ -203,29 +203,4 @@ export default {
 
 <style src="@/assets/css/admin.css" scoped></style>
 
-<style scoped>
-.users-cards-container.refreshing {
-  opacity: 0.5;
-  pointer-events: none;
-  transition: opacity 0.2s;
-}
-.btn-refresh {
-  padding: 7px 14px;
-  border-radius: 6px;
-  border: 1px solid var(--card-border);
-  background: var(--card-bg);
-  color: var(--text-muted);
-  font-size: 13px;
-  cursor: pointer;
-  transition: color 0.2s, border-color 0.2s;
-  white-space: nowrap;
-}
-.btn-refresh:hover:not(:disabled) {
-  color: var(--text-primary);
-  border-color: var(--text-muted);
-}
-.btn-refresh:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-</style>
+<style src="@/assets/css/components/admin/user-list-panel.css" scoped></style>

@@ -1,0 +1,156 @@
+.mypage-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: calc(100vh - 68px);
+  padding: 48px 20px;
+  background: var(--mainBg-color);
+}
+
+.mypage-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border-strong);
+  border-radius: 12px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 460px;
+  padding: 36px 40px;
+}
+
+.mypage-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.mypage-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #8a6030);
+  color: var(--text-on-accent);
+  font-size: 22px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--accent-glow);
+  flex-shrink: 0;
+}
+
+.mypage-title {
+  font-size: 20px;
+  font-family: "Playfair Display", serif;
+  color: var(--accent);
+  margin: 0 0 4px;
+}
+
+.mypage-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mypage-form .form-group {
+  margin-bottom: 20px;
+}
+
+.mypage-form label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mypage-form input {
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--input-text);
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.mypage-form input:focus {
+  outline: none;
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 3px var(--input-focus-shadow);
+}
+
+.mypage-form input.error {
+  border-color: var(--danger-color);
+}
+
+.input-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.field-error {
+  display: block;
+  margin-top: 5px;
+  font-size: 12px;
+  color: var(--danger-color);
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.btn-cancel {
+  flex: 1;
+  padding: 11px;
+  background: transparent;
+  border: 1px solid var(--card-border-strong);
+  color: var(--text-muted);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+  background: var(--sidebar-link-hover-bg);
+  color: var(--text-primary);
+}
+
+.btn-submit {
+  flex: 2;
+  padding: 11px;
+  background: linear-gradient(135deg, var(--accent) 0%, #b8924a 100%);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(201, 169, 110, 0.2);
+}
+
+.btn-submit:hover:not(:disabled) {
+  box-shadow: 0 4px 14px rgba(201, 169, 110, 0.35);
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .mypage-card { padding: 24px 20px; }
+}

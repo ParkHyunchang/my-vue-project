@@ -203,17 +203,6 @@ export default {
 };
 </script>
 
-<style scoped>
-.col-vol {
-  text-align: right;
-  color: var(--text-secondary);
-  font-size: 13px;
-  white-space: nowrap;
-}
-.t10c-vol {
-  color: var(--text-muted);
-  font-size: 12px;
-}
-</style>
+<style src="@/assets/css/components/stock/top10-panel.css" scoped></style>
 
 <style src="@/assets/css/stock.css" scoped></style>

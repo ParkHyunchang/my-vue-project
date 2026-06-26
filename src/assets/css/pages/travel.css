@@ -1,0 +1,32 @@
+.tv-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+@media (max-width: 640px) {
+  .tv-container { padding: 16px; }
+}
+.page-header { margin-bottom: 16px; }
+.page-header h2 { margin: 0 0 4px; font-size: 22px; color: var(--text-primary); }
+.page-subtitle { margin: 0; font-size: 13px; color: var(--text-muted); }
+
+.tv-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.tv-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text-muted);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tv-tab-btn.active {
+  background: #6366f1;
+  border-color: #6366f1;
+  color: #fff;
+}
+.tv-tab-icon { font-size: 15px; }

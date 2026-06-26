@@ -1,0 +1,78 @@
+.rem-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex; align-items: flex-start; justify-content: center;
+  z-index: 10001; padding: 6vh 16px; overflow-y: auto;
+}
+.rem-box {
+  width: 100%; max-width: 460px;
+  background: var(--card-bg, #fff);
+  border-radius: 12px; padding: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); margin: auto;
+}
+.rem-hdr {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+}
+.rem-hdr h3 { margin: 0; font-size: 18px; color: var(--text-primary); }
+.rem-close { border: none; background: none; font-size: 18px; cursor: pointer; color: var(--text-muted); }
+
+/* 고정 식별 정보 박스 */
+.rem-fixed {
+  padding: 12px 14px; margin-bottom: 16px;
+  border: 1px solid var(--card-border); border-radius: 8px;
+  background: rgba(99, 102, 241, 0.05);
+}
+.rem-fixed-row { display: flex; align-items: center; gap: 8px; }
+.rem-fixed-badge {
+  font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 10px;
+  background: #e0e7ff; color: #3730a3;
+}
+.rem-fixed-name { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+.rem-fixed-sub { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+.rem-fixed-hint { font-size: 11px; color: var(--text-muted); opacity: 0.8; margin-top: 8px; }
+
+.rem-row { margin-bottom: 14px; position: relative; }
+.rem-row label {
+  display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;
+}
+.rem-opt { font-weight: 400; font-size: 11px; opacity: 0.7; }
+.rem-row input,
+.rem-row textarea {
+  width: 100%; box-sizing: border-box; padding: 9px 11px;
+  border: 1px solid var(--input-border); border-radius: 7px;
+  background: var(--input-bg); color: var(--input-text); font-size: 14px;
+}
+.rem-row input::placeholder,
+.rem-row textarea::placeholder { color: var(--text-muted); opacity: 0.8; }
+.rem-hint { font-size: 12px; color: #6366f1; margin-top: 4px; display: inline-block; }
+
+.rem-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.rem-official { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rem-official-input { flex: 1 1 120px; min-width: 0; }
+.rem-official-year { flex: 0 0 84px; }
+.rem-official-btn {
+  padding: 9px 12px; border: 1px solid #6366f1; border-radius: 7px;
+  background: var(--input-bg); color: #6366f1; font-size: 13px; font-weight: 600;
+  cursor: pointer; white-space: nowrap;
+}
+.rem-official-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.rem-error {
+  padding: 8px 12px; border-radius: 7px; margin-bottom: 12px;
+  background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #b91c1c; font-size: 13px;
+}
+.rem-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+.rem-cancel, .rem-submit {
+  padding: 9px 18px; border-radius: 7px; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.rem-cancel { border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-muted); }
+.rem-submit { border: none; background: #6366f1; color: #fff; }
+.rem-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (max-width: 480px) {
+  .rem-box { padding: 16px; }
+  .rem-grid2 { grid-template-columns: 1fr; gap: 0; }
+  .rem-official-input, .rem-official-year { flex: 1 1 100%; }
+}

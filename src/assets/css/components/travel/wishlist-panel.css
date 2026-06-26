@@ -1,0 +1,46 @@
+.wl-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
+}
+.wl-summary { font-size: 14px; color: var(--text-muted); }
+.wl-add-btn {
+  padding: 9px 16px; border: none; border-radius: 7px;
+  background: #6366f1; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.wl-empty { padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px; }
+
+.wl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+.wl-card {
+  border: 1px solid var(--card-border); border-radius: 10px;
+  background: var(--card-bg); padding: 14px;
+}
+.wl-card-top { display: flex; align-items: center; justify-content: space-between; }
+.wl-badge { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 10px; }
+.wl-p1 { background: #fee2e2; color: #b91c1c; }
+.wl-p2 { background: #e0e7ff; color: #3730a3; }
+.wl-p3 { background: #f1f5f9; color: #475569; }
+.wl-actions { display: flex; gap: 2px; }
+.wl-edit, .wl-del { border: none; background: none; cursor: pointer; font-size: 14px; opacity: 0.6; padding: 2px 4px; }
+.wl-edit:hover, .wl-del:hover { opacity: 1; }
+
+.wl-title { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-top: 8px; }
+.wl-region { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+.wl-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.wl-tag {
+  font-size: 11px; padding: 2px 8px; border-radius: 6px;
+  background: rgba(99, 102, 241, 0.08); color: var(--text-muted);
+  border: 1px solid var(--card-border);
+}
+.wl-memo {
+  margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--card-border);
+  font-size: 12px; color: var(--text-muted); white-space: pre-wrap;
+}
+
+@media (max-width: 640px) {
+  .wl-grid { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,155 @@
+.re-search { display: flex; flex-direction: column; gap: 16px; }
+
+.re-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+  /* 아래 패딩을 키워, 지역 선택 시 입력칸 아래 떠 있는 초록 체크(.re-selected) 여백 확보 */
+  padding: 16px 16px 28px;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: var(--card-bg);
+}
+.re-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.re-input {
+  padding: 8px 10px;
+  border: 1px solid var(--input-border);
+  border-radius: 7px;
+  background: var(--input-bg);
+  color: var(--input-text);
+  font-size: 14px;
+}
+.re-input::placeholder { color: var(--text-muted); opacity: 0.8; }
+.re-select { min-width: 130px; }
+
+/* 지역칸은 늘어나지 않는 고정폭 — 모드별로 폭이 들쭉날쭉하지 않게 */
+.re-region { position: relative; flex: 0 1 420px; }
+.re-region-input { position: relative; }
+.re-region .re-input { width: 100%; box-sizing: border-box; }
+/* 선택 표시(초록 체크)는 흐름에서 빼서 띄움 — 입력칸 높이를 키워 행 정렬이 틀어지는 것 방지 */
+.re-selected {
+  position: absolute; top: 100%; left: 2px; margin-top: 3px;
+  font-size: 11px; color: #059669; white-space: nowrap;
+}
+.re-region-list {
+  position: absolute;
+  z-index: 20;
+  left: 0; right: 0;
+  margin: 4px 0 0;
+  padding: 4px;
+  list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+.re-region-list li {
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+.re-region-list li:hover { background: rgba(99, 102, 241, 0.1); }
+
+.re-toggle { display: flex; gap: 4px; }
+.re-toggle-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text-muted);
+  border-radius: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.re-toggle-btn.active {
+  background: #6366f1;
+  border-color: #6366f1;
+  color: #fff;
+}
+
+.re-search-btn {
+  margin-left: auto; /* 검색 버튼은 항상 오른쪽 끝에 고정 */
+  padding: 9px 20px;
+  border: none;
+  border-radius: 7px;
+  background: #6366f1;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.re-search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.re-alert {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #b91c1c;
+  font-size: 13px;
+}
+.re-land-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.re-dong-filter { flex: 1 1 200px; max-width: 280px; box-sizing: border-box; }
+.re-result-meta {
+  font-size: 13px; color: var(--text-muted);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px;
+}
+.re-ai-btn {
+  padding: 7px 14px; border: none; border-radius: 7px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.re-ai-btn:hover { opacity: 0.92; }
+.re-empty {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.re-table-wrap { overflow-x: auto; }
+.re-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.re-table th, .re-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--card-border);
+  white-space: nowrap;
+}
+.re-table th {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--card-bg);
+}
+.re-table .re-apt { font-weight: 600; color: var(--text-primary); }
+.re-table .re-money { font-weight: 600; color: #4f46e5; }
+.re-table tbody tr:hover { background: rgba(99, 102, 241, 0.05); }
+
+@media (max-width: 640px) {
+  .re-controls { flex-direction: column; align-items: stretch; gap: 12px; }
+  .re-region { flex: 1 1 auto; }
+  .re-dealtype,
+  .re-months { width: 100%; }
+  .re-toggle { width: 100%; }
+  .re-toggle-btn { flex: 1; padding: 8px 0; }
+  .re-select { width: 100%; }
+  .re-search-btn { width: 100%; }
+  .re-land-filters { flex-direction: column; align-items: stretch; }
+  .re-dong-filter { max-width: none; }
+  .re-table th, .re-table td { padding: 8px 9px; }
+}

@@ -76,10 +76,4 @@ export default {
 
 <style src="@/assets/css/admin.css" scoped></style>
 
-<style scoped>
-.delete-user-email {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin-top: -8px;
-}
-</style>
+<style src="@/assets/css/components/admin/confirm-delete-modal.css" scoped></style>

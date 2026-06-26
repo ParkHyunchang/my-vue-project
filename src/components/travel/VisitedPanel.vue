@@ -227,67 +227,6 @@ export default {
 };
 </script>
 
-<style scoped>
-.vs-head {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
-}
-.vs-summary { font-size: 14px; color: var(--text-muted); }
-.vs-add-btn {
-  padding: 9px 16px; border: none; border-radius: 7px;
-  background: #6366f1; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;
-}
+<style src="@/assets/css/components/travel/visited-panel.css" scoped></style>
 
-.vs-map-wrap { position: relative; margin-bottom: 18px; }
-.vs-map {
-  width: 100%; height: 360px;
-  border: 1px solid var(--card-border); border-radius: 12px;
-  z-index: 0;
-}
-.vs-map-empty {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  text-align: center; padding: 20px;
-  font-size: 13px; color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.7); border-radius: 12px;
-  pointer-events: none;
-}
-
-.vs-empty { padding: 30px; text-align: center; color: var(--text-muted); font-size: 14px; }
-
-.vs-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 14px;
-}
-.vs-card {
-  border: 1px solid var(--card-border); border-radius: 10px;
-  background: var(--card-bg); padding: 14px; cursor: pointer;
-}
-.vs-card:hover { border-color: #6366f1; }
-.vs-card-top { display: flex; align-items: center; justify-content: space-between; }
-.vs-stars { font-size: 13px; color: #f59e0b; letter-spacing: 1px; }
-.vs-stars-off { color: var(--card-border); }
-.vs-actions { display: flex; gap: 2px; }
-.vs-edit, .vs-del { border: none; background: none; cursor: pointer; font-size: 14px; opacity: 0.6; padding: 2px 4px; }
-.vs-edit:hover, .vs-del:hover { opacity: 1; }
-
-.vs-title { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-top: 8px; }
-.vs-region { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-.vs-date { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
-.vs-memo {
-  margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--card-border);
-  font-size: 12px; color: var(--text-muted); white-space: pre-wrap;
-}
-
-@media (max-width: 640px) {
-  .vs-grid { grid-template-columns: 1fr; }
-  .vs-map { height: 280px; }
-}
-</style>
-
-<style>
-/* Leaflet divIcon 핀 (scoped 밖에서 정의해야 적용됨) */
-.vs-pin { background: none; border: none; }
-.vs-pin-dot { font-size: 24px; line-height: 1; text-align: center; }
-</style>
+<style src="@/assets/css/components/travel/visited-panel-global.css"></style>

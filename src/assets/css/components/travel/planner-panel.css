@@ -1,0 +1,116 @@
+.pl-form {
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  background: var(--card-bg);
+  padding: 18px;
+  margin-bottom: 16px;
+}
+.pl-row { margin-bottom: 14px; }
+.pl-row label {
+  display: block; font-size: 13px; font-weight: 600;
+  color: var(--text-muted); margin-bottom: 6px;
+}
+.pl-req { color: #ef4444; }
+.pl-opt { font-weight: 400; font-size: 11px; opacity: 0.7; }
+.pl-row input,
+.pl-row select {
+  width: 100%; box-sizing: border-box;
+  padding: 9px 11px;
+  border: 1px solid var(--input-border);
+  border-radius: 7px;
+  background: var(--input-bg);
+  color: var(--input-text);
+  font-size: 14px;
+}
+.pl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.pl-checks { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px; }
+.pl-check {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--text-muted); cursor: pointer; margin: 0;
+}
+.pl-check input { width: auto; cursor: pointer; }
+
+.pl-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pl-chip {
+  padding: 6px 12px; border: 1px solid var(--input-border);
+  background: var(--input-bg); color: var(--text-muted);
+  border-radius: 16px; font-size: 13px; cursor: pointer;
+}
+.pl-chip.active { background: #6366f1; border-color: #6366f1; color: #fff; }
+
+.pl-gen-btn {
+  width: 100%; margin-top: 4px;
+  padding: 12px; border: none; border-radius: 8px;
+  background: #6366f1; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.pl-gen-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.pl-blocked {
+  padding: 12px 16px; border-radius: 8px; margin-bottom: 14px; font-size: 13px;
+  background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.4); color: #b45309;
+}
+.pl-error {
+  padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 13px;
+  background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #b91c1c;
+}
+.pl-hint { padding: 30px; text-align: center; color: var(--text-muted); font-size: 14px; }
+
+.pl-result {
+  border: 1px solid var(--card-border);
+  border-radius: 12px; background: var(--card-bg); padding: 18px;
+}
+.pl-result-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
+}
+.pl-title { margin: 0 0 4px; font-size: 18px; color: var(--text-primary); }
+.pl-summary { margin: 0; font-size: 13px; color: var(--text-muted); }
+.pl-result-actions { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+.pl-save-btn {
+  padding: 8px 14px; border: 1px solid #6366f1; border-radius: 7px;
+  background: var(--input-bg); color: #6366f1; font-size: 13px; font-weight: 600;
+  cursor: pointer; white-space: nowrap;
+}
+.pl-save-btn.primary { background: #6366f1; color: #fff; }
+.pl-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.pl-budget {
+  display: inline-block; margin-bottom: 14px;
+  padding: 5px 12px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  background: rgba(99, 102, 241, 0.1); color: #4f46e5;
+}
+
+.pl-days { display: flex; flex-direction: column; gap: 12px; }
+.pl-day {
+  border: 1px solid var(--card-border); border-radius: 10px; padding: 12px 14px;
+}
+.pl-day-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.pl-day-num {
+  font-size: 13px; font-weight: 800; color: #fff; background: #6366f1;
+  padding: 2px 9px; border-radius: 8px;
+}
+.pl-day-theme { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.pl-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.pl-item { display: flex; gap: 10px; font-size: 13px; }
+.pl-item-time {
+  flex: 0 0 44px; font-size: 12px; font-weight: 700; color: #6366f1; padding-top: 1px;
+}
+.pl-item-body { display: flex; flex-direction: column; gap: 1px; }
+.pl-item-body strong { color: var(--text-primary); }
+.pl-item-desc { color: var(--text-muted); font-size: 12px; }
+
+.pl-chat { margin-top: 16px; }
+
+.pl-tips {
+  margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--card-border);
+}
+.pl-tips-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+.pl-tips ul { margin: 0; padding-left: 18px; }
+.pl-tips li { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+
+.pl-meta { margin: 14px 0 0; font-size: 11px; color: var(--text-muted); text-align: right; }
+
+@media (max-width: 480px) {
+  .pl-grid { grid-template-columns: 1fr; }
+}

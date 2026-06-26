@@ -1,0 +1,41 @@
+.ic {
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: rgba(99, 102, 241, 0.04);
+  padding: 14px;
+}
+.ic-title { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.ic-hint { margin: 4px 0 10px; font-size: 12px; color: var(--text-muted); }
+
+.ic-log {
+  display: flex; flex-direction: column; gap: 6px;
+  margin-bottom: 10px; max-height: 200px; overflow-y: auto;
+}
+.ic-msg {
+  font-size: 13px; padding: 7px 11px; border-radius: 10px; max-width: 85%;
+  white-space: pre-wrap; word-break: break-word;
+}
+.ic-user { align-self: flex-end; background: #6366f1; color: #fff; border-bottom-right-radius: 3px; }
+.ic-bot {
+  align-self: flex-start; background: var(--card-bg);
+  border: 1px solid var(--card-border); color: var(--text-primary);
+  border-bottom-left-radius: 3px;
+}
+
+.ic-input-row { display: flex; gap: 6px; }
+.ic-input-row textarea {
+  flex: 1; min-width: 0; padding: 9px 11px;
+  border: 1px solid var(--input-border); border-radius: 7px;
+  background: var(--input-bg); color: var(--input-text); font-size: 14px;
+  line-height: 1.4;
+  resize: vertical;
+  min-height: 38px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.ic-send {
+  padding: 9px 16px; border: none; border-radius: 7px;
+  background: #6366f1; color: #fff; font-size: 13px; font-weight: 600;
+  cursor: pointer; white-space: nowrap;
+}
+.ic-send:disabled { opacity: 0.5; cursor: not-allowed; }

@@ -1,0 +1,150 @@
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  /* navbar(보통 z-index 1000~9000)보다 위에 와야 함 */
+  z-index: 99999;
+  background: rgba(0, 0, 0, 0.93);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lightbox-content {
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lightbox-media {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7);
+}
+
+/* 좌측 상단: 뒤로 버튼 (텍스트 + 화살표) */
+.lightbox-back {
+  position: fixed;
+  top: 20px;
+  left: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  color: #fff;
+  padding: 8px 16px 8px 14px;
+  border-radius: 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+  z-index: 3;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
+}
+.lightbox-back:hover {
+  background: rgba(0, 0, 0, 0.85);
+  border-color: #fff;
+  transform: translateX(-2px);
+}
+
+/* 우측 상단: 닫기 X */
+.lightbox-close {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  color: #fff;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+  z-index: 3;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
+}
+.lightbox-close:hover {
+  background: rgba(0, 0, 0, 0.85);
+  border-color: #fff;
+  transform: scale(1.06);
+}
+
+/* 좌우 화살표 */
+.lightbox-nav {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  color: #fff;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+  z-index: 3;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+}
+.lightbox-nav:hover {
+  background: rgba(0, 0, 0, 0.85);
+  border-color: #fff;
+}
+.lightbox-prev { left: 24px; }
+.lightbox-prev:hover {
+  transform: translateY(-50%) scale(1.08) translateX(-3px);
+}
+.lightbox-next { right: 24px; }
+.lightbox-next:hover {
+  transform: translateY(-50%) scale(1.08) translateX(3px);
+}
+
+.lightbox-counter {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 6px 14px;
+  border-radius: 14px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  z-index: 3;
+}
+
+@media (max-width: 768px) {
+  .lightbox-back {
+    top: max(14px, env(safe-area-inset-top));
+    left: max(12px, env(safe-area-inset-left));
+    padding: 6px 12px 6px 10px;
+    font-size: 0.85rem;
+  }
+  .lightbox-close {
+    top: max(14px, env(safe-area-inset-top));
+    right: max(14px, env(safe-area-inset-right));
+    width: 42px;
+    height: 42px;
+  }
+  .lightbox-nav {
+    width: 48px;
+    height: 48px;
+  }
+  .lightbox-nav svg {
+    width: 26px;
+    height: 26px;
+  }
+  .lightbox-prev { left: max(10px, env(safe-area-inset-left)); }
+  .lightbox-next { right: max(10px, env(safe-area-inset-right)); }
+  .lightbox-counter {
+    bottom: max(20px, calc(env(safe-area-inset-bottom) + 12px));
+  }
+}
