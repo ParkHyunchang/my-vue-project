@@ -21,6 +21,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# OpenAPI 자동 생성 타입 (npm run gen:api 로 재생성, 커밋 제외)
+src/generated/
+
 # Claude Code
 .claude
 
