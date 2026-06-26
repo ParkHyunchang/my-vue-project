@@ -43,6 +43,57 @@ npm run lint
 
 ---
 
+## API 타입 동기화 (OpenAPI → JSDoc)
+
+백엔드 DTO 구조가 바뀌면 아래 절차로 프론트 타입 힌트를 갱신한다.  
+JS 프로젝트이므로 빌드 오류는 없고 VSCode 자동완성에만 반영됨.
+
+### 최초 1회: 패키지 설치
+
+```bash
+npm install
+```
+
+### DTO 변경 후 타입 재생성
+
+```bash
+# 1. 백엔드 실행 확인 (http://localhost:3200 기준)
+#    my-vue-project_backend 에서: mvn spring-boot:run
+
+# 2. 스펙 생성 확인 (브라우저 또는 curl)
+curl http://localhost:3200/v3/api-docs | head -5
+
+# 3. 프론트 타입 파일 재생성
+npm run gen:api
+# → src/generated/api.d.ts 생성됨 (git 제외 파일)
+
+# 4. VSCode에서 @typedef 선언 파일의 자동완성 확인
+```
+
+### 타입 참조 방법 (JS 파일에서)
+
+```js
+// 1단계: api 파일 상단에 @typedef 선언
+/** @typedef {import('@/generated/api').components['schemas']['Career']} Career */
+
+// 2단계: 호출 측에서 @type 으로 응답에 붙임
+const res = await adminCareerApi.list()
+/** @type {Career[]} */ const careers = res.data
+```
+
+`src/api/adminContent.js`에 Career / Experience / PortfolioSkill 샘플이 있으며,  
+새 도메인 추가 시 같은 패턴으로 `@typedef`를 해당 api 파일 상단에 선언한다.
+
+### 한계
+
+| 항목 | 내용 |
+|------|------|
+| 빌드 타임 검사 없음 | JS 프로젝트이므로 타입 오류는 에디터 힌트만 제공 |
+| 수동 동기화 | `npm run gen:api`를 직접 실행해야 함 |
+| Entity 직접 반환 컨트롤러 | OpenAPI 스펙이 JPA 연관관계까지 포함할 수 있어 실제 응답과 다를 수 있음 |
+
+---
+
 ## 풀스택 개발 시 실행 순서
 
 1. **백엔드** — `my-vue-project_backend` 에서 `mvn spring-boot:run`
