@@ -423,6 +423,140 @@
   .portfolio-ai-hint { text-align: center; }
 }
 
+/* ── ISA 모드 토글 ── */
+.isa-mode-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+.imt-btn {
+  flex: 1;
+  padding: 8px 0;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.5);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.imt-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.8);
+}
+.imt-btn.active {
+  background: rgba(99,102,241,0.18);
+  border-color: rgba(99,102,241,0.5);
+  color: #a5b4fc;
+}
+
+/* ── 무한매수법 현황 카드 (ISA 전용) ── */
+.ib-status-card {
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  background: rgba(16, 185, 129, 0.07);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  border-radius: 10px;
+}
+.ib-status-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.ib-status-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #6ee7b7;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.ib-cycle-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.ib-badge-active {
+  background: rgba(16, 185, 129, 0.18);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+.ib-badge-reached {
+  background: rgba(250, 204, 21, 0.18);
+  color: #fde68a;
+  border: 1px solid rgba(250, 204, 21, 0.45);
+}
+.ib-status-ticker {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.ib-price-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.ib-price-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 80px;
+}
+.ib-price-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+.ib-price-val {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary, #e5e7eb);
+}
+.ib-price-sep {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  padding-bottom: 2px;
+}
+.ib-target .ib-price-val { color: #6ee7b7; }
+.ib-target-val { font-weight: 700; }
+.ib-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+.ib-progress-bar-bg {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.ib-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+.ib-progress-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.ib-progress-label strong { color: #6ee7b7; }
+.ib-cash-row {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.ib-cash-row strong { color: #93c5fd; }
+@media (max-width: 640px) {
+  .ib-price-row { gap: 6px; }
+  .ib-price-item { min-width: 70px; }
+}
+
 /* 차트 뷰 */
 .chart-view { padding: 8px 0; }
 .chart-inner {

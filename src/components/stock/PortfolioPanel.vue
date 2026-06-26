@@ -49,12 +49,61 @@
         @add="openAddModal"
       />
 
+      <!-- ISA 모드 토글 -->
+      <div v-if="accountType === 'isa'" class="isa-mode-tabs">
+        <button :class="['imt-btn', { active: isaMode === 'general' }]" @click="isaMode = 'general'">
+          📈 일반 적립
+        </button>
+        <button :class="['imt-btn', { active: isaMode === 'infinite' }]" @click="isaMode = 'infinite'">
+          ♾️ 무한매수법
+        </button>
+      </div>
+
       <!-- AI 포트폴리오 진단 액션 바 -->
       <div class="portfolio-ai-bar">
         <button class="portfolio-ai-btn" @click="openPortfolioAnalysis">
-          {{ accountUi.aiButtonLabel }}
+          {{ isaAiButtonLabel }}
         </button>
-        <span class="portfolio-ai-hint">{{ accountUi.aiHint }}</span>
+        <span class="portfolio-ai-hint">{{ isaAiHint }}</span>
+      </div>
+
+      <!-- 무한매수법 현황 카드 (ISA 무한매수법 모드 전용) -->
+      <div v-if="accountType === 'isa' && isaMode === 'infinite' && infiniteBuyStatus" class="ib-status-card">
+        <div class="ib-status-header">
+          <span class="ib-status-title">무한매수법 사이클 현황</span>
+          <span :class="['ib-cycle-badge', infiniteBuyStatus.reached ? 'ib-badge-reached' : 'ib-badge-active']">
+            {{ infiniteBuyStatus.reached ? '🎯 익절 목표 도달' : '📈 진행 중' }}
+          </span>
+        </div>
+        <div class="ib-status-ticker">{{ infiniteBuyStatus.name }} · {{ infiniteBuyStatus.quantity }}주 보유</div>
+        <div class="ib-price-row">
+          <div class="ib-price-item">
+            <span class="ib-price-label">평균단가</span>
+            <span class="ib-price-val">{{ fmtKRW(infiniteBuyStatus.avgPrice) }}</span>
+          </div>
+          <div class="ib-price-sep">→</div>
+          <div class="ib-price-item">
+            <span class="ib-price-label">현재가</span>
+            <span :class="['ib-price-val', pnlCls(infiniteBuyStatus.pnlPct)]">{{ fmtKRW(infiniteBuyStatus.currentPrice) }}</span>
+          </div>
+          <div class="ib-price-sep">→</div>
+          <div class="ib-price-item ib-target">
+            <span class="ib-price-label">목표가 (+10%)</span>
+            <span class="ib-price-val ib-target-val">{{ fmtKRW(infiniteBuyStatus.targetPrice) }}</span>
+          </div>
+        </div>
+        <div class="ib-progress-wrap">
+          <div class="ib-progress-bar-bg">
+            <div class="ib-progress-bar-fill" :style="{ width: infiniteBuyStatus.progressPct + '%' }"></div>
+          </div>
+          <span class="ib-progress-label">
+            <template v-if="infiniteBuyStatus.reached">익절 목표 달성 — 전량 매도 후 다음 사이클 시작</template>
+            <template v-else>목표까지 <strong>{{ infiniteBuyStatus.gapToTarget }}</strong> 남음</template>
+          </span>
+        </div>
+        <div v-if="infiniteBuyStatus.cashAmount > 0" class="ib-cash-row">
+          예수금 {{ fmtKRW(infiniteBuyStatus.cashAmount) }} — 약 <strong>{{ infiniteBuyStatus.remainingShots }}회차</strong> 분량
+        </div>
       </div>
 
       <!-- 마켓 필터 바 -->
@@ -330,6 +379,19 @@ export default {
     }));
     const usesRemotePortfolio = baseAccountConfig.remote;
     const portfolioApiPath = baseAccountConfig.apiPath;
+
+    const isaMode = ref('infinite'); // ISA 전용: 'general' | 'infinite'
+
+    const isaAiButtonLabel = computed(() => {
+      if (normalizedAccountType !== 'isa') return accountUi.value.aiButtonLabel;
+      return isaMode.value === 'infinite' ? '♾️ ISA 무한매수법 AI 진단' : '📊 ISA AI 포트폴리오 진단';
+    });
+    const isaAiHint = computed(() => {
+      if (normalizedAccountType !== 'isa') return accountUi.value.aiHint;
+      return isaMode.value === 'infinite'
+        ? '무한매수법 사이클 현황·시장 환경·매수 전략 진단'
+        : 'ISA 계좌 기준 보유 종목 시그널 + 리밸런싱 제안';
+    });
 
     const holdings = ref([]);
     const prices = ref({});
@@ -726,6 +788,41 @@ export default {
       holdPnl, holdPnlPct, holdValKRW,
     } = stats;
 
+    const infiniteBuyStatus = computed(() => {
+      if (props.accountType !== 'isa') return null;
+      const etf = holdings.value.find((h) => !isCashHolding(h) && h.avgPrice && h.quantity > 0);
+      if (!etf) return null;
+      const quote = prices.value[etf.symbol];
+      if (!quote?.price) return null;
+
+      const avgPrice = Number(etf.avgPrice);
+      const currentPrice = quote.price;
+      const targetPrice = avgPrice * 1.1;
+      const pnlPct = ((currentPrice - avgPrice) / avgPrice) * 100;
+      const reached = pnlPct >= 10;
+      const gapToTarget = reached ? '0%' : `+${((targetPrice - currentPrice) / currentPrice * 100).toFixed(1)}%`;
+      const progressRaw = ((pnlPct + 0) / 10) * 100;
+      const progressPct = Math.min(Math.max(progressRaw, 0), 100);
+
+      const cash = holdings.value.find(isCashHolding);
+      const cashAmount = cash ? Number(cash.quantity) || 0 : 0;
+      const remainingShots = currentPrice > 0 ? Math.floor(cashAmount / currentPrice) : 0;
+
+      return {
+        name: etf.name || etf.symbol,
+        quantity: etf.quantity,
+        avgPrice,
+        currentPrice,
+        targetPrice,
+        pnlPct,
+        reached,
+        gapToTarget,
+        progressPct,
+        cashAmount,
+        remainingShots,
+      };
+    });
+
     function usToKRW(v) {
       return exchangeRate.value > 0 ? v * exchangeRate.value : v;
     }
@@ -848,8 +945,12 @@ export default {
         };
       });
 
+      const effectiveAccountType = normalizedAccountType === 'isa' && isaMode.value === 'infinite'
+        ? 'isa_infinite'
+        : normalizedAccountType;
+
       return {
-        accountType: normalizedAccountType,
+        accountType: effectiveAccountType,
         accountLabel: accountUi.value.label,
         accountNote: accountUi.value.analysisNote,
         asOf: lastUpdatedAt.value ? lastUpdatedAt.value.toISOString() : new Date().toISOString(),
@@ -906,7 +1007,7 @@ export default {
     });
 
     return {
-      accountUi,
+      accountUi, isaMode, isaAiButtonLabel, isaAiHint,
       holdings, prices, priceLoading, initialLoading, portfolioView, marketFilter,
       displayCurrency, setDisplayCurrency, showCurrencyToggle,
       exchangeRate, exRateAt, lastUpdatedAt, relativeUpdated,
@@ -921,7 +1022,7 @@ export default {
       krPnl, krPnlPct, krHasAvgPrice,
       usPnl, usPnlPct, usHasAvgPrice,
       totalValKRW, totalCostKRW, totalPnlKRW, totalPnlKRWPct,
-      chartSegments, portfolioAnalysisContext,
+      chartSegments, portfolioAnalysisContext, infiniteBuyStatus,
       openAddModal, closeAddModal, openAnalysis, closeAnalysis,
       openPortfolioAnalysis, closePortfolioAnalysis,
       onSearchInput, selectStock, onSearchBlur,

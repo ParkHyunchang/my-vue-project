@@ -421,10 +421,17 @@ const ACCOUNT_REPORT_UI = {
   },
   isa: {
     badge: 'ISA',
-    heroEyebrow: 'ISA 계좌 진단',
+    heroEyebrow: 'ISA 계좌 종합 진단',
     holdingTitle: '보유 자산별 판단',
-    holdingHint: '절세 계좌 관점',
+    holdingHint: 'ISA 관점',
     notesTitle: 'ISA 체크포인트',
+  },
+  isa_infinite: {
+    badge: 'ISA',
+    heroEyebrow: '무한매수법 사이클 진단',
+    holdingTitle: '보유 자산별 판단',
+    holdingHint: '무한매수법 관점',
+    notesTitle: '무한매수법 체크포인트',
   },
   irp: {
     badge: 'IRP',
@@ -436,13 +443,13 @@ const ACCOUNT_REPORT_UI = {
 };
 
 const ACCOUNT_SECTION_KEYWORDS = [
-  '종합 진단', '계좌 종합', '포트폴리오 진단', '요약',
-  '위험 점검', '리스크', '스트레스',
+  '종합 진단', '계좌 종합', '포트폴리오 진단', '요약', '사이클 종합', '무한매수법',
+  '위험 점검', '리스크', '스트레스', '구조적',
   '현금성', '현금',
   '보유 자산별', '보유 종목별', '자산별 판단', '보유 자산', '보유 종목',
-  '리밸런싱', '우선순위', '액션',
+  '리밸런싱', '우선순위', '액션', '매수 전략',
   '추천', '후보', '추가매수', '손절', '축소',
-  '참고', '공지', '고지', '주의', '체크포인트', '메모', '자산 구성',
+  '시장 환경', '나스닥', '참고', '공지', '고지', '주의', '체크포인트', '메모', '자산 구성',
 ];
 
 const REPORT_METADATA_KEYS = new Set([
@@ -487,12 +494,13 @@ function normalizeAnalysisAccount(context = {}, rawText = '') {
   ].filter(Boolean).join(' ').toLowerCase();
 
   if (source.includes('irp') || source.includes('퇴직연금')) return 'irp';
+  if (source.includes('isa_infinite') || source.includes('무한매수법')) return 'isa_infinite';
   if (source.includes('isa')) return 'isa';
   return 'stock';
 }
 
 function accountReportMeta(type) {
-  const normalizedType = type === 'isa' || type === 'irp' ? type : 'stock';
+  const normalizedType = ['isa', 'isa_infinite', 'irp'].includes(type) ? type : 'stock';
   return {
     type: normalizedType,
     ...ACCOUNT_REPORT_UI[normalizedType],
@@ -890,19 +898,19 @@ function scenarioFromRiskSection(section) {
 function buildAccountUiReport(raw, context = {}) {
   const rawText = typeof raw === 'string' ? raw : formatValue(raw);
   const accountType = normalizeAnalysisAccount(context, rawText);
-  if (accountType !== 'isa' && accountType !== 'irp') return null;
+  if (accountType !== 'irp' && accountType !== 'isa' && accountType !== 'isa_infinite') return null;
 
   const sections = extractAccountSections(raw);
   if (!sections.length) return null;
 
   const meta = accountReportMeta(accountType);
-  const summarySection = findSection(sections, ['종합 진단', '계좌 종합', '포트폴리오 진단', '요약']) || sections[0];
+  const summarySection = findSection(sections, ['종합 진단', '계좌 종합', '포트폴리오 진단', '요약', '사이클 종합', '무한매수법 사이클']) || sections[0];
   const holdingSection = findSection(sections, ['보유 자산별', '보유 종목별', '자산별 판단', '보유 자산', '보유 종목']);
-  const riskSection = findSection(sections, ['위험 점검', '리스크', '스트레스']);
+  const riskSection = findSection(sections, ['위험 점검', '리스크', '스트레스', '구조적 리스크']);
   const cashSection = findSection(sections, ['현금성', '현금']);
 
   const used = new Set([summarySection, holdingSection, riskSection].filter(Boolean));
-  const actionSection = findSection(sections, ['우선순위', '액션'], used) ||
+  const actionSection = findSection(sections, ['우선순위', '액션', '매수 전략'], used) ||
     sections.find((section) => !used.has(section) && sectionIncludes(section, ['리밸런싱']) && section !== cashSection);
   if (actionSection) used.add(actionSection);
 
@@ -1218,18 +1226,28 @@ export default {
     const retryAt = ref(null);
     const providersStatus = ref([]);
 
-    const loadingMessages = [
+    const loadingMessagesDefault = [
       '보유 종목의 현재가와 비중을 계산하는 중...',
       'KRX·Yahoo 재무 데이터와 시장 뉴스를 확인하는 중...',
       'AI가 종목별 액션과 리밸런싱 전략을 정리하는 중...',
     ];
+    const loadingMessagesIsa = [
+      '무한매수법 사이클 현황을 집계하는 중...',
+      '나스닥·레버리지 ETF 시장 환경을 점검하는 중...',
+      'AI가 사이클 진단과 매수 전략을 분석하는 중...',
+    ];
+    const loadingMessages = computed(() =>
+      (props.portfolioContext?.accountType || '').toLowerCase() === 'isa_infinite'
+        ? loadingMessagesIsa
+        : loadingMessagesDefault,
+    );
     const loadingMsgIdx = ref(0);
     let loadingTimer = null;
     let tickerTimer = null;
     const now = ref(Date.now());
     const lastFetchAt = ref(0);
 
-    const loadingText = computed(() => loadingMessages[loadingMsgIdx.value]);
+    const loadingText = computed(() => loadingMessages.value[loadingMsgIdx.value]);
 
     function reset() {
       loading.value = false;
@@ -1251,7 +1269,7 @@ export default {
       loadingMsgIdx.value = 0;
       clearInterval(loadingTimer);
       loadingTimer = setInterval(() => {
-        loadingMsgIdx.value = (loadingMsgIdx.value + 1) % loadingMessages.length;
+        loadingMsgIdx.value = (loadingMsgIdx.value + 1) % loadingMessages.value.length;
       }, 3500);
 
       try {
@@ -1743,7 +1761,7 @@ export default {
 }
 .pana-note-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 10px;
 }
 .pana-info-card {
