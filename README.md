@@ -81,7 +81,7 @@ const res = await adminCareerApi.list()
 /** @type {Career[]} */ const careers = res.data
 ```
 
-`src/api/adminContent.js`에 Career / Experience / PortfolioSkill 샘플이 있으며,  
+`src/api/adminContentApi.js`에 Career / Experience / PortfolioSkill 샘플이 있으며,  
 새 도메인 추가 시 같은 패턴으로 `@typedef`를 해당 api 파일 상단에 선언한다.
 
 ### 한계

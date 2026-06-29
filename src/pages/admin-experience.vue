@@ -130,7 +130,7 @@
 </template>
 
 <script>
-import { adminExperienceApi } from '@/api/adminContent'
+import { adminExperienceApi } from '@/api/adminContentApi'
 import { apiErrorMessage } from '@/utils/apiError'
 import { hasDuplicateSortOrder, nextSortOrder } from '@/utils/resourceForm'
 

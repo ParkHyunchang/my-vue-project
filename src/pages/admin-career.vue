@@ -147,7 +147,7 @@
 </template>
 
 <script>
-import { adminCareerApi } from '@/api/adminContent'
+import { adminCareerApi } from '@/api/adminContentApi'
 import { apiErrorMessage } from '@/utils/apiError'
 import {
   csvToJsonArray,

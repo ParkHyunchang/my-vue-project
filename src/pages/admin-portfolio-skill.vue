@@ -126,7 +126,7 @@
 </template>
 
 <script>
-import { adminPortfolioSkillApi } from '@/api/adminContent'
+import { adminPortfolioSkillApi } from '@/api/adminContentApi'
 import { apiErrorMessage } from '@/utils/apiError'
 import {
   hasDuplicateSortOrder,
