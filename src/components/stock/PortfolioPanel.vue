@@ -49,61 +49,12 @@
         @add="openAddModal"
       />
 
-      <!-- ISA 모드 토글 -->
-      <div v-if="accountType === 'isa'" class="isa-mode-tabs">
-        <button :class="['imt-btn', { active: isaMode === 'general' }]" @click="isaMode = 'general'">
-          📈 일반 적립
-        </button>
-        <button :class="['imt-btn', { active: isaMode === 'infinite' }]" @click="isaMode = 'infinite'">
-          ♾️ 무한매수법
-        </button>
-      </div>
-
       <!-- AI 포트폴리오 진단 액션 바 -->
       <div class="portfolio-ai-bar">
         <button class="portfolio-ai-btn" @click="openPortfolioAnalysis">
-          {{ isaAiButtonLabel }}
+          {{ accountUi.aiButtonLabel }}
         </button>
-        <span class="portfolio-ai-hint">{{ isaAiHint }}</span>
-      </div>
-
-      <!-- 무한매수법 현황 카드 (ISA 무한매수법 모드 전용) -->
-      <div v-if="accountType === 'isa' && isaMode === 'infinite' && infiniteBuyStatus" class="ib-status-card">
-        <div class="ib-status-header">
-          <span class="ib-status-title">무한매수법 사이클 현황</span>
-          <span :class="['ib-cycle-badge', infiniteBuyStatus.reached ? 'ib-badge-reached' : 'ib-badge-active']">
-            {{ infiniteBuyStatus.reached ? '🎯 익절 목표 도달' : '📈 진행 중' }}
-          </span>
-        </div>
-        <div class="ib-status-ticker">{{ infiniteBuyStatus.name }} · {{ infiniteBuyStatus.quantity }}주 보유</div>
-        <div class="ib-price-row">
-          <div class="ib-price-item">
-            <span class="ib-price-label">평균단가</span>
-            <span class="ib-price-val">{{ fmtKRW(infiniteBuyStatus.avgPrice) }}</span>
-          </div>
-          <div class="ib-price-sep">→</div>
-          <div class="ib-price-item">
-            <span class="ib-price-label">현재가</span>
-            <span :class="['ib-price-val', pnlCls(infiniteBuyStatus.pnlPct)]">{{ fmtKRW(infiniteBuyStatus.currentPrice) }}</span>
-          </div>
-          <div class="ib-price-sep">→</div>
-          <div class="ib-price-item ib-target">
-            <span class="ib-price-label">목표가 (+10%)</span>
-            <span class="ib-price-val ib-target-val">{{ fmtKRW(infiniteBuyStatus.targetPrice) }}</span>
-          </div>
-        </div>
-        <div class="ib-progress-wrap">
-          <div class="ib-progress-bar-bg">
-            <div class="ib-progress-bar-fill" :style="{ width: infiniteBuyStatus.progressPct + '%' }"></div>
-          </div>
-          <span class="ib-progress-label">
-            <template v-if="infiniteBuyStatus.reached">익절 목표 달성 — 전량 매도 후 다음 사이클 시작</template>
-            <template v-else>목표까지 <strong>{{ infiniteBuyStatus.gapToTarget }}</strong> 남음</template>
-          </span>
-        </div>
-        <div v-if="infiniteBuyStatus.cashAmount > 0" class="ib-cash-row">
-          예수금 {{ fmtKRW(infiniteBuyStatus.cashAmount) }} — 약 <strong>{{ infiniteBuyStatus.remainingShots }}회차</strong> 분량
-        </div>
+        <span class="portfolio-ai-hint">{{ accountUi.aiHint }}</span>
       </div>
 
       <!-- 마켓 필터 바 -->
@@ -285,7 +236,7 @@ import PortfolioAnalysisModal from "@/components/stock/PortfolioAnalysisModal.vu
 
 const ACCOUNT_CONFIGS = {
   stock: {
-    label: "주식",
+    label: "장기 주식계좌",
     storageKey: "stock_portfolio",
     apiPath: "/api/portfolio/holdings",
     displayCurrencyKey: "stock_displayCurrency",
@@ -293,17 +244,17 @@ const ACCOUNT_CONFIGS = {
     sortDirKey: "stock_sortDir",
     remote: true,
     allowCash: false,
-    emptyTitle: "주식 보유 종목이 없습니다",
-    emptyDescription: "보유 중인 주식을 추가하면 평가금액과 종목 비중을 한눈에 확인할 수 있습니다.",
-    aiButtonLabel: "📊 주식 AI 포트폴리오 진단",
-    aiHint: "보유 종목 시그널 + 추천 종목 2개",
+    emptyTitle: "장기 주식계좌 보유 종목이 없습니다",
+    emptyDescription: "장기 주식계좌에 담은 국내·미국 종목을 추가하면 장기 포트폴리오 현황을 한눈에 확인할 수 있습니다.",
+    aiButtonLabel: "📊 장기 주식계좌 AI 진단",
+    aiHint: "장기 보유 종목 시그널 + 코어/위성 전략 진단",
     auditView: "STOCK/HOLDING",
     auditAnalysis: "STOCK/AI-ANALYSIS",
     auditPortfolio: "STOCK/AI-PORTFOLIO",
-    analysisNote: "일반 주식 포트폴리오입니다. 계좌 전체의 성장성, 리스크, 비중 조정을 중심으로 진단하세요.",
+    analysisNote: "장기 주식계좌입니다. 국내·미국 주식을 장기 보유하는 계좌로, 코어/위성 전략 기준으로 종목별 펀더멘털·밸류에이션 분석을 중심으로 진단하세요.",
   },
   isa: {
-    label: "ISA",
+    label: "ISA 계좌",
     storageKey: "stock_portfolio_isa",
     apiPath: "/api/portfolio/isa/holdings",
     displayCurrencyKey: "stock_isa_displayCurrency",
@@ -312,16 +263,34 @@ const ACCOUNT_CONFIGS = {
     remote: true,
     allowCash: true,
     emptyTitle: "ISA 보유 종목이 없습니다",
-    emptyDescription: "ISA 계좌에 담은 종목을 추가하면 계좌별 평가금액과 비중을 따로 관리할 수 있습니다.",
-    aiButtonLabel: "📊 ISA AI 포트폴리오 진단",
-    aiHint: "ISA 계좌 기준 보유 종목 시그널 + 추천 종목 2개",
+    emptyDescription: "ISA 계좌에 담은 종목을 추가하면 중장기 적립식 포트폴리오를 따로 관리할 수 있습니다.",
+    aiButtonLabel: "📊 ISA 포트폴리오 AI 진단",
+    aiHint: "중장기 적립식 포트폴리오 — 세제혜택 + 적립 전략 진단",
     auditView: "STOCK/ISA",
     auditAnalysis: "STOCK/ISA/AI-ANALYSIS",
     auditPortfolio: "STOCK/ISA/AI-PORTFOLIO",
-    analysisNote: "ISA 계좌입니다. 2026-06-24 신규 개설한 서민형 ISA라는 기본정보는 내부 판단 기준으로만 사용하고, 세제·의무기간 판단에 직접 필요할 때만 언급하세요.",
+    analysisNote: "ISA 계좌입니다. 중장기 적립식 운용 전략으로 계속 모아가는 계좌입니다. 서민형 ISA 기본정보는 내부 판단 기준으로만 사용하고, 세제·의무기간 판단에 직접 필요할 때만 언급하세요.",
+  },
+  general: {
+    label: "단기 주식계좌",
+    storageKey: "stock_portfolio_general",
+    apiPath: "/api/portfolio/general/holdings",
+    displayCurrencyKey: "stock_general_displayCurrency",
+    sortKey: "stock_general_sortKey",
+    sortDirKey: "stock_general_sortDir",
+    remote: true,
+    allowCash: true,
+    emptyTitle: "단기 주식계좌 보유 종목이 없습니다",
+    emptyDescription: "단기 주식계좌에 단기매매 중인 종목을 추가하면 매매 포지션 현황을 한눈에 확인할 수 있습니다.",
+    aiButtonLabel: "📈 단기 포트폴리오 AI 진단",
+    aiHint: "단기매매 포지션 — 익절·손절·모멘텀 시그널 진단",
+    auditView: "STOCK/GENERAL",
+    auditAnalysis: "STOCK/GENERAL/AI-ANALYSIS",
+    auditPortfolio: "STOCK/GENERAL/AI-PORTFOLIO",
+    analysisNote: "단기 주식계좌입니다. 1종목당 200~300만원 소액으로 단기 스윙 매매를 하는 계좌입니다. 장기 보유 원칙 없이 모멘텀·뉴스 기반으로 익절·손절을 적극 활용합니다.",
   },
   irp: {
-    label: "퇴직연금 IRP",
+    label: "IRP 계좌",
     storageKey: "stock_portfolio_irp",
     apiPath: "/api/portfolio/irp/holdings",
     displayCurrencyKey: "stock_irp_displayCurrency",
@@ -329,14 +298,14 @@ const ACCOUNT_CONFIGS = {
     sortDirKey: "stock_irp_sortDir",
     remote: true,
     allowCash: true,
-    emptyTitle: "퇴직연금 IRP 보유 종목이 없습니다",
-    emptyDescription: "퇴직연금 IRP 계좌에 담은 종목을 추가하면 은퇴 자산 관점의 비중과 리스크를 따로 볼 수 있습니다.",
-    aiButtonLabel: "📊 IRP AI 포트폴리오 진단",
-    aiHint: "퇴직연금 IRP 기준 보유 종목 시그널 + 추천 종목 2개",
+    emptyTitle: "IRP 보유 종목이 없습니다",
+    emptyDescription: "IRP 계좌에 담은 종목을 추가하면 은퇴 자산 관점의 비중과 리스크를 따로 볼 수 있습니다.",
+    aiButtonLabel: "🛡️ IRP 포트폴리오 AI 진단",
+    aiHint: "퇴직연금 IRP — 장기 안정성·위험자산 한도 진단",
     auditView: "STOCK/IRP",
     auditAnalysis: "STOCK/IRP/AI-ANALYSIS",
     auditPortfolio: "STOCK/IRP/AI-PORTFOLIO",
-    analysisNote: "퇴직연금 IRP 계좌입니다. 장기 은퇴 자산, 분산, 변동성 관리를 우선하고, 위험자산 70% 한도와 안전자산 약 30% 기준은 리밸런싱 판단에 직접 필요할 때만 언급하세요.",
+    analysisNote: "IRP 계좌입니다. 은퇴자산 장기 적립 계좌로 계속 모아가는 전략입니다. 위험자산 70% 한도와 안전자산 약 30% 기준은 리밸런싱 판단에 직접 필요할 때만 언급하세요.",
   },
 };
 
@@ -379,19 +348,6 @@ export default {
     }));
     const usesRemotePortfolio = baseAccountConfig.remote;
     const portfolioApiPath = baseAccountConfig.apiPath;
-
-    const isaMode = ref('infinite'); // ISA 전용: 'general' | 'infinite'
-
-    const isaAiButtonLabel = computed(() => {
-      if (normalizedAccountType !== 'isa') return accountUi.value.aiButtonLabel;
-      return isaMode.value === 'infinite' ? '♾️ ISA 무한매수법 AI 진단' : '📊 ISA AI 포트폴리오 진단';
-    });
-    const isaAiHint = computed(() => {
-      if (normalizedAccountType !== 'isa') return accountUi.value.aiHint;
-      return isaMode.value === 'infinite'
-        ? '무한매수법 사이클 현황·시장 환경·매수 전략 진단'
-        : 'ISA 계좌 기준 보유 종목 시그널 + 리밸런싱 제안';
-    });
 
     const holdings = ref([]);
     const prices = ref({});
@@ -788,41 +744,6 @@ export default {
       holdPnl, holdPnlPct, holdValKRW,
     } = stats;
 
-    const infiniteBuyStatus = computed(() => {
-      if (props.accountType !== 'isa') return null;
-      const etf = holdings.value.find((h) => !isCashHolding(h) && h.avgPrice && h.quantity > 0);
-      if (!etf) return null;
-      const quote = prices.value[etf.symbol];
-      if (!quote?.price) return null;
-
-      const avgPrice = Number(etf.avgPrice);
-      const currentPrice = quote.price;
-      const targetPrice = avgPrice * 1.1;
-      const pnlPct = ((currentPrice - avgPrice) / avgPrice) * 100;
-      const reached = pnlPct >= 10;
-      const gapToTarget = reached ? '0%' : `+${((targetPrice - currentPrice) / currentPrice * 100).toFixed(1)}%`;
-      const progressRaw = ((pnlPct + 0) / 10) * 100;
-      const progressPct = Math.min(Math.max(progressRaw, 0), 100);
-
-      const cash = holdings.value.find(isCashHolding);
-      const cashAmount = cash ? Number(cash.quantity) || 0 : 0;
-      const remainingShots = currentPrice > 0 ? Math.floor(cashAmount / currentPrice) : 0;
-
-      return {
-        name: etf.name || etf.symbol,
-        quantity: etf.quantity,
-        avgPrice,
-        currentPrice,
-        targetPrice,
-        pnlPct,
-        reached,
-        gapToTarget,
-        progressPct,
-        cashAmount,
-        remainingShots,
-      };
-    });
-
     function usToKRW(v) {
       return exchangeRate.value > 0 ? v * exchangeRate.value : v;
     }
@@ -945,12 +866,8 @@ export default {
         };
       });
 
-      const effectiveAccountType = normalizedAccountType === 'isa' && isaMode.value === 'infinite'
-        ? 'isa_infinite'
-        : normalizedAccountType;
-
       return {
-        accountType: effectiveAccountType,
+        accountType: normalizedAccountType,
         accountLabel: accountUi.value.label,
         accountNote: accountUi.value.analysisNote,
         asOf: lastUpdatedAt.value ? lastUpdatedAt.value.toISOString() : new Date().toISOString(),
@@ -1008,7 +925,7 @@ export default {
     });
 
     return {
-      accountUi, isaMode, isaAiButtonLabel, isaAiHint,
+      accountUi,
       holdings, prices, priceLoading, initialLoading, portfolioView, marketFilter,
       displayCurrency, setDisplayCurrency, showCurrencyToggle,
       exchangeRate, exRateAt, lastUpdatedAt, relativeUpdated,
@@ -1023,7 +940,7 @@ export default {
       krPnl, krPnlPct, krHasAvgPrice,
       usPnl, usPnlPct, usHasAvgPrice,
       totalValKRW, totalCostKRW, totalPnlKRW, totalPnlKRWPct,
-      chartSegments, portfolioAnalysisContext, infiniteBuyStatus,
+      chartSegments, portfolioAnalysisContext,
       openAddModal, closeAddModal, openAnalysis, closeAnalysis,
       openPortfolioAnalysis, closePortfolioAnalysis,
       onSearchInput, selectStock, onSearchBlur,

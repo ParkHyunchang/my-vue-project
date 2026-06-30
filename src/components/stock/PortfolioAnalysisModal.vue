@@ -34,147 +34,8 @@
         <div v-else-if="error" class="pana-error">{{ error }}</div>
 
         <!-- 결과 -->
-        <div v-else-if="uiReport || report" class="pana-result">
-          <template v-if="uiReport">
-            <section v-if="uiReport.health" class="pana-hero-card">
-              <div class="pana-score-wrap">
-                <div v-if="uiReport.health.score" class="pana-score-ring">
-                  <strong>{{ uiReport.health.score || '-' }}</strong>
-                  <span v-if="uiReport.health.scoreUnit">{{ uiReport.health.scoreUnit }}</span>
-                </div>
-                <div v-else class="pana-account-badge">{{ uiReport.account?.badge || 'AI' }}</div>
-                <div>
-                  <div class="pana-eyebrow">{{ uiReport.account?.heroEyebrow || '포트폴리오 건강 점수' }}</div>
-                  <h4 class="pana-hero-title">{{ uiReport.health.prescription || '진단 결과' }}</h4>
-                </div>
-              </div>
-              <p v-if="uiReport.health.summary" class="pana-hero-summary">
-                {{ uiReport.health.summary }}
-              </p>
-            </section>
-
-            <section v-if="uiReport.holdings.length" class="pana-section">
-              <div class="pana-section-head">
-                <h4 class="pana-section-title">{{ uiReport.account?.holdingTitle || '종목별 액션' }}</h4>
-                <span class="pana-section-hint">{{ uiReport.account?.holdingHint || 'AI 판단' }}</span>
-              </div>
-              <div class="pana-stock-actions">
-                <article v-for="item in uiReport.holdings" :key="item.key" class="pana-stock-card">
-                  <div class="pana-stock-head">
-                    <div class="pana-stock-name">
-                      <strong>{{ item.name }}</strong>
-                      <span>{{ [item.ticker, item.country, item.sector].filter(Boolean).join(' · ') }}</span>
-                    </div>
-                    <span :class="['pana-action-badge', actionBadgeClass(item.action)]">
-                      {{ actionText(item.action) }}
-                    </span>
-                  </div>
-                  <div class="pana-stock-metrics">
-                    <span v-if="item.assetType">{{ item.assetType === 'CASH' ? '현금성 자산' : '주식/ETF' }}</span>
-                    <span v-if="item.currentWeight !== null && item.currentWeight !== undefined">
-                      현재 {{ formatPercent(item.currentWeight) }}
-                    </span>
-                    <span v-if="item.proposedWeight !== null && item.proposedWeight !== undefined">
-                      제안 {{ formatPercent(item.proposedWeight) }}
-                    </span>
-                    <span
-                      v-if="item.change !== null && item.change !== undefined"
-                      :class="weightChangeClass(item.change)"
-                    >
-                      {{ formatSignedPercent(item.change) }}
-                    </span>
-                  </div>
-                  <p v-if="item.reason" class="pana-stock-reason">{{ item.reason }}</p>
-                </article>
-              </div>
-            </section>
-
-            <section v-if="uiReport.weights.length && hasProposedWeights" class="pana-section">
-              <div class="pana-section-head">
-                <h4 class="pana-section-title">비중 조정 요약</h4>
-                <span class="pana-section-hint">현재 → 제안</span>
-              </div>
-              <div class="pana-weight-list">
-                <div v-for="row in uiReport.weights" :key="row.key" class="pana-weight-row">
-                  <div class="pana-weight-top">
-                    <div class="pana-weight-main">
-                      <strong>{{ row.name }}</strong>
-                      <span>{{ [row.ticker, row.country, row.sector].filter(Boolean).join(' · ') }}</span>
-                    </div>
-                    <div class="pana-weight-values">
-                      <span>{{ formatPercent(row.currentWeight) }}</span>
-                      <template v-if="row.proposedWeight !== null && row.proposedWeight !== undefined">
-                        <span class="pana-arrow">→</span>
-                        <strong>{{ formatPercent(row.proposedWeight) }}</strong>
-                      </template>
-                      <em v-if="row.change !== null && row.change !== undefined" :class="weightChangeClass(row.change)">
-                        {{ formatSignedPercent(row.change) }}
-                      </em>
-                    </div>
-                  </div>
-                  <p v-if="row.reason" class="pana-weight-reason">{{ row.reason }}</p>
-                </div>
-              </div>
-            </section>
-
-            <section v-if="uiReport.scenarios.length" class="pana-section">
-              <div class="pana-section-head">
-                <h4 class="pana-section-title">스트레스 테스트</h4>
-              </div>
-              <div class="pana-scenario-grid">
-                <article
-                  v-for="scenario in uiReport.scenarios"
-                  :key="scenario.name"
-                  class="pana-info-card"
-                >
-                  <h5>{{ scenario.name }}</h5>
-                  <p v-if="scenario.impact"><strong>영향</strong>{{ scenario.impact }}</p>
-                  <p v-if="scenario.response"><strong>대응</strong>{{ scenario.response }}</p>
-                </article>
-              </div>
-            </section>
-
-            <section v-if="uiReport.actions.length" class="pana-section">
-              <div class="pana-section-head">
-                <h4 class="pana-section-title">우선순위 액션</h4>
-              </div>
-              <ol class="pana-action-list">
-                <li v-for="(action, idx) in uiReport.actions" :key="idx">
-                  <span>{{ idx + 1 }}</span>
-                  <p>{{ action }}</p>
-                </li>
-              </ol>
-            </section>
-
-            <section v-if="uiReport.notes.length" class="pana-section">
-              <div class="pana-section-head">
-                <h4 class="pana-section-title">{{ uiReport.account?.notesTitle || '추가 체크포인트' }}</h4>
-              </div>
-              <div class="pana-note-grid">
-                <article v-for="note in uiReport.notes" :key="note.title" class="pana-info-card">
-                  <h5>{{ note.title }}</h5>
-                  <div class="pana-note-lines">
-                    <p
-                      v-for="(line, lineIdx) in noteTextLines(note.text)"
-                      :key="`${note.title}-${lineIdx}`"
-                      :class="{
-                        'is-note-subhead': isNoteSubheading(line),
-                        'is-note-bullet': isNoteBullet(line),
-                      }"
-                    >
-                      {{ noteLineText(line) }}
-                    </p>
-                  </div>
-                </article>
-              </div>
-            </section>
-
-            <section v-if="uiReport.question" class="pana-question">
-              <div class="pana-eyebrow">Critical Question</div>
-              <p>{{ uiReport.question }}</p>
-            </section>
-          </template>
-          <MarkdownView v-else :text="report" />
+        <div v-else-if="report" class="pana-result">
+          <MarkdownView :text="report" />
 
           <div class="pana-meta">
             <span class="pana-provider-tag">{{ providerName }}<span v-if="model"> · {{ model }}</span></span>
@@ -897,6 +758,8 @@ function scenarioFromRiskSection(section) {
 
 function buildAccountUiReport(raw, context = {}) {
   const rawText = typeof raw === 'string' ? raw : formatValue(raw);
+  // 새 per-stock 마크다운 형식(### [종목명]) → MarkdownView로 폴백
+  if (/###\s+\[/.test(rawText)) return null;
   const accountType = normalizeAnalysisAccount(context, rawText);
   if (accountType !== 'irp' && accountType !== 'isa' && accountType !== 'isa_infinite') return null;
 
@@ -1152,8 +1015,12 @@ function jsonReportToMarkdown(json) {
   const holdingLines = formatBulletItems(holdings, (item) => {
     const name = pickText(item, ['name', 'stockName', 'symbol', 'ticker']) || formatValue(item);
     const action = pickText(item, ['action', 'recommendation', 'signal']);
-    const reason = pickText(item, ['reason', 'comment', 'analysis']);
-    return `**${name}**${action ? ` (${action})` : ''}${reason ? ` - ${reason}` : ''}`;
+    const reason = pickText(item, [
+      'reason', 'comment', 'analysis',
+      'long_term_assessment', 'short_term_assessment', 'assessment',
+      'rationale', 'basis',
+    ]);
+    return `**${name}**${action ? ` (${action})` : ''}${reason ? ` — ${reason}` : ''}`;
   });
   if (holdingLines) sections.push(`## 보유 종목 진단\n${holdingLines}`);
 
@@ -1200,8 +1067,11 @@ function jsonReportToMarkdown(json) {
 
 function normalizeReport(value) {
   if (value && typeof value === 'object') return jsonReportToMarkdown(value);
+  if (typeof value !== 'string' || !value.trim()) return '';
+  // 마크다운(## 헤딩 포함)이면 그대로 반환
+  if (/^#{1,6}\s/m.test(value)) return value;
   const parsed = parseJsonReport(value);
-  return parsed ? jsonReportToMarkdown(parsed) : (value || '');
+  return parsed ? jsonReportToMarkdown(parsed) : value;
 }
 
 export default {
@@ -1229,18 +1099,9 @@ export default {
     const loadingMessagesDefault = [
       '보유 종목의 현재가와 비중을 계산하는 중...',
       'KRX·Yahoo 재무 데이터와 시장 뉴스를 확인하는 중...',
-      'AI가 종목별 액션과 리밸런싱 전략을 정리하는 중...',
+      'AI가 종목별 퀀트·펀더멘털 분석을 정리하는 중...',
     ];
-    const loadingMessagesIsa = [
-      '무한매수법 사이클 현황을 집계하는 중...',
-      '나스닥·레버리지 ETF 시장 환경을 점검하는 중...',
-      'AI가 사이클 진단과 매수 전략을 분석하는 중...',
-    ];
-    const loadingMessages = computed(() =>
-      (props.portfolioContext?.accountType || '').toLowerCase() === 'isa_infinite'
-        ? loadingMessagesIsa
-        : loadingMessagesDefault,
-    );
+    const loadingMessages = computed(() => loadingMessagesDefault);
     const loadingMsgIdx = ref(0);
     let loadingTimer = null;
     let tickerTimer = null;
@@ -1291,14 +1152,8 @@ export default {
           retryAt.value = data.retryAt ? new Date(data.retryAt) : null;
           providersStatus.value = data.providersStatus || [];
         } else {
-          const parsedReport = parseReportPayload(data.report);
-          const parsedUiReport = buildUiReport(parsedReport || data) ||
-            buildAccountUiReport(parsedReport || data.report || data, context);
-          if (parsedUiReport && parsedUiReport.holdings.length === 0) {
-            parsedUiReport.holdings = contextHoldingActions(context);
-          }
-          uiReport.value = parsedUiReport;
-          report.value = uiReport.value ? '' : normalizeReport(data.report || data);
+          uiReport.value = null;
+          report.value = normalizeReport(data.report || data);
           providerName.value = data.providerName || '';
           model.value = data.model || '';
           analyzedAt.value = data.analyzedAt ? new Date(data.analyzedAt) : new Date();
