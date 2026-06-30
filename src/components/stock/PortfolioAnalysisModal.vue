@@ -1283,6 +1283,7 @@ export default {
           totalValueKRW: context.totalValueKRW || null,
           exchangeRate: context.exchangeRate || null,
           asOf: context.asOf || null,
+          marketFilter: context.marketFilter || null,
         });
         const data = res.data || {};
         if (data.blocked) {

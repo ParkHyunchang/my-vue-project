@@ -914,7 +914,7 @@ export default {
     const portfolioAnalysisContext = computed(() => {
       const totalKRW = chartSegments.value.reduce((sum, seg) => sum + (seg.valKRW || 0), 0);
       const segmentById = new Map(chartSegments.value.map((seg) => [seg.id, seg]));
-      const enrichedHoldings = holdings.value.map((h) => {
+      const enrichedHoldings = filteredHoldings.value.map((h) => {
         const quote = prices.value[h.symbol] || {};
         const seg = segmentById.get(h.id);
         const currentPrice = quote.price ?? null;
@@ -957,6 +957,7 @@ export default {
         exchangeRate: exchangeRate.value || null,
         totalValueKRW: totalKRW || totalValKRW.value || null,
         holdings: enrichedHoldings,
+        marketFilter: marketFilter.value !== 'all' ? marketFilter.value.toUpperCase() : null,
         instruction: `This is the user's ${accountUi.value.label} account. Use holdings[].weightPct as the current portfolio weight. If weightPct is present, do not ask the user for weights. ${accountUi.value.analysisNote}`,
       };
     });
