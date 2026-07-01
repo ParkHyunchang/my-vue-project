@@ -988,14 +988,28 @@ function jsonReportToMarkdown(json) {
   if (!data || typeof data !== 'object') return '';
 
   const sections = [];
-  const title = pickText(data, ['title', 'headline']) || '포트폴리오 AI 진단';
-  const summary = pickText(data, ['summary', 'overallSummary', 'overall', 'comment', 'diagnosis']);
+
+  // 제목 — reportTitle 포함
+  const title = pickText(data, ['title', 'headline', 'reportTitle']) || '포트폴리오 AI 진단';
+
+  // 종합 진단 — overallDiagnosis 객체 또는 단순 문자열 필드
+  const overallDiagnosis = data.overallDiagnosis;
+  const diagnosisObj = overallDiagnosis && typeof overallDiagnosis === 'object' ? overallDiagnosis : null;
+  const summary =
+    (diagnosisObj && pickText(diagnosisObj, ['summary', 'overview', 'comment', 'diagnosis'])) ||
+    (typeof overallDiagnosis === 'string' ? overallDiagnosis : '') ||
+    pickText(data, ['summary', 'overallSummary', 'overall', 'comment', 'diagnosis']);
+  const urgentAction = diagnosisObj && pickText(diagnosisObj, [
+    'mostUrgentActionItem', 'urgentAction', 'immediateAction', 'actionItem',
+  ]);
   const sentiment = pickText(data, ['sentiment', 'marketSentiment']);
 
   sections.push(`# ${title}`);
   if (summary) sections.push(`> ${summary}`);
+  if (urgentAction) sections.push(`**⚠️ 즉시 점검:** ${urgentAction}`);
   if (sentiment) sections.push(`**시장 톤:** ${sentiment}`);
 
+  // 종합 등급
   const grades = data.grades || data.score || data.scores;
   if (grades && typeof grades === 'object') {
     const gradeLines = Object.entries(grades)
@@ -1011,19 +1025,34 @@ function jsonReportToMarkdown(json) {
     if (gradeLines) sections.push(`## 종합 평가\n${gradeLines}`);
   }
 
-  const holdings = data.holdings || data.holdingAnalysis || data.positions;
+  // 보유 종목 진단 — stockAnalysis 포함
+  const holdings = data.holdings || data.holdingAnalysis || data.positions || data.stockAnalysis;
   const holdingLines = formatBulletItems(holdings, (item) => {
     const name = pickText(item, ['name', 'stockName', 'symbol', 'ticker']) || formatValue(item);
     const action = pickText(item, ['action', 'recommendation', 'signal']);
     const reason = pickText(item, [
       'reason', 'comment', 'analysis',
       'long_term_assessment', 'short_term_assessment', 'assessment',
-      'rationale', 'basis',
+      'rationale', 'basis', 'longTermJudgment', 'shortTermJudgment', 'judgment',
     ]);
-    return `**${name}**${action ? ` (${action})` : ''}${reason ? ` — ${reason}` : ''}`;
+    // currentStatus / valuation 서브 객체 처리 (stockAnalysis 형식)
+    const statusObj = item.currentStatus && typeof item.currentStatus === 'object' ? item.currentStatus : null;
+    const valuationObj = item.valuation && typeof item.valuation === 'object' ? item.valuation : null;
+    const statusText = statusObj
+      ? [statusObj.profitLossRate && `수익률 ${statusObj.profitLossRate}`,
+        statusObj.dailyChangeRate && `일변동 ${statusObj.dailyChangeRate}`].filter(Boolean).join(' / ')
+      : '';
+    const valuationText = valuationObj
+      ? [valuationObj.per && `PER ${valuationObj.per}`,
+        valuationObj.pbr && `PBR ${valuationObj.pbr}`,
+        valuationObj.assessment].filter(Boolean).join(' · ')
+      : '';
+    const metaItems = [action && `**${action}**`, statusText, valuationText].filter(Boolean).join(' · ');
+    return `**${name}**${metaItems ? ` — ${metaItems}` : ''}${reason ? ` — ${reason}` : ''}`;
   });
   if (holdingLines) sections.push(`## 보유 종목 진단\n${holdingLines}`);
 
+  // 추천 후보
   const recommendations = data.recommendations || data.recommendedStocks || data.recs;
   const recommendationLines = formatBulletItems(recommendations, (item) => {
     const name = pickText(item, ['name', 'stockName', 'symbol', 'ticker']) || formatValue(item);
@@ -1033,26 +1062,35 @@ function jsonReportToMarkdown(json) {
   });
   if (recommendationLines) sections.push(`## 추천 후보\n${recommendationLines}`);
 
+  // 우선순위 액션
   const actions = data.priorityActions || data.actions || data.nextSteps;
   const actionLines = formatBulletItems(actions, (item) => formatValue(item));
   if (actionLines) sections.push(`## 우선순위 액션\n${actionLines}`);
 
+  // 시나리오
   const scenarios = data.scenarios || data.scenario;
   const scenarioLines = Array.isArray(scenarios)
     ? formatBulletItems(scenarios, (item) => formatValue(item))
     : formatValue(scenarios);
   if (scenarioLines) sections.push(`## 시나리오\n${scenarioLines}`);
 
+  // 리스크
   const risk = pickText(data, ['risk', 'riskSummary', 'caution']);
   if (risk) sections.push(`## 리스크 체크\n${risk}`);
 
-  const extraEntries = Object.entries(data).filter(([key]) => ![
-    'title', 'headline', 'summary', 'overallSummary', 'overall', 'comment', 'diagnosis',
-    'sentiment', 'marketSentiment', 'grades', 'score', 'scores', 'holdings',
-    'holdingAnalysis', 'positions', 'recommendations', 'recommendedStocks', 'recs',
-    'priorityActions', 'actions', 'nextSteps', 'scenarios', 'scenario', 'risk',
-    'riskSummary', 'caution',
-  ].includes(key));
+  // 나머지 — 인식된 키 제외
+  const knownKeys = new Set([
+    'title', 'headline', 'reportTitle',
+    'summary', 'overallSummary', 'overall', 'comment', 'diagnosis', 'overallDiagnosis',
+    'sentiment', 'marketSentiment',
+    'grades', 'score', 'scores',
+    'holdings', 'holdingAnalysis', 'positions', 'stockAnalysis',
+    'recommendations', 'recommendedStocks', 'recs',
+    'priorityActions', 'actions', 'nextSteps',
+    'scenarios', 'scenario',
+    'risk', 'riskSummary', 'caution',
+  ]);
+  const extraEntries = Object.entries(data).filter(([key]) => !knownKeys.has(key));
   const extraLines = extraEntries
     .map(([key, value]) => {
       const formatted = formatValue(value);
@@ -1065,11 +1103,31 @@ function jsonReportToMarkdown(json) {
   return sections.filter(Boolean).join('\n\n');
 }
 
+// ## 헤딩은 있지만 # 헤딩이 없는 마크다운(ISA/단기/IRP)을 배너+요약 구조로 변환
+function wrapMarkdownWithBanner(md) {
+  if (!md || /^#\s/m.test(md)) return md;
+  const firstH2 = md.match(/^##\s+(.+)$/m);
+  if (!firstH2) return md;
+  const h2Title = firstH2[1].trim();
+  const h2Pos = md.indexOf(firstH2[0]);
+  const beforeH2 = md.slice(0, h2Pos).trim();
+  const afterH2 = md.slice(h2Pos + firstH2[0].length);
+  const nextH2Match = afterH2.match(/\n#{1,2}\s+/);
+  const summaryRaw = nextH2Match ? afterH2.slice(0, afterH2.indexOf(nextH2Match[0])) : '';
+  const rest = nextH2Match ? afterH2.slice(afterH2.indexOf(nextH2Match[0])).trim() : afterH2.trim();
+  const summaryText = [beforeH2, summaryRaw.split('\n').map((l) => l.trim()).filter(Boolean).join(' ')]
+    .filter(Boolean).join(' ');
+  const parts = [`# ${h2Title}`];
+  if (summaryText) parts.push(`> ${summaryText}`);
+  if (rest) parts.push(rest);
+  return parts.join('\n\n');
+}
+
 function normalizeReport(value) {
   if (value && typeof value === 'object') return jsonReportToMarkdown(value);
   if (typeof value !== 'string' || !value.trim()) return '';
-  // 마크다운(## 헤딩 포함)이면 그대로 반환
-  if (/^#{1,6}\s/m.test(value)) return value;
+  // 마크다운(## 헤딩 포함)이면 배너 래핑 후 반환
+  if (/^#{1,6}\s/m.test(value)) return wrapMarkdownWithBanner(value);
   const parsed = parseJsonReport(value);
   return parsed ? jsonReportToMarkdown(parsed) : value;
 }

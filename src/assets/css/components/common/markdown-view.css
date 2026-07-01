@@ -5,46 +5,126 @@
   word-break: break-word;
 }
 
-.md-body :deep(h1),
-.md-body :deep(h2),
-.md-body :deep(h3),
-.md-body :deep(h4) {
+/* H1: 리포트 타이틀 배너 */
+.md-body :deep(h1) {
+  font-size: 1.1rem;
+  font-weight: 800;
   color: #f0ece4;
-  font-weight: 700;
-  line-height: 1.35;
-  margin: 1.3em 0 0.6em;
+  margin: 0 0 1.1em;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(124, 111, 255, 0.13), rgba(106, 173, 106, 0.06));
+  border-left: 3px solid #7c6fff;
+  border-radius: 0 6px 6px 0;
+  line-height: 1.4;
 }
-.md-body :deep(h1) { font-size: 1.3rem; border-bottom: 1px solid #33333f; padding-bottom: 0.3em; }
-.md-body :deep(h2) { font-size: 1.15rem; border-bottom: 1px solid #2a2a36; padding-bottom: 0.25em; }
-.md-body :deep(h3) { font-size: 1.02rem; }
-.md-body :deep(h4) { font-size: 0.95rem; color: #c9c2e6; }
+
+/* H2: 섹션 헤더 */
+.md-body :deep(h2) {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #c9c2e6;
+  margin: 1.5em 0 0.65em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid rgba(124, 111, 255, 0.2);
+  letter-spacing: 0.02em;
+}
+.md-body :deep(h2::before) {
+  content: "│ ";
+  color: rgba(124, 111, 255, 0.6);
+  font-weight: 300;
+}
+
+/* H3: 서브 섹션 */
+.md-body :deep(h3) {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #e0b15e;
+  margin: 1.1em 0 0.4em;
+}
+
+/* H4 */
+.md-body :deep(h4) {
+  font-size: 0.87rem;
+  color: #c9c2e6;
+  font-weight: 600;
+  margin: 0.9em 0 0.35em;
+}
+
 .md-body :deep(*:first-child) { margin-top: 0; }
 
-.md-body :deep(p) { margin: 0.6em 0; }
+/* 문단 */
+.md-body :deep(p) { margin: 0.55em 0; }
 
+/* 강조 */
 .md-body :deep(strong) { color: #f0ece4; font-weight: 700; }
 .md-body :deep(em) { color: #c9c2e6; }
 .md-body :deep(a) { color: #9d92ff; text-decoration: underline; }
 
-.md-body :deep(ul),
-.md-body :deep(ol) { margin: 0.5em 0; padding-left: 1.4em; }
-.md-body :deep(li) { margin: 0.25em 0; }
-
+/* 인용문: 종합 요약 카드 */
 .md-body :deep(blockquote) {
-  margin: 0.8em 0;
-  padding: 0.4em 0.9em;
+  margin: 0.5em 0 1em;
+  padding: 11px 15px;
   border-left: 3px solid #7c6fff;
-  background: rgba(124, 111, 255, 0.07);
-  color: #b9b2e6;
+  background: rgba(124, 111, 255, 0.08);
+  border-radius: 0 6px 6px 0;
+  color: #c0bada;
+  font-size: 0.875rem;
+  line-height: 1.65;
+}
+.md-body :deep(blockquote p) { margin: 0; }
+.md-body :deep(blockquote strong) { color: #c9c2e6; }
+
+/* 비정렬 목록: 카드형 항목 */
+.md-body :deep(ul) {
+  margin: 0.4em 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.md-body :deep(ul li) {
+  padding: 8px 12px 8px 20px;
+  position: relative;
+  background: rgba(255, 255, 255, 0.027);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  line-height: 1.55;
+  font-size: 0.875rem;
+}
+.md-body :deep(ul li::before) {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 0.84em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(124, 111, 255, 0.75);
 }
 
+/* 정렬 목록 */
+.md-body :deep(ol) {
+  margin: 0.4em 0;
+  padding-left: 1.5em;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.md-body :deep(ol li) {
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+/* 코드 */
 .md-body :deep(code) {
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 0.84em;
-  background: #0e0e15;
+  font-size: 0.82em;
+  background: rgba(14, 14, 21, 0.85);
   border: 1px solid #2a2a36;
   border-radius: 4px;
-  padding: 0.1em 0.35em;
+  padding: 0.1em 0.4em;
+  color: #c9c2e6;
 }
 .md-body :deep(pre) {
   background: #0e0e15;
@@ -54,29 +134,31 @@
   overflow-x: auto;
   margin: 0.8em 0;
 }
-.md-body :deep(pre code) { border: none; background: none; padding: 0; }
+.md-body :deep(pre code) { border: none; background: none; padding: 0; color: #d8d8e0; }
 
-/* 표 — 재무/비교 표 가독성 핵심 */
+/* 표 */
 .md-body :deep(table) {
   border-collapse: collapse;
   width: 100%;
   margin: 0.9em 0;
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   display: block;
   overflow-x: auto;
 }
 .md-body :deep(th),
 .md-body :deep(td) {
   border: 1px solid #2f2f3d;
-  padding: 0.5em 0.7em;
+  padding: 0.45em 0.7em;
   text-align: left;
   white-space: nowrap;
 }
 .md-body :deep(th) {
-  background: rgba(124, 111, 255, 0.12);
+  background: rgba(124, 111, 255, 0.14);
   color: #e8e4f5;
   font-weight: 600;
 }
-.md-body :deep(tr:nth-child(even) td) { background: rgba(255, 255, 255, 0.02); }
+.md-body :deep(tr:nth-child(even) td) { background: rgba(255, 255, 255, 0.025); }
+.md-body :deep(tr:hover td) { background: rgba(124, 111, 255, 0.05); }
 
+/* 수평선 */
 .md-body :deep(hr) { border: none; border-top: 1px solid #2a2a36; margin: 1.2em 0; }
