@@ -376,6 +376,68 @@
   font-size: 13px;
   line-height: 1.55;
 }
+
+/* 우선순위 액션 — 종목별 카드 */
+.pana-action-cards {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pana-action-card {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.028);
+  border: 1px solid var(--card-border);
+  border-left: 3px solid var(--card-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pana-action-card.act-add         { border-left-color: #e0b15e; }
+.pana-action-card.act-take-profit { border-left-color: #8fce8f; }
+.pana-action-card.act-hold        { border-left-color: #a8c8f0; }
+.pana-action-card.act-cut-loss    { border-left-color: #e89a9a; }
+.pana-action-card.act-reduce      { border-left-color: #d98f5b; }
+.pana-action-card.act-watch       { border-left-color: var(--accent); }
+.pana-action-card-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.pana-action-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(224, 177, 94, 0.22);
+  color: #e0b15e;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  flex: 0 0 auto;
+}
+.pana-action-chip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--card-border);
+  white-space: nowrap;
+}
+.pana-action-text {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .pana-question {
   padding: 14px 16px;
   border-radius: 8px;
@@ -434,7 +496,9 @@
 .pana-holding-card.act-take-profit { border-left-color: #8fce8f; }
 .pana-holding-card.act-hold        { border-left-color: #a8c8f0; }
 .pana-holding-card.act-cut-loss    { border-left-color: #e89a9a; }
+.pana-holding-card.act-reduce      { border-left-color: #d98f5b; }
 .pana-holding-card.act-watch       { border-left-color: var(--accent); }
+.pana-holding-card { display: flex; flex-direction: column; gap: 8px; }
 
 .pana-holding-head {
   display: flex; justify-content: space-between; align-items: flex-start;
@@ -442,6 +506,20 @@
 }
 .pana-holding-name-wrap {
   display: flex; gap: 8px; align-items: center;
+}
+.pana-holding-name-col {
+  display: flex; flex-direction: column; gap: 2px; min-width: 0;
+}
+.pana-holding-tag {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--card-border);
+  white-space: nowrap;
 }
 .pana-flag { font-size: 1.1rem; }
 .pana-holding-name { font-weight: 700; color: var(--text-primary); font-size: 14px; }
@@ -458,6 +536,7 @@
 .pana-action-pill.act-take-profit { background: rgba(106, 173, 106, 0.22); color: #8fce8f; }
 .pana-action-pill.act-hold        { background: rgba(125, 175, 240, 0.18); color: #a8c8f0; }
 .pana-action-pill.act-cut-loss    { background: rgba(196, 90, 90, 0.25);   color: #e89a9a; }
+.pana-action-pill.act-reduce      { background: rgba(217, 143, 91, 0.22);  color: #d98f5b; }
 .pana-action-pill.act-watch       { background: var(--accent-dim);          color: var(--accent-light); }
 
 .pana-pnl {
@@ -466,8 +545,40 @@
 .pana-pnl.pnl-pos { color: #8fce8f; }
 .pana-pnl.pnl-neg { color: #e89a9a; }
 
+.pana-holding-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(10, 10, 18, 0.24);
+}
+.pana-holding-field {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.pana-holding-field-label {
+  flex: 0 0 auto;
+  min-width: 84px;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+.pana-holding-field-value {
+  color: var(--text-secondary);
+  word-break: break-word;
+}
+.pana-holding-reason-label {
+  margin-top: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
 .pana-holding-reason {
-  margin-top: 8px;
+  margin: 0;
   font-size: 13px;
   color: var(--text-primary);
   line-height: 1.5;

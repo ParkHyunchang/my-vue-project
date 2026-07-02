@@ -35,7 +35,75 @@
 
         <!-- 결과 -->
         <div v-else-if="report" class="pana-result">
-          <MarkdownView :text="report" />
+          <template v-if="reportSections">
+            <template v-for="block in reportSections.blocks" :key="block.key">
+              <MarkdownView v-if="block.type === 'markdown'" :text="block.text" />
+
+              <section v-else-if="block.type === 'holdings'" class="pana-section">
+                <div class="pana-section-head">
+                  <h4>{{ block.title }}</h4>
+                </div>
+                <div class="pana-holdings">
+                  <article
+                    v-for="h in block.holdings"
+                    :key="h.key"
+                    :class="['pana-holding-card', `act-${h.actionCode}`]"
+                  >
+                    <div class="pana-holding-head">
+                      <div class="pana-holding-name-wrap">
+                        <span v-if="h.tag" class="pana-holding-tag">{{ h.tag }}</span>
+                        <div class="pana-holding-name-col">
+                          <div class="pana-holding-name">{{ h.name }}</div>
+                          <div v-if="h.ticker" class="pana-holding-sym">{{ h.ticker }}</div>
+                        </div>
+                      </div>
+                      <span :class="['pana-action-pill', `act-${h.actionCode}`]">{{ h.actionLabel }}</span>
+                    </div>
+
+                    <div v-if="h.metrics.length" class="pana-stock-metrics">
+                      <span v-for="m in h.metrics" :key="m.text" :class="m.cls">{{ m.text }}</span>
+                    </div>
+
+                    <div v-if="h.detailFields.length" class="pana-holding-fields">
+                      <div v-for="f in h.detailFields" :key="f.label" class="pana-holding-field">
+                        <span class="pana-holding-field-label">{{ f.label }}</span>
+                        <span class="pana-holding-field-value">{{ f.value }}</span>
+                      </div>
+                    </div>
+
+                    <template v-if="h.reason">
+                      <div class="pana-holding-reason-label">AI 판단</div>
+                      <p class="pana-holding-reason">{{ h.reason }}</p>
+                    </template>
+                  </article>
+                </div>
+              </section>
+
+              <section v-else-if="block.type === 'actions'" class="pana-section">
+                <div class="pana-section-head">
+                  <h4>{{ block.title }}</h4>
+                </div>
+                <ul class="pana-action-cards">
+                  <li
+                    v-for="(a, idx) in block.actions"
+                    :key="a.key"
+                    :class="['pana-action-card', a.hasAction ? `act-${a.actionCode}` : '']"
+                  >
+                    <div class="pana-action-card-head">
+                      <span class="pana-action-num">{{ idx + 1 }}</span>
+                      <span v-for="m in a.mentions" :key="m.ticker + m.name" class="pana-action-chip">
+                        {{ m.name }}<template v-if="m.ticker"> · {{ m.ticker }}</template>
+                      </span>
+                      <span v-if="a.hasAction" :class="['pana-action-pill', `act-${a.actionCode}`]">{{ a.actionLabel }}</span>
+                    </div>
+                    <p class="pana-action-text">{{ a.text }}</p>
+                  </li>
+                </ul>
+              </section>
+            </template>
+          </template>
+
+          <MarkdownView v-else :text="report" />
 
           <div class="pana-meta">
             <span class="pana-provider-tag">{{ providerName }}<span v-if="model"> · {{ model }}</span></span>
@@ -1132,6 +1200,164 @@ function normalizeReport(value) {
   return parsed ? jsonReportToMarkdown(parsed) : value;
 }
 
+// "평단가 대비 손익률 +12.3%, 일변동률 -1.2%" 형태 문자열을 색상 칩으로 분해
+function extractHoldingMetrics(text) {
+  return String(text || '')
+    .split(/[,·]/)
+    .map((piece) => piece.trim())
+    .filter(Boolean)
+    .map((piece) => {
+      const match = piece.match(/(-?\+?\d+(?:\.\d+)?)\s*%/);
+      let cls = 'is-flat';
+      if (match) {
+        const num = parseFloat(match[1].replace('+', ''));
+        if (num > 0) cls = 'is-up';
+        else if (num < 0) cls = 'is-down';
+      }
+      return { text: piece, cls };
+    });
+}
+
+function normalizeHoldingActionCode(label) {
+  const raw = String(label || '');
+  if (/추가매수|추가적립|ADD/i.test(raw)) return 'add';
+  if (/전량익절|부분익절|이익실현|TAKE_PROFIT/i.test(raw)) return 'take-profit';
+  if (/손절|CUT_LOSS/i.test(raw)) return 'cut-loss';
+  if (/비중축소|REDUCE/i.test(raw)) return 'reduce';
+  if (/관망|WATCH/i.test(raw)) return 'watch';
+  if (/보유|HOLD/i.test(raw)) return 'hold';
+  return 'watch';
+}
+
+// "### [종목명 (티커)] — [코어/위성] — 판단: X" 헤딩 + "- **라벨**: 값" 본문 파싱
+function parseHoldingCards(sectionBody) {
+  const chunks = sectionBody
+    .split(/\n(?=###\s+)/)
+    .map((chunk) => chunk.trim())
+    .filter(Boolean);
+
+  return chunks
+    .map((chunk, idx) => {
+      const headingMatch = chunk.match(/^###\s+(.+)$/m);
+      if (!headingMatch) return null;
+      const heading = headingMatch[1].trim();
+      const body = chunk.slice(headingMatch[0].length).trim();
+
+      const brackets = [...heading.matchAll(/\[([^\]]+)\]/g)].map((m) => m[1].trim());
+      const judgeMatch = heading.match(/판단\s*[:：]\s*(.+)$/);
+      const actionLabel = judgeMatch ? judgeMatch[1].trim() : '';
+      const nameTicker = brackets[0] || heading.replace(/—.*$/, '').trim();
+      const tag = brackets[1] || '';
+
+      const ntMatch = nameTicker.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
+      const name = (ntMatch ? ntMatch[1] : nameTicker).trim();
+      const ticker = ntMatch ? ntMatch[2].trim() : '';
+      if (!name) return null;
+
+      const fields = [...body.matchAll(/^-\s*\*\*([^*]+)\*\*[:：]?\s*(.+)$/gm)]
+        .map((m) => ({ label: m[1].trim(), value: m[2].trim() }))
+        .filter((f) => f.value);
+
+      const statusField = fields.find((f) => f.label.includes('현황'));
+      const reasonField = [...fields].reverse().find((f) => f.label.includes('판단'));
+      const detailFields = fields.filter((f) => f !== statusField && f !== reasonField);
+
+      return {
+        key: `hc-${idx}-${ticker || name}`,
+        name,
+        ticker,
+        tag,
+        actionLabel: actionLabel || '관망',
+        actionCode: normalizeHoldingActionCode(actionLabel),
+        metrics: statusField ? extractHoldingMetrics(statusField.value) : [],
+        detailFields,
+        reason: reasonField ? reasonField.value : '',
+      };
+    })
+    .filter(Boolean);
+}
+
+const ACTION_CODE_LABELS = {
+  add: '추가매수', 'take-profit': '이익실현', 'cut-loss': '손절 검토',
+  reduce: '비중 축소', hold: '보유', watch: '관망',
+};
+
+// "1. ..." / "- ..." 목록 줄만 추출(목록이 아니면 문단 그대로 사용)
+function splitActionLines(text) {
+  const lines = String(text || '').split('\n').map((l) => l.trim()).filter(Boolean);
+  const listLines = lines
+    .filter((l) => /^(\d+[.)]|[-*])\s+/.test(l))
+    .map((l) => l.replace(/^(\d+[.)]|[-*])\s+/, '').trim());
+  return listLines.length ? listLines : lines;
+}
+
+// 액션 항목 문장에서 "종목명 (티커)" 언급과 판단 코드(CUT_LOSS 등)를 추출해 카드용 데이터로 변환
+function parseActionCards(sectionBody) {
+  return splitActionLines(sectionBody)
+    .map((line, idx) => {
+      const clean = cleanInlineText(line);
+      if (!clean) return null;
+
+      const mentions = [...clean.matchAll(/([A-Za-z0-9가-힣][A-Za-z0-9가-힣&.\-\s]{1,40}?)\s*\(([A-Za-z0-9.]{2,12})\)/g)]
+        .map((m) => ({ name: m[1].trim(), ticker: m[2].trim() }))
+        .filter((m) => m.name.length >= 2);
+
+      const actionMatch = clean.match(/\b(CUT_LOSS|TAKE_PROFIT|ADD|HOLD|WATCH|REDUCE)\b/);
+      const actionCode = actionMatch ? normalizeHoldingActionCode(actionMatch[1]) : '';
+
+      return {
+        key: `pact-${idx}`,
+        mentions,
+        hasAction: Boolean(actionMatch),
+        actionCode: actionCode || 'watch',
+        actionLabel: ACTION_CODE_LABELS[actionCode] || '',
+        text: clean,
+      };
+    })
+    .filter(Boolean);
+}
+
+// 마크다운을 "## " 섹션 단위로 나눠, 종목별 분석/우선순위 액션은 카드 블록으로, 나머지는 마크다운 블록으로 반환
+function splitReportSections(markdown) {
+  if (typeof markdown !== 'string' || !markdown.trim()) return null;
+
+  const headingRe = /^##\s+(.+)$/gm;
+  const matches = [...markdown.matchAll(headingRe)];
+  if (!matches.length) return null;
+
+  const blocks = [];
+  const lead = markdown.slice(0, matches[0].index).trim();
+  if (lead) blocks.push({ type: 'markdown', key: 'lead', text: lead });
+
+  matches.forEach((m, i) => {
+    const heading = m[1].trim();
+    const bodyStart = m.index + m[0].length;
+    const bodyEnd = i + 1 < matches.length ? matches[i + 1].index : markdown.length;
+    const body = markdown.slice(bodyStart, bodyEnd).trim();
+
+    if (/^종목별\s.+분석$/.test(heading) && /^###\s+/m.test(body)) {
+      const holdings = parseHoldingCards(body);
+      if (holdings.length) {
+        blocks.push({ type: 'holdings', key: `blk-${i}`, title: heading, holdings });
+        return;
+      }
+    }
+
+    if (/^우선순위\s*액션$/.test(heading)) {
+      const actions = parseActionCards(body);
+      if (actions.length) {
+        blocks.push({ type: 'actions', key: `blk-${i}`, title: heading, actions });
+        return;
+      }
+    }
+
+    blocks.push({ type: 'markdown', key: `blk-${i}`, text: `## ${heading}\n\n${body}` });
+  });
+
+  const hasCardBlock = blocks.some((b) => b.type !== 'markdown');
+  return hasCardBlock ? { blocks } : null;
+}
+
 export default {
   name: 'PortfolioAnalysisModal',
   components: { Modal, MarkdownView },
@@ -1167,6 +1393,7 @@ export default {
     const lastFetchAt = ref(0);
 
     const loadingText = computed(() => loadingMessages.value[loadingMsgIdx.value]);
+    const reportSections = computed(() => splitReportSections(report.value));
 
     function reset() {
       loading.value = false;
@@ -1375,7 +1602,7 @@ export default {
     }
 
     return {
-      loading, error, blocked, result, report, uiReport,
+      loading, error, blocked, result, report, uiReport, reportSections,
       providerName, model, analyzedAt,
       retryCountdown, cooldownSec, allDisabled, hasProposedWeights,
       loadingText,
