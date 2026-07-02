@@ -81,6 +81,17 @@
   line-height: 1.5;
 }
 
+.badge-customized {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  color: #e0b15e;
+  background: rgba(224, 177, 94, 0.14);
+  border: 1px solid rgba(224, 177, 94, 0.32);
+  white-space: nowrap;
+}
+
 .btn-edit {
   border: none;
   border-radius: 8px;
