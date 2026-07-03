@@ -224,8 +224,14 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
 import axios from "@/axios";
 import { logAudit } from "@/utils/audit";
+import { apiErrorMessage } from "@/utils/apiError";
 import { useStockFormatters } from "@/composables/useStockFormatters";
 import { usePortfolioStats } from "@/composables/usePortfolioStats";
+import {
+  buildAnalysisContext,
+  useHoldingDisplay,
+  useHoldingsPricing,
+} from "@/composables/useHoldingsPricing";
 import PortfolioSummary from "@/components/stock/PortfolioSummary.vue";
 import HoldingsTable from "@/components/stock/HoldingsTable.vue";
 import HoldingsCards from "@/components/stock/HoldingsCards.vue";
@@ -233,92 +239,10 @@ import PortfolioChart from "@/components/stock/PortfolioChart.vue";
 import AddHoldingModal from "@/components/stock/AddHoldingModal.vue";
 import StockAnalysisModal from "@/components/stock/StockAnalysisModal.vue";
 import PortfolioAnalysisModal from "@/components/stock/PortfolioAnalysisModal.vue";
-
-const ACCOUNT_CONFIGS = {
-  stock: {
-    label: "장기 주식계좌",
-    storageKey: "stock_portfolio",
-    apiPath: "/api/portfolio/holdings",
-    displayCurrencyKey: "stock_displayCurrency",
-    sortKey: "stock_sortKey",
-    sortDirKey: "stock_sortDir",
-    remote: true,
-    allowCash: false,
-    emptyTitle: "장기 주식계좌 보유 종목이 없습니다",
-    emptyDescription: "장기 주식계좌에 담은 국내·미국 종목을 추가하면 장기 포트폴리오 현황을 한눈에 확인할 수 있습니다.",
-    aiButtonLabel: "📊 장기 주식계좌 AI 진단",
-    aiHint: "장기 보유 종목 시그널 + 코어/위성 전략 진단",
-    auditView: "STOCK/HOLDING",
-    auditAnalysis: "STOCK/AI-ANALYSIS",
-    auditPortfolio: "STOCK/AI-PORTFOLIO",
-    analysisNote: "장기 주식계좌입니다. 국내·미국 주식을 장기 보유하는 계좌로, 코어/위성 전략 기준으로 종목별 펀더멘털·밸류에이션 분석을 중심으로 진단하세요.",
-  },
-  isa: {
-    label: "ISA 계좌",
-    storageKey: "stock_portfolio_isa",
-    apiPath: "/api/portfolio/isa/holdings",
-    displayCurrencyKey: "stock_isa_displayCurrency",
-    sortKey: "stock_isa_sortKey",
-    sortDirKey: "stock_isa_sortDir",
-    remote: true,
-    allowCash: true,
-    emptyTitle: "ISA 보유 종목이 없습니다",
-    emptyDescription: "ISA 계좌에 담은 종목을 추가하면 중장기 적립식 포트폴리오를 따로 관리할 수 있습니다.",
-    aiButtonLabel: "📊 ISA 포트폴리오 AI 진단",
-    aiHint: "중장기 적립식 포트폴리오 — 세제혜택 + 적립 전략 진단",
-    auditView: "STOCK/ISA",
-    auditAnalysis: "STOCK/ISA/AI-ANALYSIS",
-    auditPortfolio: "STOCK/ISA/AI-PORTFOLIO",
-    analysisNote: "ISA 계좌입니다. 중장기 적립식 운용 전략으로 계속 모아가는 계좌입니다. 서민형 ISA 기본정보는 내부 판단 기준으로만 사용하고, 세제·의무기간 판단에 직접 필요할 때만 언급하세요.",
-  },
-  general: {
-    label: "단기 주식계좌",
-    storageKey: "stock_portfolio_general",
-    apiPath: "/api/portfolio/general/holdings",
-    displayCurrencyKey: "stock_general_displayCurrency",
-    sortKey: "stock_general_sortKey",
-    sortDirKey: "stock_general_sortDir",
-    remote: true,
-    allowCash: true,
-    emptyTitle: "단기 주식계좌 보유 종목이 없습니다",
-    emptyDescription: "단기 주식계좌에 단기매매 중인 종목을 추가하면 매매 포지션 현황을 한눈에 확인할 수 있습니다.",
-    aiButtonLabel: "📈 단기 포트폴리오 AI 진단",
-    aiHint: "단기매매 포지션 — 익절·손절·모멘텀 시그널 진단",
-    auditView: "STOCK/GENERAL",
-    auditAnalysis: "STOCK/GENERAL/AI-ANALYSIS",
-    auditPortfolio: "STOCK/GENERAL/AI-PORTFOLIO",
-    analysisNote: "단기 주식계좌입니다. 1종목당 200~300만원 소액으로 단기 스윙 매매를 하는 계좌입니다. 장기 보유 원칙 없이 모멘텀·뉴스 기반으로 익절·손절을 적극 활용합니다.",
-  },
-  irp: {
-    label: "IRP 계좌",
-    storageKey: "stock_portfolio_irp",
-    apiPath: "/api/portfolio/irp/holdings",
-    displayCurrencyKey: "stock_irp_displayCurrency",
-    sortKey: "stock_irp_sortKey",
-    sortDirKey: "stock_irp_sortDir",
-    remote: true,
-    allowCash: true,
-    emptyTitle: "IRP 보유 종목이 없습니다",
-    emptyDescription: "IRP 계좌에 담은 종목을 추가하면 은퇴 자산 관점의 비중과 리스크를 따로 볼 수 있습니다.",
-    aiButtonLabel: "🛡️ IRP 포트폴리오 AI 진단",
-    aiHint: "퇴직연금 IRP — 장기 안정성·위험자산 한도 진단",
-    auditView: "STOCK/IRP",
-    auditAnalysis: "STOCK/IRP/AI-ANALYSIS",
-    auditPortfolio: "STOCK/IRP/AI-PORTFOLIO",
-    analysisNote: "IRP 계좌입니다. 은퇴자산 장기 적립 계좌로 계속 모아가는 전략입니다. 위험자산 70% 한도와 안전자산 약 30% 기준은 리밸런싱 판단에 직접 필요할 때만 언급하세요.",
-  },
-};
-
-function normalizeAccountType(value) {
-  return Object.prototype.hasOwnProperty.call(ACCOUNT_CONFIGS, value) ? value : "stock";
-}
+import { ACCOUNT_CONFIGS, isCashHolding, normalizeAccountType } from "@/config/stockAccounts";
 
 function makeLocalHoldingId(accountType) {
   return `${accountType}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function isCashHolding(holding) {
-  return holding?.assetType === "CASH";
 }
 
 export default {
@@ -350,13 +274,9 @@ export default {
     const portfolioApiPath = baseAccountConfig.apiPath;
 
     const holdings = ref([]);
-    const prices = ref({});
-    const priceLoading = ref(false);
     const initialLoading = ref(true);
     const portfolioView = ref("grid");
     const marketFilter = ref("all");
-    const exchangeRate = ref(0);
-    const exRateAt = ref("");
     const displayCurrency = ref(
       localStorage.getItem(baseAccountConfig.displayCurrencyKey) === "krw" ? "krw" : "native",
     );
@@ -381,14 +301,26 @@ export default {
     const editingId = ref(null);
     const editForm = ref({ quantity: null, avgPrice: null });
 
-    const lastUpdatedAt = ref(null);
-    const relativeUpdated = ref("");
+    const {
+      prices,
+      priceLoading,
+      exchangeRate,
+      exRateAt,
+      lastUpdatedAt,
+      relativeUpdated,
+      fetchPrices,
+      startTimers,
+      stopTimers,
+    } = useHoldingsPricing({
+      holdings,
+      active: () => props.active,
+      refreshGuard: () => editingId.value === null,
+      freshThresholdSec: 10,
+      relativeSuffix: " 업데이트",
+    });
     const sortKey = ref(localStorage.getItem(baseAccountConfig.sortKey) || "");
     const sortDir = ref(localStorage.getItem(baseAccountConfig.sortDirKey) || "asc");
     const hoveredSegId = ref(null);
-
-    let refreshTimer = null;
-    let relativeTimer = null;
 
     function emitHoldingsChanged() {
       emit("holdings-changed", holdings.value);
@@ -474,54 +406,6 @@ export default {
       emitHoldingsChanged();
     }
 
-    async function fetchPrices() {
-      if (holdings.value.length === 0) return;
-      priceLoading.value = true;
-      const results = {};
-      holdings.value.forEach((h) => {
-        if (isCashHolding(h)) {
-          results[h.symbol] = { price: 1, changePercent: null };
-        }
-      });
-      const tasks = holdings.value.filter((h) => !isCashHolding(h)).map(async (h) => {
-        try {
-          const res = await axios.get("/api/stock/quote", {
-            params: { symbol: h.symbol, market: h.market.toLowerCase() },
-          });
-          results[h.symbol] = res.data;
-        } catch { /* noop */ }
-      });
-      const hasUs = holdings.value.some((h) => !isCashHolding(h) && h.market === "US");
-      if (hasUs) tasks.push(fetchExchangeRate());
-      await Promise.all(tasks);
-      prices.value = results;
-      priceLoading.value = false;
-      lastUpdatedAt.value = new Date();
-      updateRelativeTime();
-    }
-
-    function updateRelativeTime() {
-      if (!lastUpdatedAt.value) return;
-      const sec = Math.floor((Date.now() - lastUpdatedAt.value.getTime()) / 1000);
-      if (sec < 10) relativeUpdated.value = "방금 전 업데이트";
-      else if (sec < 60) relativeUpdated.value = `${sec}초 전 업데이트`;
-      else relativeUpdated.value = `${Math.floor(sec / 60)}분 전 업데이트`;
-    }
-
-    async function fetchExchangeRate() {
-      try {
-        const res = await axios.get("/api/stock/quote", {
-          params: { symbol: "USDKRW=X", market: "us" },
-        });
-        if (res.data?.price) {
-          exchangeRate.value = res.data.price;
-          exRateAt.value = new Date().toLocaleTimeString("ko-KR", {
-            hour: "2-digit", minute: "2-digit",
-          });
-        }
-      } catch { /* noop */ }
-    }
-
     function openAddModal() { showAddModal.value = true; }
 
     function openAnalysis(h) {
@@ -587,16 +471,6 @@ export default {
       setTimeout(() => { showDropdown.value = false; }, 200);
     }
 
-    function describeApiError(err, fallback) {
-      const status = err?.response?.status;
-      const body = err?.response?.data;
-      const serverMsg = typeof body === "string" ? body : body?.message;
-      if (status === 403) return serverMsg || "해당 작업에 대한 권한이 없습니다. 관리자에게 문의하세요.";
-      if (status === 401) return "로그인이 만료되었습니다. 다시 로그인해주세요.";
-      if (serverMsg) return serverMsg;
-      return fallback;
-    }
-
     async function addHolding() {
       const h = newHolding.value;
       const assetType = h.assetType === "CASH" ? "CASH" : "STOCK";
@@ -635,7 +509,7 @@ export default {
         closeAddModal();
         fetchPrices();
       } catch (err) {
-        alert(describeApiError(err, "종목 추가에 실패했습니다."));
+        alert(apiErrorMessage(err, "종목 추가에 실패했습니다."));
       }
     }
 
@@ -659,7 +533,7 @@ export default {
         if (idx !== -1) holdings.value[idx] = normalizeHoldingForAccount(res.data);
         emitHoldingsChanged();
       } catch (err) {
-        alert(describeApiError(err, "코어 설정 변경에 실패했습니다."));
+        alert(apiErrorMessage(err, "코어 설정 변경에 실패했습니다."));
       }
     }
 
@@ -678,7 +552,7 @@ export default {
         holdings.value = holdings.value.filter((h) => h.id !== id);
         emitHoldingsChanged();
       } catch (err) {
-        alert(describeApiError(err, "종목 삭제에 실패했습니다."));
+        alert(apiErrorMessage(err, "종목 삭제에 실패했습니다."));
       }
     }
 
@@ -714,7 +588,7 @@ export default {
         emitHoldingsChanged();
         fetchPrices();
       } catch (err) {
-        alert(describeApiError(err, "종목 수정에 실패했습니다."));
+        alert(apiErrorMessage(err, "종목 수정에 실패했습니다."));
       }
     }
 
@@ -744,65 +618,6 @@ export default {
       holdPnl, holdPnlPct, holdValKRW,
     } = stats;
 
-    function usToKRW(v) {
-      return exchangeRate.value > 0 ? v * exchangeRate.value : v;
-    }
-    function inKRWMode(market) {
-      return market === "US" && displayCurrency.value === "krw" && exchangeRate.value > 0;
-    }
-    function fmtMoney(v, market) {
-      if (v == null) return "—";
-      if (market === "KR") return fmtKRW(v);
-      return inKRWMode(market) ? fmtKRW(usToKRW(v)) : fmtUSD(v);
-    }
-    function fmtAbsPnl(v) {
-      const abs = Math.abs(v);
-      const krPart = filteredHoldings.value.filter(
-        (h) => h.market === "KR" && h.avgPrice,
-      ).length;
-      if (krPart > 0) return fmtKRW(abs);
-      return displayCurrency.value === "krw" && exchangeRate.value > 0
-        ? fmtKRW(usToKRW(abs))
-        : fmtUSD(abs);
-    }
-    function fmtCurPrice(h) {
-      if (isCashHolding(h)) return "현금";
-      const p = prices.value[h.symbol];
-      return p ? fmtMoney(p.price, h.market) : "—";
-    }
-    function fmtHoldVal(h) {
-      if (isCashHolding(h)) return fmtKRW(Number(h.quantity) || 0);
-      const p = prices.value[h.symbol];
-      return p ? fmtMoney(p.price * h.quantity, h.market) : "—";
-    }
-    function fmtHoldPnl(h) {
-      if (isCashHolding(h)) return "—";
-      const v = holdPnl(h);
-      if (v === null) return "—";
-      return (v >= 0 ? "+" : "") + fmtMoney(v, h.market);
-    }
-    function fmtHoldPnlPct(h) {
-      if (isCashHolding(h)) return "—";
-      const v = holdPnlPct(h);
-      if (v === null) return "—";
-      return (v >= 0 ? "+" : "") + v.toFixed(2) + "%";
-    }
-    function fmtLegVal(seg) {
-      if (seg.currency === "KRW") {
-        return seg.value >= 1e8
-          ? (seg.value / 1e8).toFixed(1) + "억"
-          : fmtKRW(seg.value);
-      }
-      const usdStr = "$" + seg.value.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-      if (seg.valKRW > 0) {
-        const krwStr = seg.valKRW >= 1e8
-          ? (seg.valKRW / 1e8).toFixed(1) + "억"
-          : fmtKRW(seg.valKRW);
-        return `${usdStr} ≈ ${krwStr}`;
-      }
-      return usdStr;
-    }
-
     function toggleSort(key) {
       if (sortKey.value === key) {
         sortDir.value = sortDir.value === "asc" ? "desc" : "asc";
@@ -814,70 +629,45 @@ export default {
       localStorage.setItem(baseAccountConfig.sortDirKey, sortDir.value);
     }
 
-    function fmtChangePct(h) {
-      if (isCashHolding(h)) return null;
-      return prices.value[h.symbol]?.changePercent ?? null;
-    }
-    function fmtChangePctDisplay(h) {
-      const v = fmtChangePct(h);
-      if (v === null) return "—";
-      return (v >= 0 ? "+" : "") + v.toFixed(2) + "%";
-    }
-    function changePctCls(h) {
-      if (isCashHolding(h)) return "";
-      return pnlCls(fmtChangePct(h));
-    }
+    const {
+      fmtMoney,
+      fmtAbsPnl,
+      fmtCurPrice,
+      fmtHoldVal,
+      fmtHoldPnl,
+      fmtHoldPnlPct,
+      fmtLegVal,
+      fmtChangePctDisplay,
+      changePctCls,
+    } = useHoldingDisplay({
+      displayCurrency,
+      exchangeRate,
+      prices,
+      filteredHoldings,
+      holdPnl,
+      holdPnlPct,
+    });
 
     const hoveredSegment = computed(() =>
       hoveredSegId.value ? chartSegments.value.find((s) => s.id === hoveredSegId.value) : null,
     );
 
-    const portfolioAnalysisContext = computed(() => {
-      const totalKRW = chartSegments.value.reduce((sum, seg) => sum + (seg.valKRW || 0), 0);
-      const segmentById = new Map(chartSegments.value.map((seg) => [seg.id, seg]));
-      const enrichedHoldings = filteredHoldings.value.map((h) => {
-        const quote = prices.value[h.symbol] || {};
-        const seg = segmentById.get(h.id);
-        const currentPrice = quote.price ?? null;
-        const marketValue = currentPrice != null ? currentPrice * h.quantity : null;
-        const marketValueKRW = h.market === "KR"
-          ? marketValue
-          : (marketValue != null && exchangeRate.value > 0 ? marketValue * exchangeRate.value : null);
-        const weightPct = totalKRW > 0 && marketValueKRW != null
-          ? (marketValueKRW / totalKRW) * 100
-          : null;
-
-        return {
-          id: h.id,
-          assetType: h.assetType || "STOCK",
-          market: h.market,
-          name: h.name,
-          symbol: h.symbol,
-          core: !!h.core,
-          quantity: h.quantity,
-          avgPrice: h.avgPrice ?? null,
-          currentPrice,
-          marketValue,
-          marketValueKRW,
-          weightPct,
-          changePercent: quote.changePercent ?? null,
-          pnlPct: holdPnlPct(h),
-          chartWeightPct: seg ? seg.pct * 100 : null,
-        };
-      });
-
-      return {
+    const portfolioAnalysisContext = computed(() =>
+      buildAnalysisContext({
         accountType: normalizedAccountType,
         accountLabel: accountUi.value.label,
         accountNote: accountUi.value.analysisNote,
-        asOf: lastUpdatedAt.value ? lastUpdatedAt.value.toISOString() : new Date().toISOString(),
-        exchangeRate: exchangeRate.value || null,
-        totalValueKRW: totalKRW || totalValKRW.value || null,
-        holdings: enrichedHoldings,
-        marketFilter: marketFilter.value !== 'all' ? marketFilter.value.toUpperCase() : null,
+        filteredHoldings,
+        prices,
+        exchangeRate,
+        chartSegments,
+        holdPnlPct,
+        totalValKRW,
+        marketFilter,
+        lastUpdatedAt,
         instruction: `This is the user's ${accountUi.value.label} account. Use holdings[].weightPct as the current portfolio weight. If weightPct is present, do not ask the user for weights. ${accountUi.value.analysisNote}`,
-      };
-    });
+      }),
+    );
 
     const showCurrencyToggle = computed(
       () =>
@@ -910,16 +700,12 @@ export default {
         logAudit(accountUi.value.auditView);
         fetchPrices();
       }
-      refreshTimer = setInterval(() => {
-        if (props.active && editingId.value === null) fetchPrices();
-      }, 120000);
-      relativeTimer = setInterval(updateRelativeTime, 10000);
+      startTimers();
       document.addEventListener("keydown", onKeydown);
     });
 
     onBeforeUnmount(() => {
-      clearInterval(refreshTimer);
-      clearInterval(relativeTimer);
+      stopTimers();
       clearTimeout(searchTimer);
       document.removeEventListener("keydown", onKeydown);
     });

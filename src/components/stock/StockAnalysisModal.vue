@@ -172,11 +172,11 @@
 </template>
 
 <script>
-import { ref, computed, watch, onBeforeUnmount } from 'vue';
+import { ref, computed, watch } from 'vue';
 import axios from '@/axios';
 import Modal from '@/components/Modal.vue';
 import MarkdownView from '@/components/common/MarkdownView.vue';
-import { apiErrorMessage } from '@/utils/apiError';
+import { useAiAnalysis } from '@/composables/useAiAnalysis';
 import { logger } from '@/utils/logger';
 
 function parseJsonReport(value) {
@@ -339,82 +339,51 @@ export default {
   },
   emits: ['close', 'analyzed'],
   setup(props, { emit }) {
-    const loading = ref(false);
-    const error = ref('');
-    const blocked = ref(false);
-    const report = ref('');
     const sources = ref([]);
-    const providerName = ref('');
-    const model = ref('');
-    const analyzedAt = ref(null);
-    const retryAt = ref(null);
-    const providersStatus = ref([]);
-
-    const loadingMessages = [
-      '현재가와 최근 변동률을 확인하는 중...',
-      'KRX·OpenDART 재무 지표를 계산하는 중...',
-      'AI가 밸류에이션과 리스크를 정리하는 중...',
-    ];
-    const loadingMsgIdx = ref(0);
-    let loadingTimer = null;
-    let tickerTimer = null;
-    const now = ref(Date.now());
-    const lastFetchAt = ref(0);
-
-    const loadingText = computed(() => loadingMessages[loadingMsgIdx.value]);
+    const {
+      loading,
+      error,
+      blocked,
+      report,
+      providerName,
+      model,
+      analyzedAt,
+      providersStatus,
+      retryCountdown,
+      cooldownSec,
+      allDisabled,
+      loadingText,
+      runAnalysis,
+      formatTime,
+    } = useAiAnalysis({
+      show: () => props.show,
+      loadingMessages: [
+        '현재가와 최근 변동률을 확인하는 중...',
+        'KRX·OpenDART 재무 지표를 계산하는 중...',
+        'AI가 밸류에이션과 리스크를 정리하는 중...',
+      ],
+      errorFallback: 'AI 분석 중 오류가 발생했습니다.',
+      onError: (err) => logger.error('AI 분석 실패:', err),
+      resetExtra: () => { sources.value = []; },
+    });
     const uiReport = computed(() => buildUiReport(report.value, props.holding));
-
-    function reset() {
-      loading.value = false;
-      error.value = '';
-      blocked.value = false;
-      report.value = '';
-      sources.value = [];
-      providerName.value = '';
-      model.value = '';
-      analyzedAt.value = null;
-      retryAt.value = null;
-      providersStatus.value = [];
-    }
 
     async function fetchAnalysis() {
       if (!props.holding) return;
-      reset();
-      loading.value = true;
-      loadingMsgIdx.value = 0;
-      clearInterval(loadingTimer);
-      loadingTimer = setInterval(() => {
-        loadingMsgIdx.value = (loadingMsgIdx.value + 1) % loadingMessages.length;
-      }, 3500);
-
-      try {
-        const res = await axios.post('/api/stock/analyze', {
-          symbol: props.holding.symbol,
-          market: props.holding.market,
-        });
-        const data = res.data || {};
-        if (data.blocked) {
-          blocked.value = true;
-          retryAt.value = data.retryAt ? new Date(data.retryAt) : null;
-          providersStatus.value = data.providersStatus || [];
-        } else {
+      await runAnalysis(
+        async () => {
+          const res = await axios.post('/api/stock/analyze', {
+            symbol: props.holding.symbol,
+            market: props.holding.market,
+          });
+          return res.data || {};
+        },
+        (data) => {
           report.value = data.report || '';
           sources.value = data.sources || [];
-          providerName.value = data.providerName || '';
-          model.value = data.model || '';
-          analyzedAt.value = data.analyzedAt ? new Date(data.analyzedAt) : new Date();
-          providersStatus.value = data.providersStatus || [];
           emit('analyzed');
-        }
-      } catch (err) {
-        logger.error('AI 분석 실패:', err);
-        error.value = apiErrorMessage(err, 'AI 분석 중 오류가 발생했습니다.');
-      } finally {
-        loading.value = false;
-        clearInterval(loadingTimer);
-        loadingTimer = null;
-        lastFetchAt.value = Date.now();
-      }
+        },
+      );
     }
 
     watch(
@@ -426,53 +395,6 @@ export default {
       },
     );
 
-    watch(
-      () => props.show,
-      (showVal) => {
-        clearInterval(tickerTimer);
-        if (showVal) {
-          now.value = Date.now();
-          tickerTimer = setInterval(() => { now.value = Date.now(); }, 1000);
-        }
-      },
-      { immediate: true },
-    );
-
-    const retryCountdown = computed(() => {
-      if (!retryAt.value) return null;
-      const diff = retryAt.value.getTime() - now.value;
-      if (diff <= 0) return '곧 가능';
-      const totalSec = Math.floor(diff / 1000);
-      const h = Math.floor(totalSec / 3600);
-      const m = Math.floor((totalSec % 3600) / 60);
-      const s = totalSec % 60;
-      if (h > 0) return `${h}시간 ${String(m).padStart(2, '0')}분`;
-      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    });
-
-    const cooldownSec = computed(() => {
-      if (!lastFetchAt.value) return 0;
-      const elapsed = Math.floor((now.value - lastFetchAt.value) / 1000);
-      return Math.max(0, 30 - elapsed);
-    });
-
-    const allDisabled = computed(() =>
-      providersStatus.value.length > 0 &&
-      providersStatus.value.every((ps) => !ps.enabled),
-    );
-
-    onBeforeUnmount(() => {
-      clearInterval(loadingTimer);
-      clearInterval(tickerTimer);
-    });
-
-    function formatTime(date) {
-      if (!date) return '';
-      return date.toLocaleString('ko-KR', {
-        month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit',
-      });
-    }
     function providerStatusLabel(ps) {
       if (!ps.enabled) return '미설정';
       if (ps.blocked) return '한도 초과';

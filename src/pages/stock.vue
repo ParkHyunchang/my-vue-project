@@ -61,7 +61,6 @@
     <div v-show="activeTab === 'stock'" class="tab-content">
       <PortfolioPanel
         account-type="stock"
-        account-label="장기 주식계좌"
         :active="activeTab === 'stock'"
         @holdings-changed="onHoldingsChanged('stock', $event)"
       />
@@ -70,7 +69,6 @@
     <div v-show="activeTab === 'isa'" class="tab-content">
       <PortfolioPanel
         account-type="isa"
-        account-label="ISA 계좌"
         :active="activeTab === 'isa'"
         @holdings-changed="onHoldingsChanged('isa', $event)"
       />
@@ -79,7 +77,6 @@
     <div v-show="activeTab === 'general'" class="tab-content">
       <PortfolioPanel
         account-type="general"
-        account-label="단기 주식계좌"
         :active="activeTab === 'general'"
         @holdings-changed="onHoldingsChanged('general', $event)"
       />
@@ -88,7 +85,6 @@
     <div v-show="activeTab === 'irp'" class="tab-content">
       <PortfolioPanel
         account-type="irp"
-        account-label="IRP 계좌"
         :active="activeTab === 'irp'"
         @holdings-changed="onHoldingsChanged('irp', $event)"
       />
@@ -117,6 +113,7 @@ import AllAccountsPanel from "@/components/stock/AllAccountsPanel.vue";
 import HeatmapPanel from "@/components/stock/HeatmapPanel.vue";
 import Top10Panel from "@/components/stock/Top10Panel.vue";
 import NewsPanel from "@/components/stock/NewsPanel.vue";
+import { ACCOUNT_CONFIGS, ACCOUNT_TAB_ORDER } from "@/config/stockAccounts";
 
 export default {
   name: "StockPage",
@@ -124,7 +121,6 @@ export default {
   setup() {
     const route = useRoute();
     const router = useRouter();
-    const VALID_TABS = ["all", "general", "isa", "irp", "stock", "heatmap", "top10", "news"];
 
     const activeTab = ref("all");
     const holdingsByAccount = ref({
@@ -134,16 +130,19 @@ export default {
       stock: [],
     });
 
+    const accountTabs = ACCOUNT_TAB_ORDER.map((accountType) => ({
+      id: accountType,
+      icon: ACCOUNT_CONFIGS[accountType].tabIcon,
+      label: ACCOUNT_CONFIGS[accountType].tabLabel,
+    }));
     const tabs = [
       { id: "all", icon: "🧮", label: "종합" },
-      { id: "general", icon: "📈", label: "단기" },
-      { id: "isa", icon: "🏦", label: "ISA" },
-      { id: "irp", icon: "🛡️", label: "IRP" },
-      { id: "stock", icon: "💰", label: "장기" },
+      ...accountTabs,
       { id: "heatmap", icon: "🗺️", label: "히트맵" },
       { id: "top10", icon: "🏆", label: "시총 top10" },
       { id: "news", icon: "📰", label: "뉴스" },
     ];
+    const VALID_TABS = tabs.map((tab) => tab.id);
 
     const allHoldings = computed(() =>
       Object.values(holdingsByAccount.value).flat(),
