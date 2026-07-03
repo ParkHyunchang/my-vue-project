@@ -1,7 +1,13 @@
 <template>
   <div>
-    <!-- 초기 로딩 -->
-    <div v-if="mergedHoldings.length === 0" class="portfolio-empty">
+    <!-- 초기 로딩: 계좌 패널들이 DB에서 보유 종목을 불러오는 동안 "없음"으로 오표시하지 않는다 -->
+    <div v-if="loading && mergedHoldings.length === 0" class="loading-state" style="padding: 48px 0">
+      <div class="spinner"></div>
+      <span>계좌별 보유 종목 불러오는 중...</span>
+    </div>
+
+    <!-- 빈 상태 (모든 계좌 로드 완료 후에도 종목이 없을 때만) -->
+    <div v-else-if="mergedHoldings.length === 0" class="portfolio-empty">
       <div class="portfolio-empty-icon">📊</div>
       <h3>합산할 보유 종목이 없습니다</h3>
       <p>단기/ISA/IRP/장기 계좌 탭에서 종목을 추가하면 이곳에서 전체 현황을 합쳐 볼 수 있습니다.</p>
@@ -207,6 +213,8 @@ export default {
   props: {
     active: { type: Boolean, default: false },
     holdingsByAccount: { type: Object, default: () => ({}) },
+    /** 계좌 패널들의 최초 보유 종목 로드가 아직 진행 중인지 (stock.vue에서 전달) */
+    loading: { type: Boolean, default: false },
   },
   setup(props) {
     const { fmtKRW, fmtUSD, pnlCls } = useStockFormatters();

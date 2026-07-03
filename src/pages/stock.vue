@@ -55,6 +55,7 @@
       <AllAccountsPanel
         :active="activeTab === 'all'"
         :holdings-by-account="holdingsByAccount"
+        :loading="accountsLoading"
       />
     </div>
 
@@ -129,6 +130,17 @@ export default {
       irp: [],
       stock: [],
     });
+    // 각 계좌 패널의 최초 로드(holdings-changed) 완료 여부 — 종합 탭이
+    // 로딩 중을 "보유 없음"으로 잘못 표시하지 않도록 AllAccountsPanel에 전달
+    const accountsLoaded = ref({
+      general: false,
+      isa: false,
+      irp: false,
+      stock: false,
+    });
+    const accountsLoading = computed(() =>
+      Object.values(accountsLoaded.value).some((loaded) => !loaded),
+    );
 
     const accountTabs = ACCOUNT_TAB_ORDER.map((accountType) => ({
       id: accountType,
@@ -163,6 +175,10 @@ export default {
       holdingsByAccount.value = {
         ...holdingsByAccount.value,
         [accountType]: list,
+      };
+      accountsLoaded.value = {
+        ...accountsLoaded.value,
+        [accountType]: true,
       };
     }
 
@@ -212,6 +228,7 @@ export default {
       activeTab,
       allHoldings,
       holdingsByAccount,
+      accountsLoading,
       tabs,
       switchTab,
       onHoldingsChanged,
