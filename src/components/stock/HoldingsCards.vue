@@ -6,7 +6,10 @@
           <div class="hcard-name-wrap">
             <span class="mkt-flag">{{ isCashHolding(h) ? "💵" : h.market === "KR" ? "🇰🇷" : "🇺🇸" }}</span>
             <div>
-              <div class="h-name">{{ h.name }}</div>
+              <div class="h-name">
+                {{ h.name }}
+                <span v-if="h.accountLabel" class="acct-badge">{{ h.accountLabel }}</span>
+              </div>
               <div class="h-sym">{{ isCashHolding(h) ? "현금성 자산" : h.symbol }}</div>
             </div>
           </div>
@@ -72,7 +75,10 @@
           <div class="hcard-name-wrap">
             <span class="mkt-flag">{{ isCashHolding(h) ? "💵" : h.market === "KR" ? "🇰🇷" : "🇺🇸" }}</span>
             <div>
-              <div class="h-name">{{ h.name }}</div>
+              <div class="h-name">
+                {{ h.name }}
+                <span v-if="h.accountLabel" class="acct-badge">{{ h.accountLabel }}</span>
+              </div>
               <div class="h-sym">{{ isCashHolding(h) ? "현금성 자산" : h.symbol }}</div>
             </div>
           </div>
@@ -106,8 +112,10 @@
         </div>
         <div class="hcard-actions">
           <button v-if="!isCashHolding(h)" class="act-btn act-analyze" @click="$emit('analyze', h)">✨ AI 분석</button>
-          <button class="act-btn act-edit" @click="$emit('start-edit', h)">수정</button>
-          <button class="act-btn act-del" @click="$emit('remove', h.id)">삭제</button>
+          <template v-if="!readonly">
+            <button class="act-btn act-edit" @click="$emit('start-edit', h)">수정</button>
+            <button class="act-btn act-del" @click="$emit('remove', h.id)">삭제</button>
+          </template>
         </div>
       </template>
     </div>
@@ -132,6 +140,7 @@ export default {
     holdPnlPct: { type: Function, required: true },
     fmtHoldPnlPct: { type: Function, required: true },
     pnlCls: { type: Function, required: true },
+    readonly: { type: Boolean, default: false },
   },
   emits: ['start-edit', 'save-edit', 'cancel-edit', 'remove', 'toggle-core', 'update:editForm', 'analyze'],
   setup(props, { emit }) {

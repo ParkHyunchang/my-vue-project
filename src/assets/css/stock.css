@@ -348,6 +348,17 @@
 .h-name   { font-weight: 600; font-size: 0.86rem; color: var(--text-primary); }
 .h-sym    { font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; }
 .txt-muted { color: var(--text-muted); }
+.acct-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-2, rgba(128, 128, 128, 0.15));
+  vertical-align: middle;
+}
 
 /* 코어/위성 토글 — 보유 종목 행 인라인 */
 .inline-inp {

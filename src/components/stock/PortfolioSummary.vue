@@ -63,7 +63,7 @@
         </div>
       </template>
     </div>
-    <button class="btn-add-sm" @click="$emit('add')">＋ 추가</button>
+    <button v-if="!readonly" class="btn-add-sm" @click="$emit('add')">＋ 추가</button>
   </div>
 </template>
 
@@ -100,6 +100,7 @@ export default {
     fmtUSD: { type: Function, required: true },
     fmtAbsPnl: { type: Function, required: true },
     pnlCls: { type: Function, required: true },
+    readonly: { type: Boolean, default: false },
   },
   emits: ['add'],
   setup(props) {

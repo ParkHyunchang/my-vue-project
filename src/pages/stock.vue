@@ -51,6 +51,13 @@
       </button>
     </div>
 
+    <div v-show="activeTab === 'all'" class="tab-content">
+      <AllAccountsPanel
+        :active="activeTab === 'all'"
+        :holdings-by-account="holdingsByAccount"
+      />
+    </div>
+
     <div v-show="activeTab === 'stock'" class="tab-content">
       <PortfolioPanel
         account-type="stock"
@@ -106,19 +113,20 @@ import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "@/axios";
 import PortfolioPanel from "@/components/stock/PortfolioPanel.vue";
+import AllAccountsPanel from "@/components/stock/AllAccountsPanel.vue";
 import HeatmapPanel from "@/components/stock/HeatmapPanel.vue";
 import Top10Panel from "@/components/stock/Top10Panel.vue";
 import NewsPanel from "@/components/stock/NewsPanel.vue";
 
 export default {
   name: "StockPage",
-  components: { PortfolioPanel, HeatmapPanel, Top10Panel, NewsPanel },
+  components: { PortfolioPanel, AllAccountsPanel, HeatmapPanel, Top10Panel, NewsPanel },
   setup() {
     const route = useRoute();
     const router = useRouter();
-    const VALID_TABS = ["general", "isa", "irp", "stock", "heatmap", "top10", "news"];
+    const VALID_TABS = ["all", "general", "isa", "irp", "stock", "heatmap", "top10", "news"];
 
-    const activeTab = ref("general");
+    const activeTab = ref("all");
     const holdingsByAccount = ref({
       general: [],
       isa: [],
@@ -127,6 +135,7 @@ export default {
     });
 
     const tabs = [
+      { id: "all", icon: "🧮", label: "종합" },
       { id: "general", icon: "📈", label: "단기" },
       { id: "isa", icon: "🏦", label: "ISA" },
       { id: "irp", icon: "🛡️", label: "IRP" },
@@ -203,6 +212,7 @@ export default {
     return {
       activeTab,
       allHoldings,
+      holdingsByAccount,
       tabs,
       switchTab,
       onHoldingsChanged,

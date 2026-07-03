@@ -30,7 +30,10 @@
             <td class="hname-cell">
               <span class="mkt-flag">{{ isCashHolding(h) ? "💵" : h.market === "KR" ? "🇰🇷" : "🇺🇸" }}</span>
               <div>
-                <div class="h-name">{{ h.name }}</div>
+                <div class="h-name">
+                  {{ h.name }}
+                  <span v-if="h.accountLabel" class="acct-badge">{{ h.accountLabel }}</span>
+                </div>
                 <div class="h-sym">{{ isCashHolding(h) ? "현금성 자산" : h.symbol }}</div>
               </div>
             </td>
@@ -73,7 +76,10 @@
             <td class="hname-cell">
               <span class="mkt-flag">{{ isCashHolding(h) ? "💵" : h.market === "KR" ? "🇰🇷" : "🇺🇸" }}</span>
               <div>
-                <div class="h-name">{{ h.name }}</div>
+                <div class="h-name">
+                  {{ h.name }}
+                  <span v-if="h.accountLabel" class="acct-badge">{{ h.accountLabel }}</span>
+                </div>
                 <div class="h-sym">{{ isCashHolding(h) ? "현금성 자산" : h.symbol }}</div>
               </div>
             </td>
@@ -107,8 +113,10 @@
             </td>
             <td class="td-act">
               <button v-if="!isCashHolding(h)" class="act-btn act-analyze" @click="$emit('analyze', h)">✨ 분석</button>
-              <button class="act-btn act-edit" @click="$emit('start-edit', h)">수정</button>
-              <button class="act-btn act-del" @click="$emit('remove', h.id)">삭제</button>
+              <template v-if="!readonly">
+                <button class="act-btn act-edit" @click="$emit('start-edit', h)">수정</button>
+                <button class="act-btn act-del" @click="$emit('remove', h.id)">삭제</button>
+              </template>
             </td>
           </template>
         </tr>
@@ -139,6 +147,7 @@ export default {
     holdPnlPct: { type: Function, required: true },
     fmtHoldPnlPct: { type: Function, required: true },
     pnlCls: { type: Function, required: true },
+    readonly: { type: Boolean, default: false },
   },
   emits: ['toggle-sort', 'start-edit', 'save-edit', 'cancel-edit', 'remove', 'toggle-core', 'update:editForm', 'analyze'],
   setup(props, { emit }) {
