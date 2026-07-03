@@ -11,11 +11,14 @@ export function apiErrorMessage(err, fallback) {
   const status = err?.response?.status;
   const data = err?.response?.data;
   const code = err?.code;
-  const serverMsg = typeof data === 'string'
+  const rawText = typeof data === 'string'
     ? data
     : (data && typeof data === 'object' && typeof data.message === 'string'
       ? data.message
       : null);
+  // 리버스 프록시(Synology 등)가 반환한 HTML 에러 페이지는 사용자 문구가 아님 — 폐기
+  const looksLikeHtml = rawText && /^\s*(<!doctype|<html|<head|<body)/i.test(rawText);
+  const serverMsg = looksLikeHtml || (rawText && rawText.length > 300) ? null : rawText;
 
   if (status === 403) {
     return serverMsg || '권한이 없습니다.';
@@ -36,6 +39,9 @@ export function apiErrorMessage(err, fallback) {
     return `${fallback} (서버에 연결할 수 없습니다)`;
   }
   if (typeof status === 'number') {
+    if (status === 502 || status === 504 || status === 408) {
+      return `${fallback} (서버 응답 대기 시간이 초과되었습니다 — 잠시 후 다시 시도해주세요)`;
+    }
     if (status >= 500) return `${fallback} (서버 오류 ${status})`;
     if (status === 404) return `${fallback} (대상을 찾을 수 없습니다)`;
     if (status === 409) return `${fallback} (중복되거나 충돌하는 데이터가 있습니다)`;
