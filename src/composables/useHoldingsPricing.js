@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import axios from "@/axios";
+import { fetchQuote, fetchUsdKrwQuote } from "@/api/stockApi";
 import { isCashHolding } from "@/config/stockAccounts";
 import { useStockFormatters } from "@/composables/useStockFormatters";
 
@@ -36,9 +36,7 @@ export function useHoldingsPricing({
 
   async function fetchExchangeRate() {
     try {
-      const res = await axios.get("/api/stock/quote", {
-        params: { symbol: "USDKRW=X", market: "us" },
-      });
+      const res = await fetchUsdKrwQuote();
       if (res.data?.price) {
         exchangeRate.value = res.data.price;
         exRateAt.value = new Date().toLocaleTimeString("ko-KR", {
@@ -67,9 +65,7 @@ export function useHoldingsPricing({
 
       const tasks = [...uniqueSymbols.entries()].map(async ([symbol, market]) => {
         try {
-          const res = await axios.get("/api/stock/quote", {
-            params: { symbol, market: market.toLowerCase() },
-          });
+          const res = await fetchQuote(symbol, market.toLowerCase());
           results[symbol] = res.data;
         } catch { /* noop */ }
       });
