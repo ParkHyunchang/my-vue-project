@@ -1,5 +1,8 @@
 <template>
-  <footer id="footer" role="contentinfo">
+  <footer
+    id="footer"
+    role="contentinfo"
+  >
     <div class="footer__inner">
       <div class="footer__text">
         <span>hyunchang</span>
@@ -21,7 +24,7 @@
         </div>
       </div>
       <div class="footer__right">
-        &copy; hyunchang's web<br />
+        &copy; hyunchang's web<br>
         이 사이트는 Vue3, Spring Boot를 이용하여 제작하였습니다.
       </div>
     </div>

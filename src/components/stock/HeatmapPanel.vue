@@ -22,7 +22,10 @@
     </div>
 
     <!-- 국내 히트맵 (ECharts) -->
-    <div v-if="heatmapMarket === 'kr'" class="heatmap-wrapper">
+    <div
+      v-if="heatmapMarket === 'kr'"
+      class="heatmap-wrapper"
+    >
       <div
         v-if="!krHeatmapLoading && !krHeatmapError && krUpdatedAt"
         class="kr-heatmap-header"
@@ -30,19 +33,37 @@
         📅 {{ krUpdatedAt }} 기준 데이터
         <span class="kr-sync-note">(매 30분마다 자동 동기화)</span>
       </div>
-      <div v-if="krHeatmapLoading" class="heatmap-loading">
-        <span class="loading-spinner"></span> 데이터 로딩 중…
+      <div
+        v-if="krHeatmapLoading"
+        class="heatmap-loading"
+      >
+        <span class="loading-spinner" /> 데이터 로딩 중…
       </div>
-      <div v-else-if="krHeatmapError" class="heatmap-error">
+      <div
+        v-else-if="krHeatmapError"
+        class="heatmap-error"
+      >
         {{ krHeatmapError }}
       </div>
-      <div v-else ref="krChartEl" class="kr-heatmap-chart"></div>
-      <p class="widget-credit">국내 데이터 제공: KRX 공식 Open API (전일 종가 기준)</p>
+      <div
+        v-else
+        ref="krChartEl"
+        class="kr-heatmap-chart"
+      />
+      <p class="widget-credit">
+        국내 데이터 제공: KRX 공식 Open API (전일 종가 기준)
+      </p>
     </div>
 
     <!-- 해외 히트맵 (TradingView) -->
-    <div v-else class="heatmap-wrapper">
-      <div v-if="tvUpdatedAt" class="kr-heatmap-header">
+    <div
+      v-else
+      class="heatmap-wrapper"
+    >
+      <div
+        v-if="tvUpdatedAt"
+        class="kr-heatmap-header"
+      >
         📅 {{ tvUpdatedAt }} 로드
         <span
           :class="[
@@ -57,12 +78,18 @@
           22:30~05:00 KST)
         </span>
       </div>
-      <div id="tv-heatmap" class="tradingview-widget-container">
-        <div class="tradingview-widget-container__widget"></div>
+      <div
+        id="tv-heatmap"
+        class="tradingview-widget-container"
+      >
+        <div class="tradingview-widget-container__widget" />
       </div>
       <p class="widget-credit">
         데이터 제공:
-        <a href="https://www.tradingview.com" target="_blank">TradingView</a>
+        <a
+          href="https://www.tradingview.com"
+          target="_blank"
+        >TradingView</a>
       </p>
     </div>
   </div>

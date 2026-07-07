@@ -1,21 +1,38 @@
 <template>
   <teleport to="#modal">
-    <Modal v-if="show" @close="$emit('close')">
+    <Modal
+      v-if="show"
+      @close="$emit('close')"
+    >
       <template #header>
-        <h3 class="pana-title">{{ title }}</h3>
+        <h3 class="pana-title">
+          {{ title }}
+        </h3>
       </template>
 
       <template #body>
         <!-- 로딩 -->
-        <div v-if="loading" class="pana-loading">
-          <div class="spinner pana-spinner"></div>
-          <div class="pana-loading-text">{{ loadingText }}</div>
-          <div class="pana-loading-hint">최대 30초 소요될 수 있습니다.</div>
+        <div
+          v-if="loading"
+          class="pana-loading"
+        >
+          <div class="spinner pana-spinner" />
+          <div class="pana-loading-text">
+            {{ loadingText }}
+          </div>
+          <div class="pana-loading-hint">
+            최대 30초 소요될 수 있습니다.
+          </div>
         </div>
 
         <!-- 모든 AI 차단됨 -->
-        <div v-else-if="blocked" class="pana-blocked">
-          <div class="pana-blocked-icon">{{ allDisabled ? '⚙️' : '🔒' }}</div>
+        <div
+          v-else-if="blocked"
+          class="pana-blocked"
+        >
+          <div class="pana-blocked-icon">
+            {{ allDisabled ? '⚙️' : '🔒' }}
+          </div>
           <h4>{{ allDisabled ? 'AI 분석 비활성화' : 'AI 분석 잠시 이용 불가' }}</h4>
           <p>
             <template v-if="allDisabled">
@@ -25,21 +42,41 @@
               모든 AI 서비스가 일시 한도 초과 상태입니다.
             </template>
           </p>
-          <div v-if="!allDisabled && retryCountdown" class="pana-retry">
+          <div
+            v-if="!allDisabled && retryCountdown"
+            class="pana-retry"
+          >
             다음 가능: <strong>{{ retryCountdown }}</strong>
           </div>
         </div>
 
         <!-- 에러 -->
-        <div v-else-if="error" class="pana-error">{{ error }}</div>
+        <div
+          v-else-if="error"
+          class="pana-error"
+        >
+          {{ error }}
+        </div>
 
         <!-- 결과 -->
-        <div v-else-if="report" class="pana-result">
+        <div
+          v-else-if="report"
+          class="pana-result"
+        >
           <template v-if="reportSections">
-            <template v-for="block in reportSections.blocks" :key="block.key">
-              <MarkdownView v-if="block.type === 'markdown'" :text="block.text" />
+            <template
+              v-for="block in reportSections.blocks"
+              :key="block.key"
+            >
+              <MarkdownView
+                v-if="block.type === 'markdown'"
+                :text="block.text"
+              />
 
-              <section v-else-if="block.type === 'holdings'" class="pana-section">
+              <section
+                v-else-if="block.type === 'holdings'"
+                class="pana-section"
+              >
                 <div class="pana-section-head">
                   <h4>{{ block.title }}</h4>
                 </div>
@@ -51,35 +88,66 @@
                   >
                     <div class="pana-holding-head">
                       <div class="pana-holding-name-wrap">
-                        <span v-if="h.tag" class="pana-holding-tag">{{ h.tag }}</span>
+                        <span
+                          v-if="h.tag"
+                          class="pana-holding-tag"
+                        >{{ h.tag }}</span>
                         <div class="pana-holding-name-col">
-                          <div class="pana-holding-name">{{ h.name }}</div>
-                          <div v-if="h.ticker" class="pana-holding-sym">{{ h.ticker }}</div>
+                          <div class="pana-holding-name">
+                            {{ h.name }}
+                          </div>
+                          <div
+                            v-if="h.ticker"
+                            class="pana-holding-sym"
+                          >
+                            {{ h.ticker }}
+                          </div>
                         </div>
                       </div>
                       <span :class="['pana-action-pill', `act-${h.actionCode}`]">{{ h.actionLabel }}</span>
                     </div>
 
-                    <div v-if="h.metrics.length" class="pana-stock-metrics">
-                      <span v-for="m in h.metrics" :key="m.text" :class="m.cls">{{ m.text }}</span>
+                    <div
+                      v-if="h.metrics.length"
+                      class="pana-stock-metrics"
+                    >
+                      <span
+                        v-for="m in h.metrics"
+                        :key="m.text"
+                        :class="m.cls"
+                      >{{ m.text }}</span>
                     </div>
 
-                    <div v-if="h.detailFields.length" class="pana-holding-fields">
-                      <div v-for="f in h.detailFields" :key="f.label" class="pana-holding-field">
+                    <div
+                      v-if="h.detailFields.length"
+                      class="pana-holding-fields"
+                    >
+                      <div
+                        v-for="f in h.detailFields"
+                        :key="f.label"
+                        class="pana-holding-field"
+                      >
                         <span class="pana-holding-field-label">{{ f.label }}</span>
                         <span class="pana-holding-field-value">{{ f.value }}</span>
                       </div>
                     </div>
 
                     <template v-if="h.reason">
-                      <div class="pana-holding-reason-label">AI 판단</div>
-                      <p class="pana-holding-reason">{{ h.reason }}</p>
+                      <div class="pana-holding-reason-label">
+                        AI 판단
+                      </div>
+                      <p class="pana-holding-reason">
+                        {{ h.reason }}
+                      </p>
                     </template>
                   </article>
                 </div>
               </section>
 
-              <section v-else-if="block.type === 'actions'" class="pana-section">
+              <section
+                v-else-if="block.type === 'actions'"
+                class="pana-section"
+              >
                 <div class="pana-section-head">
                   <h4>{{ block.title }}</h4>
                 </div>
@@ -91,23 +159,38 @@
                   >
                     <div class="pana-action-card-head">
                       <span class="pana-action-num">{{ idx + 1 }}</span>
-                      <span v-for="m in a.mentions" :key="m.ticker + m.name" class="pana-action-chip">
+                      <span
+                        v-for="m in a.mentions"
+                        :key="m.ticker + m.name"
+                        class="pana-action-chip"
+                      >
                         {{ m.name }}<template v-if="m.ticker"> · {{ m.ticker }}</template>
                       </span>
-                      <span v-if="a.hasAction" :class="['pana-action-pill', `act-${a.actionCode}`]">{{ a.actionLabel }}</span>
+                      <span
+                        v-if="a.hasAction"
+                        :class="['pana-action-pill', `act-${a.actionCode}`]"
+                      >{{ a.actionLabel }}</span>
                     </div>
-                    <p class="pana-action-text">{{ a.text }}</p>
+                    <p class="pana-action-text">
+                      {{ a.text }}
+                    </p>
                   </li>
                 </ul>
               </section>
             </template>
           </template>
 
-          <MarkdownView v-else :text="report" />
+          <MarkdownView
+            v-else
+            :text="report"
+          />
 
           <div class="pana-meta">
             <span class="pana-provider-tag">{{ providerName }}<span v-if="model"> · {{ model }}</span></span>
-            <span v-if="analyzedAt" class="pana-time">{{ formatTime(analyzedAt) }}</span>
+            <span
+              v-if="analyzedAt"
+              class="pana-time"
+            >{{ formatTime(analyzedAt) }}</span>
           </div>
           <div class="pana-disclaimer">
             ⚠️ 본 분석은 AI가 생성한 정보 정리이며 투자 자문이 아닙니다.
@@ -123,11 +206,23 @@
             :disabled="loading || cooldownSec > 0"
             @click="fetchAnalysis"
           >
-            <template v-if="loading">분석 중...</template>
-            <template v-else-if="cooldownSec > 0">{{ cooldownSec }}초 후 가능</template>
-            <template v-else>다시 진단</template>
+            <template v-if="loading">
+              분석 중...
+            </template>
+            <template v-else-if="cooldownSec > 0">
+              {{ cooldownSec }}초 후 가능
+            </template>
+            <template v-else>
+              다시 진단
+            </template>
           </button>
-          <button type="button" class="btn btn-primary" @click="$emit('close')">닫기</button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            @click="$emit('close')"
+          >
+            닫기
+          </button>
         </div>
       </template>
     </Modal>

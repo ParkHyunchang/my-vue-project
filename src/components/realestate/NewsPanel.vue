@@ -8,20 +8,46 @@
           class="rn-search-input"
           type="text"
           placeholder="제목·내용 검색…"
-        />
-        <button v-if="keyword" class="rn-search-clear" @click="keyword = ''">✕</button>
+        >
+        <button
+          v-if="keyword"
+          class="rn-search-clear"
+          @click="keyword = ''"
+        >
+          ✕
+        </button>
       </div>
-      <button class="rn-refresh" :disabled="loading" title="새로고침" @click="refresh">
+      <button
+        class="rn-refresh"
+        :disabled="loading"
+        title="새로고침"
+        @click="refresh"
+      >
         <span :class="['rn-refresh-icon', loading && 'spinning']">↻</span>
       </button>
     </div>
 
-    <div v-if="loading" class="rn-empty">뉴스를 불러오는 중…</div>
-    <div v-else-if="error" class="rn-empty">{{ error }}</div>
+    <div
+      v-if="loading"
+      class="rn-empty"
+    >
+      뉴스를 불러오는 중…
+    </div>
+    <div
+      v-else-if="error"
+      class="rn-empty"
+    >
+      {{ error }}
+    </div>
 
     <template v-else>
-      <div class="rn-count">총 <strong>{{ filtered.length }}</strong>건</div>
-      <div v-if="filtered.length" class="rn-grid">
+      <div class="rn-count">
+        총 <strong>{{ filtered.length }}</strong>건
+      </div>
+      <div
+        v-if="filtered.length"
+        class="rn-grid"
+      >
         <a
           v-for="(n, i) in filtered"
           :key="i"
@@ -37,16 +63,24 @@
             alt=""
             loading="lazy"
             @error="(e) => (e.target.style.display = 'none')"
-          />
+          >
           <div class="rn-meta">
             <span class="rn-source">{{ n.source }}</span>
             <span class="rn-date">{{ formatDate(n.pubDate) }}</span>
           </div>
           <h4 class="rn-title">{{ n.title }}</h4>
-          <p v-if="n.description" class="rn-desc">{{ n.description }}</p>
+          <p
+            v-if="n.description"
+            class="rn-desc"
+          >{{ n.description }}</p>
         </a>
       </div>
-      <div v-else class="rn-empty">검색 결과가 없습니다.</div>
+      <div
+        v-else
+        class="rn-empty"
+      >
+        검색 결과가 없습니다.
+      </div>
     </template>
   </div>
 </template>

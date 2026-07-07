@@ -8,16 +8,42 @@
       @touchend.passive="onTouchEnd"
     >
       <!-- 좌측 상단: 뒤로 -->
-      <button class="lightbox-back" aria-label="뒤로" @click="close">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <button
+        class="lightbox-back"
+        aria-label="뒤로"
+        @click="close"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <path d="M19 12H5M12 19l-7-7 7-7" />
         </svg>
         <span>뒤로</span>
       </button>
 
       <!-- 우측 상단: 닫기(X) -->
-      <button class="lightbox-close" aria-label="닫기" @click="close">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <button
+        class="lightbox-close"
+        aria-label="닫기"
+        @click="close"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="22"
+          height="22"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <path d="M18 6L6 18M6 6l12 12" />
         </svg>
       </button>
@@ -29,7 +55,16 @@
         aria-label="이전"
         @click="prev"
       >
-        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          viewBox="0 0 24 24"
+          width="32"
+          height="32"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <path d="M15 18l-6-6 6-6" />
         </svg>
       </button>
@@ -41,12 +76,24 @@
         aria-label="다음"
         @click="next"
       >
-        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          viewBox="0 0 24 24"
+          width="32"
+          height="32"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <path d="M9 18l6-6-6-6" />
         </svg>
       </button>
 
-      <div class="lightbox-content" @click.stop>
+      <div
+        class="lightbox-content"
+        @click.stop
+      >
         <video
           v-if="items[currentIndex]?.isVideo"
           :key="'v-' + currentIndex"
@@ -54,16 +101,19 @@
           class="lightbox-media"
           controls
           playsinline
-        ></video>
+        />
         <img
           v-else
           :key="'i-' + currentIndex"
           :src="items[currentIndex]?.url"
           class="lightbox-media"
-        />
+        >
       </div>
 
-      <div v-if="items.length > 1" class="lightbox-counter">
+      <div
+        v-if="items.length > 1"
+        class="lightbox-counter"
+      >
         {{ currentIndex + 1 }} / {{ items.length }}
       </div>
     </div>

@@ -6,7 +6,7 @@
         v-if="sidebarOpen"
         class="sidebar-overlay"
         @click="closeSidebar"
-      ></div>
+      />
     </transition>
 
     <!-- 사이드바 -->
@@ -16,11 +16,19 @@
           <span class="brand-icon">{{ section.icon }}</span>
           <span class="brand-text">{{ section.name }}</span>
         </div>
-        <button class="sidebar-close-btn" @click="closeSidebar" aria-label="메뉴 닫기">✕</button>
+        <button
+          class="sidebar-close-btn"
+          @click="closeSidebar"
+          aria-label="메뉴 닫기"
+        >
+          ✕
+        </button>
       </div>
 
       <nav class="sidebar-nav">
-        <p class="nav-section-label">메뉴</p>
+        <p class="nav-section-label">
+          메뉴
+        </p>
         <!-- 부모 메뉴 (최상단) -->
         <router-link
           :to="section.path"
@@ -50,10 +58,14 @@
     <div class="subnav-content-area">
       <!-- 모바일 전용 미니바 -->
       <div class="subnav-mobile-bar">
-        <button class="mobile-hamburger" @click="toggleSidebar" aria-label="메뉴 열기">
-          <span></span>
-          <span></span>
-          <span></span>
+        <button
+          class="mobile-hamburger"
+          @click="toggleSidebar"
+          aria-label="메뉴 열기"
+        >
+          <span />
+          <span />
+          <span />
         </button>
         <span class="mobile-page-title">{{ pageTitle }}</span>
       </div>

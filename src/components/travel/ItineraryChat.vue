@@ -1,9 +1,16 @@
 <template>
   <div class="ic">
-    <div class="ic-title">💬 AI로 일정 다듬기</div>
-    <p class="ic-hint">예: "Day2 오후를 온천 위주로 다시 짜줘" · "Day1 점심은 이치란 라멘으로 정했어"</p>
+    <div class="ic-title">
+      💬 AI로 일정 다듬기
+    </div>
+    <p class="ic-hint">
+      예: "Day2 오후를 온천 위주로 다시 짜줘" · "Day1 점심은 이치란 라멘으로 정했어"
+    </p>
 
-    <div v-if="messages.length" class="ic-log thin-scrollbar">
+    <div
+      v-if="messages.length"
+      class="ic-log thin-scrollbar"
+    >
       <div
         v-for="(m, i) in messages"
         :key="i"
@@ -21,8 +28,12 @@
         placeholder="어떻게 바꿀지 말해보세요"
         rows="1"
         @keydown.enter.exact.prevent="send"
-      ></textarea>
-      <button class="ic-send" :disabled="!canSend || loading" @click="send">
+      />
+      <button
+        class="ic-send"
+        :disabled="!canSend || loading"
+        @click="send"
+      >
         {{ loading ? "수정 중…" : "보내기" }}
       </button>
     </div>

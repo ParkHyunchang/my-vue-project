@@ -6,21 +6,32 @@
         v-if="sidebarOpen"
         class="sidebar-overlay"
         @click="closeSidebar"
-      ></div>
+      />
     </transition>
 
     <!-- 사이드바 -->
-    <aside :class="['admin-sidebar', 'thin-scrollbar', { open: sidebarOpen }]" data-lenis-prevent>
+    <aside
+      :class="['admin-sidebar', 'thin-scrollbar', { open: sidebarOpen }]"
+      data-lenis-prevent
+    >
       <div class="sidebar-header">
         <div class="sidebar-brand">
           <span class="brand-icon">⚙️</span>
           <span class="brand-text">Admin</span>
         </div>
-        <button class="sidebar-close-btn" @click="closeSidebar" aria-label="메뉴 닫기">✕</button>
+        <button
+          class="sidebar-close-btn"
+          @click="closeSidebar"
+          aria-label="메뉴 닫기"
+        >
+          ✕
+        </button>
       </div>
 
       <div class="sidebar-user-info">
-        <div class="user-avatar">{{ userInitial }}</div>
+        <div class="user-avatar">
+          {{ userInitial }}
+        </div>
         <div class="user-meta">
           <span class="user-name">{{ user?.username }}</span>
           <span class="user-role-badge">관리자</span>
@@ -28,7 +39,9 @@
       </div>
 
       <nav class="sidebar-nav">
-        <p class="nav-section-label">메뉴</p>
+        <p class="nav-section-label">
+          메뉴
+        </p>
         <router-link
           to="/admin/users"
           class="sidebar-link"
@@ -84,7 +97,9 @@
           <span class="link-text">채팅 히스토리</span>
         </router-link>
 
-        <p class="nav-section-label">포트폴리오</p>
+        <p class="nav-section-label">
+          포트폴리오
+        </p>
         <router-link
           to="/admin/career"
           class="sidebar-link"
@@ -119,10 +134,14 @@
     <div class="admin-content-area">
       <!-- 모바일 전용 미니바 (햄버거 + 현재 페이지명) -->
       <div class="admin-mobile-bar">
-        <button class="mobile-hamburger" @click="toggleSidebar" aria-label="메뉴 열기">
-          <span></span>
-          <span></span>
-          <span></span>
+        <button
+          class="mobile-hamburger"
+          @click="toggleSidebar"
+          aria-label="메뉴 열기"
+        >
+          <span />
+          <span />
+          <span />
         </button>
         <span class="mobile-page-title">{{ pageTitle }}</span>
       </div>

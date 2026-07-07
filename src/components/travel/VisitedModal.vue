@@ -1,15 +1,29 @@
 <template>
   <teleport to="body">
-    <div v-if="show" class="tvm-overlay" data-lenis-prevent @click.self="close">
+    <div
+      v-if="show"
+      class="tvm-overlay"
+      data-lenis-prevent
+      @click.self="close"
+    >
       <div class="tvm-box">
         <div class="tvm-hdr">
           <h3>{{ isEdit ? "여행 기록 수정" : "여행 기록 추가" }}</h3>
-          <button class="tvm-close" @click="close">✕</button>
+          <button
+            class="tvm-close"
+            @click="close"
+          >
+            ✕
+          </button>
         </div>
 
         <div class="tvm-row">
           <label>장소명 <span class="tvm-req">*</span></label>
-          <input v-model="form.title" type="text" placeholder="예: 도톤보리" />
+          <input
+            v-model="form.title"
+            type="text"
+            placeholder="예: 도톤보리"
+          >
         </div>
 
         <!-- 위치 검색 + 지도 -->
@@ -21,38 +35,74 @@
               type="text"
               placeholder="지명 검색 (예: 오사카 도톤보리)"
               @keyup.enter="geocode"
-            />
-            <button type="button" class="tvm-geo-btn" :disabled="geoLoading" @click="geocode">
+            >
+            <button
+              type="button"
+              class="tvm-geo-btn"
+              :disabled="geoLoading"
+              @click="geocode"
+            >
               {{ geoLoading ? "검색중…" : "검색" }}
             </button>
           </div>
-          <ul v-if="geoResults.length" class="tvm-geo-list">
-            <li v-for="(r, i) in geoResults" :key="i" @click="pickGeo(r)">{{ r.display_name }}</li>
+          <ul
+            v-if="geoResults.length"
+            class="tvm-geo-list"
+          >
+            <li
+              v-for="(r, i) in geoResults"
+              :key="i"
+              @click="pickGeo(r)"
+            >
+              {{ r.display_name }}
+            </li>
           </ul>
-          <div ref="mapEl" class="tvm-map"></div>
+          <div
+            ref="mapEl"
+            class="tvm-map"
+          />
           <div class="tvm-coords">
             <span v-if="form.lat != null && form.lng != null">
               📍 {{ form.lat.toFixed(4) }}, {{ form.lng.toFixed(4) }}
-              <button type="button" class="tvm-clear" @click="clearPin">핀 제거</button>
+              <button
+                type="button"
+                class="tvm-clear"
+                @click="clearPin"
+              >핀 제거</button>
             </span>
-            <span v-else class="tvm-opt">핀 미지정 (지도에 표시되지 않음)</span>
+            <span
+              v-else
+              class="tvm-opt"
+            >핀 미지정 (지도에 표시되지 않음)</span>
           </div>
         </div>
 
         <div class="tvm-grid2">
           <div class="tvm-row">
             <label>국가 <span class="tvm-opt">(선택)</span></label>
-            <input v-model="form.country" type="text" placeholder="예: 일본" />
+            <input
+              v-model="form.country"
+              type="text"
+              placeholder="예: 일본"
+            >
           </div>
           <div class="tvm-row">
             <label>도시·지역 <span class="tvm-opt">(선택)</span></label>
-            <input v-model="form.city" type="text" placeholder="예: 오사카" />
+            <input
+              v-model="form.city"
+              type="text"
+              placeholder="예: 오사카"
+            >
           </div>
         </div>
 
         <div class="tvm-row">
           <label>여행 기간 <span class="tvm-opt">(날짜를 클릭해 {{ startLabel }}·{{ endLabel }} 선택)</span></label>
-          <RangeCalendar v-model="range" :start-label="startLabel" :end-label="endLabel" />
+          <RangeCalendar
+            v-model="range"
+            :start-label="startLabel"
+            :end-label="endLabel"
+          />
         </div>
 
         <div class="tvm-row">
@@ -64,20 +114,40 @@
               type="button"
               :class="['tvm-star', { on: n <= (form.rating || 0) }]"
               @click="setRating(n)"
-            >★</button>
+            >
+              ★
+            </button>
           </div>
         </div>
 
         <div class="tvm-row">
           <label>메모 <span class="tvm-opt">(선택)</span></label>
-          <textarea v-model="form.memo" rows="2" placeholder="기억에 남는 점, 맛집 등"></textarea>
+          <textarea
+            v-model="form.memo"
+            rows="2"
+            placeholder="기억에 남는 점, 맛집 등"
+          />
         </div>
 
-        <div v-if="errorMsg" class="tvm-error">{{ errorMsg }}</div>
+        <div
+          v-if="errorMsg"
+          class="tvm-error"
+        >
+          {{ errorMsg }}
+        </div>
 
         <div class="tvm-actions">
-          <button class="tvm-cancel" @click="close">취소</button>
-          <button class="tvm-submit" :disabled="!canSubmit || saving" @click="submit">
+          <button
+            class="tvm-cancel"
+            @click="close"
+          >
+            취소
+          </button>
+          <button
+            class="tvm-submit"
+            :disabled="!canSubmit || saving"
+            @click="submit"
+          >
             {{ saving ? "저장중…" : (isEdit ? "수정" : "추가") }}
           </button>
         </div>

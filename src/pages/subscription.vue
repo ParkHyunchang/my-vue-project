@@ -2,7 +2,9 @@
   <div class="subscription-container">
     <div class="page-header">
       <h2>구독 관리</h2>
-      <p class="page-subtitle">정기 결제 서비스를 한눈에 · 다음 결제일 임박 순으로 정렬</p>
+      <p class="page-subtitle">
+        정기 결제 서비스를 한눈에 · 다음 결제일 임박 순으로 정렬
+      </p>
     </div>
 
     <SubscriptionSummary
@@ -11,7 +13,10 @@
     />
 
     <!-- 인사이트 패널: 중복 경고 + 추이 차트 + 카테고리 도넛 -->
-    <div v-if="!loading && subscriptions.length > 0" class="insights-section">
+    <div
+      v-if="!loading && subscriptions.length > 0"
+      class="insights-section"
+    >
       <SubscriptionDuplicatesAlert
         :subscriptions="subscriptions"
         :format-currency="formatCurrency"
@@ -40,13 +45,26 @@
           <span class="filter-count">{{ countByStatus(opt.value) }}</span>
         </button>
       </div>
-      <button class="btn btn-primary" @click="openCreateModal">
+      <button
+        class="btn btn-primary"
+        @click="openCreateModal"
+      >
         + 새 구독 추가
       </button>
     </div>
 
-    <div v-if="loading" class="loading">데이터를 불러오는 중...</div>
-    <div v-else-if="error" class="error-message">{{ error }}</div>
+    <div
+      v-if="loading"
+      class="loading"
+    >
+      데이터를 불러오는 중...
+    </div>
+    <div
+      v-else-if="error"
+      class="error-message"
+    >
+      {{ error }}
+    </div>
     <SubscriptionCards
       v-else
       :subscriptions="visibleSubscriptions"

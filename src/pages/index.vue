@@ -1,34 +1,78 @@
 <template>
   <div>
     <div id="skip">
-      <a href="#header" @click.prevent="scrollToSection('header')">헤더 영역 바로가기</a>
-      <a href="#intro" @click.prevent="scrollToSection('intro')">소개 영역 바로가기</a>
-      <a href="#skill" @click.prevent="scrollToSection('skill')">경력 영역 바로가기</a>
-      <a href="#site" @click.prevent="scrollToSection('site')">사이트 영역 바로가기</a>
-      <a href="#port" @click.prevent="scrollToSection('port')">포트폴리오 영역 바로가기</a>
-      <a href="#contact" @click.prevent="scrollToSection('contact')">연락처 영역 바로가기</a>
-      <a href="#footer" @click.prevent="scrollToSection('footer')">푸터 영역 바로가기</a>
+      <a
+        href="#header"
+        @click.prevent="scrollToSection('header')"
+      >헤더 영역 바로가기</a>
+      <a
+        href="#intro"
+        @click.prevent="scrollToSection('intro')"
+      >소개 영역 바로가기</a>
+      <a
+        href="#skill"
+        @click.prevent="scrollToSection('skill')"
+      >경력 영역 바로가기</a>
+      <a
+        href="#site"
+        @click.prevent="scrollToSection('site')"
+      >사이트 영역 바로가기</a>
+      <a
+        href="#port"
+        @click.prevent="scrollToSection('port')"
+      >포트폴리오 영역 바로가기</a>
+      <a
+        href="#contact"
+        @click.prevent="scrollToSection('contact')"
+      >연락처 영역 바로가기</a>
+      <a
+        href="#footer"
+        @click.prevent="scrollToSection('footer')"
+      >푸터 영역 바로가기</a>
     </div>
 
-    <main id="main" role="main">
+    <main
+      id="main"
+      role="main"
+    >
       <!-- Hero Section -->
-      <section id="intro" class="hero-section">
+      <section
+        id="intro"
+        class="hero-section"
+      >
         <div class="hero__inner">
           <span class="hero__eyebrow">AI Web Developer</span>
-          <h1 class="hero__title">Building Ideas<br><span class="highlight">Into Reality.</span></h1>
-          <p class="hero__subtitle">Full Stack · Spring Boot · Vue.js</p>
+          <h1 class="hero__title">
+            Building Ideas<br><span class="highlight">Into Reality.</span>
+          </h1>
+          <p class="hero__subtitle">
+            Full Stack · Spring Boot · Vue.js
+          </p>
           <div class="hero__buttons">
-            <a href="#skill" class="btn btn-primary" @click.prevent="scrollToSection('skill')">경력 보기</a>
-            <a href="#contact" class="btn btn-secondary" @click.prevent="scrollToSection('contact')">연락하기</a>
+            <a
+              href="#skill"
+              class="btn btn-primary"
+              @click.prevent="scrollToSection('skill')"
+            >경력 보기</a>
+            <a
+              href="#contact"
+              class="btn btn-secondary"
+              @click.prevent="scrollToSection('contact')"
+            >연락하기</a>
           </div>
         </div>
       </section>
 
       <!-- About Section -->
-      <section id="about" class="about-section">
+      <section
+        id="about"
+        class="about-section"
+      >
         <div class="about__inner">
-          <h2 class="about__title">About Me</h2>
-          <div class="section-divider"></div>
+          <h2 class="about__title">
+            About Me
+          </h2>
+          <div class="section-divider" />
           <span class="section-sub">Who I Am</span>
           <div class="about__content">
             <div class="about__philosophy">
@@ -55,9 +99,14 @@
       <SiteSection />
 
       <!-- Portfolio Section -->
-      <section id="port" class="port-section">
+      <section
+        id="port"
+        class="port-section"
+      >
         <div class="port__wrap-sticky">
-          <div class="port__title">Portfolio</div>
+          <div class="port__title">
+            Portfolio
+          </div>
           <div
             v-if="sectionState.portfolio.loading"
             class="home-section-state home-section-state--portfolio"
@@ -72,7 +121,13 @@
             role="alert"
           >
             <p>{{ sectionState.portfolio.error }}</p>
-            <button type="button" class="home-section-retry" @click="loadPortfolioSkills">다시 시도</button>
+            <button
+              type="button"
+              class="home-section-retry"
+              @click="loadPortfolioSkills"
+            >
+              다시 시도
+            </button>
           </div>
           <div
             v-else-if="portfolioSkills.length === 0"
@@ -80,7 +135,10 @@
           >
             등록된 포트폴리오 항목이 없습니다.
           </div>
-          <div v-else class="port__wrap">
+          <div
+            v-else
+            class="port__wrap"
+          >
             <article
               v-for="(skill, index) in portfolioSkills"
               :key="skill.id"
@@ -88,8 +146,16 @@
               :class="skill.cssClass"
             >
               <span class="num">{{ String(index + 1).padStart(2, '0') }}.</span>
-              <h3 class="title">{{ skill.title }}</h3>
-              <p v-for="(desc, i) in parseJson(skill.descriptions)" :key="i" class="desc">{{ desc }}</p>
+              <h3 class="title">
+                {{ skill.title }}
+              </h3>
+              <p
+                v-for="(desc, i) in parseJson(skill.descriptions)"
+                :key="i"
+                class="desc"
+              >
+                {{ desc }}
+              </p>
             </article>
           </div>
         </div>

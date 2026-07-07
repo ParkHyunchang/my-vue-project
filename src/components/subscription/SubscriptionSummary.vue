@@ -1,29 +1,54 @@
 <template>
   <div class="summary-cards">
     <div class="summary-card">
-      <div class="summary-label">활성 구독</div>
-      <div class="summary-value">{{ activeCount }}<span class="summary-unit">건</span></div>
-      <div v-if="pausedCount + canceledCount > 0" class="summary-sub">
+      <div class="summary-label">
+        활성 구독
+      </div>
+      <div class="summary-value">
+        {{ activeCount }}<span class="summary-unit">건</span>
+      </div>
+      <div
+        v-if="pausedCount + canceledCount > 0"
+        class="summary-sub"
+      >
         일시정지 {{ pausedCount }} · 해지 {{ canceledCount }}
       </div>
     </div>
 
     <div class="summary-card">
-      <div class="summary-label">월 평균 지출</div>
-      <div class="summary-value">{{ formatCurrency(monthlyTotal) }}<span class="summary-unit">원</span></div>
-      <div class="summary-sub">활성 구독 기준 월 환산</div>
+      <div class="summary-label">
+        월 평균 지출
+      </div>
+      <div class="summary-value">
+        {{ formatCurrency(monthlyTotal) }}<span class="summary-unit">원</span>
+      </div>
+      <div class="summary-sub">
+        활성 구독 기준 월 환산
+      </div>
     </div>
 
     <div class="summary-card">
-      <div class="summary-label">연 환산 지출</div>
-      <div class="summary-value">{{ formatCurrency(yearlyTotal) }}<span class="summary-unit">원</span></div>
-      <div class="summary-sub">월 × 12</div>
+      <div class="summary-label">
+        연 환산 지출
+      </div>
+      <div class="summary-value">
+        {{ formatCurrency(yearlyTotal) }}<span class="summary-unit">원</span>
+      </div>
+      <div class="summary-sub">
+        월 × 12
+      </div>
     </div>
 
     <div class="summary-card">
-      <div class="summary-label">이번 달 결제 예정</div>
-      <div class="summary-value">{{ formatCurrency(thisMonthTotal) }}<span class="summary-unit">원</span></div>
-      <div class="summary-sub">{{ thisMonthCount }}건 예정</div>
+      <div class="summary-label">
+        이번 달 결제 예정
+      </div>
+      <div class="summary-value">
+        {{ formatCurrency(thisMonthTotal) }}<span class="summary-unit">원</span>
+      </div>
+      <div class="summary-sub">
+        {{ thisMonthCount }}건 예정
+      </div>
     </div>
   </div>
 </template>

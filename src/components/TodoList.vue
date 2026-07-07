@@ -1,42 +1,65 @@
 <template>
-    <List :items="todos">
-        <template #default="{ item }">
-            <div class="todo-row" @click="moveToPage(item.id)">
-                <input
-                    class="todo-check"
-                    type="checkbox"
-                    :checked="!!item.done"
-                    @change="toggleTodo(item)"
-                    @click.stop
-                />
-                <div class="todo-body">
-                    <div class="todo-line-1">
-                        <span class="todo-priority" :class="'pri-' + priorityKey(item.priority)" :title="priorityLabel(item.priority)">
-                            {{ priorityIcon(item.priority) }}
-                        </span>
-                        <span class="todo-title" :class="{ 'todo-done': item.done }">{{ item.title }}</span>
-                    </div>
-                    <div v-if="item.category || item.dueDate" class="todo-line-2">
-                        <span v-if="item.category" class="todo-badge cat">#{{ item.category }}</span>
-                        <span
-                            v-if="item.dueDate"
-                            class="todo-badge due"
-                            :class="dueStateClass(item)"
-                        >
-                            {{ dueLabel(item) }}
-                        </span>
-                    </div>
-                </div>
-                <button class="btn btn-danger btn-sm todo-del" @click.stop="openModal(item.id)">
-                    삭제
-                </button>
-            </div>
-        </template>
-    </List>
+  <List :items="todos">
+    <template #default="{ item }">
+      <div
+        class="todo-row"
+        @click="moveToPage(item.id)"
+      >
+        <input
+          class="todo-check"
+          type="checkbox"
+          :checked="!!item.done"
+          @change="toggleTodo(item)"
+          @click.stop
+        >
+        <div class="todo-body">
+          <div class="todo-line-1">
+            <span
+              class="todo-priority"
+              :class="'pri-' + priorityKey(item.priority)"
+              :title="priorityLabel(item.priority)"
+            >
+              {{ priorityIcon(item.priority) }}
+            </span>
+            <span
+              class="todo-title"
+              :class="{ 'todo-done': item.done }"
+            >{{ item.title }}</span>
+          </div>
+          <div
+            v-if="item.category || item.dueDate"
+            class="todo-line-2"
+          >
+            <span
+              v-if="item.category"
+              class="todo-badge cat"
+            >#{{ item.category }}</span>
+            <span
+              v-if="item.dueDate"
+              class="todo-badge due"
+              :class="dueStateClass(item)"
+            >
+              {{ dueLabel(item) }}
+            </span>
+          </div>
+        </div>
+        <button
+          class="btn btn-danger btn-sm todo-del"
+          @click.stop="openModal(item.id)"
+        >
+          삭제
+        </button>
+      </div>
+    </template>
+  </List>
 
-    <teleport to="#modal">
-        <Modal v-if="showModal" @close="closeModal" @delete="deleteTodo" />
-    </teleport>
+  <teleport to="#modal">
+    <Modal
+      v-if="showModal"
+      @close="closeModal"
+      @delete="deleteTodo"
+    />
+  </teleport>
 </template>
 
 <script>

@@ -7,12 +7,25 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
+    <div
+      v-if="loading"
+      class="loading-state"
+    >
+      <div class="spinner" />
       <p>데이터를 불러오는 중...</p>
     </div>
-    <div v-else-if="error" class="error-state">{{ error }}</div>
-    <div v-else-if="sessions.length === 0" class="loading-state">채팅 기록이 없습니다.</div>
+    <div
+      v-else-if="error"
+      class="error-state"
+    >
+      {{ error }}
+    </div>
+    <div
+      v-else-if="sessions.length === 0"
+      class="loading-state"
+    >
+      채팅 기록이 없습니다.
+    </div>
 
     <template v-else>
       <div class="table-wrapper">
@@ -22,23 +35,48 @@
               <th>세션 ID</th>
               <th>사용자</th>
               <th>메시지 수</th>
-              <th class="hide-mobile">마지막 활동</th>
-              <th></th>
+              <th class="hide-mobile">
+                마지막 활동
+              </th>
+              <th />
             </tr>
           </thead>
           <tbody>
-            <template v-for="session in sessions" :key="session.sessionKey">
-              <tr class="session-row" @click="toggleSession(session.sessionKey)">
-                <td class="session-key">{{ session.sessionKey.slice(0, 8) }}...</td>
+            <template
+              v-for="session in sessions"
+              :key="session.sessionKey"
+            >
+              <tr
+                class="session-row"
+                @click="toggleSession(session.sessionKey)"
+              >
+                <td class="session-key">
+                  {{ session.sessionKey.slice(0, 8) }}...
+                </td>
                 <td>{{ session.username || '익명' }}</td>
                 <td>{{ session.messageCount }}개</td>
-                <td class="hide-mobile">{{ formatDate(session.lastActivity) }}</td>
-                <td class="expand-icon">{{ expandedKey === session.sessionKey ? '▲' : '▼' }}</td>
+                <td class="hide-mobile">
+                  {{ formatDate(session.lastActivity) }}
+                </td>
+                <td class="expand-icon">
+                  {{ expandedKey === session.sessionKey ? '▲' : '▼' }}
+                </td>
               </tr>
-              <tr v-if="expandedKey === session.sessionKey" class="messages-row">
+              <tr
+                v-if="expandedKey === session.sessionKey"
+                class="messages-row"
+              >
                 <td colspan="5">
-                  <div v-if="messagesLoading" class="messages-loading">불러오는 중...</div>
-                  <div v-else class="messages-list thin-scrollbar">
+                  <div
+                    v-if="messagesLoading"
+                    class="messages-loading"
+                  >
+                    불러오는 중...
+                  </div>
+                  <div
+                    v-else
+                    class="messages-list thin-scrollbar"
+                  >
                     <div
                       v-for="(msg, i) in expandedMessages"
                       :key="i"

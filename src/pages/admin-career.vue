@@ -5,17 +5,38 @@
         <h1>경력 관리</h1>
         <p>Career &amp; Projects 섹션 데이터를 관리합니다.</p>
       </div>
-      <button class="btn-primary" @click="openCreate">+ 새 경력 추가</button>
+      <button
+        class="btn-primary"
+        @click="openCreate"
+      >
+        + 새 경력 추가
+      </button>
     </div>
 
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
+    <div
+      v-if="loading"
+      class="loading-state"
+    >
+      <div class="spinner" />
       <p>데이터를 불러오는 중...</p>
     </div>
-    <div v-else-if="error" class="error-state">{{ error }}</div>
-    <div v-else-if="careers.length === 0" class="loading-state">등록된 경력이 없습니다.</div>
+    <div
+      v-else-if="error"
+      class="error-state"
+    >
+      {{ error }}
+    </div>
+    <div
+      v-else-if="careers.length === 0"
+      class="loading-state"
+    >
+      등록된 경력이 없습니다.
+    </div>
 
-    <div v-else class="table-wrapper">
+    <div
+      v-else
+      class="table-wrapper"
+    >
       <!-- 데스크탑 테이블 -->
       <table class="data-table desktop-only">
         <thead>
@@ -26,17 +47,34 @@
             <th>기간</th>
             <th>배지</th>
             <th>역할</th>
-            <th></th>
+            <th />
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in careers" :key="item.id">
+          <tr
+            v-for="item in careers"
+            :key="item.id"
+          >
             <td>
               <div class="order-cell">
                 <span>{{ item.sortOrder }}</span>
                 <div class="order-btns">
-                  <button @click="moveUp(item)" :disabled="isFirst(item) || saving" class="order-btn" title="위로">↑</button>
-                  <button @click="moveDown(item)" :disabled="isLast(item) || saving" class="order-btn" title="아래로">↓</button>
+                  <button
+                    @click="moveUp(item)"
+                    :disabled="isFirst(item) || saving"
+                    class="order-btn"
+                    title="위로"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    @click="moveDown(item)"
+                    :disabled="isLast(item) || saving"
+                    class="order-btn"
+                    title="아래로"
+                  >
+                    ↓
+                  </button>
                 </div>
               </div>
             </td>
@@ -44,10 +82,22 @@
             <td>{{ item.company }}</td>
             <td>{{ item.period }}</td>
             <td>{{ item.badge || '-' }}</td>
-            <td class="role-cell">{{ item.roleDesc }}</td>
+            <td class="role-cell">
+              {{ item.roleDesc }}
+            </td>
             <td class="actions">
-              <button class="btn-edit" @click="openEdit(item)">수정</button>
-              <button class="btn-delete" @click="confirmDelete(item)">삭제</button>
+              <button
+                class="btn-edit"
+                @click="openEdit(item)"
+              >
+                수정
+              </button>
+              <button
+                class="btn-delete"
+                @click="confirmDelete(item)"
+              >
+                삭제
+              </button>
             </td>
           </tr>
         </tbody>
@@ -55,21 +105,54 @@
 
       <!-- 모바일 카드 -->
       <div class="card-list mobile-only">
-        <div v-for="item in careers" :key="item.id" class="card-item">
+        <div
+          v-for="item in careers"
+          :key="item.id"
+          class="card-item"
+        >
           <div class="card-top">
             <span class="icon-badge">{{ item.icon }}</span>
             <div class="card-info">
               <strong>{{ item.company }}</strong>
               <span class="card-period">{{ item.period }}</span>
             </div>
-            <span v-if="item.badge" class="badge-tag">{{ item.badge }}</span>
+            <span
+              v-if="item.badge"
+              class="badge-tag"
+            >{{ item.badge }}</span>
           </div>
-          <p class="card-role">{{ item.roleDesc }}</p>
+          <p class="card-role">
+            {{ item.roleDesc }}
+          </p>
           <div class="card-actions">
-            <button class="order-btn" @click="moveUp(item)" :disabled="isFirst(item) || saving" title="위로">↑</button>
-            <button class="order-btn" @click="moveDown(item)" :disabled="isLast(item) || saving" title="아래로">↓</button>
-            <button class="btn-edit" @click="openEdit(item)">수정</button>
-            <button class="btn-delete" @click="confirmDelete(item)">삭제</button>
+            <button
+              class="order-btn"
+              @click="moveUp(item)"
+              :disabled="isFirst(item) || saving"
+              title="위로"
+            >
+              ↑
+            </button>
+            <button
+              class="order-btn"
+              @click="moveDown(item)"
+              :disabled="isLast(item) || saving"
+              title="아래로"
+            >
+              ↓
+            </button>
+            <button
+              class="btn-edit"
+              @click="openEdit(item)"
+            >
+              수정
+            </button>
+            <button
+              class="btn-delete"
+              @click="confirmDelete(item)"
+            >
+              삭제
+            </button>
           </div>
         </div>
       </div>
@@ -77,47 +160,96 @@
 
     <!-- 모달 -->
     <Teleport to="body">
-      <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
+      <div
+        v-if="showModal"
+        class="modal-overlay"
+        @click.self="closeModal"
+      >
         <div class="modal-box">
           <div class="modal-header">
             <h2>{{ editTarget ? '경력 수정' : '경력 추가' }}</h2>
-            <button class="modal-close" @click="closeModal" aria-label="닫기">✕</button>
+            <button
+              class="modal-close"
+              @click="closeModal"
+              aria-label="닫기"
+            >
+              ✕
+            </button>
           </div>
           <div class="modal-body">
             <form @submit.prevent="save">
               <div class="form-grid">
                 <div class="form-row">
                   <label>아이콘 <span class="hint">(예: AI, NLP, SEC)</span></label>
-                  <input v-model="form.icon" placeholder="AI" maxlength="10" required />
+                  <input
+                    v-model="form.icon"
+                    placeholder="AI"
+                    maxlength="10"
+                    required
+                  >
                 </div>
                 <div class="form-row">
                   <label>배지 <span class="hint">(재직중이면 입력)</span></label>
-                  <input v-model="form.badge" placeholder="재직중" />
+                  <input
+                    v-model="form.badge"
+                    placeholder="재직중"
+                  >
                 </div>
               </div>
               <div class="form-row">
                 <label>회사명 *</label>
-                <input v-model="form.company" placeholder="(주)회사명" required />
+                <input
+                  v-model="form.company"
+                  placeholder="(주)회사명"
+                  required
+                >
               </div>
               <div class="form-row">
                 <label>기간 *</label>
-                <input v-model="form.period" placeholder="2025.04 ~ 재직중" required />
+                <input
+                  v-model="form.period"
+                  placeholder="2025.04 ~ 재직중"
+                  required
+                >
               </div>
               <div class="form-row">
                 <label>역할 설명 *</label>
-                <input v-model="form.roleDesc" placeholder="LLM 개발운영 — 대규모 언어 모델 프로젝트" required />
+                <input
+                  v-model="form.roleDesc"
+                  placeholder="LLM 개발운영 — 대규모 언어 모델 프로젝트"
+                  required
+                >
               </div>
               <div class="form-row">
                 <label>프로젝트 목록 <span class="hint">(한 줄에 하나씩)</span></label>
-                <textarea v-model="projectsText" rows="3" placeholder="SKT — LLM 서비스 개발 및 운영&#10;H사 — 대규모 언어 모델 개발"></textarea>
+                <textarea
+                  v-model="projectsText"
+                  rows="3"
+                  placeholder="SKT — LLM 서비스 개발 및 운영&#10;H사 — 대규모 언어 모델 개발"
+                />
               </div>
               <div class="form-row">
                 <label>기술 태그 <span class="hint">(쉼표로 구분)</span></label>
-                <input v-model="tagsText" placeholder="Python, LLM, Spring Boot, Docker" />
+                <input
+                  v-model="tagsText"
+                  placeholder="Python, LLM, Spring Boot, Docker"
+                >
               </div>
               <div class="form-actions">
-                <button type="button" class="btn-cancel" @click="closeModal">취소</button>
-                <button type="submit" class="btn-primary" :disabled="saving">{{ saving ? '저장 중...' : '저장' }}</button>
+                <button
+                  type="button"
+                  class="btn-cancel"
+                  @click="closeModal"
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  class="btn-primary"
+                  :disabled="saving"
+                >
+                  {{ saving ? '저장 중...' : '저장' }}
+                </button>
               </div>
             </form>
           </div>
@@ -127,17 +259,38 @@
 
     <!-- 삭제 확인 -->
     <Teleport to="body">
-      <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
+      <div
+        v-if="deleteTarget"
+        class="modal-overlay"
+        @click.self="deleteTarget = null"
+      >
         <div class="modal-box modal-confirm">
           <div class="modal-header">
             <h2>경력 삭제</h2>
-            <button class="modal-close" @click="deleteTarget = null" aria-label="닫기">✕</button>
+            <button
+              class="modal-close"
+              @click="deleteTarget = null"
+              aria-label="닫기"
+            >
+              ✕
+            </button>
           </div>
           <div class="modal-body">
             <p><strong>{{ deleteTarget.company }}</strong> 경력을 삭제하시겠습니까?</p>
             <div class="form-actions">
-              <button class="btn-cancel" @click="deleteTarget = null">취소</button>
-              <button class="btn-delete" :disabled="saving" @click="doDelete">{{ saving ? '삭제 중...' : '삭제' }}</button>
+              <button
+                class="btn-cancel"
+                @click="deleteTarget = null"
+              >
+                취소
+              </button>
+              <button
+                class="btn-delete"
+                :disabled="saving"
+                @click="doDelete"
+              >
+                {{ saving ? '삭제 중...' : '삭제' }}
+              </button>
             </div>
           </div>
         </div>

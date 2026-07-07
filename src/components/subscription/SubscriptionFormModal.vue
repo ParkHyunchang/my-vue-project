@@ -1,11 +1,17 @@
 <template>
   <teleport to="#modal">
-    <Modal v-if="show" @close="$emit('close')">
+    <Modal
+      v-if="show"
+      @close="$emit('close')"
+    >
       <template #header>
         <h3>{{ isEditing ? '구독 수정' : '새 구독 추가' }}</h3>
       </template>
       <template #body>
-        <form @submit.prevent="$emit('save')" class="subscription-form">
+        <form
+          @submit.prevent="$emit('save')"
+          class="subscription-form"
+        >
           <div class="form-group">
             <label>서비스명</label>
             <input
@@ -15,7 +21,7 @@
               class="form-control"
               placeholder="예: Netflix, Claude Pro, 쿠팡 와우"
               required
-            />
+            >
           </div>
 
           <div class="form-row">
@@ -28,12 +34,39 @@
                 inputmode="numeric"
                 class="form-control"
                 required
-              />
-              <div v-if="modelValue.currency === 'KRW'" class="quick-add-btns">
-                <button type="button" class="quick-btn" @click="addAmount(1000)">+1천</button>
-                <button type="button" class="quick-btn" @click="addAmount(5000)">+5천</button>
-                <button type="button" class="quick-btn" @click="addAmount(10000)">+1만</button>
-                <button type="button" class="quick-btn" @click="addAmount(100000)">+10만</button>
+              >
+              <div
+                v-if="modelValue.currency === 'KRW'"
+                class="quick-add-btns"
+              >
+                <button
+                  type="button"
+                  class="quick-btn"
+                  @click="addAmount(1000)"
+                >
+                  +1천
+                </button>
+                <button
+                  type="button"
+                  class="quick-btn"
+                  @click="addAmount(5000)"
+                >
+                  +5천
+                </button>
+                <button
+                  type="button"
+                  class="quick-btn"
+                  @click="addAmount(10000)"
+                >
+                  +1만
+                </button>
+                <button
+                  type="button"
+                  class="quick-btn"
+                  @click="addAmount(100000)"
+                >
+                  +10만
+                </button>
               </div>
             </div>
             <div class="form-group">
@@ -43,10 +76,18 @@
                 @change="updateField('currency', $event.target.value)"
                 class="form-control"
               >
-                <option value="KRW">KRW (원)</option>
-                <option value="USD">USD ($)</option>
-                <option value="JPY">JPY (¥)</option>
-                <option value="EUR">EUR (€)</option>
+                <option value="KRW">
+                  KRW (원)
+                </option>
+                <option value="USD">
+                  USD ($)
+                </option>
+                <option value="JPY">
+                  JPY (¥)
+                </option>
+                <option value="EUR">
+                  EUR (€)
+                </option>
               </select>
             </div>
           </div>
@@ -75,7 +116,7 @@
                 type="date"
                 class="form-control"
                 required
-              />
+              >
             </div>
             <div class="form-group">
               <label>시작일 (선택)</label>
@@ -84,7 +125,7 @@
                 @input="updateField('startedAt', $event.target.value)"
                 type="date"
                 class="form-control"
-              />
+              >
             </div>
           </div>
 
@@ -112,7 +153,7 @@
                 type="text"
                 class="form-control"
                 placeholder="예: 신한카드, 페이팔"
-              />
+              >
             </div>
             <div class="form-group">
               <label>상태</label>
@@ -121,9 +162,15 @@
                 @change="updateField('status', $event.target.value)"
                 class="form-control"
               >
-                <option value="ACTIVE">활성</option>
-                <option value="PAUSED">일시정지</option>
-                <option value="CANCELED">해지됨</option>
+                <option value="ACTIVE">
+                  활성
+                </option>
+                <option value="PAUSED">
+                  일시정지
+                </option>
+                <option value="CANCELED">
+                  해지됨
+                </option>
               </select>
             </div>
           </div>
@@ -157,7 +204,11 @@
       </template>
       <template #footer>
         <div class="modal-footer-buttons">
-          <button type="button" class="btn btn-primary" @click="$emit('save')">
+          <button
+            type="button"
+            class="btn btn-primary"
+            @click="$emit('save')"
+          >
             {{ isEditing ? '수정' : '저장' }}
           </button>
           <button
@@ -168,7 +219,11 @@
           >
             삭제
           </button>
-          <button type="button" class="btn btn-primary" @click="$emit('close')">
+          <button
+            type="button"
+            class="btn btn-primary"
+            @click="$emit('close')"
+          >
             취소
           </button>
         </div>

@@ -2,14 +2,23 @@
   <div class="changepw-wrap">
     <div class="changepw-card">
       <div class="changepw-header">
-        <div class="changepw-icon">🔑</div>
+        <div class="changepw-icon">
+          🔑
+        </div>
         <div>
-          <h2 class="changepw-title">비밀번호 수정</h2>
-          <p class="changepw-sub">새 비밀번호는 8자 이상이어야 합니다</p>
+          <h2 class="changepw-title">
+            비밀번호 수정
+          </h2>
+          <p class="changepw-sub">
+            새 비밀번호는 8자 이상이어야 합니다
+          </p>
         </div>
       </div>
 
-      <form @submit.prevent="handleSubmit" class="changepw-form">
+      <form
+        @submit.prevent="handleSubmit"
+        class="changepw-form"
+      >
         <div class="form-group">
           <label>현재 비밀번호</label>
           <input
@@ -18,8 +27,11 @@
             placeholder="현재 비밀번호를 입력하세요"
             :class="{ error: errors.currentPassword }"
             autocomplete="current-password"
-          />
-          <span v-if="errors.currentPassword" class="field-error">{{ errors.currentPassword }}</span>
+          >
+          <span
+            v-if="errors.currentPassword"
+            class="field-error"
+          >{{ errors.currentPassword }}</span>
         </div>
         <div class="form-group">
           <label>새 비밀번호</label>
@@ -29,8 +41,11 @@
             placeholder="새 비밀번호 (8자 이상)"
             :class="{ error: errors.newPassword }"
             autocomplete="new-password"
-          />
-          <span v-if="errors.newPassword" class="field-error">{{ errors.newPassword }}</span>
+          >
+          <span
+            v-if="errors.newPassword"
+            class="field-error"
+          >{{ errors.newPassword }}</span>
         </div>
         <div class="form-group">
           <label>새 비밀번호 확인</label>
@@ -40,13 +55,26 @@
             placeholder="새 비밀번호를 다시 입력하세요"
             :class="{ error: errors.confirmPassword }"
             autocomplete="new-password"
-          />
-          <span v-if="errors.confirmPassword" class="field-error">{{ errors.confirmPassword }}</span>
+          >
+          <span
+            v-if="errors.confirmPassword"
+            class="field-error"
+          >{{ errors.confirmPassword }}</span>
         </div>
 
         <div class="form-actions">
-          <button type="button" class="btn-cancel" @click="$router.back()">취소</button>
-          <button type="submit" class="btn-submit" :disabled="loading">
+          <button
+            type="button"
+            class="btn-cancel"
+            @click="$router.back()"
+          >
+            취소
+          </button>
+          <button
+            type="submit"
+            class="btn-submit"
+            :disabled="loading"
+          >
             {{ loading ? '변경 중...' : '비밀번호 변경' }}
           </button>
         </div>

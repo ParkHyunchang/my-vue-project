@@ -1,10 +1,20 @@
 <template>
   <teleport to="body">
-    <div v-if="show" class="rem-overlay" data-lenis-prevent @click.self="close">
+    <div
+      v-if="show"
+      class="rem-overlay"
+      data-lenis-prevent
+      @click.self="close"
+    >
       <div class="rem-box">
         <div class="rem-hdr">
           <h3>보유 부동산 등록</h3>
-          <button class="rem-close" @click="close">✕</button>
+          <button
+            class="rem-close"
+            @click="close"
+          >
+            ✕
+          </button>
         </div>
 
         <!-- 유형: 아파트 / 토지 -->
@@ -17,12 +27,17 @@
               type="button"
               :class="['rem-toggle-btn', { active: form.propertyType === t.id }]"
               @click="setPropertyType(t.id)"
-            >{{ t.label }}</button>
+            >
+              {{ t.label }}
+            </button>
           </div>
         </div>
 
         <!-- 거래유형 (아파트만) -->
-        <div v-if="isApt" class="rem-row">
+        <div
+          v-if="isApt"
+          class="rem-row"
+        >
           <label>거래유형</label>
           <div class="rem-toggle">
             <button
@@ -31,7 +46,9 @@
               type="button"
               :class="['rem-toggle-btn', { active: form.dealType === t.id }]"
               @click="form.dealType = t.id"
-            >{{ t.label }}</button>
+            >
+              {{ t.label }}
+            </button>
           </div>
         </div>
 
@@ -45,14 +62,23 @@
             autocomplete="off"
             @input="onRegionInput"
             @focus="showRegionList = true"
-          />
-          <span v-if="form.lawdCd" class="rem-selected">✓ {{ form.sigungu }}</span>
-          <ul v-if="showRegionList && regionResults.length" class="rem-region-list" data-lenis-prevent>
+          >
+          <span
+            v-if="form.lawdCd"
+            class="rem-selected"
+          >✓ {{ form.sigungu }}</span>
+          <ul
+            v-if="showRegionList && regionResults.length"
+            class="rem-region-list"
+            data-lenis-prevent
+          >
             <li
               v-for="r in regionResults"
               :key="r.code"
               @mousedown.prevent="selectRegion(r)"
-            >{{ r.name }}</li>
+            >
+              {{ r.name }}
+            </li>
           </ul>
         </div>
 
@@ -69,28 +95,56 @@
               autocomplete="off"
               @input="onAptInput"
               @focus="showAptList = true"
-            />
-            <span v-if="aptLoading" class="rem-hint">단지 목록 불러오는 중…</span>
-            <ul v-if="showAptList && filteredApts.length" class="rem-region-list" data-lenis-prevent>
+            >
+            <span
+              v-if="aptLoading"
+              class="rem-hint"
+            >단지 목록 불러오는 중…</span>
+            <ul
+              v-if="showAptList && filteredApts.length"
+              class="rem-region-list"
+              data-lenis-prevent
+            >
               <li
                 v-for="(a, i) in filteredApts"
                 :key="i"
                 @mousedown.prevent="selectApt(a)"
-              >{{ a }}</li>
+              >
+                {{ a }}
+              </li>
             </ul>
           </div>
 
           <!-- 전용면적: 선택한 단지의 실거래 면적 목록, 없으면 직접 입력 -->
           <div class="rem-row">
             <label>전용면적 (㎡) <span class="rem-opt">(시세 매칭에 사용)</span></label>
-            <select v-if="areaList.length" v-model.number="form.areaM2">
-              <option :value="null">선택</option>
-              <option v-for="a in areaList" :key="a" :value="a">
+            <select
+              v-if="areaList.length"
+              v-model.number="form.areaM2"
+            >
+              <option :value="null">
+                선택
+              </option>
+              <option
+                v-for="a in areaList"
+                :key="a"
+                :value="a"
+              >
                 {{ a }}㎡ ({{ (a / 3.3058).toFixed(1) }}평)
               </option>
             </select>
-            <input v-else v-model.number="form.areaM2" type="number" min="0" step="0.01" placeholder="예: 84.95" />
-            <span v-if="form.areaM2 > 0 && !areaList.length" class="rem-hint">≈ {{ (form.areaM2 / 3.3058).toFixed(1) }}평</span>
+            <input
+              v-else
+              v-model.number="form.areaM2"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="예: 84.95"
+            >
+            <span
+              v-if="form.areaM2 > 0 && !areaList.length"
+              class="rem-hint"
+            >≈ {{ (form.areaM2 / 3.3058).toFixed(1) }}평</span>
           </div>
         </template>
 
@@ -107,14 +161,23 @@
               autocomplete="off"
               @input="onUmdInput"
               @focus="showUmdList = true"
-            />
-            <span v-if="form.bdongCode" class="rem-selected">✓ {{ form.umdName }}</span>
-            <ul v-if="showUmdList && filteredUmds.length" class="rem-region-list" data-lenis-prevent>
+            >
+            <span
+              v-if="form.bdongCode"
+              class="rem-selected"
+            >✓ {{ form.umdName }}</span>
+            <ul
+              v-if="showUmdList && filteredUmds.length"
+              class="rem-region-list"
+              data-lenis-prevent
+            >
               <li
                 v-for="u in filteredUmds"
                 :key="u.code"
                 @mousedown.prevent="selectUmd(u)"
-              >{{ u.name }}</li>
+              >
+                {{ u.name }}
+              </li>
             </ul>
           </div>
 
@@ -122,11 +185,24 @@
             <label>지번 <span class="rem-opt">(공시지가 조회용, 선택)</span></label>
             <div class="rem-jibun">
               <label class="rem-check">
-                <input type="checkbox" v-model="form.mountain" /> 산
+                <input
+                  type="checkbox"
+                  v-model="form.mountain"
+                > 산
               </label>
-              <input v-model.number="form.bun" type="number" min="0" placeholder="본번" />
+              <input
+                v-model.number="form.bun"
+                type="number"
+                min="0"
+                placeholder="본번"
+              >
               <span class="rem-dash">-</span>
-              <input v-model.number="form.ji" type="number" min="0" placeholder="부번" />
+              <input
+                v-model.number="form.ji"
+                type="number"
+                min="0"
+                placeholder="부번"
+              >
             </div>
           </div>
 
@@ -134,80 +210,168 @@
           <div class="rem-row">
             <label>개별공시지가 <span class="rem-opt">(원/㎡, 선택)</span></label>
             <div class="rem-official">
-              <button type="button" class="rem-official-btn"
-                      :disabled="!form.bdongCode || officialLoading" @click="fetchOfficialPrice">
+              <button
+                type="button"
+                class="rem-official-btn"
+                :disabled="!form.bdongCode || officialLoading"
+                @click="fetchOfficialPrice"
+              >
                 {{ officialLoading ? '조회중…' : '공시지가 조회' }}
               </button>
-              <span v-if="form.officialPricePerM2" class="rem-official-val">
+              <span
+                v-if="form.officialPricePerM2"
+                class="rem-official-val"
+              >
                 {{ form.officialPricePerM2.toLocaleString() }}원/㎡
-                <span v-if="form.officialPriceYear" class="rem-opt">({{ form.officialPriceYear }}년)</span>
+                <span
+                  v-if="form.officialPriceYear"
+                  class="rem-opt"
+                >({{ form.officialPriceYear }}년)</span>
               </span>
-              <span v-else-if="officialMsg" class="rem-hint">{{ officialMsg }}</span>
+              <span
+                v-else-if="officialMsg"
+                class="rem-hint"
+              >{{ officialMsg }}</span>
             </div>
           </div>
 
           <div class="rem-grid2">
             <div class="rem-row">
               <label>지목 <span class="rem-opt">(시세 매칭)</span></label>
-              <input v-model="form.jimok" type="text" list="land-jimok-list" :disabled="!form.lawdCd"
-                     :placeholder="form.lawdCd ? '예: 대' : '먼저 지역 선택'" autocomplete="off" />
+              <input
+                v-model="form.jimok"
+                type="text"
+                list="land-jimok-list"
+                :disabled="!form.lawdCd"
+                :placeholder="form.lawdCd ? '예: 대' : '먼저 지역 선택'"
+                autocomplete="off"
+              >
               <datalist id="land-jimok-list">
-                <option v-for="j in landJimoks" :key="j" :value="j" />
+                <option
+                  v-for="j in landJimoks"
+                  :key="j"
+                  :value="j"
+                />
               </datalist>
             </div>
             <div class="rem-row">
               <label>용도지역 <span class="rem-opt">(시세 매칭)</span></label>
-              <input v-model="form.useZone" type="text" list="land-zone-list" :disabled="!form.lawdCd"
-                     :placeholder="form.lawdCd ? '예: 계획관리' : '먼저 지역 선택'" autocomplete="off" />
+              <input
+                v-model="form.useZone"
+                type="text"
+                list="land-zone-list"
+                :disabled="!form.lawdCd"
+                :placeholder="form.lawdCd ? '예: 계획관리' : '먼저 지역 선택'"
+                autocomplete="off"
+              >
               <datalist id="land-zone-list">
-                <option v-for="z in landUseZones" :key="z" :value="z" />
+                <option
+                  v-for="z in landUseZones"
+                  :key="z"
+                  :value="z"
+                />
               </datalist>
             </div>
           </div>
-          <span v-if="landFiltersLoading" class="rem-hint">지목·용도지역 후보 불러오는 중…</span>
+          <span
+            v-if="landFiltersLoading"
+            class="rem-hint"
+          >지목·용도지역 후보 불러오는 중…</span>
 
           <div class="rem-row">
             <label>토지면적 (㎡) <span class="rem-opt">(필수)</span></label>
-            <input v-model.number="form.areaM2" type="number" min="0" step="0.01" placeholder="예: 330.5" />
-            <span v-if="form.areaM2 > 0" class="rem-hint">≈ {{ (form.areaM2 / 3.3058).toFixed(1) }}평</span>
+            <input
+              v-model.number="form.areaM2"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="예: 330.5"
+            >
+            <span
+              v-if="form.areaM2 > 0"
+              class="rem-hint"
+            >≈ {{ (form.areaM2 / 3.3058).toFixed(1) }}평</span>
           </div>
 
           <div class="rem-row">
             <label>토지명 <span class="rem-opt">(선택, 미입력 시 읍면동·지번으로 자동)</span></label>
-            <input v-model="form.name" type="text" :placeholder="autoLandName || '예: 역삼동 텃밭'" autocomplete="off" />
+            <input
+              v-model="form.name"
+              type="text"
+              :placeholder="autoLandName || '예: 역삼동 텃밭'"
+              autocomplete="off"
+            >
           </div>
         </template>
 
         <!-- 매입가/보증금 (공통) -->
         <div class="rem-row">
           <label>{{ priceLabel }} (만원)</label>
-          <input v-model.number="form.purchasePrice" type="number" min="0" placeholder="만원 단위" />
-          <span v-if="form.purchasePrice > 0" class="rem-hint">{{ formatMoney(form.purchasePrice) }}</span>
+          <input
+            v-model.number="form.purchasePrice"
+            type="number"
+            min="0"
+            placeholder="만원 단위"
+          >
+          <span
+            v-if="form.purchasePrice > 0"
+            class="rem-hint"
+          >{{ formatMoney(form.purchasePrice) }}</span>
         </div>
 
         <!-- 월세 (아파트 월세만) -->
-        <div v-if="isApt && form.dealType === 'MONTHLY'" class="rem-row">
+        <div
+          v-if="isApt && form.dealType === 'MONTHLY'"
+          class="rem-row"
+        >
           <label>월세 (만원)</label>
-          <input v-model.number="form.monthlyRent" type="number" min="0" placeholder="만원 단위" />
+          <input
+            v-model.number="form.monthlyRent"
+            type="number"
+            min="0"
+            placeholder="만원 단위"
+          >
         </div>
 
         <!-- 매입(계약) 일자 (공통) -->
         <div class="rem-row">
           <label>{{ dateLabel }} <span class="rem-opt">(선택, 등락률 계산용)</span></label>
-          <input v-model="form.purchaseDate" type="date" :max="today" />
+          <input
+            v-model="form.purchaseDate"
+            type="date"
+            :max="today"
+          >
         </div>
 
         <!-- 메모 -->
         <div class="rem-row">
           <label>메모 <span class="rem-opt">(선택)</span></label>
-          <textarea v-model="form.memo" rows="2" placeholder="자유 메모"></textarea>
+          <textarea
+            v-model="form.memo"
+            rows="2"
+            placeholder="자유 메모"
+          />
         </div>
 
-        <div v-if="errorMsg" class="rem-error">{{ errorMsg }}</div>
+        <div
+          v-if="errorMsg"
+          class="rem-error"
+        >
+          {{ errorMsg }}
+        </div>
 
         <div class="rem-actions">
-          <button class="rem-cancel" @click="close">취소</button>
-          <button class="rem-submit" :disabled="!canSubmit || saving" @click="submit">
+          <button
+            class="rem-cancel"
+            @click="close"
+          >
+            취소
+          </button>
+          <button
+            class="rem-submit"
+            :disabled="!canSubmit || saving"
+            @click="submit"
+          >
             {{ saving ? '저장중…' : '등록' }}
           </button>
         </div>

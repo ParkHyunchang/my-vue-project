@@ -2,17 +2,31 @@
   <div class="mypage-wrap">
     <div class="mypage-card">
       <div class="mypage-header">
-        <div class="mypage-avatar">{{ userInitial }}</div>
+        <div class="mypage-avatar">
+          {{ userInitial }}
+        </div>
         <div>
-          <h2 class="mypage-title">내 정보 수정</h2>
-          <p class="mypage-sub">{{ user.username }} · {{ user.role }}</p>
+          <h2 class="mypage-title">
+            내 정보 수정
+          </h2>
+          <p class="mypage-sub">
+            {{ user.username }} · {{ user.role }}
+          </p>
         </div>
       </div>
 
-      <form @submit.prevent="handleSubmit" class="mypage-form">
+      <form
+        @submit.prevent="handleSubmit"
+        class="mypage-form"
+      >
         <div class="form-group">
           <label>아이디 (변경 불가)</label>
-          <input type="text" :value="user.username" disabled class="input-disabled" />
+          <input
+            type="text"
+            :value="user.username"
+            disabled
+            class="input-disabled"
+          >
         </div>
         <div class="form-group">
           <label>이름</label>
@@ -21,8 +35,11 @@
             type="text"
             placeholder="이름을 입력하세요"
             :class="{ error: errors.name }"
-          />
-          <span v-if="errors.name" class="field-error">{{ errors.name }}</span>
+          >
+          <span
+            v-if="errors.name"
+            class="field-error"
+          >{{ errors.name }}</span>
         </div>
         <div class="form-group">
           <label>이메일</label>
@@ -31,8 +48,11 @@
             type="email"
             placeholder="이메일을 입력하세요"
             :class="{ error: errors.email }"
-          />
-          <span v-if="errors.email" class="field-error">{{ errors.email }}</span>
+          >
+          <span
+            v-if="errors.email"
+            class="field-error"
+          >{{ errors.email }}</span>
         </div>
         <div class="form-group">
           <label>전화번호</label>
@@ -40,12 +60,22 @@
             v-model="form.phone"
             type="tel"
             placeholder="전화번호를 입력하세요 (선택)"
-          />
+          >
         </div>
 
         <div class="form-actions">
-          <button type="button" class="btn-cancel" @click="$router.back()">취소</button>
-          <button type="submit" class="btn-submit" :disabled="loading">
+          <button
+            type="button"
+            class="btn-cancel"
+            @click="$router.back()"
+          >
+            취소
+          </button>
+          <button
+            type="submit"
+            class="btn-submit"
+            :disabled="loading"
+          >
             {{ loading ? '저장 중...' : '저장' }}
           </button>
         </div>

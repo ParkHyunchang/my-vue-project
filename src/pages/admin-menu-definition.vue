@@ -6,15 +6,21 @@
         <h1>메뉴 정의 관리</h1>
         <p>시스템에 등록된 전체 메뉴를 조회하고 설정을 관리합니다</p>
       </div>
-      <button @click="openCreateModal" class="btn btn-primary">
+      <button
+        @click="openCreateModal"
+        class="btn btn-primary"
+      >
         <span class="btn-icon">＋</span>
         새 메뉴 추가
       </button>
     </div>
 
     <!-- 로딩 -->
-    <div v-if="pageLoading" class="loading-state">
-      <div class="spinner"></div>
+    <div
+      v-if="pageLoading"
+      class="loading-state"
+    >
+      <div class="spinner" />
       <p>데이터를 불러오는 중...</p>
     </div>
 
@@ -48,8 +54,14 @@
             type="text"
             placeholder="메뉴명 또는 경로로 검색..."
             class="search-input-def"
-          />
-          <button v-if="searchQuery" @click="searchQuery = ''" class="search-clear">✕</button>
+          >
+          <button
+            v-if="searchQuery"
+            @click="searchQuery = ''"
+            class="search-clear"
+          >
+            ✕
+          </button>
         </div>
         <div class="filter-tabs">
           <button
@@ -69,18 +81,37 @@
         <table class="menu-table">
           <thead>
             <tr>
-              <th class="col-order">순서</th>
-              <th class="col-icon">아이콘</th>
-              <th class="col-name">메뉴명 / 네비 표시명</th>
-              <th class="col-path">경로</th>
-              <th class="col-category">카테고리</th>
-              <th class="col-status">표시 유형</th>
-              <th class="col-roles">기본 권한</th>
-              <th class="col-actions">관리</th>
+              <th class="col-order">
+                순서
+              </th>
+              <th class="col-icon">
+                아이콘
+              </th>
+              <th class="col-name">
+                메뉴명 / 네비 표시명
+              </th>
+              <th class="col-path">
+                경로
+              </th>
+              <th class="col-category">
+                카테고리
+              </th>
+              <th class="col-status">
+                표시 유형
+              </th>
+              <th class="col-roles">
+                기본 권한
+              </th>
+              <th class="col-actions">
+                관리
+              </th>
             </tr>
           </thead>
           <tbody>
-            <tr v-if="filteredMenus.length === 0" class="empty-row-tr">
+            <tr
+              v-if="filteredMenus.length === 0"
+              class="empty-row-tr"
+            >
               <td colspan="8">
                 <div class="empty-row">
                   <span>📭</span>
@@ -94,13 +125,22 @@
               class="menu-row"
               :class="{ 'row-required': menu.required }"
             >
-              <td class="col-order" data-label="순서">
+              <td
+                class="col-order"
+                data-label="순서"
+              >
                 <span class="sort-order-badge">{{ menu.sortOrder }}</span>
               </td>
-              <td class="col-icon" data-label="아이콘">
+              <td
+                class="col-icon"
+                data-label="아이콘"
+              >
                 <span class="menu-icon-cell">{{ menu.icon || '📄' }}</span>
               </td>
-              <td class="col-name" data-label="메뉴명">
+              <td
+                class="col-name"
+                data-label="메뉴명"
+              >
                 <div class="name-cell">
                   <span class="menu-name-text">{{ menu.name }}</span>
                   <span
@@ -109,20 +149,41 @@
                   >{{ menu.navLabel }}</span>
                 </div>
               </td>
-              <td class="col-path" data-label="경로">
+              <td
+                class="col-path"
+                data-label="경로"
+              >
                 <code class="path-code">{{ menu.path }}</code>
               </td>
-              <td class="col-category" data-label="카테고리">
+              <td
+                class="col-category"
+                data-label="카테고리"
+              >
                 <span :class="['cat-badge', `cat-${menu.category}`]">
                   {{ getCategoryLabel(menu.category) }}
                 </span>
               </td>
-              <td class="col-status" data-label="표시 유형">
+              <td
+                class="col-status"
+                data-label="표시 유형"
+              >
                 <div class="status-chips">
-                  <span v-if="menu.required" class="chip chip-required">필수</span>
-                  <span v-if="menu.showInNav" class="chip chip-nav">상단 네비</span>
-                  <span v-if="menu.adminSubMenu" class="chip chip-admin">관리자 서브</span>
-                  <span v-if="menu.parentPath" class="chip chip-sub">
+                  <span
+                    v-if="menu.required"
+                    class="chip chip-required"
+                  >필수</span>
+                  <span
+                    v-if="menu.showInNav"
+                    class="chip chip-nav"
+                  >상단 네비</span>
+                  <span
+                    v-if="menu.adminSubMenu"
+                    class="chip chip-admin"
+                  >관리자 서브</span>
+                  <span
+                    v-if="menu.parentPath"
+                    class="chip chip-sub"
+                  >
                     ↳ {{ getMenuName(menu.parentPath) }}
                   </span>
                   <span
@@ -131,7 +192,10 @@
                   >숨김</span>
                 </div>
               </td>
-              <td class="col-roles" data-label="기본 권한">
+              <td
+                class="col-roles"
+                data-label="기본 권한"
+              >
                 <div class="role-chips">
                   <span
                     v-for="role in menu.defaultRoles"
@@ -144,13 +208,26 @@
                   >없음</span>
                 </div>
               </td>
-              <td class="col-actions" data-label="관리">
+              <td
+                class="col-actions"
+                data-label="관리"
+              >
                 <div class="actions-cell">
-                  <button @click="openEditModal(menu)" class="btn-edit-def">
+                  <button
+                    @click="openEditModal(menu)"
+                    class="btn-edit-def"
+                  >
                     ✏️ 수정
                   </button>
-                  <span v-if="menu.required" class="protected-badge">🔒 보호됨</span>
-                  <button v-else @click="openDeleteModal(menu)" class="btn-delete-def">
+                  <span
+                    v-if="menu.required"
+                    class="protected-badge"
+                  >🔒 보호됨</span>
+                  <button
+                    v-else
+                    @click="openDeleteModal(menu)"
+                    class="btn-delete-def"
+                  >
                     🗑️ 삭제
                   </button>
                 </div>
@@ -168,7 +245,11 @@
     </template>
 
     <!-- 삭제 확인 모달 -->
-    <Modal v-if="showDeleteModal" @close="closeDeleteModal" :close-on-backdrop="!deleting">
+    <Modal
+      v-if="showDeleteModal"
+      @close="closeDeleteModal"
+      :close-on-backdrop="!deleting"
+    >
       <template #header>
         <h3>⚠️ 메뉴 삭제 확인</h3>
       </template>
@@ -177,30 +258,50 @@
           <div class="delete-menu-info">
             <span class="delete-menu-icon">{{ deletingMenu?.icon || '📄' }}</span>
             <div>
-              <p class="delete-menu-name">{{ deletingMenu?.name }}</p>
+              <p class="delete-menu-name">
+                {{ deletingMenu?.name }}
+              </p>
               <code class="path-code">{{ deletingMenu?.path }}</code>
             </div>
           </div>
           <div class="delete-impact-box">
-            <p class="delete-impact-title">삭제 시 함께 제거되는 항목:</p>
+            <p class="delete-impact-title">
+              삭제 시 함께 제거되는 항목:
+            </p>
             <ul class="delete-impact-list">
               <li>권한별 접근 설정 (메뉴 권한)</li>
               <li>CRUD 권한 설정 (읽기/쓰기/수정/삭제 권한)</li>
             </ul>
-            <p class="delete-irreversible">이 작업은 되돌릴 수 없습니다.</p>
+            <p class="delete-irreversible">
+              이 작업은 되돌릴 수 없습니다.
+            </p>
           </div>
         </div>
       </template>
       <template #footer>
-        <button @click="closeDeleteModal" class="btn btn-outline" :disabled="deleting">취소</button>
-        <button @click="deleteMenu" class="btn btn-danger" :disabled="deleting">
+        <button
+          @click="closeDeleteModal"
+          class="btn btn-outline"
+          :disabled="deleting"
+        >
+          취소
+        </button>
+        <button
+          @click="deleteMenu"
+          class="btn btn-danger"
+          :disabled="deleting"
+        >
           {{ deleting ? '삭제 중...' : '삭제하기' }}
         </button>
       </template>
     </Modal>
 
     <!-- 생성/수정 모달 -->
-    <Modal v-if="showModal" @close="closeModal" :close-on-backdrop="!saving">
+    <Modal
+      v-if="showModal"
+      @close="closeModal"
+      :close-on-backdrop="!saving"
+    >
       <template #header>
         <h3>{{ isEditing ? '메뉴 수정' : '새 메뉴 추가' }}</h3>
       </template>
@@ -215,7 +316,7 @@
               class="form-input-def"
               placeholder="예: 대시보드"
               maxlength="100"
-            />
+            >
           </div>
 
           <!-- 경로 -->
@@ -228,8 +329,11 @@
               :disabled="isEditing"
               placeholder="예: /dashboard"
               maxlength="255"
-            />
-            <span v-if="isEditing" class="form-hint-def">
+            >
+            <span
+              v-if="isEditing"
+              class="form-hint-def"
+            >
               🔒 경로는 고유 식별자로 수정할 수 없습니다
             </span>
           </div>
@@ -245,7 +349,7 @@
                 class="form-input-def"
                 placeholder="예: 📋"
                 maxlength="10"
-              />
+              >
             </div>
           </div>
 
@@ -258,14 +362,21 @@
               class="form-input-def"
               placeholder="비워두면 메뉴명 사용"
               maxlength="100"
-            />
+            >
           </div>
 
           <!-- 카테고리 -->
           <div class="form-group-def">
             <label class="form-label">카테고리</label>
-            <select v-model="form.category" class="form-select-def">
-              <option v-for="cat in categories" :key="cat.key" :value="cat.key">
+            <select
+              v-model="form.category"
+              class="form-select-def"
+            >
+              <option
+                v-for="cat in categories"
+                :key="cat.key"
+                :value="cat.key"
+              >
                 {{ cat.icon }} {{ cat.label }}
               </option>
             </select>
@@ -274,8 +385,13 @@
           <!-- 상위 메뉴 (드롭다운 부모) -->
           <div class="form-group-def">
             <label class="form-label">상위 메뉴 (드롭다운 부모)</label>
-            <select v-model="form.parentPath" class="form-select-def">
-              <option value="">없음 (최상위 독립 메뉴)</option>
+            <select
+              v-model="form.parentPath"
+              class="form-select-def"
+            >
+              <option value="">
+                없음 (최상위 독립 메뉴)
+              </option>
               <option
                 v-for="parent in parentMenuOptions"
                 :key="parent.path"
@@ -297,7 +413,7 @@
               class="form-input-def"
               min="0"
               max="999"
-            />
+            >
           </div>
 
           <!-- 설명 -->
@@ -309,16 +425,26 @@
               rows="2"
               placeholder="메뉴에 대한 간략한 설명 (선택사항)"
               maxlength="500"
-            ></textarea>
+            />
           </div>
 
           <!-- 기본 접근 권한 -->
           <div class="form-group-def form-full">
             <label class="form-label">기본 접근 권한</label>
-            <p class="form-hint-inline">신규 사용자 권한 할당 시 기본으로 포함될 권한을 선택하세요</p>
+            <p class="form-hint-inline">
+              신규 사용자 권한 할당 시 기본으로 포함될 권한을 선택하세요
+            </p>
             <div class="checkbox-group">
-              <label v-for="role in availableRoles" :key="role.key" class="checkbox-label">
-                <input type="checkbox" :value="role.key" v-model="form.defaultRoles" />
+              <label
+                v-for="role in availableRoles"
+                :key="role.key"
+                class="checkbox-label"
+              >
+                <input
+                  type="checkbox"
+                  :value="role.key"
+                  v-model="form.defaultRoles"
+                >
                 <span :class="['checkbox-badge', `role-${role.key.toLowerCase()}`]">{{ role.key }}</span>
                 <span class="checkbox-desc">{{ role.desc }}</span>
               </label>
@@ -339,7 +465,7 @@
                   :class="['toggle-switch-def', { on: form.showInNav }]"
                   @click="form.showInNav = !form.showInNav"
                 >
-                  <div class="toggle-thumb"></div>
+                  <div class="toggle-thumb" />
                 </button>
               </div>
 
@@ -353,7 +479,7 @@
                   :class="['toggle-switch-def', { on: form.isRequired }]"
                   @click="form.isRequired = !form.isRequired"
                 >
-                  <div class="toggle-thumb"></div>
+                  <div class="toggle-thumb" />
                 </button>
               </div>
 
@@ -367,7 +493,7 @@
                   :class="['toggle-switch-def', { on: form.adminSubMenu }]"
                   @click="form.adminSubMenu = !form.adminSubMenu"
                 >
-                  <div class="toggle-thumb"></div>
+                  <div class="toggle-thumb" />
                 </button>
               </div>
             </div>
@@ -375,8 +501,18 @@
         </div>
       </template>
       <template #footer>
-        <button @click="closeModal" class="btn btn-outline" :disabled="saving">취소</button>
-        <button @click="submitForm" class="btn btn-primary" :disabled="saving">
+        <button
+          @click="closeModal"
+          class="btn btn-outline"
+          :disabled="saving"
+        >
+          취소
+        </button>
+        <button
+          @click="submitForm"
+          class="btn btn-primary"
+          :disabled="saving"
+        >
           {{ saving ? '저장 중...' : (isEditing ? '수정 완료' : '메뉴 추가') }}
         </button>
       </template>

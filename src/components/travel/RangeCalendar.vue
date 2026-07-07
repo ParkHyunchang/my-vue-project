@@ -2,38 +2,95 @@
   <div class="rc">
     <!-- 선택 요약 -->
     <div class="rc-summary">
-      <span class="rc-pick" :class="{ done: value.start }">
+      <span
+        class="rc-pick"
+        :class="{ done: value.start }"
+      >
         <span class="rc-pick-label">{{ startLabel }}</span>
         <span class="rc-pick-date">{{ value.start ? fmt(value.start) : "클릭" }}</span>
       </span>
       <span class="rc-arrow">→</span>
-      <span class="rc-pick" :class="{ done: value.end }">
+      <span
+        class="rc-pick"
+        :class="{ done: value.end }"
+      >
         <span class="rc-pick-label">{{ endLabel }}</span>
         <span class="rc-pick-date">{{ value.end ? fmt(value.end) : "클릭" }}</span>
       </span>
-      <span v-if="nights > 0" class="rc-nights">{{ nights }}박 {{ nights + 1 }}일</span>
-      <span v-else-if="value.start" class="rc-nights">당일</span>
-      <button v-if="value.start" type="button" class="rc-clear" @click="clear">초기화</button>
+      <span
+        v-if="nights > 0"
+        class="rc-nights"
+      >{{ nights }}박 {{ nights + 1 }}일</span>
+      <span
+        v-else-if="value.start"
+        class="rc-nights"
+      >당일</span>
+      <button
+        v-if="value.start"
+        type="button"
+        class="rc-clear"
+        @click="clear"
+      >
+        초기화
+      </button>
     </div>
 
     <!-- 연/월 이동 (« » = 연도, ‹ › = 월) -->
     <div class="rc-nav">
-      <button type="button" class="rc-nav-btn" title="이전 해" @click="prevYear">«</button>
-      <button type="button" class="rc-nav-btn" title="이전 달" @click="prevMonth">‹</button>
+      <button
+        type="button"
+        class="rc-nav-btn"
+        title="이전 해"
+        @click="prevYear"
+      >
+        «
+      </button>
+      <button
+        type="button"
+        class="rc-nav-btn"
+        title="이전 달"
+        @click="prevMonth"
+      >
+        ‹
+      </button>
       <span class="rc-month">{{ viewYear }}년 {{ viewMonth + 1 }}월</span>
-      <button type="button" class="rc-nav-btn" title="다음 달" @click="nextMonth">›</button>
-      <button type="button" class="rc-nav-btn" title="다음 해" @click="nextYear">»</button>
+      <button
+        type="button"
+        class="rc-nav-btn"
+        title="다음 달"
+        @click="nextMonth"
+      >
+        ›
+      </button>
+      <button
+        type="button"
+        class="rc-nav-btn"
+        title="다음 해"
+        @click="nextYear"
+      >
+        »
+      </button>
     </div>
 
     <!-- 요일 -->
     <div class="rc-dow">
-      <span v-for="(d, i) in dows" :key="d" :class="['rc-dow-cell', { sun: i === 0, sat: i === 6 }]">{{ d }}</span>
+      <span
+        v-for="(d, i) in dows"
+        :key="d"
+        :class="['rc-dow-cell', { sun: i === 0, sat: i === 6 }]"
+      >{{ d }}</span>
     </div>
 
     <!-- 날짜 그리드 -->
     <div class="rc-grid">
-      <template v-for="(cell, i) in cells" :key="i">
-        <span v-if="!cell" class="rc-cell rc-blank"></span>
+      <template
+        v-for="(cell, i) in cells"
+        :key="i"
+      >
+        <span
+          v-if="!cell"
+          class="rc-cell rc-blank"
+        />
         <button
           v-else
           type="button"
@@ -48,7 +105,9 @@
             },
           ]"
           @click="pick(cell.iso)"
-        >{{ cell.day }}</button>
+        >
+          {{ cell.day }}
+        </button>
       </template>
     </div>
   </div>

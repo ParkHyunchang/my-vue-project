@@ -1,25 +1,47 @@
 <template>
   <teleport to="body">
-    <div v-if="show" class="tvm-overlay" data-lenis-prevent @click.self="close">
+    <div
+      v-if="show"
+      class="tvm-overlay"
+      data-lenis-prevent
+      @click.self="close"
+    >
       <div class="tvm-box">
         <div class="tvm-hdr">
           <h3>{{ isEdit ? "버킷리스트 수정" : "버킷리스트 추가" }}</h3>
-          <button class="tvm-close" @click="close">✕</button>
+          <button
+            class="tvm-close"
+            @click="close"
+          >
+            ✕
+          </button>
         </div>
 
         <div class="tvm-row">
           <label>가고 싶은 곳 <span class="tvm-req">*</span></label>
-          <input v-model="form.title" type="text" placeholder="예: 산토리니" />
+          <input
+            v-model="form.title"
+            type="text"
+            placeholder="예: 산토리니"
+          >
         </div>
 
         <div class="tvm-grid2">
           <div class="tvm-row">
             <label>국가 <span class="tvm-opt">(선택)</span></label>
-            <input v-model="form.country" type="text" placeholder="예: 그리스" />
+            <input
+              v-model="form.country"
+              type="text"
+              placeholder="예: 그리스"
+            >
           </div>
           <div class="tvm-row">
             <label>도시·지역 <span class="tvm-opt">(선택)</span></label>
-            <input v-model="form.city" type="text" placeholder="예: 산토리니" />
+            <input
+              v-model="form.city"
+              type="text"
+              placeholder="예: 산토리니"
+            >
           </div>
         </div>
 
@@ -32,31 +54,60 @@
               type="button"
               :class="['tvm-toggle-btn', { active: form.priority === p.id }]"
               @click="form.priority = p.id"
-            >{{ p.label }}</button>
+            >
+              {{ p.label }}
+            </button>
           </div>
         </div>
 
         <div class="tvm-grid2">
           <div class="tvm-row">
             <label>목표 시기 <span class="tvm-opt">(선택)</span></label>
-            <input v-model="form.targetPeriod" type="text" placeholder="예: 2026 여름" />
+            <input
+              v-model="form.targetPeriod"
+              type="text"
+              placeholder="예: 2026 여름"
+            >
           </div>
           <div class="tvm-row">
             <label>예상 예산 (만원) <span class="tvm-opt">(선택)</span></label>
-            <input v-model.number="form.estBudget" type="number" min="0" placeholder="만원 단위" />
+            <input
+              v-model.number="form.estBudget"
+              type="number"
+              min="0"
+              placeholder="만원 단위"
+            >
           </div>
         </div>
 
         <div class="tvm-row">
           <label>메모 <span class="tvm-opt">(선택)</span></label>
-          <textarea v-model="form.memo" rows="2" placeholder="자유 메모"></textarea>
+          <textarea
+            v-model="form.memo"
+            rows="2"
+            placeholder="자유 메모"
+          />
         </div>
 
-        <div v-if="errorMsg" class="tvm-error">{{ errorMsg }}</div>
+        <div
+          v-if="errorMsg"
+          class="tvm-error"
+        >
+          {{ errorMsg }}
+        </div>
 
         <div class="tvm-actions">
-          <button class="tvm-cancel" @click="close">취소</button>
-          <button class="tvm-submit" :disabled="!canSubmit || saving" @click="submit">
+          <button
+            class="tvm-cancel"
+            @click="close"
+          >
+            취소
+          </button>
+          <button
+            class="tvm-submit"
+            :disabled="!canSubmit || saving"
+            @click="submit"
+          >
             {{ saving ? "저장중…" : (isEdit ? "수정" : "추가") }}
           </button>
         </div>

@@ -1,11 +1,20 @@
 <template>
   <div class="insight-card trend-card">
     <div class="insight-card-header">
-      <h3 class="insight-title">📈 최근 12개월 지출 추이</h3>
+      <h3 class="insight-title">
+        📈 최근 12개월 지출 추이
+      </h3>
       <span class="insight-sub">활성/일시정지 구독 · 월 환산</span>
     </div>
-    <div v-if="hasData" ref="chartEl" class="trend-chart" />
-    <div v-else class="insight-empty">
+    <div
+      v-if="hasData"
+      ref="chartEl"
+      class="trend-chart"
+    />
+    <div
+      v-else
+      class="insight-empty"
+    >
       차트를 그릴 구독 데이터가 없습니다.
     </div>
   </div>

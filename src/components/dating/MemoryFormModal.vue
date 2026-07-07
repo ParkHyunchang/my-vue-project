@@ -14,7 +14,10 @@
       </template>
       <template #body>
         <!-- 조회 모드 -->
-        <div v-if="isViewMode" class="memory-view">
+        <div
+          v-if="isViewMode"
+          class="memory-view"
+        >
           <div class="view-row">
             <span class="view-label">날짜</span>
             <span class="view-value">{{ formatMemoryDate(localMemory) }}</span>
@@ -22,22 +25,31 @@
           <div class="view-row">
             <span class="view-label">카테고리</span>
             <span class="view-value">
-              <i :class="getCategoryIcon(localMemory.category)"></i>
+              <i :class="getCategoryIcon(localMemory.category)" />
               {{ getCategoryName(localMemory.category) }}
             </span>
           </div>
-          <div v-if="localMemory.description" class="view-row">
+          <div
+            v-if="localMemory.description"
+            class="view-row"
+          >
             <span class="view-label">설명</span>
             <span class="view-value view-description">{{ localMemory.description }}</span>
           </div>
-          <div v-if="localMemory.location" class="view-row">
+          <div
+            v-if="localMemory.location"
+            class="view-row"
+          >
             <span class="view-label">장소</span>
             <span class="view-value">
-              <i class="fas fa-map-marker-alt"></i>
+              <i class="fas fa-map-marker-alt" />
               {{ localMemory.location }}
             </span>
           </div>
-          <div v-if="localMemory.images && localMemory.images.length > 0" class="view-row view-media-row">
+          <div
+            v-if="localMemory.images && localMemory.images.length > 0"
+            class="view-row view-media-row"
+          >
             <span class="view-label">미디어</span>
             <div class="view-media-grid">
               <div
@@ -53,25 +65,32 @@
                   muted
                   playsinline
                   preload="metadata"
-                ></video>
+                />
                 <img
                   v-else
                   :src="getImageUrl(image)"
                   :alt="`미디어 ${index + 1}`"
                   class="view-media-thumb"
-                />
-                <div v-if="isVideoMedia(image)" class="video-type-badge">
-                  <i class="fas fa-video"></i>
+                >
+                <div
+                  v-if="isVideoMedia(image)"
+                  class="video-type-badge"
+                >
+                  <i class="fas fa-video" />
                 </div>
                 <div class="view-media-expand">
-                  <i class="fas fa-expand-alt"></i>
+                  <i class="fas fa-expand-alt" />
                 </div>
               </div>
             </div>
           </div>
         </div>
         <!-- 편집/생성 모드 -->
-        <form v-else class="memory-form" @submit.prevent="onSave">
+        <form
+          v-else
+          class="memory-form"
+          @submit.prevent="onSave"
+        >
           <div class="form-group">
             <label>제목</label>
             <input
@@ -79,7 +98,7 @@
               type="text"
               class="form-control"
               required
-            />
+            >
           </div>
           <div class="form-group">
             <label>날짜 선택</label>
@@ -91,7 +110,7 @@
                     type="radio"
                     value="single"
                     @change="onDateTypeChange"
-                  />
+                  >
                   <span>하루</span>
                 </label>
                 <label class="radio-option">
@@ -100,12 +119,15 @@
                     type="radio"
                     value="range"
                     @change="onDateTypeChange"
-                  />
+                  >
                   <span>기간</span>
                 </label>
               </div>
 
-              <div v-if="localMemory.dateType === 'single'" class="single-date-input">
+              <div
+                v-if="localMemory.dateType === 'single'"
+                class="single-date-input"
+              >
                 <input
                   v-model="localMemory.date"
                   type="date"
@@ -114,10 +136,13 @@
                   :max="maxDate"
                   placeholder="날짜를 선택하세요"
                   @input="validateSingleDate"
-                />
+                >
               </div>
 
-              <div v-if="localMemory.dateType === 'range'" class="range-date-inputs">
+              <div
+                v-if="localMemory.dateType === 'range'"
+                class="range-date-inputs"
+              >
                 <div class="date-input-group">
                   <label>시작일</label>
                   <input
@@ -127,7 +152,7 @@
                     required
                     :max="maxDate"
                     @input="validateRangeDate"
-                  />
+                  >
                 </div>
                 <div class="date-input-group">
                   <label>종료일</label>
@@ -139,9 +164,12 @@
                     :max="maxDate"
                     :min="localMemory.startDate"
                     @input="validateRangeDate"
-                  />
+                  >
                 </div>
-                <div v-if="dateRangeInfo" class="date-range-info">
+                <div
+                  v-if="dateRangeInfo"
+                  class="date-range-info"
+                >
                   <span class="range-duration">{{ dateRangeInfo.duration }}일</span>
                   <span class="range-period">{{ dateRangeInfo.period }}</span>
                 </div>
@@ -150,20 +178,41 @@
           </div>
           <div class="form-group">
             <label>카테고리</label>
-            <select v-model="localMemory.category" class="form-control" required>
-              <option value="" disabled>카테고리를 선택하세요</option>
-              <option v-for="cat in categoryOptions" :key="cat.id" :value="cat.id">
+            <select
+              v-model="localMemory.category"
+              class="form-control"
+              required
+            >
+              <option
+                value=""
+                disabled
+              >
+                카테고리를 선택하세요
+              </option>
+              <option
+                v-for="cat in categoryOptions"
+                :key="cat.id"
+                :value="cat.id"
+              >
                 {{ cat.name }}
               </option>
             </select>
           </div>
           <div class="form-group">
             <label>설명</label>
-            <textarea v-model="localMemory.description" class="form-control" rows="3"></textarea>
+            <textarea
+              v-model="localMemory.description"
+              class="form-control"
+              rows="3"
+            />
           </div>
           <div class="form-group">
             <label>장소</label>
-            <input v-model="localMemory.location" type="text" class="form-control" />
+            <input
+              v-model="localMemory.location"
+              type="text"
+              class="form-control"
+            >
           </div>
           <div class="form-group">
             <label>이미지 / 동영상</label>
@@ -175,14 +224,14 @@
                 multiple
                 style="display: none"
                 @change="handleFileUpload"
-              />
+              >
               <div
                 v-if="hasUploadPermission"
                 class="image-upload-area"
                 @click="triggerFileInput"
               >
                 <div class="upload-placeholder">
-                  <i class="fas fa-cloud-upload-alt"></i>
+                  <i class="fas fa-cloud-upload-alt" />
                   <p>이미지 또는 동영상을 업로드하세요</p>
                   <small>클릭하여 파일 선택 (여러 개 선택 가능)</small>
                 </div>
@@ -207,9 +256,12 @@
                     muted
                     @loadeddata="handlePreviewVideoLoaded"
                     @play="handlePreviewVideoPlay"
-                  ></video>
-                  <div v-if="isVideoMedia(image)" class="video-type-badge">
-                    <i class="fas fa-video"></i>
+                  />
+                  <div
+                    v-if="isVideoMedia(image)"
+                    class="video-type-badge"
+                  >
+                    <i class="fas fa-video" />
                   </div>
                   <img
                     v-else
@@ -217,9 +269,12 @@
                     :alt="`미디어 ${index + 1}`"
                     class="media-preview"
                     @error="(e) => { e.target.style.display='none'; e.target.nextElementSibling.style.display='flex'; }"
-                  />
-                  <div class="media-error-placeholder" style="display:none">
-                    <i class="fas fa-image"></i>
+                  >
+                  <div
+                    class="media-error-placeholder"
+                    style="display:none"
+                  >
+                    <i class="fas fa-image" />
                     <span>미리보기 불가</span>
                   </div>
                   <button
@@ -229,14 +284,17 @@
                     title="미디어 삭제"
                     @click.stop="confirmRemoveImage(index)"
                   >
-                    <i class="fas fa-times"></i>
+                    <i class="fas fa-times" />
                   </button>
                 </div>
               </div>
 
-              <div v-if="uploading" class="upload-progress">
+              <div
+                v-if="uploading"
+                class="upload-progress"
+              >
                 <div class="progress-bar">
-                  <div class="progress-fill"></div>
+                  <div class="progress-fill" />
                 </div>
                 <p>{{ converting ? 'HEIC 변환 중...' : '업로드 중...' }}</p>
               </div>
@@ -246,7 +304,10 @@
       </template>
       <template #footer>
         <!-- 조회 모드 푸터 -->
-        <div v-if="isViewMode" class="modal-footer-buttons">
+        <div
+          v-if="isViewMode"
+          class="modal-footer-buttons"
+        >
           <div>
             <button
               v-if="canDelete"
@@ -258,7 +319,13 @@
             </button>
           </div>
           <div>
-            <button type="button" class="btn btn-secondary" @click="$emit('close')">닫기</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              @click="$emit('close')"
+            >
+              닫기
+            </button>
             <button
               v-if="canUpdate"
               type="button"
@@ -270,7 +337,10 @@
           </div>
         </div>
         <!-- 편집/생성 모드 푸터 -->
-        <div v-else class="modal-footer-buttons">
+        <div
+          v-else
+          class="modal-footer-buttons"
+        >
           <div>
             <button
               v-if="isEditing && canDelete"
@@ -282,7 +352,13 @@
             </button>
           </div>
           <div>
-            <button type="button" class="btn btn-secondary" @click="$emit('close')">닫기</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              @click="$emit('close')"
+            >
+              닫기
+            </button>
             <button
               v-if="isEditing ? canUpdate : canCreate"
               type="button"

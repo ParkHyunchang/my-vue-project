@@ -1,29 +1,57 @@
 <template>
   <teleport to="body">
-    <div v-if="show" class="ra-overlay" @click.self="close">
-      <div class="ra-box" data-lenis-prevent>
+    <div
+      v-if="show"
+      class="ra-overlay"
+      @click.self="close"
+    >
+      <div
+        class="ra-box"
+        data-lenis-prevent
+      >
         <div class="ra-hdr">
           <h3>🤖 AI 토지 시황 분석</h3>
-          <button class="ra-close" @click="close">✕</button>
+          <button
+            class="ra-close"
+            @click="close"
+          >
+            ✕
+          </button>
         </div>
 
-        <div class="ra-sub">{{ regionName }} · 토지</div>
+        <div class="ra-sub">
+          {{ regionName }} · 토지
+        </div>
 
         <!-- 로딩 -->
-        <div v-if="loading" class="ra-loading">
-          <div class="ra-spinner"></div>
+        <div
+          v-if="loading"
+          class="ra-loading"
+        >
+          <div class="ra-spinner" />
           <span>토지 실거래 데이터를 모아 AI가 분석 중입니다…</span>
         </div>
 
-        <div v-else-if="resp && resp.noData" class="ra-msg">
+        <div
+          v-else-if="resp && resp.noData"
+          class="ra-msg"
+        >
           최근 6개월 토지 실거래 내역이 없어 분석할 수 없습니다.
         </div>
 
-        <div v-else-if="errorMsg" class="ra-msg ra-err">{{ errorMsg }}</div>
+        <div
+          v-else-if="errorMsg"
+          class="ra-msg ra-err"
+        >
+          {{ errorMsg }}
+        </div>
 
         <template v-else-if="resp">
           <!-- 결정적 통계 (항상 표시) -->
-          <div v-if="resp.stats" class="ra-stats">
+          <div
+            v-if="resp.stats"
+            class="ra-stats"
+          >
             <div class="ra-stat-grid">
               <div class="ra-stat">
                 <span class="ra-stat-k">평균 단가</span>
@@ -49,18 +77,36 @@
               </div>
             </div>
 
-            <div v-if="resp.stats.zoneBuckets?.length" class="ra-buckets">
-              <div class="ra-buckets-title">용도지역별 평균 단가</div>
-              <div v-for="b in resp.stats.zoneBuckets" :key="'z-' + b.label" class="ra-bucket">
+            <div
+              v-if="resp.stats.zoneBuckets?.length"
+              class="ra-buckets"
+            >
+              <div class="ra-buckets-title">
+                용도지역별 평균 단가
+              </div>
+              <div
+                v-for="b in resp.stats.zoneBuckets"
+                :key="'z-' + b.label"
+                class="ra-bucket"
+              >
                 <span class="ra-bucket-label">{{ b.label }}</span>
                 <span class="ra-bucket-count">{{ b.count }}건</span>
                 <span class="ra-bucket-price">{{ unit(b.avgPricePerM2) }}</span>
               </div>
             </div>
 
-            <div v-if="resp.stats.jimokBuckets?.length" class="ra-buckets">
-              <div class="ra-buckets-title">지목별 평균 단가</div>
-              <div v-for="b in resp.stats.jimokBuckets" :key="'j-' + b.label" class="ra-bucket">
+            <div
+              v-if="resp.stats.jimokBuckets?.length"
+              class="ra-buckets"
+            >
+              <div class="ra-buckets-title">
+                지목별 평균 단가
+              </div>
+              <div
+                v-for="b in resp.stats.jimokBuckets"
+                :key="'j-' + b.label"
+                class="ra-bucket"
+              >
                 <span class="ra-bucket-label">{{ b.label }}</span>
                 <span class="ra-bucket-count">{{ b.count }}건</span>
                 <span class="ra-bucket-price">{{ unit(b.avgPricePerM2) }}</span>
@@ -69,35 +115,73 @@
           </div>
 
           <!-- AI 분석 차단 -->
-          <div v-if="resp.blocked" class="ra-msg ra-warn">
+          <div
+            v-if="resp.blocked"
+            class="ra-msg ra-warn"
+          >
             AI 분석이 일시적으로 제한되었습니다 (요청 한도). 위 통계는 실제 실거래 집계입니다.
             <span v-if="retryText"> {{ retryText }}</span>
           </div>
 
           <!-- AI 결과 -->
-          <div v-else-if="resp.result" class="ra-ai">
+          <div
+            v-else-if="resp.result"
+            class="ra-ai"
+          >
             <div class="ra-ai-head">
               <span :class="['ra-trend', trendClass(resp.result.trend)]">{{ resp.result.trend }}</span>
               <span class="ra-headline">{{ resp.result.headline }}</span>
             </div>
 
-            <div v-if="resp.result.priceLevel" class="ra-pricelevel">💰 {{ resp.result.priceLevel }}</div>
-
-            <div v-if="resp.result.keywords?.length" class="ra-chips">
-              <span v-for="(k, i) in resp.result.keywords" :key="i" class="ra-chip">#{{ k }}</span>
+            <div
+              v-if="resp.result.priceLevel"
+              class="ra-pricelevel"
+            >
+              💰 {{ resp.result.priceLevel }}
             </div>
 
-            <div v-if="resp.result.watchPoints?.length" class="ra-section">
-              <div class="ra-section-title">⚠️ 토지 매입 검토 시 주의점</div>
+            <div
+              v-if="resp.result.keywords?.length"
+              class="ra-chips"
+            >
+              <span
+                v-for="(k, i) in resp.result.keywords"
+                :key="i"
+                class="ra-chip"
+              >#{{ k }}</span>
+            </div>
+
+            <div
+              v-if="resp.result.watchPoints?.length"
+              class="ra-section"
+            >
+              <div class="ra-section-title">
+                ⚠️ 토지 매입 검토 시 주의점
+              </div>
               <ul>
-                <li v-for="(w, i) in resp.result.watchPoints" :key="i">{{ w }}</li>
+                <li
+                  v-for="(w, i) in resp.result.watchPoints"
+                  :key="i"
+                >
+                  {{ w }}
+                </li>
               </ul>
             </div>
 
-            <p v-if="resp.result.comment" class="ra-comment">{{ resp.result.comment }}</p>
+            <p
+              v-if="resp.result.comment"
+              class="ra-comment"
+            >
+              {{ resp.result.comment }}
+            </p>
 
-            <div v-if="resp.sources?.length" class="ra-sources">
-              <div class="ra-section-title">📰 참고 뉴스</div>
+            <div
+              v-if="resp.sources?.length"
+              class="ra-sources"
+            >
+              <div class="ra-section-title">
+                📰 참고 뉴스
+              </div>
               <a
                 v-for="(n, i) in resp.sources"
                 :key="i"

@@ -2,7 +2,9 @@
   <div class="portfolio-main">
     <header>
       <h1>Hyunchang's Portfolio</h1>
-      <p class="subtitle">Frontend Developer &amp; Creative Coder</p>
+      <p class="subtitle">
+        Frontend Developer &amp; Creative Coder
+      </p>
     </header>
     <section class="intro">
       <!-- 프로필 이미지는 필요시 src/assets/profile.png로 교체 -->
@@ -12,7 +14,9 @@
       </p>
       <div class="skills-group">
         <div class="skills-block">
-          <div class="skills-title">백엔드</div>
+          <div class="skills-title">
+            백엔드
+          </div>
           <div class="skills-list">
             <span>Spring Framework</span>
             <span>PostgreSQL</span>
@@ -21,7 +25,9 @@
           </div>
         </div>
         <div class="skills-block">
-          <div class="skills-title">프론트엔드</div>
+          <div class="skills-title">
+            프론트엔드
+          </div>
           <div class="skills-list">
             <span>HTML</span>
             <span>CSS</span>
@@ -30,7 +36,12 @@
           </div>
         </div>
       </div>
-      <router-link to="/projects" class="btn-main">포트폴리오 보러가기</router-link>
+      <router-link
+        to="/projects"
+        class="btn-main"
+      >
+        포트폴리오 보러가기
+      </router-link>
     </section>
   </div>
 </template>

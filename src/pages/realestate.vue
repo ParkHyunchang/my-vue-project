@@ -2,11 +2,16 @@
   <div class="re-container">
     <div class="page-header">
       <h2>부동산</h2>
-      <p class="page-subtitle">아파트·토지 실거래가 · 시세 · 뉴스 (국토교통부 공개데이터)</p>
+      <p class="page-subtitle">
+        아파트·토지 실거래가 · 시세 · 뉴스 (국토교통부 공개데이터)
+      </p>
     </div>
 
     <!-- API 미설정 안내 -->
-    <div v-if="configured === false" class="re-config-alert">
+    <div
+      v-if="configured === false"
+      class="re-config-alert"
+    >
       <span class="re-config-icon">⚠️</span>
       <span>
         부동산 실거래가 API 키가 설정되지 않았습니다.
@@ -27,15 +32,24 @@
       </button>
     </div>
 
-    <div v-show="activeTab === 'search'" class="re-tab-content">
+    <div
+      v-show="activeTab === 'search'"
+      class="re-tab-content"
+    >
       <SearchPanel />
     </div>
 
-    <div v-show="activeTab === 'holdings'" class="re-tab-content">
+    <div
+      v-show="activeTab === 'holdings'"
+      class="re-tab-content"
+    >
       <PropertyPanel :active="activeTab === 'holdings'" />
     </div>
 
-    <div v-show="activeTab === 'news'" class="re-tab-content">
+    <div
+      v-show="activeTab === 'news'"
+      class="re-tab-content"
+    >
       <NewsPanel :active="activeTab === 'news'" />
     </div>
   </div>

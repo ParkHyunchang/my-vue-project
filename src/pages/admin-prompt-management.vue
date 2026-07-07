@@ -7,68 +7,130 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
+    <div
+      v-if="loading"
+      class="loading-state"
+    >
+      <div class="spinner" />
       <p>불러오는 중...</p>
     </div>
-    <div v-else-if="error" class="error-state">{{ error }}</div>
+    <div
+      v-else-if="error"
+      class="error-state"
+    >
+      {{ error }}
+    </div>
 
     <template v-else>
-      <div v-for="(group, category) in grouped" :key="category" class="prompt-group">
-        <p class="group-label">{{ category }}</p>
-        <div class="prompt-card" v-for="p in group" :key="p.key">
+      <div
+        v-for="(group, category) in grouped"
+        :key="category"
+        class="prompt-group"
+      >
+        <p class="group-label">
+          {{ category }}
+        </p>
+        <div
+          class="prompt-card"
+          v-for="p in group"
+          :key="p.key"
+        >
           <div class="card-main">
             <div class="card-title-row">
               <span class="card-title">{{ p.displayName }}</span>
-              <span v-if="p.customized" class="badge-customized">커스텀 지침 사용 중</span>
+              <span
+                v-if="p.customized"
+                class="badge-customized"
+              >커스텀 지침 사용 중</span>
             </div>
-            <p class="card-desc">{{ p.description }}</p>
+            <p class="card-desc">
+              {{ p.description }}
+            </p>
           </div>
-          <button class="btn btn-edit" @click="openEditor(p)">편집</button>
+          <button
+            class="btn btn-edit"
+            @click="openEditor(p)"
+          >
+            편집
+          </button>
         </div>
       </div>
     </template>
 
     <!-- 편집 모달 (body로 teleport — 전역 공통 스타일 admin-modal.css 의 amodal-* 사용) -->
     <teleport to="body">
-      <div v-if="selected" class="amodal-overlay" data-lenis-prevent @click.self="closeEditor">
+      <div
+        v-if="selected"
+        class="amodal-overlay"
+        data-lenis-prevent
+        @click.self="closeEditor"
+      >
         <div class="amodal-box">
           <div class="amodal-head">
             <div>
               <h2>{{ selected.displayName }}</h2>
             </div>
-            <button class="amodal-close" @click="closeEditor" aria-label="닫기">✕</button>
+            <button
+              class="amodal-close"
+              @click="closeEditor"
+              aria-label="닫기"
+            >
+              ✕
+            </button>
           </div>
 
           <div class="amodal-body">
-            <p class="amodal-desc">{{ selected.description }}</p>
+            <p class="amodal-desc">
+              {{ selected.description }}
+            </p>
 
             <div class="amodal-note">
               이 화면에서는 <b>지침만</b> 수정하면 됩니다.
               분석 데이터와 응답 형식(JSON)은 실행 시 시스템이 자동으로 붙입니다.
             </div>
 
-            <p class="amodal-section-label">지침</p>
+            <p class="amodal-section-label">
+              지침
+            </p>
             <textarea
               ref="editor"
               v-model="editContent"
               class="amodal-textarea thin-scrollbar"
               spellcheck="false"
               placeholder="예) 당신은 ○○ 분석가입니다. 아래 데이터만 근거로 간결하게 분석하세요..."
-            ></textarea>
+            />
 
-            <div v-if="validationError" class="amodal-error">⚠ {{ validationError }}</div>
-
-            <div class="amodal-tools">
-              <button class="amodal-btn amodal-btn-ghost" @click="toggleAdvanced">
-                {{ showAdvanced ? '고급 보기 닫기' : '고급 보기' }}
-              </button>
-              <span v-if="selected.customized" class="amodal-tools-note">커스텀 지침 사용 중 (코드 기본값과 다름)</span>
-              <span v-if="isDirty" class="amodal-tools-note">저장 안 됨</span>
+            <div
+              v-if="validationError"
+              class="amodal-error"
+            >
+              ⚠ {{ validationError }}
             </div>
 
-            <div v-if="showAdvanced" class="amodal-preview">
-              <p class="amodal-preview-label">자동으로 붙는 데이터·응답 형식 (수정 불가) — {{ varExample }} 는 실행 시 실제 값으로 채워집니다</p>
+            <div class="amodal-tools">
+              <button
+                class="amodal-btn amodal-btn-ghost"
+                @click="toggleAdvanced"
+              >
+                {{ showAdvanced ? '고급 보기 닫기' : '고급 보기' }}
+              </button>
+              <span
+                v-if="selected.customized"
+                class="amodal-tools-note"
+              >커스텀 지침 사용 중 (코드 기본값과 다름)</span>
+              <span
+                v-if="isDirty"
+                class="amodal-tools-note"
+              >저장 안 됨</span>
+            </div>
+
+            <div
+              v-if="showAdvanced"
+              class="amodal-preview"
+            >
+              <p class="amodal-preview-label">
+                자동으로 붙는 데이터·응답 형식 (수정 불가) — {{ varExample }} 는 실행 시 실제 값으로 채워집니다
+              </p>
               <pre class="amodal-preview-pre thin-scrollbar">{{ selected.fixedPreview }}</pre>
             </div>
           </div>
@@ -83,8 +145,18 @@
               {{ resetting ? '초기화 중...' : '기본값으로 초기화' }}
             </button>
             <div class="amodal-foot-right">
-              <button class="amodal-btn amodal-btn-ghost" :disabled="saving" @click="closeEditor">취소</button>
-              <button class="amodal-btn amodal-btn-primary" :disabled="saving || !isDirty" @click="save">
+              <button
+                class="amodal-btn amodal-btn-ghost"
+                :disabled="saving"
+                @click="closeEditor"
+              >
+                취소
+              </button>
+              <button
+                class="amodal-btn amodal-btn-primary"
+                :disabled="saving || !isDirty"
+                @click="save"
+              >
                 {{ saving ? '저장 중...' : '저장' }}
               </button>
             </div>

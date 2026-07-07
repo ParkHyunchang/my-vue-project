@@ -1,17 +1,28 @@
 <template>
   <div class="insight-card category-card">
     <div class="insight-card-header">
-      <h3 class="insight-title">🥧 카테고리별 비중</h3>
+      <h3 class="insight-title">
+        🥧 카테고리별 비중
+      </h3>
       <span class="insight-sub">활성 구독 월 환산 기준</span>
     </div>
 
-    <div v-if="!segments.length" class="insight-empty">
+    <div
+      v-if="!segments.length"
+      class="insight-empty"
+    >
       활성 구독이 없습니다.
     </div>
 
-    <div v-else class="cat-chart-body">
+    <div
+      v-else
+      class="cat-chart-body"
+    >
       <div class="cat-donut-wrap">
-        <svg viewBox="-100 -100 200 200" class="cat-donut-svg">
+        <svg
+          viewBox="-100 -100 200 200"
+          class="cat-donut-svg"
+        >
           <path
             v-for="seg in segments"
             :key="seg.id"
@@ -23,20 +34,61 @@
             @mouseleave="hoveredId = null"
           />
           <template v-if="hovered">
-            <text y="-12" text-anchor="middle" font-size="8" fill="var(--text-muted)" style="pointer-events:none">{{ hovered.name }}</text>
-            <text y="3" text-anchor="middle" font-size="13" font-weight="700" fill="var(--accent)" style="pointer-events:none">{{ (hovered.pct * 100).toFixed(1) }}%</text>
-            <text y="16" text-anchor="middle" font-size="7.5" fill="var(--text-primary)" style="pointer-events:none">₩{{ formatCurrency(hovered.value) }}</text>
+            <text
+              y="-12"
+              text-anchor="middle"
+              font-size="8"
+              fill="var(--text-muted)"
+              style="pointer-events:none"
+            >{{ hovered.name }}</text>
+            <text
+              y="3"
+              text-anchor="middle"
+              font-size="13"
+              font-weight="700"
+              fill="var(--accent)"
+              style="pointer-events:none"
+            >{{ (hovered.pct * 100).toFixed(1) }}%</text>
+            <text
+              y="16"
+              text-anchor="middle"
+              font-size="7.5"
+              fill="var(--text-primary)"
+              style="pointer-events:none"
+            >₩{{ formatCurrency(hovered.value) }}</text>
           </template>
           <template v-else>
-            <text y="-8" text-anchor="middle" font-size="9" fill="var(--text-muted)" style="pointer-events:none">월 평균</text>
-            <text y="10" text-anchor="middle" font-size="14" font-weight="600" fill="var(--text-primary)" style="pointer-events:none">₩{{ formatCurrency(totalMonthly) }}</text>
+            <text
+              y="-8"
+              text-anchor="middle"
+              font-size="9"
+              fill="var(--text-muted)"
+              style="pointer-events:none"
+            >월 평균</text>
+            <text
+              y="10"
+              text-anchor="middle"
+              font-size="14"
+              font-weight="600"
+              fill="var(--text-primary)"
+              style="pointer-events:none"
+            >₩{{ formatCurrency(totalMonthly) }}</text>
           </template>
         </svg>
       </div>
 
       <ul class="cat-legend">
-        <li v-for="seg in segments" :key="seg.id" class="cat-leg-row" @mouseenter="hoveredId = seg.id" @mouseleave="hoveredId = null">
-          <span class="cat-leg-dot" :style="{ background: seg.color }"></span>
+        <li
+          v-for="seg in segments"
+          :key="seg.id"
+          class="cat-leg-row"
+          @mouseenter="hoveredId = seg.id"
+          @mouseleave="hoveredId = null"
+        >
+          <span
+            class="cat-leg-dot"
+            :style="{ background: seg.color }"
+          />
           <span class="cat-leg-name">{{ seg.name }}</span>
           <span class="cat-leg-count">({{ seg.count }})</span>
           <span class="cat-leg-pct">{{ (seg.pct * 100).toFixed(1) }}%</span>

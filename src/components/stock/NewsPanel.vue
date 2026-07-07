@@ -5,24 +5,39 @@
         <button
           :class="['news-market-btn', newsMarket === 'KR' && 'active']"
           @click="switchNewsMarket('KR')"
-        >🇰🇷 국내</button>
+        >
+          🇰🇷 국내
+        </button>
         <button
           :class="['news-market-btn', newsMarket === 'US' && 'active']"
           @click="switchNewsMarket('US')"
-        >🌐 해외</button>
-        <div class="news-divider"></div>
+        >
+          🌐 해외
+        </button>
+        <div class="news-divider" />
         <button
           :class="['news-holdings-btn', newsFilterHoldings && 'active']"
           :disabled="holdings.length === 0"
           @click="newsFilterHoldings = !newsFilterHoldings"
         >
           📊 보유 종목
-          <span v-if="newsFilterHoldings" class="news-match-count">{{ filteredNewsData.length }}</span>
+          <span
+            v-if="newsFilterHoldings"
+            class="news-match-count"
+          >{{ filteredNewsData.length }}</span>
         </button>
       </div>
       <div class="news-right-controls">
-        <span v-if="newsLastFetchedText && !newsLoading" class="news-fetch-time">{{ newsLastFetchedText }}</span>
-        <button class="news-refresh-btn" :disabled="newsLoading" title="뉴스 새로고침" @click="refreshNews">
+        <span
+          v-if="newsLastFetchedText && !newsLoading"
+          class="news-fetch-time"
+        >{{ newsLastFetchedText }}</span>
+        <button
+          class="news-refresh-btn"
+          :disabled="newsLoading"
+          title="뉴스 새로고침"
+          @click="refreshNews"
+        >
           <span :class="['news-refresh-icon', newsLoading && 'spinning']">↻</span>
         </button>
       </div>
@@ -35,26 +50,49 @@
         class="news-search-input"
         type="text"
         placeholder="제목·내용 검색..."
-      />
-      <button v-if="newsKeyword" class="news-search-clear" @click="newsKeyword = ''">✕</button>
+      >
+      <button
+        v-if="newsKeyword"
+        class="news-search-clear"
+        @click="newsKeyword = ''"
+      >
+        ✕
+      </button>
     </div>
 
-    <div v-if="newsLoading" class="loading-state">
-      <div class="spinner"></div>
+    <div
+      v-if="newsLoading"
+      class="loading-state"
+    >
+      <div class="spinner" />
       <span>뉴스를 불러오는 중...</span>
     </div>
 
-    <div v-else-if="newsError" class="error-state">
+    <div
+      v-else-if="newsError"
+      class="error-state"
+    >
       <span>⚠️ {{ newsError }}</span>
-      <button class="retry-btn" @click="loadNews(newsMarket)">다시 시도</button>
+      <button
+        class="retry-btn"
+        @click="loadNews(newsMarket)"
+      >
+        다시 시도
+      </button>
     </div>
 
     <template v-else>
       <div class="news-count-bar">
         총 <strong>{{ filteredNewsData.length }}</strong>건
-        <span v-if="newsKeyword || newsFilterHoldings" class="news-count-filter">· 필터 적용 중</span>
+        <span
+          v-if="newsKeyword || newsFilterHoldings"
+          class="news-count-filter"
+        >· 필터 적용 중</span>
       </div>
-      <div v-if="filteredNewsData.length > 0" class="news-grid">
+      <div
+        v-if="filteredNewsData.length > 0"
+        class="news-grid"
+      >
         <a
           v-for="(news, idx) in filteredNewsData"
           :key="idx"
@@ -71,16 +109,22 @@
             alt=""
             loading="lazy"
             @error="(e) => e.target.style.display = 'none'"
-          />
+          >
           <div class="news-meta">
             <span :class="['news-source', `news-source--${newsSourceKey(news.source)}`]">{{ news.source }}</span>
             <span class="news-date">{{ formatNewsDate(news.pubDate) }}</span>
           </div>
           <h4 class="news-title">{{ news.title }}</h4>
-          <p v-if="news.description" class="news-desc">{{ news.description }}</p>
+          <p
+            v-if="news.description"
+            class="news-desc"
+          >{{ news.description }}</p>
         </a>
       </div>
-      <div v-else class="empty-state">
+      <div
+        v-else
+        class="empty-state"
+      >
         {{ newsFilterHoldings && !newsKeyword ? '보유 종목 관련 뉴스가 없습니다.' : '검색 결과가 없습니다.' }}
       </div>
     </template>

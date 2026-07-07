@@ -1,8 +1,13 @@
 <template>
-  <section id="contact" class="contact-section">
+  <section
+    id="contact"
+    class="contact-section"
+  >
     <div class="contact__inner">
-      <h2 class="contact__title">Contact</h2>
-      <div class="section-divider"></div>
+      <h2 class="contact__title">
+        Contact
+      </h2>
+      <div class="section-divider" />
       <span class="section-sub">함께 일해요</span>
       <div class="contact__content">
         <div class="contact__message">
@@ -16,11 +21,17 @@
           </div>
           <div class="contact__method">
             <span class="contact__icon">Github</span>
-            <a href="https://github.com/hyunchang" target="_blank">github.com/hyunchang</a>
+            <a
+              href="https://github.com/hyunchang"
+              target="_blank"
+            >github.com/hyunchang</a>
           </div>
         </div>
         <div class="contact__button">
-          <a href="mailto:hyunchang1234@hanmail.net" class="btn btn-primary">이메일 보내기</a>
+          <a
+            href="mailto:hyunchang1234@hanmail.net"
+            class="btn btn-primary"
+          >이메일 보내기</a>
         </div>
       </div>
     </div>

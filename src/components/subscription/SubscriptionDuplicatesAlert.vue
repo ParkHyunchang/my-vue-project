@@ -1,15 +1,26 @@
 <template>
-  <div v-if="duplicates.length" class="dup-alert">
+  <div
+    v-if="duplicates.length"
+    class="dup-alert"
+  >
     <div class="dup-alert-header">
       <span class="dup-alert-icon">⚠️</span>
       <span class="dup-alert-title">중복 카테고리 감지</span>
       <span class="dup-alert-sub">같은 카테고리에 여러 구독이 활성화되어 있어요. 정리하면 절약 가능합니다.</span>
     </div>
     <ul class="dup-alert-list">
-      <li v-for="g in duplicates" :key="g.category" class="dup-alert-item">
+      <li
+        v-for="g in duplicates"
+        :key="g.category"
+        class="dup-alert-item"
+      >
         <span class="dup-cat">#{{ g.category }}</span>
         <span class="dup-services">
-          <span v-for="s in g.subs" :key="s.id" class="dup-service-chip">
+          <span
+            v-for="s in g.subs"
+            :key="s.id"
+            class="dup-service-chip"
+          >
             {{ s.name }}<span class="dup-amount">{{ fmtMonthly(s) }}</span>
           </span>
         </span>

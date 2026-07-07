@@ -1,43 +1,99 @@
 <template>
   <div class="wl">
     <div class="wl-head">
-      <div class="wl-summary" v-if="items.length">
+      <div
+        class="wl-summary"
+        v-if="items.length"
+      >
         가고 싶은 곳 <strong>{{ items.length }}</strong>곳
       </div>
-      <button class="wl-add-btn" @click="openAdd">＋ 추가</button>
+      <button
+        class="wl-add-btn"
+        @click="openAdd"
+      >
+        ＋ 추가
+      </button>
     </div>
 
-    <div v-if="loading" class="wl-empty">불러오는 중…</div>
+    <div
+      v-if="loading"
+      class="wl-empty"
+    >
+      불러오는 중…
+    </div>
 
-    <div v-else-if="items.length === 0" class="wl-empty">
+    <div
+      v-else-if="items.length === 0"
+      class="wl-empty"
+    >
       버킷리스트가 비어 있습니다. <strong>＋ 추가</strong>로 가고 싶은 곳을 담아보세요.
     </div>
 
-    <div v-else class="wl-grid">
-      <div v-for="w in items" :key="w.id" class="wl-card">
+    <div
+      v-else
+      class="wl-grid"
+    >
+      <div
+        v-for="w in items"
+        :key="w.id"
+        class="wl-card"
+      >
         <div class="wl-card-top">
           <span :class="['wl-badge', 'wl-p' + (w.priority || 2)]">{{ priorityLabel(w.priority) }}</span>
           <div class="wl-actions">
-            <button class="wl-edit" title="수정" @click="openEdit(w)">✏️</button>
-            <button class="wl-del" title="삭제" @click="remove(w)">🗑</button>
+            <button
+              class="wl-edit"
+              title="수정"
+              @click="openEdit(w)"
+            >
+              ✏️
+            </button>
+            <button
+              class="wl-del"
+              title="삭제"
+              @click="remove(w)"
+            >
+              🗑
+            </button>
           </div>
         </div>
 
-        <div class="wl-title">{{ w.title }}</div>
-        <div v-if="w.country || w.city" class="wl-region">
+        <div class="wl-title">
+          {{ w.title }}
+        </div>
+        <div
+          v-if="w.country || w.city"
+          class="wl-region"
+        >
           {{ [w.country, w.city].filter(Boolean).join(" · ") }}
         </div>
 
         <div class="wl-tags">
-          <span v-if="w.targetPeriod" class="wl-tag">🗓 {{ w.targetPeriod }}</span>
-          <span v-if="w.estBudget" class="wl-tag">💰 {{ formatMoney(w.estBudget) }}</span>
+          <span
+            v-if="w.targetPeriod"
+            class="wl-tag"
+          >🗓 {{ w.targetPeriod }}</span>
+          <span
+            v-if="w.estBudget"
+            class="wl-tag"
+          >💰 {{ formatMoney(w.estBudget) }}</span>
         </div>
 
-        <div v-if="w.memo" class="wl-memo">{{ w.memo }}</div>
+        <div
+          v-if="w.memo"
+          class="wl-memo"
+        >
+          {{ w.memo }}
+        </div>
       </div>
     </div>
 
-    <WishlistModal :show="showModal" :item="editTarget" @close="closeModal" @saved="onSaved" />
+    <WishlistModal
+      :show="showModal"
+      :item="editTarget"
+      @close="closeModal"
+      @saved="onSaved"
+    />
   </div>
 </template>
 

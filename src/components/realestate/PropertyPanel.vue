@@ -1,32 +1,75 @@
 <template>
   <div class="pp">
     <div class="pp-head">
-      <div class="pp-summary" v-if="holdings.length">
+      <div
+        class="pp-summary"
+        v-if="holdings.length"
+      >
         보유 <strong>{{ holdings.length }}</strong>건
       </div>
-      <button class="pp-add-btn" @click="showModal = true">＋ 부동산 등록</button>
+      <button
+        class="pp-add-btn"
+        @click="showModal = true"
+      >
+        ＋ 부동산 등록
+      </button>
     </div>
 
-    <div v-if="loading" class="pp-empty">불러오는 중…</div>
+    <div
+      v-if="loading"
+      class="pp-empty"
+    >
+      불러오는 중…
+    </div>
 
-    <div v-else-if="holdings.length === 0" class="pp-empty">
+    <div
+      v-else-if="holdings.length === 0"
+      class="pp-empty"
+    >
       등록된 부동산이 없습니다. <strong>＋ 부동산 등록</strong>으로 추가하세요.
     </div>
 
-    <div v-else class="pp-grid">
-      <div v-for="h in holdings" :key="h.id" class="pp-card">
+    <div
+      v-else
+      class="pp-grid"
+    >
+      <div
+        v-for="h in holdings"
+        :key="h.id"
+        class="pp-card"
+      >
         <div class="pp-card-top">
-          <span v-if="isLand(h)" class="pp-badge pp-badge-land">토지</span>
-          <span v-else :class="['pp-badge', 'pp-badge-' + h.dealType.toLowerCase()]">
+          <span
+            v-if="isLand(h)"
+            class="pp-badge pp-badge-land"
+          >토지</span>
+          <span
+            v-else
+            :class="['pp-badge', 'pp-badge-' + h.dealType.toLowerCase()]"
+          >
             {{ dealLabel(h.dealType) }}
           </span>
           <div class="pp-actions">
-            <button class="pp-edit" title="수정" @click="openEdit(h)">✏️</button>
-            <button class="pp-del" title="삭제" @click="removeHolding(h)">🗑</button>
+            <button
+              class="pp-edit"
+              title="수정"
+              @click="openEdit(h)"
+            >
+              ✏️
+            </button>
+            <button
+              class="pp-del"
+              title="삭제"
+              @click="removeHolding(h)"
+            >
+              🗑
+            </button>
           </div>
         </div>
 
-        <div class="pp-name">{{ h.name }}</div>
+        <div class="pp-name">
+          {{ h.name }}
+        </div>
 
         <!-- 토지 -->
         <template v-if="isLand(h)">
@@ -34,9 +77,18 @@
             {{ h.sigungu }}<span v-if="h.umdName"> {{ h.umdName }}</span><span v-if="h.jibun"> {{ h.jibun }}</span>
           </div>
           <div class="pp-tags">
-            <span v-if="h.jimok" class="pp-tag">지목 {{ h.jimok }}</span>
-            <span v-if="h.useZone" class="pp-tag">{{ h.useZone }}</span>
-            <span v-if="h.areaM2" class="pp-tag">{{ h.areaM2 }}㎡ ({{ (h.areaM2 / 3.3058).toFixed(1) }}평)</span>
+            <span
+              v-if="h.jimok"
+              class="pp-tag"
+            >지목 {{ h.jimok }}</span>
+            <span
+              v-if="h.useZone"
+              class="pp-tag"
+            >{{ h.useZone }}</span>
+            <span
+              v-if="h.areaM2"
+              class="pp-tag"
+            >{{ h.areaM2 }}㎡ ({{ (h.areaM2 / 3.3058).toFixed(1) }}평)</span>
           </div>
 
           <div class="pp-rows">
@@ -44,7 +96,10 @@
               <span class="pp-k">매입가</span>
               <span class="pp-v">
                 {{ formatMoney(h.purchasePrice) }}
-                <span v-if="h.purchaseDate" class="pp-date">· {{ h.purchaseDate }}</span>
+                <span
+                  v-if="h.purchaseDate"
+                  class="pp-date"
+                >· {{ h.purchaseDate }}</span>
               </span>
             </div>
 
@@ -62,22 +117,34 @@
             </div>
 
             <!-- 단가 (만원/평) -->
-            <div v-if="quotes[h.id]?.found" class="pp-line">
+            <div
+              v-if="quotes[h.id]?.found"
+              class="pp-line"
+            >
               <span class="pp-k">주변 단가</span>
               <span class="pp-v pp-unit">{{ formatUnit(quotes[h.id].pricePerM2Avg) }}/평</span>
             </div>
 
             <!-- 개별공시지가 -->
-            <div v-if="h.officialPricePerM2" class="pp-line">
+            <div
+              v-if="h.officialPricePerM2"
+              class="pp-line"
+            >
               <span class="pp-k">공시지가</span>
               <span class="pp-v">
                 {{ h.officialPricePerM2.toLocaleString() }}원/㎡
-                <span v-if="h.officialPriceYear" class="pp-quote-meta">({{ h.officialPriceYear }}년)</span>
+                <span
+                  v-if="h.officialPriceYear"
+                  class="pp-quote-meta"
+                >({{ h.officialPriceYear }}년)</span>
               </span>
             </div>
 
             <!-- 현재 대비 -->
-            <div v-if="quotes[h.id]?.found && quotes[h.id].estimate && h.purchasePrice" class="pp-line pp-diff">
+            <div
+              v-if="quotes[h.id]?.found && quotes[h.id].estimate && h.purchasePrice"
+              class="pp-line pp-diff"
+            >
               <span class="pp-k">현재 대비</span>
               <span :class="['pp-v', diffClass(h)]">
                 {{ formatDiff(quotes[h.id].estimate - h.purchasePrice) }} ({{ diffRate(h) }})
@@ -98,10 +165,16 @@
               <span class="pp-k">{{ h.dealType === 'SALE' ? '매입가' : '보증금' }}</span>
               <span class="pp-v">
                 {{ formatMoney(h.purchasePrice) }}
-                <span v-if="h.purchaseDate" class="pp-date">· {{ h.purchaseDate }}</span>
+                <span
+                  v-if="h.purchaseDate"
+                  class="pp-date"
+                >· {{ h.purchaseDate }}</span>
               </span>
             </div>
-            <div v-if="h.dealType === 'MONTHLY'" class="pp-line">
+            <div
+              v-if="h.dealType === 'MONTHLY'"
+              class="pp-line"
+            >
               <span class="pp-k">월세</span>
               <span class="pp-v">{{ h.monthlyRent ? h.monthlyRent + '만원' : '-' }}</span>
             </div>
@@ -120,7 +193,10 @@
             </div>
 
             <!-- 차이 (매매·전세 보증금 기준) -->
-            <div v-if="quotes[h.id]?.found && h.purchasePrice" class="pp-line pp-diff">
+            <div
+              v-if="quotes[h.id]?.found && h.purchasePrice"
+              class="pp-line pp-diff"
+            >
               <span class="pp-k">현재 대비</span>
               <span :class="['pp-v', diffClass(h)]">
                 {{ formatDiff(quotes[h.id].recentPrice - h.purchasePrice) }}
@@ -130,12 +206,26 @@
           </div>
         </template>
 
-        <div v-if="h.memo" class="pp-memo">{{ h.memo }}</div>
+        <div
+          v-if="h.memo"
+          class="pp-memo"
+        >
+          {{ h.memo }}
+        </div>
       </div>
     </div>
 
-    <AddPropertyModal :show="showModal" @close="showModal = false" @saved="onSaved" />
-    <EditPropertyModal :show="!!editTarget" :holding="editTarget" @close="editTarget = null" @saved="onEditSaved" />
+    <AddPropertyModal
+      :show="showModal"
+      @close="showModal = false"
+      @saved="onSaved"
+    />
+    <EditPropertyModal
+      :show="!!editTarget"
+      :holding="editTarget"
+      @close="editTarget = null"
+      @saved="onEditSaved"
+    />
   </div>
 </template>
 

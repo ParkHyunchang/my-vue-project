@@ -5,13 +5,26 @@
       class="modal-overlay"
       @click.self="$emit('close')"
     >
-      <div class="modal-box" data-lenis-prevent>
+      <div
+        class="modal-box"
+        data-lenis-prevent
+      >
         <div class="modal-hdr">
           <h3>종목 추가</h3>
-          <button class="modal-close" @click="$emit('close')">✕</button>
+          <button
+            class="modal-close"
+            @click="$emit('close')"
+          >
+            ✕
+          </button>
         </div>
 
-        <div v-if="allowCash" class="asset-type-switch" role="group" aria-label="추가할 자산 유형">
+        <div
+          v-if="allowCash"
+          class="asset-type-switch"
+          role="group"
+          aria-label="추가할 자산 유형"
+        >
           <button
             type="button"
             :class="['asset-type-btn', { active: !isCashAsset }]"
@@ -28,7 +41,10 @@
           </button>
         </div>
 
-        <div v-if="!isCashAsset" class="mform-row">
+        <div
+          v-if="!isCashAsset"
+          class="mform-row"
+        >
           <label>종목 검색 (이름 · 티커)</label>
           <div class="stock-search-box">
             <input
@@ -40,8 +56,13 @@
               autocomplete="off"
               @focus="$emit('update:showDropdown', true)"
               @blur="$emit('search-blur')"
-            />
-            <div v-if="searchLoading" class="search-loading">검색 중...</div>
+            >
+            <div
+              v-if="searchLoading"
+              class="search-loading"
+            >
+              검색 중...
+            </div>
             <div
               v-else-if="showDropdown && searchResults.length > 0"
               class="stock-dropdown"
@@ -63,9 +84,9 @@
             <div
               v-else-if="
                 showDropdown &&
-                searchQ.length > 1 &&
-                !searchLoading &&
-                searchResults.length === 0
+                  searchQ.length > 1 &&
+                  !searchLoading &&
+                  searchResults.length === 0
               "
               class="search-empty"
             >
@@ -82,7 +103,10 @@
           </div>
         </div>
 
-        <div v-else class="cash-asset-guide">
+        <div
+          v-else
+          class="cash-asset-guide"
+        >
           현금성 대기자산, 예수금, MMDA처럼 가격 조회가 없는 항목은 금액을 직접 입력하세요.
         </div>
 
@@ -95,9 +119,12 @@
             :placeholder="isCashAsset ? '현금성 대기자산' : '위에서 종목을 검색하세요'"
             :readonly="!isCashAsset"
             :class="{ 'inp-readonly': !isCashAsset }"
-          />
+          >
         </div>
-        <div v-if="!isCashAsset" class="mform-row">
+        <div
+          v-if="!isCashAsset"
+          class="mform-row"
+        >
           <label>심볼</label>
           <input
             :value="newHolding.symbol"
@@ -105,19 +132,22 @@
             placeholder="위에서 종목을 검색하세요"
             readonly
             class="inp-readonly"
-          />
+          >
         </div>
 
-        <div v-if="newHolding.symbol && !isCashAsset" class="detected-market">
+        <div
+          v-if="newHolding.symbol && !isCashAsset"
+          class="detected-market"
+        >
           <span>감지된 시장:</span>
           <span class="dm-badge">
             {{
               newHolding.symbol.toUpperCase().endsWith(".KS") ||
-              newHolding.symbol.toUpperCase().endsWith(".KQ")
+                newHolding.symbol.toUpperCase().endsWith(".KQ")
                 ? "🇰🇷 국내 (KRW)"
                 : newHolding.market === "KR"
-                ? "🇰🇷 국내 (KRW)"
-                : "🇺🇸 미국 (USD)"
+                  ? "🇰🇷 국내 (KRW)"
+                  : "🇺🇸 미국 (USD)"
             }}
           </span>
         </div>
@@ -130,22 +160,79 @@
             type="number"
             min="1"
             :placeholder="isCashAsset ? '0원' : '0'"
-          />
-          <div v-if="isCashAsset" class="quick-add-btns">
-            <button type="button" class="quick-btn quick-minus" @click="addQuantity(-100000)">-10만</button>
-            <button type="button" class="quick-btn" @click="addQuantity(10000)">+1만</button>
-            <button type="button" class="quick-btn" @click="addQuantity(100000)">+10만</button>
-            <button type="button" class="quick-btn" @click="addQuantity(1000000)">+100만</button>
+          >
+          <div
+            v-if="isCashAsset"
+            class="quick-add-btns"
+          >
+            <button
+              type="button"
+              class="quick-btn quick-minus"
+              @click="addQuantity(-100000)"
+            >
+              -10만
+            </button>
+            <button
+              type="button"
+              class="quick-btn"
+              @click="addQuantity(10000)"
+            >
+              +1만
+            </button>
+            <button
+              type="button"
+              class="quick-btn"
+              @click="addQuantity(100000)"
+            >
+              +10만
+            </button>
+            <button
+              type="button"
+              class="quick-btn"
+              @click="addQuantity(1000000)"
+            >
+              +100만
+            </button>
           </div>
-          <div v-else class="quick-add-btns">
-            <button type="button" class="quick-btn quick-minus" @click="addQuantity(-10)">-10</button>
-            <button type="button" class="quick-btn quick-minus" @click="addQuantity(-1)">-1</button>
-            <button type="button" class="quick-btn" @click="addQuantity(1)">+1</button>
-            <button type="button" class="quick-btn" @click="addQuantity(10)">+10</button>
+          <div
+            v-else
+            class="quick-add-btns"
+          >
+            <button
+              type="button"
+              class="quick-btn quick-minus"
+              @click="addQuantity(-10)"
+            >
+              -10
+            </button>
+            <button
+              type="button"
+              class="quick-btn quick-minus"
+              @click="addQuantity(-1)"
+            >
+              -1
+            </button>
+            <button
+              type="button"
+              class="quick-btn"
+              @click="addQuantity(1)"
+            >
+              +1
+            </button>
+            <button
+              type="button"
+              class="quick-btn"
+              @click="addQuantity(10)"
+            >
+              +10
+            </button>
           </div>
         </div>
 
-        <div v-if="!isCashAsset" class="mform-row">
+        <div
+          v-if="!isCashAsset"
+          class="mform-row"
+        >
           <label>평단가 <span class="opt-label">(선택)</span></label>
           <input
             :value="formattedAvgPrice"
@@ -154,18 +241,54 @@
             inputmode="decimal"
             pattern="[0-9,]*[.]?[0-9]*"
             :placeholder="isKR ? '원 단위' : 'USD'"
-          />
-          <div v-if="isKR" class="quick-add-btns">
-            <button type="button" class="quick-btn" @click="addAvgPrice(1000)">+1천</button>
-            <button type="button" class="quick-btn" @click="addAvgPrice(5000)">+5천</button>
-            <button type="button" class="quick-btn" @click="addAvgPrice(10000)">+1만</button>
-            <button type="button" class="quick-btn" @click="addAvgPrice(100000)">+10만</button>
+          >
+          <div
+            v-if="isKR"
+            class="quick-add-btns"
+          >
+            <button
+              type="button"
+              class="quick-btn"
+              @click="addAvgPrice(1000)"
+            >
+              +1천
+            </button>
+            <button
+              type="button"
+              class="quick-btn"
+              @click="addAvgPrice(5000)"
+            >
+              +5천
+            </button>
+            <button
+              type="button"
+              class="quick-btn"
+              @click="addAvgPrice(10000)"
+            >
+              +1만
+            </button>
+            <button
+              type="button"
+              class="quick-btn"
+              @click="addAvgPrice(100000)"
+            >
+              +10만
+            </button>
           </div>
         </div>
 
         <div class="modal-actions">
-          <button class="mbtn-cancel" @click="$emit('close')">취소</button>
-          <button class="mbtn-submit" :disabled="!canAdd" @click="$emit('add')">
+          <button
+            class="mbtn-cancel"
+            @click="$emit('close')"
+          >
+            취소
+          </button>
+          <button
+            class="mbtn-submit"
+            :disabled="!canAdd"
+            @click="$emit('add')"
+          >
             추가
           </button>
         </div>

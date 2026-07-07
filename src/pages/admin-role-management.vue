@@ -6,26 +6,44 @@
         <p>시스템에 정의된 사용자 권한(Role)을 조회하고 관리합니다</p>
       </div>
       <div class="header-actions">
-        <button class="btn btn-refresh" @click="loadRoleInfos" :disabled="loading">
+        <button
+          class="btn btn-refresh"
+          @click="loadRoleInfos"
+          :disabled="loading"
+        >
           <span>🔄</span> 새로고침
         </button>
-        <button class="btn btn-create" @click="openCreateModal">
+        <button
+          class="btn btn-create"
+          @click="openCreateModal"
+        >
           <span>＋</span> 새 권한 추가
         </button>
       </div>
     </div>
 
     <!-- 로딩 -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
+    <div
+      v-if="loading"
+      class="loading-state"
+    >
+      <div class="spinner" />
       <p>권한 정보를 불러오는 중...</p>
     </div>
 
     <!-- 에러 -->
-    <div v-else-if="error" class="error-state">
+    <div
+      v-else-if="error"
+      class="error-state"
+    >
       <span class="error-icon">⚠️</span>
       <p>{{ error }}</p>
-      <button class="btn btn-retry" @click="loadRoleInfos">다시 시도</button>
+      <button
+        class="btn btn-retry"
+        @click="loadRoleInfos"
+      >
+        다시 시도
+      </button>
     </div>
 
     <template v-else>
@@ -37,14 +55,29 @@
           :class="['summary-card', `card-${role.roleName.toLowerCase()}`, { selected: selectedRole === role.roleName }]"
           @click="selectRole(role.roleName)"
         >
-          <div class="card-icon">{{ getRoleIcon(role.roleName) }}</div>
-          <div class="card-body">
-            <p class="card-display-name">{{ role.displayName }}</p>
-            <p class="card-role-name">{{ role.roleName }}</p>
-            <p class="card-user-count">사용자 <strong>{{ role.userCount }}</strong>명</p>
+          <div class="card-icon">
+            {{ getRoleIcon(role.roleName) }}
           </div>
-          <div class="card-badge">{{ role.roleName }}</div>
-          <div v-if="role.isDefault" class="card-default-badge">기본</div>
+          <div class="card-body">
+            <p class="card-display-name">
+              {{ role.displayName }}
+            </p>
+            <p class="card-role-name">
+              {{ role.roleName }}
+            </p>
+            <p class="card-user-count">
+              사용자 <strong>{{ role.userCount }}</strong>명
+            </p>
+          </div>
+          <div class="card-badge">
+            {{ role.roleName }}
+          </div>
+          <div
+            v-if="role.isDefault"
+            class="card-default-badge"
+          >
+            기본
+          </div>
         </div>
       </div>
 
@@ -52,7 +85,9 @@
       <div class="section-card">
         <div class="section-header">
           <h2>권한 목록</h2>
-          <p class="section-desc">권한 이름을 클릭하면 해당 권한의 사용자를 조회합니다 · 기본 권한은 삭제 불가</p>
+          <p class="section-desc">
+            권한 이름을 클릭하면 해당 권한의 사용자를 조회합니다 · 기본 권한은 삭제 불가
+          </p>
         </div>
         <div class="table-wrapper">
           <table class="roles-table">
@@ -80,9 +115,14 @@
                   </span>
                 </td>
                 <td>{{ role.displayName }}</td>
-                <td class="desc-cell">{{ role.description }}</td>
+                <td class="desc-cell">
+                  {{ role.description }}
+                </td>
                 <td>
-                  <button class="user-count-btn" @click.stop="selectRole(role.roleName)">
+                  <button
+                    class="user-count-btn"
+                    @click.stop="selectRole(role.roleName)"
+                  >
                     {{ role.userCount }}명
                   </button>
                 </td>
@@ -91,10 +131,17 @@
                     {{ role.isDefault ? '기본' : '커스텀' }}
                   </span>
                 </td>
-                <td class="date-cell">{{ formatDate(role.createdAt) }}</td>
+                <td class="date-cell">
+                  {{ formatDate(role.createdAt) }}
+                </td>
                 <td @click.stop>
                   <div class="action-btns">
-                    <button class="btn btn-edit" @click="openEditModal(role)">수정</button>
+                    <button
+                      class="btn btn-edit"
+                      @click="openEditModal(role)"
+                    >
+                      수정
+                    </button>
                     <button
                       class="btn btn-delete"
                       :disabled="role.isDefault || deletingId === role.id"
@@ -112,30 +159,44 @@
       </div>
 
       <!-- 선택된 권한의 사용자 목록 -->
-      <div class="section-card user-section" v-if="selectedRole">
+      <div
+        class="section-card user-section"
+        v-if="selectedRole"
+      >
         <div class="section-header">
           <div>
             <h2>
               {{ getRoleIcon(selectedRole) }}
               {{ getDisplayName(selectedRole) }} 사용자 목록
             </h2>
-            <p class="section-desc">해당 권한을 가진 사용자 전체 목록입니다</p>
+            <p class="section-desc">
+              해당 권한을 가진 사용자 전체 목록입니다
+            </p>
           </div>
           <div class="header-actions">
             <span class="user-count-badge">총 {{ roleUsers.length }}명</span>
           </div>
         </div>
 
-        <div v-if="usersLoading" class="loading-inline">
-          <div class="spinner-sm"></div> 불러오는 중...
+        <div
+          v-if="usersLoading"
+          class="loading-inline"
+        >
+          <div class="spinner-sm" /> 불러오는 중...
         </div>
 
-        <div v-else-if="roleUsers.length === 0" class="empty-state">
+        <div
+          v-else-if="roleUsers.length === 0"
+          class="empty-state"
+        >
           <span>👤</span>
           <p>해당 권한을 가진 사용자가 없습니다</p>
         </div>
 
-        <div v-else class="table-wrapper">
+        <div
+          v-else
+          class="table-wrapper"
+        >
           <table class="users-table">
             <thead>
               <tr>
@@ -149,7 +210,10 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="user in roleUsers" :key="user.id">
+              <tr
+                v-for="user in roleUsers"
+                :key="user.id"
+              >
                 <td>{{ user.id }}</td>
                 <td><strong>{{ user.userId }}</strong></td>
                 <td>{{ user.name || '-' }}</td>
@@ -162,10 +226,18 @@
                     @change="requestChangeUserRole(user, $event.target.value)"
                     :disabled="changingRoleUserId === user.id"
                   >
-                    <option v-for="r in roleInfos" :key="r.roleName" :value="r.roleName">{{ r.displayName }}</option>
+                    <option
+                      v-for="r in roleInfos"
+                      :key="r.roleName"
+                      :value="r.roleName"
+                    >
+                      {{ r.displayName }}
+                    </option>
                   </select>
                 </td>
-                <td class="date-cell">{{ formatDate(user.createdAt) }}</td>
+                <td class="date-cell">
+                  {{ formatDate(user.createdAt) }}
+                </td>
               </tr>
             </tbody>
           </table>
@@ -175,11 +247,20 @@
 
     <!-- 새 권한 생성 모달 -->
     <transition name="modal-fade">
-      <div v-if="createModal.visible" class="modal-overlay" @click.self="closeCreateModal">
+      <div
+        v-if="createModal.visible"
+        class="modal-overlay"
+        @click.self="closeCreateModal"
+      >
         <div class="modal-box">
           <div class="modal-header">
             <h3>새 권한 추가</h3>
-            <button class="modal-close" @click="closeCreateModal">✕</button>
+            <button
+              class="modal-close"
+              @click="closeCreateModal"
+            >
+              ✕
+            </button>
           </div>
           <div class="modal-body">
             <div class="form-group">
@@ -190,8 +271,10 @@
                 placeholder="예: MANAGER (영문 대문자 권장)"
                 maxlength="50"
                 @input="createForm.roleName = createForm.roleName.toUpperCase()"
-              />
-              <p class="form-hint">영문 대문자로 입력해 주세요. 생성 후 변경 불가합니다.</p>
+              >
+              <p class="form-hint">
+                영문 대문자로 입력해 주세요. 생성 후 변경 불가합니다.
+              </p>
             </div>
             <div class="form-group">
               <label>표시명 <span class="required">*</span></label>
@@ -200,7 +283,7 @@
                 class="form-input"
                 placeholder="예: 매니저"
                 maxlength="100"
-              />
+              >
             </div>
             <div class="form-group">
               <label>설명 <span class="required">*</span></label>
@@ -210,12 +293,21 @@
                 placeholder="이 권한에 대한 설명을 입력해 주세요."
                 maxlength="500"
                 rows="3"
-              ></textarea>
+              />
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-cancel" @click="closeCreateModal">취소</button>
-            <button class="btn btn-submit" @click="submitCreate" :disabled="creating">
+            <button
+              class="btn btn-cancel"
+              @click="closeCreateModal"
+            >
+              취소
+            </button>
+            <button
+              class="btn btn-submit"
+              @click="submitCreate"
+              :disabled="creating"
+            >
               {{ creating ? '생성 중...' : '생성' }}
             </button>
           </div>
@@ -225,11 +317,20 @@
 
     <!-- 권한 수정 모달 -->
     <transition name="modal-fade">
-      <div v-if="editModal.visible" class="modal-overlay" @click.self="closeEditModal">
+      <div
+        v-if="editModal.visible"
+        class="modal-overlay"
+        @click.self="closeEditModal"
+      >
         <div class="modal-box">
           <div class="modal-header">
             <h3>권한 수정</h3>
-            <button class="modal-close" @click="closeEditModal">✕</button>
+            <button
+              class="modal-close"
+              @click="closeEditModal"
+            >
+              ✕
+            </button>
           </div>
           <div class="modal-body">
             <!-- 권한 이름 (읽기 전용) -->
@@ -238,7 +339,9 @@
               <div class="form-readonly">
                 {{ getRoleIcon(editModal.role?.roleName) }} {{ editModal.role?.roleName }}
               </div>
-              <p class="form-hint">권한 이름은 생성 후 변경할 수 없습니다.</p>
+              <p class="form-hint">
+                권한 이름은 생성 후 변경할 수 없습니다.
+              </p>
             </div>
 
             <div class="form-group">
@@ -248,7 +351,7 @@
                 class="form-input"
                 placeholder="예: 매니저"
                 maxlength="100"
-              />
+              >
             </div>
 
             <div class="form-group">
@@ -259,16 +362,22 @@
                 placeholder="이 권한에 대한 설명을 입력해 주세요."
                 maxlength="500"
                 rows="3"
-              ></textarea>
+              />
             </div>
 
             <!-- 시스템 기본 권한(USER/PREMIUM/ADMIN)이 아닌 경우에만 isDefault 토글 표시 -->
-            <div class="form-group" v-if="editModal.role && !systemDefaultNames.includes(editModal.role.roleName)">
+            <div
+              class="form-group"
+              v-if="editModal.role && !systemDefaultNames.includes(editModal.role.roleName)"
+            >
               <label>삭제 보호 (기본 권한으로 지정)</label>
               <div class="toggle-row">
                 <label class="toggle-switch">
-                  <input type="checkbox" v-model="editForm.isDefault" />
-                  <span class="toggle-track"></span>
+                  <input
+                    type="checkbox"
+                    v-model="editForm.isDefault"
+                  >
+                  <span class="toggle-track" />
                 </label>
                 <span class="toggle-label">
                   {{ editForm.isDefault ? '활성화 — 이 권한은 삭제할 수 없습니다' : '비활성화 — 이 권한은 삭제 가능합니다' }}
@@ -277,8 +386,17 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-cancel" @click="closeEditModal">취소</button>
-            <button class="btn btn-submit" @click="submitEdit" :disabled="saving">
+            <button
+              class="btn btn-cancel"
+              @click="closeEditModal"
+            >
+              취소
+            </button>
+            <button
+              class="btn btn-submit"
+              @click="submitEdit"
+              :disabled="saving"
+            >
               {{ saving ? '저장 중...' : '저장' }}
             </button>
           </div>
@@ -287,55 +405,94 @@
     </transition>
 
     <!-- 사용자 권한 변경 확인 모달 -->
-    <Modal v-if="changeRoleModal.visible" @close="cancelChangeUserRole">
+    <Modal
+      v-if="changeRoleModal.visible"
+      @close="cancelChangeUserRole"
+    >
       <template #header>
         <h3>사용자 권한 변경</h3>
       </template>
       <template #body>
         <div class="modal-confirm-body">
-          <div class="confirm-icon">⚠️</div>
+          <div class="confirm-icon">
+            ⚠️
+          </div>
           <div>
             <p>
               <strong>{{ changeRoleModal.user?.userId }}</strong> 사용자의 권한을
               <strong>{{ getDisplayName(changeRoleModal.newRole) }}</strong>(으)로 변경하시겠습니까?
             </p>
-            <p class="warn-text">⚠️ 변경 즉시 반영됩니다.</p>
+            <p class="warn-text">
+              ⚠️ 변경 즉시 반영됩니다.
+            </p>
           </div>
         </div>
       </template>
       <template #footer>
-        <button @click="cancelChangeUserRole" class="btn btn-cancel">취소</button>
-        <button @click="changeUserRole" class="btn btn-submit">변경</button>
+        <button
+          @click="cancelChangeUserRole"
+          class="btn btn-cancel"
+        >
+          취소
+        </button>
+        <button
+          @click="changeUserRole"
+          class="btn btn-submit"
+        >
+          변경
+        </button>
       </template>
     </Modal>
 
     <!-- 권한 삭제 확인 모달 -->
-    <Modal v-if="deleteModal.visible" @close="closeDeleteModal">
+    <Modal
+      v-if="deleteModal.visible"
+      @close="closeDeleteModal"
+    >
       <template #header>
         <h3>⚠️ 권한 삭제 확인</h3>
       </template>
       <template #body>
         <div class="modal-confirm-body">
-          <div class="confirm-icon">⚠️</div>
+          <div class="confirm-icon">
+            ⚠️
+          </div>
           <div>
             <p>
               <strong>{{ deleteModal.role?.displayName }}({{ deleteModal.role?.roleName }})</strong>
               권한을 삭제하시겠습니까?
             </p>
-            <p class="warn-text">⚠️ 해당 권한을 가진 사용자는 기본 권한(USER)으로 변경될 수 있습니다.</p>
-            <p class="warn-text">⚠️ 이 작업은 되돌릴 수 없습니다.</p>
+            <p class="warn-text">
+              ⚠️ 해당 권한을 가진 사용자는 기본 권한(USER)으로 변경될 수 있습니다.
+            </p>
+            <p class="warn-text">
+              ⚠️ 이 작업은 되돌릴 수 없습니다.
+            </p>
           </div>
         </div>
       </template>
       <template #footer>
-        <button @click="closeDeleteModal" class="btn btn-cancel">취소</button>
-        <button @click="deleteRole" class="btn btn-danger">삭제하기</button>
+        <button
+          @click="closeDeleteModal"
+          class="btn btn-cancel"
+        >
+          취소
+        </button>
+        <button
+          @click="deleteRole"
+          class="btn btn-danger"
+        >
+          삭제하기
+        </button>
       </template>
     </Modal>
 
     <!-- 토스트 알림 -->
     <transition name="toast-fade">
-      <div v-if="toast.visible" :class="['toast', `toast-${toast.type}`]">
+      <div
+        v-if="toast.visible"
+        :class="['toast', `toast-${toast.type}`]"
+      >
         {{ toast.message }}
       </div>
     </transition>

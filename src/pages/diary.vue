@@ -1,18 +1,25 @@
 <template>
   <div class="diary-page">
-
     <!-- 모바일 사이드바 백드롭 -->
     <div
       v-if="sidebarOpen"
       class="sidebar-backdrop"
       @click="sidebarOpen = false"
-    ></div>
+    />
 
     <!-- 좌측: 일기 목록 사이드바 -->
-    <aside class="diary-sidebar" :class="{ 'sidebar--open': sidebarOpen }">
+    <aside
+      class="diary-sidebar"
+      :class="{ 'sidebar--open': sidebarOpen }"
+    >
       <div class="sidebar-header">
         <h3>내 일기</h3>
-        <button class="new-entry-btn" @click="selectDate(today)">+ 오늘 쓰기</button>
+        <button
+          class="new-entry-btn"
+          @click="selectDate(today)"
+        >
+          + 오늘 쓰기
+        </button>
       </div>
       <div class="entry-list">
         <div
@@ -28,7 +35,10 @@
             <span class="entry-preview">{{ previewText(entry.content) }}</span>
           </div>
         </div>
-        <div v-if="entries.length === 0 && !loading" class="entry-empty">
+        <div
+          v-if="entries.length === 0 && !loading"
+          class="entry-empty"
+        >
           첫 일기를 작성해보세요
         </div>
       </div>
@@ -38,7 +48,12 @@
     <div class="diary-main">
       <!-- 헤더 -->
       <div class="diary-header">
-        <button class="sidebar-toggle" @click.stop="sidebarOpen = !sidebarOpen">☰</button>
+        <button
+          class="sidebar-toggle"
+          @click.stop="sidebarOpen = !sidebarOpen"
+        >
+          ☰
+        </button>
         <div class="diary-header-text">
           <h2>AI 일기</h2>
           <p>오늘의 하루를 기록하고 AI의 감정 분석을 받아보세요</p>
@@ -55,13 +70,27 @@
 
       <!-- 2컬럼 콘텐츠 -->
       <div class="diary-content">
-
         <!-- 왼쪽: 에디터 -->
         <div class="editor-col">
           <div class="date-bar">
-            <button class="date-nav" @click="moveDateBy(-1)">‹</button>
-            <input type="date" v-model="selectedDate" class="date-input" @change="onDateChange" />
-            <button class="date-nav" @click="moveDateBy(1)">›</button>
+            <button
+              class="date-nav"
+              @click="moveDateBy(-1)"
+            >
+              ‹
+            </button>
+            <input
+              type="date"
+              v-model="selectedDate"
+              class="date-input"
+              @change="onDateChange"
+            >
+            <button
+              class="date-nav"
+              @click="moveDateBy(1)"
+            >
+              ›
+            </button>
           </div>
           <div class="editor-area">
             <textarea
@@ -71,9 +100,13 @@
               :disabled="saving"
               ref="diaryTextarea"
               @wheel.prevent="onTextareaWheel"
-            ></textarea>
+            />
             <div class="editor-actions">
-              <button class="btn-save" @click="saveDiary" :disabled="saving || !content.trim()">
+              <button
+                class="btn-save"
+                @click="saveDiary"
+                :disabled="saving || !content.trim()"
+              >
                 {{ saving ? '저장 중...' : '저장' }}
               </button>
               <button
@@ -84,7 +117,11 @@
               >
                 {{ analyzing ? 'AI 분석 중...' : '✨ AI 분석' }}
               </button>
-              <button v-if="selectedEntry" class="btn-delete" @click="deleteDiary">
+              <button
+                v-if="selectedEntry"
+                class="btn-delete"
+                @click="deleteDiary"
+              >
                 삭제
               </button>
             </div>
@@ -93,19 +130,35 @@
 
         <!-- 오른쪽: AI 분석 패널 -->
         <div class="analysis-col">
-          <transition name="fade" mode="out-in">
+          <transition
+            name="fade"
+            mode="out-in"
+          >
             <!-- 분석 결과 -->
-            <div v-if="analysis" key="result" class="analysis-card">
+            <div
+              v-if="analysis"
+              key="result"
+              class="analysis-card"
+            >
               <div class="analysis-header">
                 <span class="analysis-mood">{{ analysis.mood }}</span>
                 <div class="mood-bar">
-                  <div class="mood-fill" :style="{ width: (analysis.moodScore * 10) + '%' }"></div>
+                  <div
+                    class="mood-fill"
+                    :style="{ width: (analysis.moodScore * 10) + '%' }"
+                  />
                 </div>
                 <span class="mood-score">{{ analysis.moodScore }}/10</span>
               </div>
-              <p class="analysis-summary">{{ analysis.summary }}</p>
+              <p class="analysis-summary">
+                {{ analysis.summary }}
+              </p>
               <div class="analysis-keywords">
-                <span v-for="kw in analysis.keywords" :key="kw" class="keyword-tag">#{{ kw }}</span>
+                <span
+                  v-for="kw in analysis.keywords"
+                  :key="kw"
+                  class="keyword-tag"
+                >#{{ kw }}</span>
               </div>
               <div class="analysis-comment">
                 <span class="comment-icon">💬</span>
@@ -114,20 +167,29 @@
             </div>
 
             <!-- 분석 중 -->
-            <div v-else-if="analyzing" key="loading" class="analysis-placeholder">
-              <div class="placeholder-spinner"></div>
+            <div
+              v-else-if="analyzing"
+              key="loading"
+              class="analysis-placeholder"
+            >
+              <div class="placeholder-spinner" />
               <p>AI가 일기를 분석하고 있어요...</p>
             </div>
 
             <!-- 빈 상태 -->
-            <div v-else key="empty" class="analysis-placeholder">
+            <div
+              v-else
+              key="empty"
+              class="analysis-placeholder"
+            >
               <span class="placeholder-icon">✨</span>
               <p>일기를 저장한 뒤<br><strong>AI 분석</strong> 버튼을 눌러보세요</p>
-              <p class="placeholder-hint">감정 분석 · 키워드 · 따뜻한 한마디</p>
+              <p class="placeholder-hint">
+                감정 분석 · 키워드 · 따뜻한 한마디
+              </p>
             </div>
           </transition>
         </div>
-
       </div>
     </div>
 

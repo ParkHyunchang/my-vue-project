@@ -1,11 +1,19 @@
 ﻿<template>
-    <div class="form-group">
-        <label>{{ label }}</label>
-        <input :value="title" @input="onInput" type="text" class="form-control">
-        <div v-if="error" class="text-red">
-            {{ error }}
-        </div>
+  <div class="form-group">
+    <label>{{ label }}</label>
+    <input
+      :value="title"
+      @input="onInput"
+      type="text"
+      class="form-control"
+    >
+    <div
+      v-if="error"
+      class="text-red"
+    >
+      {{ error }}
     </div>
+  </div>
 </template>
 
 <script>

@@ -1,5 +1,8 @@
 <template>
-  <div class="md-body" v-html="html"></div>
+  <div
+    class="md-body"
+    v-html="html"
+  />
 </template>
 
 <script>

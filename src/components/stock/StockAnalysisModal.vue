@@ -1,25 +1,44 @@
 <template>
   <teleport to="#modal">
-    <Modal v-if="show" @close="$emit('close')">
+    <Modal
+      v-if="show"
+      @close="$emit('close')"
+    >
       <template #header>
         <div class="ana-modal-title">
           <span class="ana-market">{{ holding?.market || '-' }}</span>
           <div>
-            <div class="ana-name">{{ holding?.name }}</div>
-            <div class="ana-sym">{{ holding?.symbol }} · AI 분석</div>
+            <div class="ana-name">
+              {{ holding?.name }}
+            </div>
+            <div class="ana-sym">
+              {{ holding?.symbol }} · AI 분석
+            </div>
           </div>
         </div>
       </template>
 
       <template #body>
-        <div v-if="loading" class="ana-loading">
-          <div class="spinner ana-spinner"></div>
-          <div class="ana-loading-text">{{ loadingText }}</div>
-          <div class="ana-loading-hint">최대 30초 정도 소요될 수 있습니다.</div>
+        <div
+          v-if="loading"
+          class="ana-loading"
+        >
+          <div class="spinner ana-spinner" />
+          <div class="ana-loading-text">
+            {{ loadingText }}
+          </div>
+          <div class="ana-loading-hint">
+            최대 30초 정도 소요될 수 있습니다.
+          </div>
         </div>
 
-        <div v-else-if="blocked" class="ana-blocked">
-          <div class="ana-blocked-icon">!</div>
+        <div
+          v-else-if="blocked"
+          class="ana-blocked"
+        >
+          <div class="ana-blocked-icon">
+            !
+          </div>
           <h4 class="ana-blocked-title">
             {{ allDisabled ? 'AI 분석 비활성화' : 'AI 분석 잠시 이용 불가' }}
           </h4>
@@ -31,11 +50,21 @@
               모든 AI 서비스가 일시 한도 초과 상태입니다.
             </template>
           </p>
-          <div v-if="!allDisabled && retryCountdown" class="ana-retry-time">
+          <div
+            v-if="!allDisabled && retryCountdown"
+            class="ana-retry-time"
+          >
             다음 가능: <strong>{{ retryCountdown }}</strong>
           </div>
-          <div v-if="providersStatus?.length" class="ana-providers">
-            <div v-for="ps in providersStatus" :key="ps.name" class="ana-provider-row">
+          <div
+            v-if="providersStatus?.length"
+            class="ana-providers"
+          >
+            <div
+              v-for="ps in providersStatus"
+              :key="ps.name"
+              class="ana-provider-row"
+            >
               <span class="ana-provider-name">{{ ps.name }}</span>
               <span :class="['ana-provider-pill', providerStatusCls(ps)]">
                 {{ providerStatusLabel(ps) }}
@@ -44,11 +73,17 @@
           </div>
         </div>
 
-        <div v-else-if="error" class="ana-error">
+        <div
+          v-else-if="error"
+          class="ana-error"
+        >
           {{ error }}
         </div>
 
-        <div v-else-if="report" class="ana-result">
+        <div
+          v-else-if="report"
+          class="ana-result"
+        >
           <template v-if="uiReport">
             <section class="ana-hero-card">
               <div class="ana-score-row">
@@ -57,7 +92,9 @@
                   <span>/ 10</span>
                 </div>
                 <div class="ana-hero-main">
-                  <div class="ana-eyebrow">투자 점수</div>
+                  <div class="ana-eyebrow">
+                    투자 점수
+                  </div>
                   <div class="ana-opinion-row">
                     <h4>{{ opinionText(uiReport.summary.opinion) }}</h4>
                     <span :class="['ana-opinion-pill', opinionClass(uiReport.summary.opinion)]">
@@ -66,80 +103,146 @@
                   </div>
                 </div>
               </div>
-              <p v-if="uiReport.summary.text" class="ana-summary-text">
+              <p
+                v-if="uiReport.summary.text"
+                class="ana-summary-text"
+              >
                 {{ uiReport.summary.text }}
               </p>
-              <ul v-if="uiReport.summary.points.length" class="ana-key-points">
-                <li v-for="point in uiReport.summary.points" :key="point">{{ point }}</li>
+              <ul
+                v-if="uiReport.summary.points.length"
+                class="ana-key-points"
+              >
+                <li
+                  v-for="point in uiReport.summary.points"
+                  :key="point"
+                >
+                  {{ point }}
+                </li>
               </ul>
             </section>
 
-            <section v-if="uiReport.metrics.length" class="ana-section">
+            <section
+              v-if="uiReport.metrics.length"
+              class="ana-section"
+            >
               <div class="ana-section-head">
                 <h4>핵심 지표</h4>
                 <span>데이터 소스 기준</span>
               </div>
               <div class="ana-metric-list">
-                <article v-for="metric in uiReport.metrics" :key="metric.key" class="ana-metric-card">
+                <article
+                  v-for="metric in uiReport.metrics"
+                  :key="metric.key"
+                  class="ana-metric-card"
+                >
                   <div class="ana-metric-top">
                     <strong>{{ metric.label }}</strong>
                     <span>{{ metric.source || '데이터' }}</span>
                   </div>
-                  <div class="ana-metric-value">{{ metric.value || '데이터 없음' }}</div>
-                  <p v-if="metric.comment">{{ metric.comment }}</p>
+                  <div class="ana-metric-value">
+                    {{ metric.value || '데이터 없음' }}
+                  </div>
+                  <p v-if="metric.comment">
+                    {{ metric.comment }}
+                  </p>
                 </article>
               </div>
             </section>
 
-            <section v-if="uiReport.notes.length" class="ana-section">
+            <section
+              v-if="uiReport.notes.length"
+              class="ana-section"
+            >
               <div class="ana-section-head">
                 <h4>분석 체크포인트</h4>
               </div>
               <div class="ana-note-grid">
-                <article v-for="note in uiReport.notes" :key="note.title" class="ana-info-card">
+                <article
+                  v-for="note in uiReport.notes"
+                  :key="note.title"
+                  class="ana-info-card"
+                >
                   <h5>{{ note.title }}</h5>
                   <p>{{ note.text }}</p>
                 </article>
               </div>
             </section>
 
-            <section v-if="uiReport.risks.length" class="ana-section">
+            <section
+              v-if="uiReport.risks.length"
+              class="ana-section"
+            >
               <div class="ana-section-head">
                 <h4>리스크 시나리오</h4>
               </div>
               <div class="ana-risk-grid">
-                <article v-for="risk in uiReport.risks" :key="risk.name" class="ana-info-card">
+                <article
+                  v-for="risk in uiReport.risks"
+                  :key="risk.name"
+                  class="ana-info-card"
+                >
                   <h5>{{ risk.name }}</h5>
-                  <p v-if="risk.impact"><strong>영향</strong>{{ risk.impact }}</p>
-                  <p v-if="risk.response"><strong>대응</strong>{{ risk.response }}</p>
+                  <p v-if="risk.impact">
+                    <strong>영향</strong>{{ risk.impact }}
+                  </p>
+                  <p v-if="risk.response">
+                    <strong>대응</strong>{{ risk.response }}
+                  </p>
                 </article>
               </div>
             </section>
 
-            <section v-if="uiReport.question" class="ana-question">
-              <div class="ana-eyebrow">Critical Question</div>
+            <section
+              v-if="uiReport.question"
+              class="ana-question"
+            >
+              <div class="ana-eyebrow">
+                Critical Question
+              </div>
               <p>{{ uiReport.question }}</p>
             </section>
 
-            <div v-if="uiReport.dataAsOf" class="ana-data-asof">
+            <div
+              v-if="uiReport.dataAsOf"
+              class="ana-data-asof"
+            >
               데이터 기준일: {{ uiReport.dataAsOf }}
             </div>
           </template>
 
-          <MarkdownView v-else :text="report" />
+          <MarkdownView
+            v-else
+            :text="report"
+          />
 
-          <div v-if="sources?.length" class="ana-sources">
-            <div class="ana-sources-title">참고 뉴스</div>
+          <div
+            v-if="sources?.length"
+            class="ana-sources"
+          >
+            <div class="ana-sources-title">
+              참고 뉴스
+            </div>
             <ul class="ana-sources-list">
-              <li v-for="(s, i) in sources" :key="i">
-                <a :href="s.link" target="_blank" rel="noopener noreferrer">{{ s.title }}</a>
+              <li
+                v-for="(s, i) in sources"
+                :key="i"
+              >
+                <a
+                  :href="s.link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >{{ s.title }}</a>
               </li>
             </ul>
           </div>
 
           <div class="ana-meta">
             <span class="ana-provider-tag">{{ providerName }}<span v-if="model"> · {{ model }}</span></span>
-            <span v-if="analyzedAt" class="ana-time">{{ formatTime(analyzedAt) }}</span>
+            <span
+              v-if="analyzedAt"
+              class="ana-time"
+            >{{ formatTime(analyzedAt) }}</span>
           </div>
 
           <div class="ana-disclaimer">
@@ -147,7 +250,12 @@
           </div>
         </div>
 
-        <div v-else class="ana-empty">분석을 준비 중입니다...</div>
+        <div
+          v-else
+          class="ana-empty"
+        >
+          분석을 준비 중입니다...
+        </div>
       </template>
 
       <template #footer>
@@ -158,11 +266,21 @@
             :disabled="loading || cooldownSec > 0"
             @click="fetchAnalysis"
           >
-            <template v-if="loading">분석 중...</template>
-            <template v-else-if="cooldownSec > 0">{{ cooldownSec }}초 후 가능</template>
-            <template v-else>다시 분석</template>
+            <template v-if="loading">
+              분석 중...
+            </template>
+            <template v-else-if="cooldownSec > 0">
+              {{ cooldownSec }}초 후 가능
+            </template>
+            <template v-else>
+              다시 분석
+            </template>
           </button>
-          <button type="button" class="btn btn-primary" @click="$emit('close')">
+          <button
+            type="button"
+            class="btn btn-primary"
+            @click="$emit('close')"
+          >
             닫기
           </button>
         </div>

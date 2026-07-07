@@ -5,15 +5,24 @@
       모달 오버레이가 순간 흔들리며 "팝업↔메인"처럼 깜빡이는 체감이 생길 수 있음.
       모달이 떠있는 동안에는 배경 컨텐츠를 숨겨 페인트 자체를 줄여 안정화.
     -->
-    <div v-show="!showEventModal" class="history-page-content">
+    <div
+      v-show="!showEventModal"
+      class="history-page-content"
+    >
       <div class="page-header">
         <h2>My History</h2>
-        <button class="btn btn-primary" @click="openCreateModal">
+        <button
+          class="btn btn-primary"
+          @click="openCreateModal"
+        >
           Add New Event
         </button>
       </div>
 
-      <form class="search-bar" @submit.prevent="applySearch">
+      <form
+        class="search-bar"
+        @submit.prevent="applySearch"
+      >
         <input
           v-model="searchInput"
           type="text"
@@ -21,13 +30,17 @@
           placeholder="제목, 설명, 장소 검색"
           aria-label="History search"
           autocomplete="off"
-        />
-        <button type="submit" class="search-submit" aria-label="검색 실행">
+        >
+        <button
+          type="submit"
+          class="search-submit"
+          aria-label="검색 실행"
+        >
           <img
             src="@/assets/img/btn_search_01.png"
             alt="검색 아이콘"
             class="search-icon"
-          />
+          >
         </button>
       </form>
 

@@ -1,27 +1,52 @@
 <template>
   <div class="vs">
     <div class="vs-head">
-      <div class="vs-summary" v-if="items.length">
+      <div
+        class="vs-summary"
+        v-if="items.length"
+      >
         다녀온 곳 <strong>{{ items.length }}</strong>곳
         <span v-if="countryCount"> · {{ countryCount }}개 국가</span>
       </div>
-      <button class="vs-add-btn" @click="openAdd">＋ 기록 추가</button>
+      <button
+        class="vs-add-btn"
+        @click="openAdd"
+      >
+        ＋ 기록 추가
+      </button>
     </div>
 
     <!-- 지도 -->
     <div class="vs-map-wrap">
-      <div ref="mapEl" class="vs-map"></div>
-      <div v-if="!hasPins" class="vs-map-empty">
+      <div
+        ref="mapEl"
+        class="vs-map"
+      />
+      <div
+        v-if="!hasPins"
+        class="vs-map-empty"
+      >
         위치가 있는 기록이 없습니다. 기록을 추가하면 지도에 핀으로 표시됩니다.
       </div>
     </div>
 
-    <div v-if="loading" class="vs-empty">불러오는 중…</div>
-    <div v-else-if="items.length === 0" class="vs-empty">
+    <div
+      v-if="loading"
+      class="vs-empty"
+    >
+      불러오는 중…
+    </div>
+    <div
+      v-else-if="items.length === 0"
+      class="vs-empty"
+    >
       아직 여행 기록이 없습니다. <strong>＋ 기록 추가</strong>로 다녀온 곳을 남겨보세요.
     </div>
 
-    <div v-else class="vs-grid">
+    <div
+      v-else
+      class="vs-grid"
+    >
       <div
         v-for="t in items"
         :key="t.id"
@@ -29,24 +54,62 @@
         @click="focusPin(t)"
       >
         <div class="vs-card-top">
-          <span v-if="t.rating" class="vs-stars">{{ "★".repeat(t.rating) }}<span class="vs-stars-off">{{ "★".repeat(5 - t.rating) }}</span></span>
-          <span v-else class="vs-stars vs-stars-off">☆</span>
+          <span
+            v-if="t.rating"
+            class="vs-stars"
+          >{{ "★".repeat(t.rating) }}<span class="vs-stars-off">{{ "★".repeat(5 - t.rating) }}</span></span>
+          <span
+            v-else
+            class="vs-stars vs-stars-off"
+          >☆</span>
           <div class="vs-actions">
-            <button class="vs-edit" title="수정" @click.stop="openEdit(t)">✏️</button>
-            <button class="vs-del" title="삭제" @click.stop="remove(t)">🗑</button>
+            <button
+              class="vs-edit"
+              title="수정"
+              @click.stop="openEdit(t)"
+            >
+              ✏️
+            </button>
+            <button
+              class="vs-del"
+              title="삭제"
+              @click.stop="remove(t)"
+            >
+              🗑
+            </button>
           </div>
         </div>
 
-        <div class="vs-title">{{ t.title }}</div>
-        <div v-if="t.country || t.city" class="vs-region">
+        <div class="vs-title">
+          {{ t.title }}
+        </div>
+        <div
+          v-if="t.country || t.city"
+          class="vs-region"
+        >
           {{ [t.country, t.city].filter(Boolean).join(" · ") }}
         </div>
-        <div v-if="t.startDate" class="vs-date">🗓 {{ dateRange(t) }}</div>
-        <div v-if="t.memo" class="vs-memo">{{ t.memo }}</div>
+        <div
+          v-if="t.startDate"
+          class="vs-date"
+        >
+          🗓 {{ dateRange(t) }}
+        </div>
+        <div
+          v-if="t.memo"
+          class="vs-memo"
+        >
+          {{ t.memo }}
+        </div>
       </div>
     </div>
 
-    <VisitedModal :show="showModal" :item="editTarget" @close="closeModal" @saved="onSaved" />
+    <VisitedModal
+      :show="showModal"
+      :item="editTarget"
+      @close="closeModal"
+      @saved="onSaved"
+    />
   </div>
 </template>
 

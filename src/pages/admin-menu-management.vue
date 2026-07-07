@@ -9,14 +9,19 @@
     </div>
 
     <!-- 로딩 -->
-    <div v-if="pageLoading" class="loading-state">
-      <div class="spinner"></div>
+    <div
+      v-if="pageLoading"
+      class="loading-state"
+    >
+      <div class="spinner" />
       <p>데이터를 불러오는 중...</p>
     </div>
 
     <!-- 메인 2패널 레이아웃 -->
-    <div v-else class="split-layout">
-
+    <div
+      v-else
+      class="split-layout"
+    >
       <!-- ===== 좌측: 권한 목록 ===== -->
       <div class="left-panel">
         <div class="panel-header">
@@ -32,7 +37,11 @@
           >
             <span class="role-row-icon">{{ getRoleIcon(role.key) }}</span>
             <div class="role-row-info">
-              <span class="role-row-name">{{ role.name }}<span v-if="dirtyRoles.has(role.key)" class="unsaved-badge" style="font-size:9px;margin-left:4px">●</span></span>
+              <span class="role-row-name">{{ role.name }}<span
+                v-if="dirtyRoles.has(role.key)"
+                class="unsaved-badge"
+                style="font-size:9px;margin-left:4px"
+              >●</span></span>
               <span class="role-row-key">{{ role.key }}</span>
             </div>
             <div class="role-row-meta">
@@ -53,21 +62,54 @@
             <div>
               <h2>
                 {{ getCurrentRoleDisplayName() }} 접근 메뉴 설정
-                <span v-if="dirtyRoles.has(activeRole)" class="unsaved-badge">● 미저장</span>
+                <span
+                  v-if="dirtyRoles.has(activeRole)"
+                  class="unsaved-badge"
+                >● 미저장</span>
               </h2>
-              <p class="panel-desc">체크된 메뉴는 해당 권한 사용자가 접근할 수 있습니다 (접근 시 CRUD 모두 허용)</p>
+              <p class="panel-desc">
+                체크된 메뉴는 해당 권한 사용자가 접근할 수 있습니다 (접근 시 CRUD 모두 허용)
+              </p>
             </div>
             <div class="panel-actions">
-              <button v-if="dirtyRoles.has(activeRole)" @click="resetRole" class="btn btn-outline">↺ 초기화</button>
-              <button v-if="orderChanged" @click="saveSortOrder" class="btn btn-outline" :disabled="savingOrder">
+              <button
+                v-if="dirtyRoles.has(activeRole)"
+                @click="resetRole"
+                class="btn btn-outline"
+              >
+                ↺ 초기화
+              </button>
+              <button
+                v-if="orderChanged"
+                @click="saveSortOrder"
+                class="btn btn-outline"
+                :disabled="savingOrder"
+              >
                 {{ savingOrder ? '저장 중...' : '↕ 순서 저장' }}
               </button>
-              <button @click="allCollapsed ? expandAll() : collapseAll()" class="btn btn-outline">
+              <button
+                @click="allCollapsed ? expandAll() : collapseAll()"
+                class="btn btn-outline"
+              >
                 {{ allCollapsed ? '모두 펼치기' : '모두 접기' }}
               </button>
-              <button @click="selectAllMenus" class="btn btn-outline">전체 선택</button>
-              <button @click="deselectAllMenus" class="btn btn-outline-red">전체 해제</button>
-              <button @click="savePermissions" class="btn btn-primary" :disabled="saving">
+              <button
+                @click="selectAllMenus"
+                class="btn btn-outline"
+              >
+                전체 선택
+              </button>
+              <button
+                @click="deselectAllMenus"
+                class="btn btn-outline-red"
+              >
+                전체 해제
+              </button>
+              <button
+                @click="savePermissions"
+                class="btn btn-primary"
+                :disabled="saving"
+              >
                 {{ saving ? '저장 중...' : '설정 저장' }}
               </button>
             </div>
@@ -75,7 +117,11 @@
 
           <!-- 네비게이션 메뉴 순서 섹션 -->
           <div class="category-block nav-order-block">
-            <div class="category-header" @click="navSectionCollapsed = !navSectionCollapsed" style="cursor:pointer">
+            <div
+              class="category-header"
+              @click="navSectionCollapsed = !navSectionCollapsed"
+              style="cursor:pointer"
+            >
               <div class="category-title">
                 <span class="category-icon">🧭</span>
                 <span class="category-name">네비게이션 메뉴 순서</span>
@@ -83,15 +129,48 @@
                 <span class="collapse-indicator">{{ navSectionCollapsed ? '▶' : '▼' }}</span>
               </div>
             </div>
-            <div v-if="!navSectionCollapsed" class="menu-items nav-order-items">
-              <div v-for="(menu, idx) in navMenusSorted" :key="menu.path" class="menu-item nav-order-item">
+            <div
+              v-if="!navSectionCollapsed"
+              class="menu-items nav-order-items"
+            >
+              <div
+                v-for="(menu, idx) in navMenusSorted"
+                :key="menu.path"
+                class="menu-item nav-order-item"
+              >
                 <span class="nav-order-num">{{ idx + 1 }}</span>
-                <span class="menu-icon" style="font-size:14px">{{ menu.icon }}</span>
-                <span class="menu-name" style="font-size:13px;font-weight:600">{{ menu.name }}</span>
-                <span class="menu-path" style="font-size:11px;color:var(--text-muted);font-family:monospace;margin-right:auto">{{ menu.path }}</span>
-                <div class="menu-order-controls" @click.stop>
-                  <button @click="moveNavMenuUp(menu)" :disabled="isFirstNavMenu(menu)" class="order-btn" title="위로">↑</button>
-                  <button @click="moveNavMenuDown(menu)" :disabled="isLastNavMenu(menu)" class="order-btn" title="아래로">↓</button>
+                <span
+                  class="menu-icon"
+                  style="font-size:14px"
+                >{{ menu.icon }}</span>
+                <span
+                  class="menu-name"
+                  style="font-size:13px;font-weight:600"
+                >{{ menu.name }}</span>
+                <span
+                  class="menu-path"
+                  style="font-size:11px;color:var(--text-muted);font-family:monospace;margin-right:auto"
+                >{{ menu.path }}</span>
+                <div
+                  class="menu-order-controls"
+                  @click.stop
+                >
+                  <button
+                    @click="moveNavMenuUp(menu)"
+                    :disabled="isFirstNavMenu(menu)"
+                    class="order-btn"
+                    title="위로"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    @click="moveNavMenuDown(menu)"
+                    :disabled="isLastNavMenu(menu)"
+                    class="order-btn"
+                    title="아래로"
+                  >
+                    ↓
+                  </button>
                 </div>
               </div>
             </div>
@@ -104,7 +183,11 @@
               :key="category.key"
               class="category-block"
             >
-              <div class="category-header" @click="toggleCategoryCollapse(category.key)" style="cursor:pointer">
+              <div
+                class="category-header"
+                @click="toggleCategoryCollapse(category.key)"
+                style="cursor:pointer"
+              >
                 <div class="category-title">
                   <span class="category-icon">{{ category.icon }}</span>
                   <span class="category-name">{{ category.name }}</span>
@@ -120,7 +203,10 @@
                 </button>
               </div>
 
-              <div v-if="!isCategoryCollapsed(category.key)" class="menu-items">
+              <div
+                v-if="!isCategoryCollapsed(category.key)"
+                class="menu-items"
+              >
                 <div
                   v-for="menu in category.menus"
                   :key="menu.path"
@@ -137,15 +223,31 @@
                         :checked="isMenuSelectedForRole(menu, activeRole)"
                         :disabled="isMenuLocked(menu)"
                         @change="toggleMenuForRole(menu, activeRole)"
-                      />
+                      >
                       <div class="menu-text">
                         <div class="menu-top">
                           <span class="menu-icon">{{ menu.icon }}</span>
                           <span class="menu-name">{{ menu.name }}</span>
-                          <span v-if="menu.isRequired" class="required-badge">필수</span>
-                          <div class="menu-order-controls" @click.stop>
-                            <button @click="moveMenuUp(menu)" :disabled="isFirstInCategory(menu)" class="order-btn" title="위로">↑</button>
-                            <button @click="moveMenuDown(menu)" :disabled="isLastInCategory(menu)" class="order-btn" title="아래로">↓</button>
+                          <span
+                            v-if="menu.isRequired"
+                            class="required-badge"
+                          >필수</span>
+                          <div
+                            class="menu-order-controls"
+                            @click.stop
+                          >
+                            <button
+                              @click="moveMenuUp(menu)"
+                              :disabled="isFirstInCategory(menu)"
+                              class="order-btn"
+                              title="위로"
+                            >↑</button>
+                            <button
+                              @click="moveMenuDown(menu)"
+                              :disabled="isLastInCategory(menu)"
+                              class="order-btn"
+                              title="아래로"
+                            >↓</button>
                           </div>
                         </div>
                         <span class="menu-path">{{ menu.path }}</span>
@@ -153,24 +255,26 @@
                     </label>
                     <span
                       :class="['status-pill',
-                        isMenuLocked(menu)
-                          ? (isMenuSelectedForRole(menu, activeRole) ? 'pill-locked' : 'pill-locked-deny')
-                          : (isMenuSelectedForRole(menu, activeRole) ? 'pill-allow' : 'pill-deny')
+                               isMenuLocked(menu)
+                                 ? (isMenuSelectedForRole(menu, activeRole) ? 'pill-locked' : 'pill-locked-deny')
+                                 : (isMenuSelectedForRole(menu, activeRole) ? 'pill-allow' : 'pill-deny')
                       ]"
                     >
                       {{ isMenuLocked(menu)
-                          ? (isMenuSelectedForRole(menu, activeRole) ? '고정' : '차단')
-                          : (isMenuSelectedForRole(menu, activeRole) ? '허용' : '차단') }}
+                        ? (isMenuSelectedForRole(menu, activeRole) ? '고정' : '차단')
+                        : (isMenuSelectedForRole(menu, activeRole) ? '허용' : '차단') }}
                     </span>
                   </div>
-
                 </div>
               </div>
             </div>
           </div>
         </template>
 
-        <div v-else class="empty-right">
+        <div
+          v-else
+          class="empty-right"
+        >
           <span>👈</span>
           <p>좌측에서 권한을 선택하세요</p>
         </div>
@@ -178,48 +282,83 @@
     </div>
 
     <!-- 저장 확인 모달 -->
-    <Modal v-if="showSaveModal" @close="closeSaveModal">
+    <Modal
+      v-if="showSaveModal"
+      @close="closeSaveModal"
+    >
       <template #header>
         <h3>메뉴 권한 저장</h3>
       </template>
       <template #body>
         <div class="modal-confirm-body">
-          <div class="confirm-icon">⚠️</div>
+          <div class="confirm-icon">
+            ⚠️
+          </div>
           <div>
             <p>전체 권한의 메뉴 접근 설정을 저장하시겠습니까?</p>
             <ul class="confirm-list">
               <li>저장 대상 권한: <strong>{{ roles.length }}개</strong></li>
-              <li v-if="dirtyRoles.size > 0">변경된 권한: <strong>{{ dirtyRoles.size }}개</strong></li>
+              <li v-if="dirtyRoles.size > 0">
+                변경된 권한: <strong>{{ dirtyRoles.size }}개</strong>
+              </li>
             </ul>
-            <p class="warn-text">⚠️ 해당 권한을 가진 모든 사용자에게 즉시 적용됩니다.</p>
+            <p class="warn-text">
+              ⚠️ 해당 권한을 가진 모든 사용자에게 즉시 적용됩니다.
+            </p>
           </div>
         </div>
       </template>
       <template #footer>
-        <button @click="closeSaveModal" class="btn btn-outline">취소</button>
-        <button @click="confirmSavePermissions" class="btn btn-primary" :disabled="saving">
+        <button
+          @click="closeSaveModal"
+          class="btn btn-outline"
+        >
+          취소
+        </button>
+        <button
+          @click="confirmSavePermissions"
+          class="btn btn-primary"
+          :disabled="saving"
+        >
           {{ saving ? '저장 중...' : '확인 후 저장' }}
         </button>
       </template>
     </Modal>
 
     <!-- 미저장 변경사항 경고 모달 -->
-    <Modal v-if="showUnsavedModal" @close="cancelRoleSwitch">
+    <Modal
+      v-if="showUnsavedModal"
+      @close="cancelRoleSwitch"
+    >
       <template #header>
         <h3>저장하지 않은 변경사항</h3>
       </template>
       <template #body>
         <div class="modal-confirm-body">
-          <div class="confirm-icon">⚠️</div>
+          <div class="confirm-icon">
+            ⚠️
+          </div>
           <div>
             <p>저장하지 않은 변경사항이 있습니다.</p>
-            <p class="warn-text">이동해도 변경사항은 메모리에 유지됩니다.<br>최종적으로 <strong>설정 저장</strong>을 눌러야 서버에 반영됩니다.</p>
+            <p class="warn-text">
+              이동해도 변경사항은 메모리에 유지됩니다.<br>최종적으로 <strong>설정 저장</strong>을 눌러야 서버에 반영됩니다.
+            </p>
           </div>
         </div>
       </template>
       <template #footer>
-        <button @click="cancelRoleSwitch" class="btn btn-outline">돌아가기</button>
-        <button @click="confirmRoleSwitch" class="btn btn-primary">저장 없이 이동</button>
+        <button
+          @click="cancelRoleSwitch"
+          class="btn btn-outline"
+        >
+          돌아가기
+        </button>
+        <button
+          @click="confirmRoleSwitch"
+          class="btn btn-primary"
+        >
+          저장 없이 이동
+        </button>
       </template>
     </Modal>
   </div>

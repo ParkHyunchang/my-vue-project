@@ -11,7 +11,9 @@
             :key="t.id"
             :class="['re-toggle-btn', { active: propertyType === t.id }]"
             @click="setPropertyType(t.id)"
-          >{{ t.label }}</button>
+          >
+            {{ t.label }}
+          </button>
         </div>
       </div>
 
@@ -26,9 +28,15 @@
             placeholder="시/군/구 검색 (예: 강남구, 분당구)"
             @input="onRegionInput"
             @focus="showRegionList = true"
-          />
-          <span v-if="selectedRegion" class="re-selected">✓ {{ selectedRegion.name }}</span>
-          <ul v-if="showRegionList && regionResults.length" class="re-region-list">
+          >
+          <span
+            v-if="selectedRegion"
+            class="re-selected"
+          >✓ {{ selectedRegion.name }}</span>
+          <ul
+            v-if="showRegionList && regionResults.length"
+            class="re-region-list"
+          >
             <li
               v-for="r in regionResults"
               :key="r.code"
@@ -41,7 +49,10 @@
       </div>
 
       <!-- 거래유형 (아파트만) -->
-      <div v-if="isApt" class="re-dealtype">
+      <div
+        v-if="isApt"
+        class="re-dealtype"
+      >
         <label class="re-label">거래유형</label>
         <div class="re-toggle">
           <button
@@ -49,45 +60,87 @@
             :key="t.id"
             :class="['re-toggle-btn', { active: dealType === t.id }]"
             @click="dealType = t.id"
-          >{{ t.label }}</button>
+          >
+            {{ t.label }}
+          </button>
         </div>
       </div>
 
       <!-- 조회 기간 -->
       <div class="re-months">
         <label class="re-label">기간</label>
-        <select v-model.number="months" class="re-input re-select">
-          <option :value="1">최근 1개월</option>
-          <option :value="3">최근 3개월</option>
-          <option :value="6">최근 6개월</option>
-          <option :value="12">최근 12개월</option>
+        <select
+          v-model.number="months"
+          class="re-input re-select"
+        >
+          <option :value="1">
+            최근 1개월
+          </option>
+          <option :value="3">
+            최근 3개월
+          </option>
+          <option :value="6">
+            최근 6개월
+          </option>
+          <option :value="12">
+            최근 12개월
+          </option>
         </select>
       </div>
 
-      <button class="re-search-btn" :disabled="!selectedRegion || loading" @click="doSearch">
+      <button
+        class="re-search-btn"
+        :disabled="!selectedRegion || loading"
+        @click="doSearch"
+      >
         {{ loading ? '조회중…' : '🔍 검색' }}
       </button>
     </div>
 
     <!-- 알림 -->
-    <div v-if="errorMsg" class="re-alert">{{ errorMsg }}</div>
+    <div
+      v-if="errorMsg"
+      class="re-alert"
+    >
+      {{ errorMsg }}
+    </div>
 
     <!-- ───────── 아파트 결과 ───────── -->
     <template v-if="isApt">
-      <div v-if="searched && !loading" class="re-result-meta">
+      <div
+        v-if="searched && !loading"
+        class="re-result-meta"
+      >
         <span>
           <strong>{{ selectedRegion?.name }}</strong> · {{ currentDealLabel }} ·
           총 <strong>{{ deals.length }}</strong>건
         </span>
-        <button v-if="deals.length" class="re-ai-btn" @click="showAnalysis = true">🤖 AI 시황 분석</button>
+        <button
+          v-if="deals.length"
+          class="re-ai-btn"
+          @click="showAnalysis = true"
+        >
+          🤖 AI 시황 분석
+        </button>
       </div>
 
-      <div v-if="loading" class="re-empty">실거래가를 불러오는 중입니다…</div>
-      <div v-else-if="searched && deals.length === 0 && !errorMsg" class="re-empty">
+      <div
+        v-if="loading"
+        class="re-empty"
+      >
+        실거래가를 불러오는 중입니다…
+      </div>
+      <div
+        v-else-if="searched && deals.length === 0 && !errorMsg"
+        class="re-empty"
+      >
         해당 조건의 실거래 내역이 없습니다.
       </div>
 
-      <div v-else-if="deals.length" class="re-table-wrap">
+      <div
+        v-else-if="deals.length"
+        class="re-table-wrap"
+      >
         <table class="re-table">
           <thead>
             <tr>
@@ -96,19 +149,33 @@
               <th>전용면적</th>
               <th>층</th>
               <th>{{ dealType === 'SALE' ? '거래금액' : '보증금' }}</th>
-              <th v-if="dealType === 'MONTHLY'">월세</th>
+              <th v-if="dealType === 'MONTHLY'">
+                월세
+              </th>
               <th>거래일</th>
               <th>건축년도</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(d, i) in deals" :key="i">
-              <td class="re-apt">{{ d.aptName }}</td>
+            <tr
+              v-for="(d, i) in deals"
+              :key="i"
+            >
+              <td class="re-apt">
+                {{ d.aptName }}
+              </td>
               <td>{{ d.dong }}</td>
               <td>{{ formatArea(d.areaM2) }}</td>
               <td>{{ d.floor }}층</td>
-              <td class="re-money">{{ formatMoney(dealType === 'SALE' ? d.dealAmount : d.deposit) }}</td>
-              <td v-if="dealType === 'MONTHLY'" class="re-money">{{ d.monthlyRent }}만원</td>
+              <td class="re-money">
+                {{ formatMoney(dealType === 'SALE' ? d.dealAmount : d.deposit) }}
+              </td>
+              <td
+                v-if="dealType === 'MONTHLY'"
+                class="re-money"
+              >
+                {{ d.monthlyRent }}만원
+              </td>
               <td>{{ d.dealDate }}</td>
               <td>{{ d.buildYear || '-' }}</td>
             </tr>
@@ -119,39 +186,84 @@
 
     <!-- ───────── 토지 결과 ───────── -->
     <template v-else>
-      <div v-if="searched && !loading && landDeals.length" class="re-land-filters">
+      <div
+        v-if="searched && !loading && landDeals.length"
+        class="re-land-filters"
+      >
         <input
           :value="dongFilter"
           type="text"
           class="re-input re-dong-filter"
           placeholder="법정동 검색 (예: 돌산읍, 군내리)"
           @input="dongFilter = $event.target.value"
-        />
-        <select v-model="jimokFilter" class="re-input re-select">
-          <option value="">지목 전체</option>
-          <option v-for="j in landJimoks" :key="j" :value="j">{{ j }}</option>
+        >
+        <select
+          v-model="jimokFilter"
+          class="re-input re-select"
+        >
+          <option value="">
+            지목 전체
+          </option>
+          <option
+            v-for="j in landJimoks"
+            :key="j"
+            :value="j"
+          >
+            {{ j }}
+          </option>
         </select>
-        <select v-model="zoneFilter" class="re-input re-select">
-          <option value="">용도지역 전체</option>
-          <option v-for="z in landUseZones" :key="z" :value="z">{{ z }}</option>
+        <select
+          v-model="zoneFilter"
+          class="re-input re-select"
+        >
+          <option value="">
+            용도지역 전체
+          </option>
+          <option
+            v-for="z in landUseZones"
+            :key="z"
+            :value="z"
+          >
+            {{ z }}
+          </option>
         </select>
       </div>
 
-      <div v-if="searched && !loading" class="re-result-meta">
+      <div
+        v-if="searched && !loading"
+        class="re-result-meta"
+      >
         <span>
           <strong>{{ selectedRegion?.name }}</strong> · 토지 ·
           총 <strong>{{ filteredLandDeals.length }}</strong>건
           <span v-if="filteredLandDeals.length !== landDeals.length">/ {{ landDeals.length }}건</span>
         </span>
-        <button v-if="landDeals.length" class="re-ai-btn" @click="showLandAnalysis = true">🤖 AI 시황 분석</button>
+        <button
+          v-if="landDeals.length"
+          class="re-ai-btn"
+          @click="showLandAnalysis = true"
+        >
+          🤖 AI 시황 분석
+        </button>
       </div>
 
-      <div v-if="loading" class="re-empty">토지 실거래가를 불러오는 중입니다…</div>
-      <div v-else-if="searched && landDeals.length === 0 && !errorMsg" class="re-empty">
+      <div
+        v-if="loading"
+        class="re-empty"
+      >
+        토지 실거래가를 불러오는 중입니다…
+      </div>
+      <div
+        v-else-if="searched && landDeals.length === 0 && !errorMsg"
+        class="re-empty"
+      >
         해당 지역의 토지 실거래 내역이 없습니다.
       </div>
 
-      <div v-else-if="filteredLandDeals.length" class="re-table-wrap">
+      <div
+        v-else-if="filteredLandDeals.length"
+        class="re-table-wrap"
+      >
         <table class="re-table">
           <thead>
             <tr>
@@ -165,13 +277,22 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(d, i) in filteredLandDeals" :key="i">
+            <tr
+              v-for="(d, i) in filteredLandDeals"
+              :key="i"
+            >
               <td>{{ d.dong }}</td>
-              <td class="re-apt">{{ d.jimok || '-' }}</td>
+              <td class="re-apt">
+                {{ d.jimok || '-' }}
+              </td>
               <td>{{ d.useZone || '-' }}</td>
               <td>{{ formatArea(d.areaM2) }}</td>
-              <td class="re-money">{{ formatMoney(d.dealAmount) }}</td>
-              <td class="re-money">{{ formatUnit(d.pricePerM2) }}</td>
+              <td class="re-money">
+                {{ formatMoney(d.dealAmount) }}
+              </td>
+              <td class="re-money">
+                {{ formatUnit(d.pricePerM2) }}
+              </td>
               <td>{{ d.dealDate }}</td>
             </tr>
           </tbody>

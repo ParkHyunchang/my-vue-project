@@ -7,10 +7,18 @@
       {{ message || "정말 삭제하시겠습니까?" }}
     </template>
     <template #footer>
-      <button type="button" class="btn btn-secondary" @click="onClose">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        @click="onClose"
+      >
         취소
       </button>
-      <button type="button" class="btn btn-danger" @click="onDelete">
+      <button
+        type="button"
+        class="btn btn-danger"
+        @click="onDelete"
+      >
         삭제
       </button>
     </template>

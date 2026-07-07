@@ -1,17 +1,29 @@
 <template>
   <div>
     <!-- 초기 로딩 -->
-    <div v-if="initialLoading" class="loading-state" style="padding: 48px 0">
-      <div class="spinner"></div>
+    <div
+      v-if="initialLoading"
+      class="loading-state"
+      style="padding: 48px 0"
+    >
+      <div class="spinner" />
       <span>{{ accountUi.label }} 보유 종목 불러오는 중...</span>
     </div>
 
     <!-- 빈 상태 -->
-    <div v-else-if="holdings.length === 0" class="portfolio-empty">
-      <div class="portfolio-empty-icon">📊</div>
+    <div
+      v-else-if="holdings.length === 0"
+      class="portfolio-empty"
+    >
+      <div class="portfolio-empty-icon">
+        📊
+      </div>
       <h3>{{ accountUi.emptyTitle }}</h3>
       <p>{{ accountUi.emptyDescription }}</p>
-      <button class="btn-add-primary" @click="openAddModal">
+      <button
+        class="btn-add-primary"
+        @click="openAddModal"
+      >
         ＋ 종목 추가
       </button>
     </div>
@@ -51,7 +63,10 @@
 
       <!-- AI 포트폴리오 진단 액션 바 -->
       <div class="portfolio-ai-bar">
-        <button class="portfolio-ai-btn" @click="openPortfolioAnalysis">
+        <button
+          class="portfolio-ai-btn"
+          @click="openPortfolioAnalysis"
+        >
           {{ accountUi.aiButtonLabel }}
         </button>
         <span class="portfolio-ai-hint">{{ accountUi.aiHint }}</span>
@@ -59,30 +74,54 @@
 
       <!-- 마켓 필터 바 -->
       <div class="balance-filter-bar">
-        <button :class="['bfb-btn', { active: marketFilter === 'all' }]" @click="marketFilter = 'all'">
+        <button
+          :class="['bfb-btn', { active: marketFilter === 'all' }]"
+          @click="marketFilter = 'all'"
+        >
           전체 <span class="bfb-count">{{ holdings.length }}</span>
         </button>
-        <button :class="['bfb-btn', { active: marketFilter === 'kr' }]" @click="marketFilter = 'kr'">
+        <button
+          :class="['bfb-btn', { active: marketFilter === 'kr' }]"
+          @click="marketFilter = 'kr'"
+        >
           🇰🇷 한국 <span class="bfb-count">{{ krHoldingsCount }}</span>
         </button>
-        <button :class="['bfb-btn', { active: marketFilter === 'us' }]" @click="marketFilter = 'us'">
+        <button
+          :class="['bfb-btn', { active: marketFilter === 'us' }]"
+          @click="marketFilter = 'us'"
+        >
           🇺🇸 미국 <span class="bfb-count">{{ usHoldingsCount }}</span>
         </button>
-        <div v-if="showCurrencyToggle" class="ccy-toggle" role="group" aria-label="미국 주식 표시 통화">
+        <div
+          v-if="showCurrencyToggle"
+          class="ccy-toggle"
+          role="group"
+          aria-label="미국 주식 표시 통화"
+        >
           <button
             type="button"
             :class="['ccy-btn', { active: displayCurrency === 'native' }]"
             @click="setDisplayCurrency('native')"
-          >외화</button>
+          >
+            외화
+          </button>
           <button
             type="button"
             :class="['ccy-btn', { active: displayCurrency === 'krw' }]"
             @click="setDisplayCurrency('krw')"
-          >원화</button>
+          >
+            원화
+          </button>
         </div>
-        <div v-if="exchangeRate > 0" class="exrate-info">
+        <div
+          v-if="exchangeRate > 0"
+          class="exrate-info"
+        >
           <span class="exrate-val">1$ = {{ fmtKRW(exchangeRate) }}</span>
-          <span v-if="exRateAt" class="exrate-at">{{ exRateAt }} 기준</span>
+          <span
+            v-if="exRateAt"
+            class="exrate-at"
+          >{{ exRateAt }} 기준</span>
         </div>
       </div>
 
@@ -104,20 +143,34 @@
 
       <!-- 새로고침 바 -->
       <div class="price-refresh-bar">
-        <span v-if="lastUpdatedAt" class="prf-updated">↻ {{ relativeUpdated }}</span>
-        <button class="prf-btn" :disabled="priceLoading" @click="fetchPrices">
+        <span
+          v-if="lastUpdatedAt"
+          class="prf-updated"
+        >↻ {{ relativeUpdated }}</span>
+        <button
+          class="prf-btn"
+          :disabled="priceLoading"
+          @click="fetchPrices"
+        >
           {{ priceLoading ? '로딩 중...' : '↻ 새로고침' }}
         </button>
       </div>
 
       <!-- 현재가 로딩 -->
-      <div v-if="priceLoading" class="loading-state" style="padding: 24px 0">
-        <div class="spinner"></div>
+      <div
+        v-if="priceLoading"
+        class="loading-state"
+        style="padding: 24px 0"
+      >
+        <div class="spinner" />
         <span>현재가 조회 중...</span>
       </div>
 
       <!-- 필터 결과 없음 -->
-      <div v-else-if="sortedHoldings.length === 0" class="filter-empty">
+      <div
+        v-else-if="sortedHoldings.length === 0"
+        class="filter-empty"
+      >
         <span>{{ marketFilter === 'kr' ? '🇰🇷 국내' : '🇺🇸 미국' }} 보유 종목이 없습니다</span>
       </div>
 

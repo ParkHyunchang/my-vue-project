@@ -1,83 +1,137 @@
 <template>
-    <div v-if="loading">
-        Loading..
+  <div v-if="loading">
+    Loading..
+  </div>
+  <form
+    v-else
+    @submit.prevent="onSave"
+    class="todo-form"
+  >
+    <div class="row">
+      <div class="col-12 col-md-6">
+        <AppInput
+          label="Title"
+          v-model:title="todo.title"
+          :error="titleError"
+        />
+      </div>
+      <div
+        v-if="editing"
+        class="col-12 col-md-6"
+      >
+        <div class="form-group">
+          <label>Status</label>
+          <div>
+            <button
+              class="btn"
+              type="button"
+              :class="todo.done ? 'btn-success' : 'btn-danger'"
+              @click="toggleTodoStatus"
+            >
+              {{ todo.done ? 'Completed' : 'Incomplete' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <div class="form-group">
+          <label>우선순위</label>
+          <select
+            v-model.number="todo.priority"
+            class="form-control"
+          >
+            <option :value="3">
+              🔴 높음
+            </option>
+            <option :value="2">
+              🟡 보통
+            </option>
+            <option :value="1">
+              🟢 낮음
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="form-group">
+          <label>마감일</label>
+          <div
+            class="date-wrap"
+            @click="openDatePicker"
+          >
+            <input
+              ref="dueDateInput"
+              type="date"
+              v-model="todo.dueDate"
+              class="form-control date-input"
+            >
+            <span
+              class="date-icon"
+              aria-hidden="true"
+            >📅</span>
+            <button
+              v-if="todo.dueDate"
+              type="button"
+              class="date-clear"
+              @click.stop="todo.dueDate = ''"
+              title="마감일 지우기"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="form-group">
+          <label>카테고리</label>
+          <input
+            type="text"
+            v-model="todo.category"
+            class="form-control"
+            list="todo-category-list"
+            placeholder="예: 업무, 공부, 운동"
+            maxlength="30"
+          >
+          <datalist id="todo-category-list">
+            <option
+              v-for="c in suggestedCategories"
+              :key="c"
+              :value="c"
+            />
+          </datalist>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="form-group">
+          <label>Description</label>
+          <textarea
+            v-model="todo.description"
+            class="form-control"
+            cols="30"
+            rows="8"
+          />
+        </div>
+      </div>
     </div>
-    <form v-else @submit.prevent="onSave" class="todo-form">
-        <div class="row">
-            <div class="col-12 col-md-6">
-                <AppInput label="Title" v-model:title="todo.title" :error="titleError" />
-            </div>
-            <div v-if="editing" class="col-12 col-md-6">
-                <div class="form-group">
-                    <label>Status</label>
-                    <div>
-                        <button class="btn" type="button" :class="todo.done ? 'btn-success' : 'btn-danger'"
-                            @click="toggleTodoStatus">
-                            {{ todo.done ? 'Completed' : 'Incomplete' }}
-                        </button>
-                    </div>
-                </div>
-            </div>
 
-            <div class="col-12 col-md-4">
-                <div class="form-group">
-                    <label>우선순위</label>
-                    <select v-model.number="todo.priority" class="form-control">
-                        <option :value="3">🔴 높음</option>
-                        <option :value="2">🟡 보통</option>
-                        <option :value="1">🟢 낮음</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col-12 col-md-4">
-                <div class="form-group">
-                    <label>마감일</label>
-                    <div class="date-wrap" @click="openDatePicker">
-                        <input
-                            ref="dueDateInput"
-                            type="date"
-                            v-model="todo.dueDate"
-                            class="form-control date-input"
-                        />
-                        <span class="date-icon" aria-hidden="true">📅</span>
-                        <button
-                            v-if="todo.dueDate"
-                            type="button"
-                            class="date-clear"
-                            @click.stop="todo.dueDate = ''"
-                            title="마감일 지우기"
-                        >×</button>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-md-4">
-                <div class="form-group">
-                    <label>카테고리</label>
-                    <input type="text" v-model="todo.category" class="form-control"
-                        list="todo-category-list" placeholder="예: 업무, 공부, 운동" maxlength="30" />
-                    <datalist id="todo-category-list">
-                        <option v-for="c in suggestedCategories" :key="c" :value="c" />
-                    </datalist>
-                </div>
-            </div>
-
-            <div class="col-12">
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea v-model="todo.description" class="form-control" cols="30" rows="8"></textarea>
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-3">
-            <button type="submit" class="btn btn-primary">
-                {{ editing ? 'Update' : 'Create' }}
-            </button>
-            <button type="button" class="btn btn-outline-dark ml-2" @click="moveToTodoListPage">
-                Cancel
-            </button>
-        </div>
-    </form>
+    <div class="mt-3">
+      <button
+        type="submit"
+        class="btn btn-primary"
+      >
+        {{ editing ? 'Update' : 'Create' }}
+      </button>
+      <button
+        type="button"
+        class="btn btn-outline-dark ml-2"
+        @click="moveToTodoListPage"
+      >
+        Cancel
+      </button>
+    </div>
+  </form>
 </template>
 
 <script>

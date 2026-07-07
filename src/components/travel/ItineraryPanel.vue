@@ -1,31 +1,75 @@
 <template>
   <div class="ip">
     <div class="ip-head">
-      <div class="ip-summary" v-if="items.length">
+      <div
+        class="ip-summary"
+        v-if="items.length"
+      >
         예정 일정 <strong>{{ items.length }}</strong>건
       </div>
-      <button class="ip-add-btn" @click="openAdd">＋ 일정 작성</button>
+      <button
+        class="ip-add-btn"
+        @click="openAdd"
+      >
+        ＋ 일정 작성
+      </button>
     </div>
 
-    <div v-if="loading" class="ip-empty">불러오는 중…</div>
+    <div
+      v-if="loading"
+      class="ip-empty"
+    >
+      불러오는 중…
+    </div>
 
-    <div v-else-if="items.length === 0" class="ip-empty">
+    <div
+      v-else-if="items.length === 0"
+      class="ip-empty"
+    >
       예정 일정이 없습니다. AI 플래너에서 <strong>📅 예정 일정으로 저장</strong>하거나
       <strong>＋ 일정 작성</strong>으로 직접 만들어보세요.
     </div>
 
-    <div v-else class="ip-grid">
-      <div v-for="it in items" :key="it.id" class="ip-card" @click="openEdit(it)">
+    <div
+      v-else
+      class="ip-grid"
+    >
+      <div
+        v-for="it in items"
+        :key="it.id"
+        class="ip-card"
+        @click="openEdit(it)"
+      >
         <div class="ip-card-top">
-          <span v-if="ddayLabel(it)" :class="['ip-dday', ddayClass(it)]">{{ ddayLabel(it) }}</span>
-          <span v-else class="ip-dday ip-dday-none">예정</span>
+          <span
+            v-if="ddayLabel(it)"
+            :class="['ip-dday', ddayClass(it)]"
+          >{{ ddayLabel(it) }}</span>
+          <span
+            v-else
+            class="ip-dday ip-dday-none"
+          >예정</span>
           <div class="ip-actions">
-            <button class="ip-edit" title="편집" @click.stop="openEdit(it)">✏️</button>
-            <button class="ip-del" title="삭제" @click.stop="remove(it)">🗑</button>
+            <button
+              class="ip-edit"
+              title="편집"
+              @click.stop="openEdit(it)"
+            >
+              ✏️
+            </button>
+            <button
+              class="ip-del"
+              title="삭제"
+              @click.stop="remove(it)"
+            >
+              🗑
+            </button>
           </div>
         </div>
 
-        <div class="ip-title">{{ it.title }}</div>
+        <div class="ip-title">
+          {{ it.title }}
+        </div>
         <div class="ip-meta">
           <span v-if="it.destination">📍 {{ it.destination }}</span>
           <span v-if="it.startDate">🗓 {{ dateRange(it) }}</span>
@@ -36,11 +80,21 @@
           <span class="ip-chip">{{ itemCount(it) }}개 일정</span>
         </div>
 
-        <div v-if="firstThemes(it)" class="ip-preview">{{ firstThemes(it) }}</div>
+        <div
+          v-if="firstThemes(it)"
+          class="ip-preview"
+        >
+          {{ firstThemes(it) }}
+        </div>
       </div>
     </div>
 
-    <ItineraryModal :show="showModal" :item="editTarget" @close="closeModal" @saved="onSaved" />
+    <ItineraryModal
+      :show="showModal"
+      :item="editTarget"
+      @close="closeModal"
+      @saved="onSaved"
+    />
   </div>
 </template>
 

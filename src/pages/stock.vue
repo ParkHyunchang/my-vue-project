@@ -2,17 +2,27 @@
   <div class="stock-container">
     <div class="page-header">
       <h2>주식 대시보드</h2>
-      <p class="page-subtitle">실시간 시장 데이터 · 포트폴리오 현황</p>
+      <p class="page-subtitle">
+        실시간 시장 데이터 · 포트폴리오 현황
+      </p>
     </div>
 
     <!-- KRX 만료 임박/만료 알림 배너 -->
-    <div v-if="krxApiStatus !== 'valid'" :class="['krx-alert-banner', 'krx-alert-' + krxApiStatus]">
+    <div
+      v-if="krxApiStatus !== 'valid'"
+      :class="['krx-alert-banner', 'krx-alert-' + krxApiStatus]"
+    >
       <span class="krx-alert-icon">{{ krxApiStatus === 'expired' ? '🚨' : '⚠️' }}</span>
       <span class="krx-alert-msg">
         <template v-if="krxApiStatus === 'expired'">KRX Open API 인증키가 <strong>만료</strong>되었습니다. 국내 주식 데이터가 정상적으로 표시되지 않을 수 있습니다.</template>
         <template v-else>KRX Open API 인증키가 <strong>D-{{ krxDaysRemaining }}</strong> 후 만료됩니다. 미리 갱신하세요.</template>
       </span>
-      <a href="https://openapi.krx.co.kr/contents/OPP/MYPG/mypage/OPPMYPG002.cmd" target="_blank" rel="noopener" class="krx-alert-link">인증키 갱신 →</a>
+      <a
+        href="https://openapi.krx.co.kr/contents/OPP/MYPG/mypage/OPPMYPG002.cmd"
+        target="_blank"
+        rel="noopener"
+        class="krx-alert-link"
+      >인증키 갱신 →</a>
     </div>
 
     <!-- KRX Open API 현황 -->
@@ -51,7 +61,10 @@
       </button>
     </div>
 
-    <div v-show="activeTab === 'all'" class="tab-content">
+    <div
+      v-show="activeTab === 'all'"
+      class="tab-content"
+    >
       <AllAccountsPanel
         :active="activeTab === 'all'"
         :holdings-by-account="holdingsByAccount"
@@ -59,7 +72,10 @@
       />
     </div>
 
-    <div v-show="activeTab === 'stock'" class="tab-content">
+    <div
+      v-show="activeTab === 'stock'"
+      class="tab-content"
+    >
       <PortfolioPanel
         account-type="stock"
         :active="activeTab === 'stock'"
@@ -67,7 +83,10 @@
       />
     </div>
 
-    <div v-show="activeTab === 'isa'" class="tab-content">
+    <div
+      v-show="activeTab === 'isa'"
+      class="tab-content"
+    >
       <PortfolioPanel
         account-type="isa"
         :active="activeTab === 'isa'"
@@ -75,7 +94,10 @@
       />
     </div>
 
-    <div v-show="activeTab === 'general'" class="tab-content">
+    <div
+      v-show="activeTab === 'general'"
+      class="tab-content"
+    >
       <PortfolioPanel
         account-type="general"
         :active="activeTab === 'general'"
@@ -83,7 +105,10 @@
       />
     </div>
 
-    <div v-show="activeTab === 'irp'" class="tab-content">
+    <div
+      v-show="activeTab === 'irp'"
+      class="tab-content"
+    >
       <PortfolioPanel
         account-type="irp"
         :active="activeTab === 'irp'"
@@ -91,16 +116,28 @@
       />
     </div>
 
-    <div v-show="activeTab === 'heatmap'" class="tab-content">
+    <div
+      v-show="activeTab === 'heatmap'"
+      class="tab-content"
+    >
       <HeatmapPanel :active="activeTab === 'heatmap'" />
     </div>
 
-    <div v-show="activeTab === 'top10'" class="tab-content">
+    <div
+      v-show="activeTab === 'top10'"
+      class="tab-content"
+    >
       <Top10Panel :active="activeTab === 'top10'" />
     </div>
 
-    <div v-show="activeTab === 'news'" class="tab-content">
-      <NewsPanel :active="activeTab === 'news'" :holdings="allHoldings" />
+    <div
+      v-show="activeTab === 'news'"
+      class="tab-content"
+    >
+      <NewsPanel
+        :active="activeTab === 'news'"
+        :holdings="allHoldings"
+      />
     </div>
   </div>
 </template>

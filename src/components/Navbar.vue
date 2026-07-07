@@ -1,35 +1,81 @@
 <template>
-  <header id="header" role="banner">
+  <header
+    id="header"
+    role="banner"
+  >
     <div class="header__inner">
       <div class="header__logo">
-        <router-link to="/">HYUNCHANG'S<br /><em>HOME</em></router-link>
+        <router-link to="/">
+          HYUNCHANG'S<br><em>HOME</em>
+        </router-link>
       </div>
       <div class="header__left">
-        <div v-if="!isAuthenticated" class="auth-buttons">
-          <router-link to="/login" @click="closeMenu" class="login-btn">로그인</router-link>
+        <div
+          v-if="!isAuthenticated"
+          class="auth-buttons"
+        >
+          <router-link
+            to="/login"
+            @click="closeMenu"
+            class="login-btn"
+          >
+            로그인
+          </router-link>
         </div>
         <!-- 모바일 전용: 아바타 클릭 → 드롭다운 -->
-        <div v-else class="mobile-avatar-wrapper" @click.stop="toggleUserDropdown">
-          <div class="mobile-avatar">{{ userInitial }}</div>
+        <div
+          v-else
+          class="mobile-avatar-wrapper"
+          @click.stop="toggleUserDropdown"
+        >
+          <div class="mobile-avatar">
+            {{ userInitial }}
+          </div>
           <transition name="dropdown-fade">
-            <div v-if="showUserDropdown" class="mobile-user-dropdown" @click.stop>
+            <div
+              v-if="showUserDropdown"
+              class="mobile-user-dropdown"
+              @click.stop
+            >
               <div class="dropdown-user-header">
-                <div class="dropdown-avatar-lg">{{ userInitial }}</div>
+                <div class="dropdown-avatar-lg">
+                  {{ userInitial }}
+                </div>
                 <div class="dropdown-user-meta">
                   <span class="dropdown-username">{{ user.username }}</span>
                   <span class="dropdown-role">{{ user.role }}</span>
                 </div>
               </div>
-              <div class="dropdown-divider"></div>
-              <router-link to="/mypage" class="dropdown-menu-item" @click="closeMenu">내 정보 수정</router-link>
-              <router-link to="/change-password" class="dropdown-menu-item" @click="closeMenu">비밀번호 수정</router-link>
-              <div class="dropdown-divider"></div>
-              <button @click="handleLogout" class="dropdown-logout-btn">로그아웃</button>
+              <div class="dropdown-divider" />
+              <router-link
+                to="/mypage"
+                class="dropdown-menu-item"
+                @click="closeMenu"
+              >
+                내 정보 수정
+              </router-link>
+              <router-link
+                to="/change-password"
+                class="dropdown-menu-item"
+                @click="closeMenu"
+              >
+                비밀번호 수정
+              </router-link>
+              <div class="dropdown-divider" />
+              <button
+                @click="handleLogout"
+                class="dropdown-logout-btn"
+              >
+                로그아웃
+              </button>
             </div>
           </transition>
         </div>
-        <div class="header__nav__mobile" @click="toggleMenu">
-          <span></span>
+        <div
+          class="header__nav__mobile"
+          @click="toggleMenu"
+        >
+          <span />
         </div>
       </div>
       <nav
@@ -43,36 +89,95 @@
             :key="menu.path"
             class="nav-item"
           >
-            <router-link :to="menu.path" @click="closeMenu">{{ menu.navLabel }}</router-link>
+            <router-link
+              :to="menu.path"
+              @click="closeMenu"
+            >
+              {{ menu.navLabel }}
+            </router-link>
           </li>
-          <li v-if="isAdmin" class="nav-item">
-            <router-link to="/admin" @click="closeMenu">관리자</router-link>
+          <li
+            v-if="isAdmin"
+            class="nav-item"
+          >
+            <router-link
+              to="/admin"
+              @click="closeMenu"
+            >
+              관리자
+            </router-link>
           </li>
-          <li v-if="!isAuthenticated" class="nav-item mobile-login-item">
-            <router-link to="/login" @click="closeMenu">로그인</router-link>
+          <li
+            v-if="!isAuthenticated"
+            class="nav-item mobile-login-item"
+          >
+            <router-link
+              to="/login"
+              @click="closeMenu"
+            >
+              로그인
+            </router-link>
           </li>
         </ul>
-        <div v-if="!isAuthenticated" class="desktop-login">
-          <router-link to="/login" @click="closeMenu" class="login-btn">로그인</router-link>
+        <div
+          v-if="!isAuthenticated"
+          class="desktop-login"
+        >
+          <router-link
+            to="/login"
+            @click="closeMenu"
+            class="login-btn"
+          >
+            로그인
+          </router-link>
         </div>
         <!-- 데스크탑 전용: 아바타 클릭 → 드롭다운 -->
-        <div v-else class="desktop-avatar-wrapper" @click.stop="toggleDesktopDropdown">
-          <div class="desktop-avatar">{{ userInitial }}</div>
+        <div
+          v-else
+          class="desktop-avatar-wrapper"
+          @click.stop="toggleDesktopDropdown"
+        >
+          <div class="desktop-avatar">
+            {{ userInitial }}
+          </div>
           <span class="desktop-avatar-name">{{ user.username }}</span>
           <transition name="dropdown-fade">
-            <div v-if="showDesktopDropdown" class="desktop-user-dropdown" @click.stop>
+            <div
+              v-if="showDesktopDropdown"
+              class="desktop-user-dropdown"
+              @click.stop
+            >
               <div class="dropdown-user-header">
-                <div class="dropdown-avatar-lg">{{ userInitial }}</div>
+                <div class="dropdown-avatar-lg">
+                  {{ userInitial }}
+                </div>
                 <div class="dropdown-user-meta">
                   <span class="dropdown-username">{{ user.username }}</span>
                   <span class="dropdown-role">{{ user.role }}</span>
                 </div>
               </div>
-              <div class="dropdown-divider"></div>
-              <router-link to="/mypage" class="dropdown-menu-item" @click="closeMenu">내 정보 수정</router-link>
-              <router-link to="/change-password" class="dropdown-menu-item" @click="closeMenu">비밀번호 수정</router-link>
-              <div class="dropdown-divider"></div>
-              <button @click="handleLogout" class="dropdown-logout-btn">로그아웃</button>
+              <div class="dropdown-divider" />
+              <router-link
+                to="/mypage"
+                class="dropdown-menu-item"
+                @click="closeMenu"
+              >
+                내 정보 수정
+              </router-link>
+              <router-link
+                to="/change-password"
+                class="dropdown-menu-item"
+                @click="closeMenu"
+              >
+                비밀번호 수정
+              </router-link>
+              <div class="dropdown-divider" />
+              <button
+                @click="handleLogout"
+                class="dropdown-logout-btn"
+              >
+                로그아웃
+              </button>
             </div>
           </transition>
         </div>

@@ -5,17 +5,38 @@
         <h1>포트폴리오 스킬 관리</h1>
         <p>Portfolio 섹션 스킬 카드 데이터를 관리합니다.</p>
       </div>
-      <button class="btn-primary" @click="openCreate">+ 새 스킬 추가</button>
+      <button
+        class="btn-primary"
+        @click="openCreate"
+      >
+        + 새 스킬 추가
+      </button>
     </div>
 
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
+    <div
+      v-if="loading"
+      class="loading-state"
+    >
+      <div class="spinner" />
       <p>데이터를 불러오는 중...</p>
     </div>
-    <div v-else-if="error" class="error-state">{{ error }}</div>
-    <div v-else-if="skills.length === 0" class="loading-state">등록된 스킬이 없습니다.</div>
+    <div
+      v-else-if="error"
+      class="error-state"
+    >
+      {{ error }}
+    </div>
+    <div
+      v-else-if="skills.length === 0"
+      class="loading-state"
+    >
+      등록된 스킬이 없습니다.
+    </div>
 
-    <div v-else class="table-wrapper">
+    <div
+      v-else
+      class="table-wrapper"
+    >
       <!-- 데스크탑 테이블 -->
       <table class="data-table desktop-only">
         <thead>
@@ -24,26 +45,55 @@
             <th>CSS 클래스</th>
             <th>제목</th>
             <th>설명 목록</th>
-            <th></th>
+            <th />
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in skills" :key="item.id">
+          <tr
+            v-for="item in skills"
+            :key="item.id"
+          >
             <td>
               <div class="order-cell">
                 <span>{{ item.sortOrder }}</span>
                 <div class="order-btns">
-                  <button @click="moveUp(item)" :disabled="isFirst(item) || saving" class="order-btn" title="위로">↑</button>
-                  <button @click="moveDown(item)" :disabled="isLast(item) || saving" class="order-btn" title="아래로">↓</button>
+                  <button
+                    @click="moveUp(item)"
+                    :disabled="isFirst(item) || saving"
+                    class="order-btn"
+                    title="위로"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    @click="moveDown(item)"
+                    :disabled="isLast(item) || saving"
+                    class="order-btn"
+                    title="아래로"
+                  >
+                    ↓
+                  </button>
                 </div>
               </div>
             </td>
             <td><span class="class-badge">{{ item.cssClass }}</span></td>
             <td><strong>{{ item.title }}</strong></td>
-            <td class="desc-cell">{{ parseDescriptions(item.descriptions).join(' / ') }}</td>
+            <td class="desc-cell">
+              {{ parseDescriptions(item.descriptions).join(' / ') }}
+            </td>
             <td class="actions">
-              <button class="btn-edit" @click="openEdit(item)">수정</button>
-              <button class="btn-delete" @click="confirmDelete(item)">삭제</button>
+              <button
+                class="btn-edit"
+                @click="openEdit(item)"
+              >
+                수정
+              </button>
+              <button
+                class="btn-delete"
+                @click="confirmDelete(item)"
+              >
+                삭제
+              </button>
             </td>
           </tr>
         </tbody>
@@ -51,17 +101,47 @@
 
       <!-- 모바일 카드 -->
       <div class="card-list mobile-only">
-        <div v-for="item in skills" :key="item.id" class="card-item">
+        <div
+          v-for="item in skills"
+          :key="item.id"
+          class="card-item"
+        >
           <div class="card-top">
             <span class="class-badge">{{ item.cssClass }}</span>
             <strong class="card-title">{{ item.title }}</strong>
           </div>
-          <p class="card-desc">{{ parseDescriptions(item.descriptions).slice(0, 2).join(' / ') }}</p>
+          <p class="card-desc">
+            {{ parseDescriptions(item.descriptions).slice(0, 2).join(' / ') }}
+          </p>
           <div class="card-actions">
-            <button class="order-btn" @click="moveUp(item)" :disabled="isFirst(item) || saving" title="위로">↑</button>
-            <button class="order-btn" @click="moveDown(item)" :disabled="isLast(item) || saving" title="아래로">↓</button>
-            <button class="btn-edit" @click="openEdit(item)">수정</button>
-            <button class="btn-delete" @click="confirmDelete(item)">삭제</button>
+            <button
+              class="order-btn"
+              @click="moveUp(item)"
+              :disabled="isFirst(item) || saving"
+              title="위로"
+            >
+              ↑
+            </button>
+            <button
+              class="order-btn"
+              @click="moveDown(item)"
+              :disabled="isLast(item) || saving"
+              title="아래로"
+            >
+              ↓
+            </button>
+            <button
+              class="btn-edit"
+              @click="openEdit(item)"
+            >
+              수정
+            </button>
+            <button
+              class="btn-delete"
+              @click="confirmDelete(item)"
+            >
+              삭제
+            </button>
           </div>
         </div>
       </div>
@@ -69,11 +149,21 @@
 
     <!-- 모달 -->
     <Teleport to="body">
-      <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
+      <div
+        v-if="showModal"
+        class="modal-overlay"
+        @click.self="closeModal"
+      >
         <div class="modal-box">
           <div class="modal-header">
             <h2>{{ editTarget ? '스킬 수정' : '스킬 추가' }}</h2>
-            <button class="modal-close" @click="closeModal" aria-label="닫기">✕</button>
+            <button
+              class="modal-close"
+              @click="closeModal"
+              aria-label="닫기"
+            >
+              ✕
+            </button>
           </div>
           <div class="modal-body">
             <form @submit.prevent="save">
@@ -81,22 +171,50 @@
                 <div class="form-row">
                   <label>CSS 클래스 <span class="hint">(p1~p8)</span></label>
                   <select v-model="form.cssClass">
-                    <option value="">-- 선택 --</option>
-                    <option v-for="n in 8" :key="n" :value="'p' + n">p{{ n }}</option>
+                    <option value="">
+                      -- 선택 --
+                    </option>
+                    <option
+                      v-for="n in 8"
+                      :key="n"
+                      :value="'p' + n"
+                    >
+                      p{{ n }}
+                    </option>
                   </select>
                 </div>
               </div>
               <div class="form-row">
                 <label>제목 *</label>
-                <input v-model="form.title" placeholder="AI / LLM" required />
+                <input
+                  v-model="form.title"
+                  placeholder="AI / LLM"
+                  required
+                >
               </div>
               <div class="form-row">
                 <label>설명 목록 <span class="hint">(한 줄에 하나씩)</span></label>
-                <textarea v-model="descriptionsText" rows="5" placeholder="Claude / OpenAI API 연동 및 활용&#10;프롬프트 엔지니어링 설계&#10;Anthropic Agent SDK 기반 개발"></textarea>
+                <textarea
+                  v-model="descriptionsText"
+                  rows="5"
+                  placeholder="Claude / OpenAI API 연동 및 활용&#10;프롬프트 엔지니어링 설계&#10;Anthropic Agent SDK 기반 개발"
+                />
               </div>
               <div class="form-actions">
-                <button type="button" class="btn-cancel" @click="closeModal">취소</button>
-                <button type="submit" class="btn-primary" :disabled="saving">{{ saving ? '저장 중...' : '저장' }}</button>
+                <button
+                  type="button"
+                  class="btn-cancel"
+                  @click="closeModal"
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  class="btn-primary"
+                  :disabled="saving"
+                >
+                  {{ saving ? '저장 중...' : '저장' }}
+                </button>
               </div>
             </form>
           </div>
@@ -106,17 +224,38 @@
 
     <!-- 삭제 확인 -->
     <Teleport to="body">
-      <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
+      <div
+        v-if="deleteTarget"
+        class="modal-overlay"
+        @click.self="deleteTarget = null"
+      >
         <div class="modal-box modal-confirm">
           <div class="modal-header">
             <h2>스킬 삭제</h2>
-            <button class="modal-close" @click="deleteTarget = null" aria-label="닫기">✕</button>
+            <button
+              class="modal-close"
+              @click="deleteTarget = null"
+              aria-label="닫기"
+            >
+              ✕
+            </button>
           </div>
           <div class="modal-body">
             <p><strong>{{ deleteTarget.title }}</strong> 스킬을 삭제하시겠습니까?</p>
             <div class="form-actions">
-              <button class="btn-cancel" @click="deleteTarget = null">취소</button>
-              <button class="btn-delete" :disabled="saving" @click="doDelete">{{ saving ? '삭제 중...' : '삭제' }}</button>
+              <button
+                class="btn-cancel"
+                @click="deleteTarget = null"
+              >
+                취소
+              </button>
+              <button
+                class="btn-delete"
+                :disabled="saving"
+                @click="doDelete"
+              >
+                {{ saving ? '삭제 중...' : '삭제' }}
+              </button>
             </div>
           </div>
         </div>

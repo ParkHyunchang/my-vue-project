@@ -1,47 +1,85 @@
 <template>
   <teleport to="body">
-    <div v-if="show" class="tvm-overlay" data-lenis-prevent @click.self="close">
+    <div
+      v-if="show"
+      class="tvm-overlay"
+      data-lenis-prevent
+      @click.self="close"
+    >
       <div class="tvm-box tvm-box-wide">
         <div class="tvm-hdr">
           <h3>{{ isEdit ? "예정 일정 편집" : "예정 일정 작성" }}</h3>
-          <button class="tvm-close" @click="close">✕</button>
+          <button
+            class="tvm-close"
+            @click="close"
+          >
+            ✕
+          </button>
         </div>
 
         <div class="tvm-grid2">
           <div class="tvm-row">
             <label>일정 제목 <span class="tvm-req">*</span></label>
-            <input v-model="form.title" type="text" placeholder="예: 오사카 3박4일" />
+            <input
+              v-model="form.title"
+              type="text"
+              placeholder="예: 오사카 3박4일"
+            >
           </div>
           <div class="tvm-row">
             <label>목적지 <span class="tvm-opt">(선택)</span></label>
-            <input v-model="form.destination" type="text" placeholder="예: 오사카" />
+            <input
+              v-model="form.destination"
+              type="text"
+              placeholder="예: 오사카"
+            >
           </div>
         </div>
 
         <div class="tvm-row">
           <label>여행 기간 <span class="tvm-opt">(날짜를 클릭해 출발·도착 선택)</span></label>
-          <RangeCalendar v-model="range" :dim-future="false" />
+          <RangeCalendar
+            v-model="range"
+            :dim-future="false"
+          />
         </div>
 
         <!-- 일자별 일정 (읽기 전용 — 수정은 아래 AI 채팅으로) -->
-        <div v-if="hasItinerary" class="it-view">
-          <div v-for="(d, di) in form.days" :key="di" class="it-vday">
+        <div
+          v-if="hasItinerary"
+          class="it-view"
+        >
+          <div
+            v-for="(d, di) in form.days"
+            :key="di"
+            class="it-vday"
+          >
             <div class="it-vday-head">
               <span class="it-vday-num">Day {{ di + 1 }}</span>
               <span class="it-vday-theme">{{ d.theme }}</span>
             </div>
             <ul class="it-vitems">
-              <li v-for="(it, ii) in visibleItems(d)" :key="ii" class="it-vitem">
+              <li
+                v-for="(it, ii) in visibleItems(d)"
+                :key="ii"
+                class="it-vitem"
+              >
                 <span class="it-vtime">{{ it.time }}</span>
                 <span class="it-vbody">
                   <strong>{{ typeIcon(it.type) }} {{ it.place }}</strong>
-                  <span v-if="it.desc" class="it-vdesc">{{ it.desc }}</span>
+                  <span
+                    v-if="it.desc"
+                    class="it-vdesc"
+                  >{{ it.desc }}</span>
                 </span>
               </li>
             </ul>
           </div>
         </div>
-        <div v-else class="it-empty-hint">
+        <div
+          v-else
+          class="it-empty-hint"
+        >
           아직 일정이 없습니다. 아래 <strong>AI로 일정 다듬기</strong>에 "오사카 3박4일 짜줘"처럼 입력하면 일정이 채워집니다.
         </div>
 
@@ -55,14 +93,32 @@
 
         <div class="tvm-row">
           <label>메모 <span class="tvm-opt">(선택)</span></label>
-          <textarea v-model="form.memo" rows="2" placeholder="준비물, 예약 정보 등"></textarea>
+          <textarea
+            v-model="form.memo"
+            rows="2"
+            placeholder="준비물, 예약 정보 등"
+          />
         </div>
 
-        <div v-if="errorMsg" class="tvm-error">{{ errorMsg }}</div>
+        <div
+          v-if="errorMsg"
+          class="tvm-error"
+        >
+          {{ errorMsg }}
+        </div>
 
         <div class="tvm-actions">
-          <button class="tvm-cancel" @click="close">취소</button>
-          <button class="tvm-submit" :disabled="!canSubmit || saving" @click="submit">
+          <button
+            class="tvm-cancel"
+            @click="close"
+          >
+            취소
+          </button>
+          <button
+            class="tvm-submit"
+            :disabled="!canSubmit || saving"
+            @click="submit"
+          >
             {{ saving ? "저장중…" : (isEdit ? "수정" : "저장") }}
           </button>
         </div>

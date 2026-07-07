@@ -1,12 +1,22 @@
 <template>
   <div class="chat-page">
-
     <!-- 사이드바 (항상 표시) -->
-    <aside class="chat-sidebar" :class="{ 'sidebar--open': sidebarOpen }">
+    <aside
+      class="chat-sidebar"
+      :class="{ 'sidebar--open': sidebarOpen }"
+    >
       <div class="sidebar-header">
-        <button class="new-chat-btn" @click="startNewChat">+ 새 대화</button>
+        <button
+          class="new-chat-btn"
+          @click="startNewChat"
+        >
+          + 새 대화
+        </button>
       </div>
-      <div class="session-list thin-scrollbar" data-lenis-prevent>
+      <div
+        class="session-list thin-scrollbar"
+        data-lenis-prevent
+      >
         <div
           v-for="s in sessions"
           :key="s.sessionKey"
@@ -17,30 +27,58 @@
           <span class="session-title">{{ s.title || '새 대화' }}</span>
           <span class="session-date">{{ formatDate(s.lastActivity) }}</span>
         </div>
-        <div v-if="sessions.length === 0 && !initialLoading" class="session-empty">대화 없음</div>
+        <div
+          v-if="sessions.length === 0 && !initialLoading"
+          class="session-empty"
+        >
+          대화 없음
+        </div>
       </div>
     </aside>
 
     <!-- 채팅 영역 -->
     <div class="chat-main">
       <div class="chat-header">
-        <button class="sidebar-toggle" @click="sidebarOpen = !sidebarOpen">☰</button>
+        <button
+          class="sidebar-toggle"
+          @click="sidebarOpen = !sidebarOpen"
+        >
+          ☰
+        </button>
         <div class="chat-header-text">
-          <h2 class="chat-title">AI Chat</h2>
-          <p class="chat-subtitle">Claude AI와 대화하세요</p>
+          <h2 class="chat-title">
+            AI Chat
+          </h2>
+          <p class="chat-subtitle">
+            Claude AI와 대화하세요
+          </p>
         </div>
       </div>
 
-      <div class="messages thin-scrollbar" ref="messagesEl" data-lenis-prevent>
+      <div
+        class="messages thin-scrollbar"
+        ref="messagesEl"
+        data-lenis-prevent
+      >
         <!-- 새 채팅 환영 화면 -->
-        <div v-if="!sessionKey && !historyLoading" class="welcome-screen">
+        <div
+          v-if="!sessionKey && !historyLoading"
+          class="welcome-screen"
+        >
           <h1 class="welcome-title">
             {{ username ? `안녕하세요, ${username}님` : '무엇이든 물어보세요' }}
           </h1>
-          <p class="welcome-subtitle">Claude AI와 대화해보세요</p>
+          <p class="welcome-subtitle">
+            Claude AI와 대화해보세요
+          </p>
         </div>
         <!-- 히스토리 로딩 중 -->
-        <div v-else-if="historyLoading" class="empty-state">불러오는 중...</div>
+        <div
+          v-else-if="historyLoading"
+          class="empty-state"
+        >
+          불러오는 중...
+        </div>
         <!-- 메시지 목록 -->
         <template v-else>
           <div
@@ -50,18 +88,37 @@
             :class="msg.role"
           >
             <div class="message__bubble">
-              <pre class="message__text">{{ msg.content }}<span v-if="msg.streaming" class="stream-cursor">▌</span></pre>
-              <span v-if="msg.streaming && !msg.content" class="loading-dots"><span>.</span><span>.</span><span>.</span></span>
+              <pre class="message__text">{{ msg.content }}<span
+v-if="msg.streaming"
+                                                                class="stream-cursor"
+>▌</span></pre>
+              <span
+                v-if="msg.streaming && !msg.content"
+                class="loading-dots"
+              ><span>.</span><span>.</span><span>.</span></span>
             </div>
           </div>
         </template>
       </div>
 
-      <div v-if="!username" class="chat-login-prompt">
+      <div
+        v-if="!username"
+        class="chat-login-prompt"
+      >
         <span>채팅을 사용하려면 로그인이 필요합니다.</span>
-        <button class="login-btn" type="button" @click="goToLogin">로그인</button>
+        <button
+          class="login-btn"
+          type="button"
+          @click="goToLogin"
+        >
+          로그인
+        </button>
       </div>
-      <form v-else class="chat-input-area" @submit.prevent="send">
+      <form
+        v-else
+        class="chat-input-area"
+        @submit.prevent="send"
+      >
         <textarea
           v-model="input"
           class="chat-input thin-scrollbar"
@@ -72,14 +129,22 @@
           ref="inputEl"
           :disabled="loading || historyLoading"
         />
-        <button class="send-btn" type="submit" :disabled="loading || historyLoading || !input.trim()">
+        <button
+          class="send-btn"
+          type="submit"
+          :disabled="loading || historyLoading || !input.trim()"
+        >
           전송
         </button>
       </form>
     </div>
 
     <!-- 모바일 사이드바 오버레이 -->
-    <div v-if="sidebarOpen" class="sidebar-overlay" @click="sidebarOpen = false" />
+    <div
+      v-if="sidebarOpen"
+      class="sidebar-overlay"
+      @click="sidebarOpen = false"
+    />
   </div>
 </template>
 

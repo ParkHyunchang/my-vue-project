@@ -8,7 +8,10 @@
         :class="['filter-btn', { active: selectedCategory === category.id }]"
         @click="$emit('select-category', category.id)"
       >
-        <i v-if="category.icon" :class="category.icon"></i>
+        <i
+          v-if="category.icon"
+          :class="category.icon"
+        />
         {{ category.name }}
       </button>
     </div>

@@ -5,15 +5,25 @@
       모달 오버레이가 순간 흔들리며 "팝업↔메인"처럼 깜빡이는 체감이 생길 수 있음.
       모달이 떠있는 동안에는 배경 컨텐츠를 숨겨 페인트 자체를 줄여 안정화.
     -->
-    <div v-show="!showMemoryModal" class="dating-page-content">
+    <div
+      v-show="!showMemoryModal"
+      class="dating-page-content"
+    >
       <div class="page-header">
         <h2>데이팅 히스토리</h2>
-        <button v-if="canCreate" class="btn btn-primary" @click="openCreateModal">
+        <button
+          v-if="canCreate"
+          class="btn btn-primary"
+          @click="openCreateModal"
+        >
           새 추억 추가
         </button>
       </div>
 
-      <form class="search-bar" @submit.prevent="applySearch">
+      <form
+        class="search-bar"
+        @submit.prevent="applySearch"
+      >
         <input
           v-model="searchInput"
           type="text"
@@ -21,7 +31,7 @@
           placeholder="제목, 설명, 장소 검색"
           aria-label="Dating search"
           autocomplete="off"
-        />
+        >
         <button
           v-if="searchInput"
           type="button"
@@ -29,14 +39,18 @@
           aria-label="검색어 지우기"
           @click="clearSearch"
         >
-          <i class="fas fa-times"></i>
+          <i class="fas fa-times" />
         </button>
-        <button type="submit" class="search-submit" aria-label="검색 실행">
+        <button
+          type="submit"
+          class="search-submit"
+          aria-label="검색 실행"
+        >
           <img
             src="@/assets/img/btn_search_01.png"
             alt="검색 아이콘"
             class="search-icon"
-          />
+          >
         </button>
       </form>
 

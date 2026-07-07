@@ -1,20 +1,34 @@
 <template>
-  <div v-if="!subscriptions.length" class="empty-state">
+  <div
+    v-if="!subscriptions.length"
+    class="empty-state"
+  >
     아직 등록된 구독이 없습니다.
   </div>
-  <div v-else class="subscription-grid">
+  <div
+    v-else
+    class="subscription-grid"
+  >
     <div
       v-for="sub in subscriptions"
       :key="sub.id"
       :class="['sub-card', `status-${(sub.status || 'ACTIVE').toLowerCase()}`]"
       @click="$emit('edit', sub)"
     >
-      <div class="sub-card-accent" :style="{ background: sub.color || '#64748b' }" />
+      <div
+        class="sub-card-accent"
+        :style="{ background: sub.color || '#64748b' }"
+      />
       <div class="sub-card-body">
         <div class="sub-card-top">
           <div class="sub-name-wrap">
-            <h4 class="sub-name">{{ sub.name }}</h4>
-            <span v-if="sub.category" class="sub-category">{{ sub.category }}</span>
+            <h4 class="sub-name">
+              {{ sub.name }}
+            </h4>
+            <span
+              v-if="sub.category"
+              class="sub-category"
+            >{{ sub.category }}</span>
           </div>
           <span :class="['status-badge', `status-${(sub.status || 'ACTIVE').toLowerCase()}`]">
             {{ statusLabel(sub.status) }}
@@ -36,11 +50,17 @@
               </span>
             </span>
           </div>
-          <div v-if="sub.paymentMethod" class="meta-row">
+          <div
+            v-if="sub.paymentMethod"
+            class="meta-row"
+          >
             <span class="meta-label">결제수단</span>
             <span class="meta-value">{{ sub.paymentMethod }}</span>
           </div>
-          <div v-if="sub.memo" class="meta-row memo-row">
+          <div
+            v-if="sub.memo"
+            class="meta-row memo-row"
+          >
             <span class="meta-value memo-text">{{ sub.memo }}</span>
           </div>
         </div>

@@ -1,7 +1,14 @@
 <template>
-    <div v-for="(item, index) in items" :key="item.id" class="card mt-2">
-        <slot :item="item" :index="index"></slot>
-    </div>
+  <div
+    v-for="(item, index) in items"
+    :key="item.id"
+    class="card mt-2"
+  >
+    <slot
+      :item="item"
+      :index="index"
+    />
+  </div>
 </template>
   
 <script>

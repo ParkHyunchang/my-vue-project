@@ -1,5 +1,8 @@
 <template>
-  <Modal v-if="show" @close="$emit('close')">
+  <Modal
+    v-if="show"
+    @close="$emit('close')"
+  >
     <template #header>
       <h3>사용자 상세 정보</h3>
     </template>
@@ -11,7 +14,9 @@
           </div>
           <div class="user-basic-info">
             <h4>{{ editingUserInfo?.name || '-' }}</h4>
-            <p class="user-id-text">{{ user?.userId || '-' }}</p>
+            <p class="user-id-text">
+              {{ user?.userId || '-' }}
+            </p>
             <span :class="['role-badge-large', editingUserInfo?.role?.toLowerCase()]">
               {{ getRoleDisplayName(editingUserInfo?.role) }}
             </span>
@@ -29,7 +34,7 @@
                   type="text"
                   class="form-control-edit"
                   placeholder="이름을 입력하세요"
-                />
+                >
               </div>
               <div class="info-item">
                 <label>이메일:</label>
@@ -38,7 +43,7 @@
                   type="email"
                   class="form-control-edit"
                   placeholder="이메일을 입력하세요"
-                />
+                >
               </div>
               <div class="info-item">
                 <label>전화번호:</label>
@@ -47,7 +52,7 @@
                   type="tel"
                   class="form-control-edit"
                   placeholder="전화번호를 입력하세요"
-                />
+                >
               </div>
               <div class="info-item">
                 <label>권한:</label>
@@ -82,13 +87,33 @@
             <div class="info-grid">
               <div class="info-item">
                 <label>새 비밀번호:</label>
-                <input v-model="newPassword" type="password" class="form-control-edit" placeholder="새 비밀번호 (최소 6자)" />
-                <div v-if="newPassword && newPassword.length < 6" class="error-message">최소 6자 이상이어야 합니다.</div>
+                <input
+                  v-model="newPassword"
+                  type="password"
+                  class="form-control-edit"
+                  placeholder="새 비밀번호 (최소 6자)"
+                >
+                <div
+                  v-if="newPassword && newPassword.length < 6"
+                  class="error-message"
+                >
+                  최소 6자 이상이어야 합니다.
+                </div>
               </div>
               <div class="info-item">
                 <label>비밀번호 확인:</label>
-                <input v-model="confirmNewPassword" type="password" class="form-control-edit" placeholder="비밀번호 확인" />
-                <div v-if="newPassword && confirmNewPassword && newPassword !== confirmNewPassword" class="error-message">비밀번호가 일치하지 않습니다.</div>
+                <input
+                  v-model="confirmNewPassword"
+                  type="password"
+                  class="form-control-edit"
+                  placeholder="비밀번호 확인"
+                >
+                <div
+                  v-if="newPassword && confirmNewPassword && newPassword !== confirmNewPassword"
+                  class="error-message"
+                >
+                  비밀번호가 일치하지 않습니다.
+                </div>
               </div>
             </div>
             <div class="password-change-action">
@@ -124,7 +149,12 @@
           >
             {{ loadingUpdate ? '수정 중...' : '정보 수정' }}
           </button>
-          <button class="btn btn-secondary" @click="$emit('close')">닫기</button>
+          <button
+            class="btn btn-secondary"
+            @click="$emit('close')"
+          >
+            닫기
+          </button>
         </div>
       </div>
     </template>

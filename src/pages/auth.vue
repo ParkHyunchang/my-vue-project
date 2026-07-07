@@ -1,7 +1,13 @@
 <template>
   <div class="auth-page">
-    <LoginForm v-if="isLogin" @switch-to-register="isLogin = false" />
-    <RegisterForm v-else @switch-to-login="isLogin = true" />
+    <LoginForm
+      v-if="isLogin"
+      @switch-to-register="isLogin = false"
+    />
+    <RegisterForm
+      v-else
+      @switch-to-login="isLogin = true"
+    />
   </div>
 </template>
 

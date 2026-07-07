@@ -1,10 +1,20 @@
 <template>
   <teleport to="body">
-    <div v-if="show" class="rem-overlay" data-lenis-prevent @click.self="close">
+    <div
+      v-if="show"
+      class="rem-overlay"
+      data-lenis-prevent
+      @click.self="close"
+    >
       <div class="rem-box">
         <div class="rem-hdr">
           <h3>보유 부동산 수정</h3>
-          <button class="rem-close" @click="close">✕</button>
+          <button
+            class="rem-close"
+            @click="close"
+          >
+            ✕
+          </button>
         </div>
 
         <!-- 고정(식별) 정보 — 수정 불가 -->
@@ -17,20 +27,38 @@
             {{ h?.sigungu }}<span v-if="h?.umdName"> {{ h.umdName }}</span><span v-if="h?.jibun"> {{ h.jibun }}</span>
             <span v-if="h?.areaM2"> · {{ h.areaM2 }}㎡ ({{ (h.areaM2 / 3.3058).toFixed(1) }}평)</span>
           </div>
-          <div class="rem-fixed-hint">소재·지번·명칭·면적은 변경할 수 없어요 (바꾸려면 삭제 후 재등록).</div>
+          <div class="rem-fixed-hint">
+            소재·지번·명칭·면적은 변경할 수 없어요 (바꾸려면 삭제 후 재등록).
+          </div>
         </div>
 
         <!-- 매입가 / 보증금 -->
         <div class="rem-row">
           <label>{{ priceLabel }} (만원)</label>
-          <input v-model.number="form.purchasePrice" type="number" min="0" placeholder="만원 단위" />
-          <span v-if="form.purchasePrice > 0" class="rem-hint">{{ formatMoney(form.purchasePrice) }}</span>
+          <input
+            v-model.number="form.purchasePrice"
+            type="number"
+            min="0"
+            placeholder="만원 단위"
+          >
+          <span
+            v-if="form.purchasePrice > 0"
+            class="rem-hint"
+          >{{ formatMoney(form.purchasePrice) }}</span>
         </div>
 
         <!-- 월세 (아파트 월세만) -->
-        <div v-if="!isLand && h?.dealType === 'MONTHLY'" class="rem-row">
+        <div
+          v-if="!isLand && h?.dealType === 'MONTHLY'"
+          class="rem-row"
+        >
           <label>월세 (만원)</label>
-          <input v-model.number="form.monthlyRent" type="number" min="0" placeholder="만원 단위" />
+          <input
+            v-model.number="form.monthlyRent"
+            type="number"
+            min="0"
+            placeholder="만원 단위"
+          >
         </div>
 
         <!-- 토지 전용: 지목 / 용도지역 / 공시지가 -->
@@ -38,16 +66,36 @@
           <div class="rem-grid2">
             <div class="rem-row">
               <label>지목</label>
-              <input v-model="form.jimok" type="text" list="edit-land-jimok" placeholder="예: 대" autocomplete="off" />
+              <input
+                v-model="form.jimok"
+                type="text"
+                list="edit-land-jimok"
+                placeholder="예: 대"
+                autocomplete="off"
+              >
               <datalist id="edit-land-jimok">
-                <option v-for="j in landJimoks" :key="j" :value="j" />
+                <option
+                  v-for="j in landJimoks"
+                  :key="j"
+                  :value="j"
+                />
               </datalist>
             </div>
             <div class="rem-row">
               <label>용도지역</label>
-              <input v-model="form.useZone" type="text" list="edit-land-zone" placeholder="예: 계획관리" autocomplete="off" />
+              <input
+                v-model="form.useZone"
+                type="text"
+                list="edit-land-zone"
+                placeholder="예: 계획관리"
+                autocomplete="off"
+              >
               <datalist id="edit-land-zone">
-                <option v-for="z in landUseZones" :key="z" :value="z" />
+                <option
+                  v-for="z in landUseZones"
+                  :key="z"
+                  :value="z"
+                />
               </datalist>
             </div>
           </div>
@@ -55,35 +103,80 @@
           <div class="rem-row">
             <label>개별공시지가 <span class="rem-opt">(원/㎡)</span></label>
             <div class="rem-official">
-              <input v-model.number="form.officialPricePerM2" type="number" min="0" placeholder="원/㎡" class="rem-official-input" />
-              <input v-model.number="form.officialPriceYear" type="number" min="2000" :max="thisYear" placeholder="연도" class="rem-official-year" />
-              <button type="button" class="rem-official-btn"
-                      :disabled="!h?.bdongCode || officialLoading" @click="refetchOfficial">
+              <input
+                v-model.number="form.officialPricePerM2"
+                type="number"
+                min="0"
+                placeholder="원/㎡"
+                class="rem-official-input"
+              >
+              <input
+                v-model.number="form.officialPriceYear"
+                type="number"
+                min="2000"
+                :max="thisYear"
+                placeholder="연도"
+                class="rem-official-year"
+              >
+              <button
+                type="button"
+                class="rem-official-btn"
+                :disabled="!h?.bdongCode || officialLoading"
+                @click="refetchOfficial"
+              >
                 {{ officialLoading ? '조회중…' : '최신 재조회' }}
               </button>
             </div>
-            <span v-if="officialMsg" class="rem-hint">{{ officialMsg }}</span>
-            <span v-else-if="!h?.bdongCode" class="rem-hint">읍면동·지번 정보가 없어 자동 조회 불가 (직접 입력)</span>
+            <span
+              v-if="officialMsg"
+              class="rem-hint"
+            >{{ officialMsg }}</span>
+            <span
+              v-else-if="!h?.bdongCode"
+              class="rem-hint"
+            >읍면동·지번 정보가 없어 자동 조회 불가 (직접 입력)</span>
           </div>
         </template>
 
         <!-- 매입(계약) 일자 -->
         <div class="rem-row">
           <label>{{ dateLabel }} <span class="rem-opt">(선택)</span></label>
-          <input v-model="form.purchaseDate" type="date" :max="today" />
+          <input
+            v-model="form.purchaseDate"
+            type="date"
+            :max="today"
+          >
         </div>
 
         <!-- 메모 -->
         <div class="rem-row">
           <label>메모 <span class="rem-opt">(선택)</span></label>
-          <textarea v-model="form.memo" rows="2" placeholder="자유 메모"></textarea>
+          <textarea
+            v-model="form.memo"
+            rows="2"
+            placeholder="자유 메모"
+          />
         </div>
 
-        <div v-if="errorMsg" class="rem-error">{{ errorMsg }}</div>
+        <div
+          v-if="errorMsg"
+          class="rem-error"
+        >
+          {{ errorMsg }}
+        </div>
 
         <div class="rem-actions">
-          <button class="rem-cancel" @click="close">취소</button>
-          <button class="rem-submit" :disabled="saving" @click="submit">
+          <button
+            class="rem-cancel"
+            @click="close"
+          >
+            취소
+          </button>
+          <button
+            class="rem-submit"
+            :disabled="saving"
+            @click="submit"
+          >
             {{ saving ? '저장중…' : '수정' }}
           </button>
         </div>

@@ -11,7 +11,10 @@
         >
           {{ loadingUsers ? '로딩 중...' : '↻ 새로고침' }}
         </button>
-        <button class="btn btn-create" @click="$emit('open-create')">
+        <button
+          class="btn btn-create"
+          @click="$emit('open-create')"
+        >
           새 사용자 생성
         </button>
         <div class="stats">
@@ -38,9 +41,18 @@
       <div class="search-filters">
         <div class="filter-group">
           <label>회원분류:</label>
-          <select v-model="searchFilters.role" class="filter-select">
-            <option value="">전체</option>
-            <option v-for="roleInfo in roleInfos" :key="roleInfo.roleName" :value="roleInfo.roleName">
+          <select
+            v-model="searchFilters.role"
+            class="filter-select"
+          >
+            <option value="">
+              전체
+            </option>
+            <option
+              v-for="roleInfo in roleInfos"
+              :key="roleInfo.roleName"
+              :value="roleInfo.roleName"
+            >
               {{ roleInfo.displayName }}
             </option>
           </select>
@@ -52,19 +64,35 @@
             type="text"
             placeholder="이름 또는 사용자ID로 검색"
             class="filter-input"
-          />
+          >
         </div>
         <div class="filter-group">
           <label>정렬:</label>
-          <select v-model="sortKey" class="filter-select">
-            <option value="createdAt_desc">가입일 최신순</option>
-            <option value="createdAt_asc">가입일 오래된순</option>
-            <option value="name_asc">이름순</option>
-            <option value="role_asc">권한순</option>
+          <select
+            v-model="sortKey"
+            class="filter-select"
+          >
+            <option value="createdAt_desc">
+              가입일 최신순
+            </option>
+            <option value="createdAt_asc">
+              가입일 오래된순
+            </option>
+            <option value="name_asc">
+              이름순
+            </option>
+            <option value="role_asc">
+              권한순
+            </option>
           </select>
         </div>
         <div class="search-actions">
-          <button class="btn btn-reset" @click="resetSearch">초기화</button>
+          <button
+            class="btn btn-reset"
+            @click="resetSearch"
+          >
+            초기화
+          </button>
         </div>
       </div>
     </div>
@@ -76,14 +104,24 @@
 
     <!-- 사용자 카드 리스트 -->
     <div :class="['users-cards-container', { 'refreshing': loadingUsers && users.length > 0 }]">
-      <div v-if="loadingUsers && users.length === 0" class="loading-state">
+      <div
+        v-if="loadingUsers && users.length === 0"
+        class="loading-state"
+      >
         사용자 목록을 불러오는 중...
       </div>
-      <div v-else-if="!loadingUsers && filteredUsers.length === 0" class="empty-state">
+      <div
+        v-else-if="!loadingUsers && filteredUsers.length === 0"
+        class="empty-state"
+      >
         <span v-if="searchFilters.role || searchFilters.name">검색 조건에 맞는 사용자가 없습니다.</span>
         <span v-else>등록된 사용자가 없습니다.</span>
       </div>
-      <div v-for="user in filteredUsers" :key="user.id" class="user-card">
+      <div
+        v-for="user in filteredUsers"
+        :key="user.id"
+        class="user-card"
+      >
         <div class="user-info">
           <div class="user-main">
             <span class="user-id">{{ user?.userId || '-' }}</span>
@@ -108,7 +146,10 @@
           </div>
         </div>
         <div class="user-actions">
-          <button class="btn btn-detail" @click="$emit('open-detail', user)">
+          <button
+            class="btn btn-detail"
+            @click="$emit('open-detail', user)"
+          >
             상세
           </button>
         </div>

@@ -10,7 +10,10 @@
           <div class="ps-bd-row">
             <span class="ps-bd-label">🇰🇷 한국</span>
             <span class="ps-bd-val">{{ fmtKRW(krTotal) }}</span>
-            <span v-if="krHasAvgPrice" :class="['ps-bd-pnl', pnlCls(krPnl)]">
+            <span
+              v-if="krHasAvgPrice"
+              :class="['ps-bd-pnl', pnlCls(krPnl)]"
+            >
               {{ krPnl >= 0 ? "▲" : "▼" }} {{ fmtKRW(Math.abs(krPnl)) }}
               <span class="ps-bd-pct">({{ krPnlPct >= 0 ? "+" : "" }}{{ krPnlPct.toFixed(2) }}%)</span>
             </span>
@@ -19,9 +22,15 @@
             <span class="ps-bd-label">🇺🇸 미국</span>
             <div class="ps-bd-val-group">
               <span class="ps-bd-val">{{ usShowKRW ? fmtKRW(usTotalKRW) : fmtUSD(usTotal) }}</span>
-              <span v-if="!usShowKRW && usTotalKRW > 0" class="ps-us-krw">≈ {{ fmtKRW(usTotalKRW) }}</span>
+              <span
+                v-if="!usShowKRW && usTotalKRW > 0"
+                class="ps-us-krw"
+              >≈ {{ fmtKRW(usTotalKRW) }}</span>
             </div>
-            <span v-if="usHasAvgPrice" :class="['ps-bd-pnl', pnlCls(usPnl)]">
+            <span
+              v-if="usHasAvgPrice"
+              :class="['ps-bd-pnl', pnlCls(usPnl)]"
+            >
               {{ usPnl >= 0 ? "▲" : "▼" }}
               {{ usShowKRW ? fmtKRW(Math.abs(usPnl) * exchangeRate) : fmtUSD(Math.abs(usPnl)) }}
               <span class="ps-bd-pct">({{ usPnlPct >= 0 ? "+" : "" }}{{ usPnlPct.toFixed(2) }}%)</span>
@@ -29,7 +38,10 @@
           </div>
           <div class="ps-bd-total">
             <span class="ps-bd-total-label">전체</span>
-            <span v-if="exchangeRate > 0" class="ps-bd-val">{{ fmtKRW(totalValKRW) }}</span>
+            <span
+              v-if="exchangeRate > 0"
+              class="ps-bd-val"
+            >{{ fmtKRW(totalValKRW) }}</span>
             <template v-if="krHasAvgPrice || (usHasAvgPrice && exchangeRate > 0)">
               <span class="ps-cost-label">투자원금 {{ fmtKRW(totalCostKRW) }}</span>
               <span :class="['ps-pnl-val', pnlCls(totalPnlKRW)]">
@@ -45,14 +57,29 @@
 
       <template v-else>
         <div class="ps-totals">
-          <span v-if="krTotal > 0" class="ps-total-val">🇰🇷 {{ fmtKRW(krTotal) }}</span>
-          <span v-if="krTotal > 0 && usTotal > 0" class="ps-sep">·</span>
-          <div v-if="usTotal > 0" class="ps-us-wrap">
+          <span
+            v-if="krTotal > 0"
+            class="ps-total-val"
+          >🇰🇷 {{ fmtKRW(krTotal) }}</span>
+          <span
+            v-if="krTotal > 0 && usTotal > 0"
+            class="ps-sep"
+          >·</span>
+          <div
+            v-if="usTotal > 0"
+            class="ps-us-wrap"
+          >
             <span class="ps-total-val">🇺🇸 {{ usShowKRW ? fmtKRW(usTotalKRW) : fmtUSD(usTotal) }}</span>
-            <span v-if="!usShowKRW && usTotalKRW > 0" class="ps-us-krw">≈ {{ fmtKRW(usTotalKRW) }}</span>
+            <span
+              v-if="!usShowKRW && usTotalKRW > 0"
+              class="ps-us-krw"
+            >≈ {{ fmtKRW(usTotalKRW) }}</span>
           </div>
         </div>
-        <div v-if="hasAvgPrice" class="ps-pnl">
+        <div
+          v-if="hasAvgPrice"
+          class="ps-pnl"
+        >
           <span class="ps-cost-label">투자원금 {{ fmtAbsPnl(totalCost) }}</span>
           <span :class="['ps-pnl-val', pnlCls(totalPnl)]">
             {{ totalPnl >= 0 ? "▲" : "▼" }} {{ fmtAbsPnl(totalPnl) }}
@@ -63,7 +90,13 @@
         </div>
       </template>
     </div>
-    <button v-if="!readonly" class="btn-add-sm" @click="$emit('add')">＋ 추가</button>
+    <button
+      v-if="!readonly"
+      class="btn-add-sm"
+      @click="$emit('add')"
+    >
+      ＋ 추가
+    </button>
   </div>
 </template>
 

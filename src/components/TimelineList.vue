@@ -1,7 +1,10 @@
 <template>
   <div class="timeline">
-    <div v-if="!items.length" class="timeline-empty">
-      <i class="fas fa-heart"></i>
+    <div
+      v-if="!items.length"
+      class="timeline-empty"
+    >
+      <i class="fas fa-heart" />
       <p>아직 추억이 없습니다.</p>
     </div>
     <div
@@ -15,7 +18,7 @@
       </div>
       <div class="timeline-content">
         <div class="timeline-icon">
-          <i :class="categoryIconGetter(item.category)"></i>
+          <i :class="categoryIconGetter(item.category)" />
         </div>
         <div class="timeline-body">
           <h3>{{ item.title }}</h3>
@@ -41,7 +44,7 @@
                     muted
                     playsinline
                     preload="metadata"
-                  ></video>
+                  />
                   <img
                     v-else
                     :src="media.url"
@@ -49,16 +52,19 @@
                     class="memory-image"
                     @error="$emit('image-error', $event)"
                     @load="$emit('image-load', $event)"
-                  />
+                  >
                   <span
                     v-if="media.isVideo && media.originalIndex === item.firstVideoIndex"
                     class="video-overlay-indicator"
                   >
-                    <i class="fas fa-play"></i>
+                    <i class="fas fa-play" />
                   </span>
                 </div>
               </template>
-              <div v-if="item.totalMediaCount > 3" class="more-media">
+              <div
+                v-if="item.totalMediaCount > 3"
+                class="more-media"
+              >
                 +{{ item.totalMediaCount - 3 }}
               </div>
             </div>
@@ -78,8 +84,11 @@
             </div>
           </div>
           <div class="timeline-footer">
-            <span class="location" v-if="item.location">
-              <i :class="locationIcon"></i>
+            <span
+              class="location"
+              v-if="item.location"
+            >
+              <i :class="locationIcon" />
               {{ item.location }}
             </span>
           </div>

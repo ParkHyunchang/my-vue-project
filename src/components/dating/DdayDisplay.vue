@@ -1,12 +1,20 @@
 <template>
-  <div v-if="firstMeetDate || specialDate" class="dday-section">
+  <div
+    v-if="firstMeetDate || specialDate"
+    class="dday-section"
+  >
     <div class="dday-container">
-      <div v-if="firstMeetDate" class="dday-item">
+      <div
+        v-if="firstMeetDate"
+        class="dday-item"
+      >
         <div class="dday-label">
-          <i class="fas fa-heart"></i>
+          <i class="fas fa-heart" />
           첫만남
         </div>
-        <div class="dday-value">D+{{ firstMeetDays }}</div>
+        <div class="dday-value">
+          D+{{ firstMeetDays }}
+        </div>
         <div class="dday-date">
           <template v-if="firstMeetEndDate">
             <span>{{ formatDate(firstMeetDate) }}</span>
@@ -15,12 +23,17 @@
           <span v-else>{{ formatDate(firstMeetDate) }}</span>
         </div>
       </div>
-      <div v-if="specialDate" class="dday-item">
+      <div
+        v-if="specialDate"
+        class="dday-item"
+      >
         <div class="dday-label">
-          <i class="fas fa-star"></i>
+          <i class="fas fa-star" />
           사귄날
         </div>
-        <div class="dday-value">D+{{ specialDays }}</div>
+        <div class="dday-value">
+          D+{{ specialDays }}
+        </div>
         <div class="dday-date">
           <template v-if="specialEndDate">
             <span>{{ formatDate(specialDate) }}</span>

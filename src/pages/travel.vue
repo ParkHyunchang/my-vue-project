@@ -2,7 +2,9 @@
   <div class="tv-container">
     <div class="page-header">
       <h2>여행</h2>
-      <p class="page-subtitle">AI 여행 플래너 · 예정 일정 · 다녀온 곳 · 버킷리스트</p>
+      <p class="page-subtitle">
+        AI 여행 플래너 · 예정 일정 · 다녀온 곳 · 버킷리스트
+      </p>
     </div>
 
     <div class="tv-tabs">
@@ -17,20 +19,41 @@
       </button>
     </div>
 
-    <div v-show="activeTab === 'planner'" class="tv-tab-content">
-      <PlannerPanel @add-to-wishlist="onAddedToWishlist" @saved-itinerary="onSavedItinerary" />
+    <div
+      v-show="activeTab === 'planner'"
+      class="tv-tab-content"
+    >
+      <PlannerPanel
+        @add-to-wishlist="onAddedToWishlist"
+        @saved-itinerary="onSavedItinerary"
+      />
     </div>
 
-    <div v-show="activeTab === 'itinerary'" class="tv-tab-content">
-      <ItineraryPanel :active="activeTab === 'itinerary'" ref="itineraryRef" />
+    <div
+      v-show="activeTab === 'itinerary'"
+      class="tv-tab-content"
+    >
+      <ItineraryPanel
+        :active="activeTab === 'itinerary'"
+        ref="itineraryRef"
+      />
     </div>
 
-    <div v-show="activeTab === 'visited'" class="tv-tab-content">
+    <div
+      v-show="activeTab === 'visited'"
+      class="tv-tab-content"
+    >
       <VisitedPanel :active="activeTab === 'visited'" />
     </div>
 
-    <div v-show="activeTab === 'wishlist'" class="tv-tab-content">
-      <WishlistPanel :active="activeTab === 'wishlist'" ref="wishlistRef" />
+    <div
+      v-show="activeTab === 'wishlist'"
+      class="tv-tab-content"
+    >
+      <WishlistPanel
+        :active="activeTab === 'wishlist'"
+        ref="wishlistRef"
+      />
     </div>
   </div>
 </template>

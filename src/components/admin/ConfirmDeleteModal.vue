@@ -1,19 +1,32 @@
 <template>
-  <Modal v-if="show" @close="$emit('close')">
+  <Modal
+    v-if="show"
+    @close="$emit('close')"
+  >
     <template #header>
       <h3>⚠️ 사용자 삭제 확인</h3>
     </template>
     <template #body>
       <div class="delete-warning">
-        <div class="warning-icon">⚠️</div>
+        <div class="warning-icon">
+          ⚠️
+        </div>
         <div class="warning-content">
           <h4>정말로 삭제하시겠습니까?</h4>
           <p><strong>{{ user?.name }}</strong> ({{ user?.userId }}) 사용자를 삭제하려고 합니다.</p>
-          <p class="delete-user-email">{{ user?.email }}</p>
+          <p class="delete-user-email">
+            {{ user?.email }}
+          </p>
           <div class="warning-details">
-            <p class="warning-text">⚠️ 이 작업은 되돌릴 수 없습니다!</p>
-            <p class="warning-text">⚠️ 사용자의 모든 데이터가 영구적으로 삭제됩니다!</p>
-            <p class="warning-text">⚠️ 삭제 후에는 복구가 불가능합니다!</p>
+            <p class="warning-text">
+              ⚠️ 이 작업은 되돌릴 수 없습니다!
+            </p>
+            <p class="warning-text">
+              ⚠️ 사용자의 모든 데이터가 영구적으로 삭제됩니다!
+            </p>
+            <p class="warning-text">
+              ⚠️ 삭제 후에는 복구가 불가능합니다!
+            </p>
           </div>
           <div class="confirmation-input">
             <label for="delete-confirm">삭제를 확인하려면 "DELETE"를 입력하세요:</label>
@@ -24,13 +37,18 @@
               class="form-control"
               placeholder="DELETE 입력"
               @input="onChange"
-            />
+            >
           </div>
         </div>
       </div>
     </template>
     <template #footer>
-      <button class="btn btn-secondary" @click="$emit('close')">취소</button>
+      <button
+        class="btn btn-secondary"
+        @click="$emit('close')"
+      >
+        취소
+      </button>
       <button
         class="btn btn-danger"
         :disabled="loading || deleteConfirmation !== 'DELETE'"

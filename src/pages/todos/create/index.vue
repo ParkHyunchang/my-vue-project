@@ -1,8 +1,8 @@
 ﻿<template>
-    <div class="page-container">
-        <h1>Create Todo</h1>
-        <TodoForm />
-    </div>
+  <div class="page-container">
+    <h1>Create Todo</h1>
+    <TodoForm />
+  </div>
 </template>
 
 <script>

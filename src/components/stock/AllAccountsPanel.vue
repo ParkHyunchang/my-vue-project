@@ -1,14 +1,23 @@
 <template>
   <div>
     <!-- 초기 로딩: 계좌 패널들이 DB에서 보유 종목을 불러오는 동안 "없음"으로 오표시하지 않는다 -->
-    <div v-if="loading && mergedHoldings.length === 0" class="loading-state" style="padding: 48px 0">
-      <div class="spinner"></div>
+    <div
+      v-if="loading && mergedHoldings.length === 0"
+      class="loading-state"
+      style="padding: 48px 0"
+    >
+      <div class="spinner" />
       <span>계좌별 보유 종목 불러오는 중...</span>
     </div>
 
     <!-- 빈 상태 (모든 계좌 로드 완료 후에도 종목이 없을 때만) -->
-    <div v-else-if="mergedHoldings.length === 0" class="portfolio-empty">
-      <div class="portfolio-empty-icon">📊</div>
+    <div
+      v-else-if="mergedHoldings.length === 0"
+      class="portfolio-empty"
+    >
+      <div class="portfolio-empty-icon">
+        📊
+      </div>
       <h3>합산할 보유 종목이 없습니다</h3>
       <p>단기/ISA/IRP/장기 계좌 탭에서 종목을 추가하면 이곳에서 전체 현황을 합쳐 볼 수 있습니다.</p>
     </div>
@@ -48,7 +57,10 @@
 
       <!-- AI 포트폴리오 진단 액션 바 -->
       <div class="portfolio-ai-bar">
-        <button class="portfolio-ai-btn" @click="openPortfolioAnalysis">
+        <button
+          class="portfolio-ai-btn"
+          @click="openPortfolioAnalysis"
+        >
           🧠 전체 포트폴리오 AI 진단
         </button>
         <span class="portfolio-ai-hint">장기·단기·ISA·IRP 4개 계좌를 합친 통합 자산배분 진단</span>
@@ -56,59 +68,103 @@
 
       <!-- 마켓 필터 바 -->
       <div class="balance-filter-bar">
-        <button :class="['bfb-btn', { active: marketFilter === 'all' }]" @click="marketFilter = 'all'">
+        <button
+          :class="['bfb-btn', { active: marketFilter === 'all' }]"
+          @click="marketFilter = 'all'"
+        >
           전체 <span class="bfb-count">{{ mergedHoldings.length }}</span>
         </button>
-        <button :class="['bfb-btn', { active: marketFilter === 'kr' }]" @click="marketFilter = 'kr'">
+        <button
+          :class="['bfb-btn', { active: marketFilter === 'kr' }]"
+          @click="marketFilter = 'kr'"
+        >
           🇰🇷 한국 <span class="bfb-count">{{ krHoldingsCount }}</span>
         </button>
-        <button :class="['bfb-btn', { active: marketFilter === 'us' }]" @click="marketFilter = 'us'">
+        <button
+          :class="['bfb-btn', { active: marketFilter === 'us' }]"
+          @click="marketFilter = 'us'"
+        >
           🇺🇸 미국 <span class="bfb-count">{{ usHoldingsCount }}</span>
         </button>
-        <div v-if="showCurrencyToggle" class="ccy-toggle" role="group" aria-label="미국 주식 표시 통화">
+        <div
+          v-if="showCurrencyToggle"
+          class="ccy-toggle"
+          role="group"
+          aria-label="미국 주식 표시 통화"
+        >
           <button
             type="button"
             :class="['ccy-btn', { active: displayCurrency === 'native' }]"
             @click="setDisplayCurrency('native')"
-          >외화</button>
+          >
+            외화
+          </button>
           <button
             type="button"
             :class="['ccy-btn', { active: displayCurrency === 'krw' }]"
             @click="setDisplayCurrency('krw')"
-          >원화</button>
+          >
+            원화
+          </button>
         </div>
-        <div v-if="exchangeRate > 0" class="exrate-info">
+        <div
+          v-if="exchangeRate > 0"
+          class="exrate-info"
+        >
           <span class="exrate-val">1$ = {{ fmtKRW(exchangeRate) }}</span>
-          <span v-if="exRateAt" class="exrate-at">{{ exRateAt }} 기준</span>
+          <span
+            v-if="exRateAt"
+            class="exrate-at"
+          >{{ exRateAt }} 기준</span>
         </div>
       </div>
 
       <!-- 목록 / 차트 전환 탭 -->
       <div class="portfolio-view-tabs">
-        <button :class="['pv-tab', { active: portfolioView === 'grid' }]" @click="portfolioView = 'grid'">
+        <button
+          :class="['pv-tab', { active: portfolioView === 'grid' }]"
+          @click="portfolioView = 'grid'"
+        >
           ≡ 목록
         </button>
-        <button :class="['pv-tab', { active: portfolioView === 'chart' }]" @click="portfolioView = 'chart'">
+        <button
+          :class="['pv-tab', { active: portfolioView === 'chart' }]"
+          @click="portfolioView = 'chart'"
+        >
           ◎ 차트
         </button>
       </div>
 
       <!-- 새로고침 바 -->
       <div class="price-refresh-bar">
-        <span v-if="lastUpdatedAt" class="prf-updated">↻ {{ relativeUpdated }}</span>
-        <button class="prf-btn" :disabled="priceLoading" @click="fetchPrices">
+        <span
+          v-if="lastUpdatedAt"
+          class="prf-updated"
+        >↻ {{ relativeUpdated }}</span>
+        <button
+          class="prf-btn"
+          :disabled="priceLoading"
+          @click="fetchPrices"
+        >
           {{ priceLoading ? '로딩 중...' : '↻ 새로고침' }}
         </button>
       </div>
 
       <!-- 현재가 로딩 -->
-      <div v-if="priceLoading" class="loading-state" style="padding: 24px 0">
-        <div class="spinner"></div>
+      <div
+        v-if="priceLoading"
+        class="loading-state"
+        style="padding: 24px 0"
+      >
+        <div class="spinner" />
         <span>현재가 조회 중...</span>
       </div>
 
       <!-- 필터 결과 없음 -->
-      <div v-else-if="sortedHoldings.length === 0" class="filter-empty">
+      <div
+        v-else-if="sortedHoldings.length === 0"
+        class="filter-empty"
+      >
         <span>{{ marketFilter === 'kr' ? '🇰🇷 국내' : '🇺🇸 미국' }} 보유 종목이 없습니다</span>
       </div>
 

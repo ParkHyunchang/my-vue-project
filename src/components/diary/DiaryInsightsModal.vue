@@ -8,29 +8,55 @@
     </template>
 
     <template #body>
-      <div v-if="!entries.length" class="diary-insight-empty">
+      <div
+        v-if="!entries.length"
+        class="diary-insight-empty"
+      >
         아직 작성된 일기가 없습니다.
       </div>
-      <div v-else-if="!analyzedCount" class="diary-insight-empty">
+      <div
+        v-else-if="!analyzedCount"
+        class="diary-insight-empty"
+      >
         AI 분석된 일기가 없습니다. 일기를 열고 ✨ AI 분석 버튼을 눌러보세요.
       </div>
 
       <template v-else>
         <!-- 1. 월별 추이 -->
         <section class="insight-section">
-          <h4 class="insight-section-title">📈 최근 6개월 감정 점수 추이</h4>
-          <div v-if="trendHasData" ref="trendChartEl" class="mood-trend-chart" />
-          <div v-else class="diary-insight-empty mini">최근 6개월 분석 데이터 없음</div>
+          <h4 class="insight-section-title">
+            📈 최근 6개월 감정 점수 추이
+          </h4>
+          <div
+            v-if="trendHasData"
+            ref="trendChartEl"
+            class="mood-trend-chart"
+          />
+          <div
+            v-else
+            class="diary-insight-empty mini"
+          >
+            최근 6개월 분석 데이터 없음
+          </div>
         </section>
 
         <!-- 2. 감정 빈도 -->
         <section class="insight-section">
-          <h4 class="insight-section-title">😊 자주 등장한 감정</h4>
+          <h4 class="insight-section-title">
+            😊 자주 등장한 감정
+          </h4>
           <ul class="mood-freq-list">
-            <li v-for="m in moodFrequency" :key="m.mood" class="mood-freq-row">
+            <li
+              v-for="m in moodFrequency"
+              :key="m.mood"
+              class="mood-freq-row"
+            >
               <span class="mood-freq-label">{{ m.mood }}</span>
               <div class="mood-freq-bar">
-                <div class="mood-freq-fill" :style="{ width: m.pct + '%' }"></div>
+                <div
+                  class="mood-freq-fill"
+                  :style="{ width: m.pct + '%' }"
+                />
               </div>
               <span class="mood-freq-count">{{ m.count }}회</span>
             </li>
@@ -39,8 +65,13 @@
 
         <!-- 3. 키워드 -->
         <section class="insight-section">
-          <h4 class="insight-section-title">🏷 자주 등장한 키워드 (Top {{ topKeywords.length }})</h4>
-          <div v-if="topKeywords.length" class="keyword-cloud">
+          <h4 class="insight-section-title">
+            🏷 자주 등장한 키워드 (Top {{ topKeywords.length }})
+          </h4>
+          <div
+            v-if="topKeywords.length"
+            class="keyword-cloud"
+          >
             <span
               v-for="kw in topKeywords"
               :key="kw.text"
@@ -51,29 +82,49 @@
               #{{ kw.text }}<em class="kw-count">{{ kw.count }}</em>
             </span>
           </div>
-          <div v-else class="diary-insight-empty mini">키워드 없음</div>
+          <div
+            v-else
+            class="diary-insight-empty mini"
+          >
+            키워드 없음
+          </div>
         </section>
 
         <!-- 4. 검색 -->
         <section class="insight-section">
-          <h4 class="insight-section-title">🔍 검색</h4>
+          <h4 class="insight-section-title">
+            🔍 검색
+          </h4>
           <input
             v-model="searchText"
             type="text"
             class="insight-search-input"
             placeholder="감정·키워드·내용으로 검색"
-          />
-          <div v-if="moodFrequency.length > 1" class="insight-search-chips">
+          >
+          <div
+            v-if="moodFrequency.length > 1"
+            class="insight-search-chips"
+          >
             <button
               v-for="m in moodFrequency.slice(0, 6)"
               :key="m.mood"
               :class="['ins-chip', { active: moodFilter === m.mood }]"
               @click="toggleMoodFilter(m.mood)"
-            >{{ m.mood }} <span class="ins-chip-count">{{ m.count }}</span></button>
-            <button v-if="moodFilter" class="ins-chip reset" @click="moodFilter = ''">초기화</button>
+            >
+              {{ m.mood }} <span class="ins-chip-count">{{ m.count }}</span>
+            </button>
+            <button
+              v-if="moodFilter"
+              class="ins-chip reset"
+              @click="moodFilter = ''"
+            >
+              초기화
+            </button>
           </div>
 
-          <div class="insight-search-meta">검색 결과 {{ searchResults.length }}건</div>
+          <div class="insight-search-meta">
+            검색 결과 {{ searchResults.length }}건
+          </div>
           <ul class="insight-search-results">
             <li
               v-for="e in searchResults"
@@ -85,22 +136,44 @@
               <div class="ins-result-body">
                 <div class="ins-result-meta">
                   <span class="ins-result-date">{{ formatDate(e.diaryDate) }}</span>
-                  <span v-if="moodScoreOf(e) !== null" class="ins-result-score">{{ moodScoreOf(e) }}/10</span>
+                  <span
+                    v-if="moodScoreOf(e) !== null"
+                    class="ins-result-score"
+                  >{{ moodScoreOf(e) }}/10</span>
                 </div>
-                <div class="ins-result-preview">{{ previewText(e.content) }}</div>
-                <div v-if="keywordsOf(e).length" class="ins-result-keywords">
-                  <span v-for="kw in keywordsOf(e)" :key="kw" class="ins-result-kw">#{{ kw }}</span>
+                <div class="ins-result-preview">
+                  {{ previewText(e.content) }}
+                </div>
+                <div
+                  v-if="keywordsOf(e).length"
+                  class="ins-result-keywords"
+                >
+                  <span
+                    v-for="kw in keywordsOf(e)"
+                    :key="kw"
+                    class="ins-result-kw"
+                  >#{{ kw }}</span>
                 </div>
               </div>
             </li>
-            <li v-if="!searchResults.length" class="ins-result-empty">조건에 맞는 일기가 없습니다.</li>
+            <li
+              v-if="!searchResults.length"
+              class="ins-result-empty"
+            >
+              조건에 맞는 일기가 없습니다.
+            </li>
           </ul>
         </section>
       </template>
     </template>
 
     <template #footer>
-      <button class="btn btn-secondary" @click="$emit('close')">닫기</button>
+      <button
+        class="btn btn-secondary"
+        @click="$emit('close')"
+      >
+        닫기
+      </button>
     </template>
   </Modal>
 </template>
