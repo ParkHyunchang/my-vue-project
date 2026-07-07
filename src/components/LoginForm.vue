@@ -11,7 +11,7 @@
             type="text"
             required
             placeholder="ID를 입력하세요"
-          />
+          >
         </div>
         
         <div class="form-group">
@@ -22,31 +22,58 @@
             type="password"
             required
             placeholder="비밀번호를 입력하세요"
-          />
+          >
         </div>
         
-        <button type="submit" :disabled="loading" class="login-btn">
+        <button
+          type="submit"
+          :disabled="loading"
+          class="login-btn"
+        >
           {{ loading ? '로그인 중...' : '로그인' }}
         </button>
         
         <div class="form-footer">
-          <p>계정이 없으신가요? <a href="#" @click.prevent="switchToRegister">회원가입</a></p>
+          <p>
+            계정이 없으신가요? <a
+              href="#"
+              @click.prevent="switchToRegister"
+            >회원가입</a>
+          </p>
           <div class="recovery-links">
-            <button type="button" class="link-btn" @click="openFindIdModal">아이디 찾기</button>
+            <button
+              type="button"
+              class="link-btn"
+              @click="openFindIdModal"
+            >
+              아이디 찾기
+            </button>
             <span class="divider">|</span>
-            <button type="button" class="link-btn" @click="openResetPasswordModal">비밀번호 초기화</button>
+            <button
+              type="button"
+              class="link-btn"
+              @click="openResetPasswordModal"
+            >
+              비밀번호 초기화
+            </button>
           </div>
         </div>
       </form>
     </div>
 
     <teleport to="#modal">
-      <Modal v-if="showFindIdModal" @close="closeFindIdModal">
+      <Modal
+        v-if="showFindIdModal"
+        @close="closeFindIdModal"
+      >
         <template #header>
           <h3>아이디 찾기</h3>
         </template>
         <template #body>
-          <form class="modal-form" @submit.prevent="submitFindId">
+          <form
+            class="modal-form"
+            @submit.prevent="submitFindId"
+          >
             <div class="form-group">
               <label for="find-name">이름</label>
               <input
@@ -55,7 +82,7 @@
                 type="text"
                 required
                 placeholder="이름을 입력하세요"
-              />
+              >
             </div>
             <div class="form-group">
               <label for="find-email">이메일</label>
@@ -65,15 +92,24 @@
                 type="email"
                 required
                 placeholder="이메일을 입력하세요"
-              />
+              >
             </div>
-            <div v-if="findIdResult" class="result-box">
+            <div
+              v-if="findIdResult"
+              class="result-box"
+            >
               <p>찾은 아이디: <strong>{{ findIdResult }}</strong></p>
             </div>
           </form>
         </template>
         <template #footer>
-          <button type="button" class="btn-secondary" @click="closeFindIdModal">닫기</button>
+          <button
+            type="button"
+            class="btn-secondary"
+            @click="closeFindIdModal"
+          >
+            닫기
+          </button>
           <button
             type="button"
             class="btn-primary"
@@ -87,12 +123,18 @@
     </teleport>
 
     <teleport to="#modal">
-      <Modal v-if="showResetPasswordModal" @close="closeResetPasswordModal">
+      <Modal
+        v-if="showResetPasswordModal"
+        @close="closeResetPasswordModal"
+      >
         <template #header>
           <h3>비밀번호 초기화</h3>
         </template>
         <template #body>
-          <form class="modal-form" @submit.prevent="submitResetPassword">
+          <form
+            class="modal-form"
+            @submit.prevent="submitResetPassword"
+          >
             <div class="form-group">
               <label for="reset-userId">아이디</label>
               <input
@@ -101,7 +143,7 @@
                 type="text"
                 required
                 placeholder="아이디를 입력하세요"
-              />
+              >
             </div>
             <div class="form-group">
               <label for="reset-email">이메일</label>
@@ -111,7 +153,7 @@
                 type="email"
                 required
                 placeholder="이메일을 입력하세요"
-              />
+              >
             </div>
             <div class="form-group">
               <label for="reset-phone">전화번호</label>
@@ -121,7 +163,7 @@
                 type="tel"
                 required
                 placeholder="전화번호를 입력하세요 (숫자만)"
-              />
+              >
             </div>
             <div class="form-group">
               <label for="reset-password">새 비밀번호</label>
@@ -132,7 +174,7 @@
                 required
                 minlength="8"
                 placeholder="새 비밀번호 (8자 이상)"
-              />
+              >
             </div>
             <div class="form-group">
               <label for="reset-password-confirm">새 비밀번호 확인</label>
@@ -143,12 +185,18 @@
                 required
                 minlength="8"
                 placeholder="새 비밀번호를 다시 입력하세요"
-              />
+              >
             </div>
           </form>
         </template>
         <template #footer>
-          <button type="button" class="btn-secondary" @click="closeResetPasswordModal">닫기</button>
+          <button
+            type="button"
+            class="btn-secondary"
+            @click="closeResetPasswordModal"
+          >
+            닫기
+          </button>
           <button
             type="button"
             class="btn-primary"
@@ -173,6 +221,7 @@ export default {
   components: {
     Modal
   },
+  emits: ['switch-to-register'],
   data() {
     return {
       form: {

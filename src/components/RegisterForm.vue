@@ -13,11 +13,17 @@
             placeholder="ID를 입력하세요"
             @blur="checkUserId"
             :class="{ 'error': userIdError, 'success': userIdSuccess }"
-          />
-          <div v-if="userIdError" class="error-message">
+          >
+          <div
+            v-if="userIdError"
+            class="error-message"
+          >
             {{ userIdError }}
           </div>
-          <div v-if="userIdSuccess" class="success-message">
+          <div
+            v-if="userIdSuccess"
+            class="success-message"
+          >
             {{ userIdSuccess }}
           </div>
         </div>
@@ -30,7 +36,7 @@
             type="text"
             required
             placeholder="이름을 입력하세요"
-          />
+          >
         </div>
         
         <div class="form-group">
@@ -43,11 +49,17 @@
             placeholder="이메일을 입력하세요"
             @blur="checkEmail"
             :class="{ 'error': emailError, 'success': emailSuccess }"
-          />
-          <div v-if="emailError" class="error-message">
+          >
+          <div
+            v-if="emailError"
+            class="error-message"
+          >
             {{ emailError }}
           </div>
-          <div v-if="emailSuccess" class="success-message">
+          <div
+            v-if="emailSuccess"
+            class="success-message"
+          >
             {{ emailSuccess }}
           </div>
         </div>
@@ -60,7 +72,7 @@
             type="password"
             required
             placeholder="비밀번호를 입력하세요"
-          />
+          >
         </div>
         
         <div class="form-group">
@@ -71,8 +83,11 @@
             type="password"
             required
             placeholder="비밀번호를 다시 입력하세요"
-          />
-          <div v-if="form.confirmPassword && !isPasswordMatch" class="error-message">
+          >
+          <div
+            v-if="form.confirmPassword && !isPasswordMatch"
+            class="error-message"
+          >
             비밀번호가 일치하지 않습니다.
           </div>
         </div>
@@ -84,15 +99,24 @@
             v-model="form.phone"
             type="tel"
             placeholder="전화번호를 입력하세요 (선택사항)"
-          />
+          >
         </div>
         
-        <button type="submit" :disabled="loading || !isFormValid" class="register-btn">
+        <button
+          type="submit"
+          :disabled="loading || !isFormValid"
+          class="register-btn"
+        >
           {{ loading ? '회원가입 중...' : '회원가입' }}
         </button>
         
         <div class="form-footer">
-          <p>이미 계정이 있으신가요? <a href="#" @click.prevent="switchToLogin">로그인</a></p>
+          <p>
+            이미 계정이 있으신가요? <a
+              href="#"
+              @click.prevent="switchToLogin"
+            >로그인</a>
+          </p>
         </div>
       </form>
     </div>
@@ -104,6 +128,7 @@ import { mapActions } from 'vuex';
 
 export default {
   name: 'RegisterForm',
+  emits: ['switch-to-login'],
   data() {
     return {
       form: {

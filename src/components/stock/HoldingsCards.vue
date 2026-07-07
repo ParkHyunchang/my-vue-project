@@ -1,6 +1,10 @@
 <template>
   <div class="holdings-cards">
-    <div v-for="h in sortedHoldings" :key="h.id" class="holding-card">
+    <div
+      v-for="h in sortedHoldings"
+      :key="h.id"
+      class="holding-card"
+    >
       <template v-if="editingId === h.id">
         <div class="hcard-header">
           <div class="hcard-name-wrap">
@@ -8,15 +12,30 @@
             <div>
               <div class="h-name">
                 {{ h.name }}
-                <span v-if="h.accountLabel" class="acct-badge">{{ h.accountLabel }}</span>
+                <span
+                  v-if="h.accountLabel"
+                  class="acct-badge"
+                >{{ h.accountLabel }}</span>
               </div>
-              <div class="h-sym">{{ isCashHolding(h) ? "현금성 자산" : h.symbol }}</div>
+              <div class="h-sym">
+                {{ isCashHolding(h) ? "현금성 자산" : h.symbol }}
+              </div>
             </div>
           </div>
           <div class="hcard-price-wrap">
-            <div class="hcard-price">{{ fmtCurPrice(h) }}</div>
-            <span v-if="isCashHolding(h)" class="txt-muted" style="margin-top:4px; display:inline-block;">—</span>
-            <span v-else :class="['change-badge', changePctCls(h) || 'neutral']" style="margin-top:4px; display:inline-block;">{{ fmtChangePctDisplay(h) }}</span>
+            <div class="hcard-price">
+              {{ fmtCurPrice(h) }}
+            </div>
+            <span
+              v-if="isCashHolding(h)"
+              class="txt-muted"
+              style="margin-top:4px; display:inline-block;"
+            >—</span>
+            <span
+              v-else
+              :class="['change-badge', changePctCls(h) || 'neutral']"
+              style="margin-top:4px; display:inline-block;"
+            >{{ fmtChangePctDisplay(h) }}</span>
           </div>
         </div>
         <div class="hcard-edit-body">
@@ -29,22 +48,79 @@
                 type="number"
                 min="1"
                 class="hcard-edit-inp"
-              />
-              <div v-if="isCashHolding(h)" class="quick-add-btns">
-                <button type="button" class="quick-btn quick-minus" @click="addQuantity(-100000)">-10만</button>
-                <button type="button" class="quick-btn" @click="addQuantity(10000)">+1만</button>
-                <button type="button" class="quick-btn" @click="addQuantity(100000)">+10만</button>
-                <button type="button" class="quick-btn" @click="addQuantity(1000000)">+100만</button>
+              >
+              <div
+                v-if="isCashHolding(h)"
+                class="quick-add-btns"
+              >
+                <button
+                  type="button"
+                  class="quick-btn quick-minus"
+                  @click="addQuantity(-100000)"
+                >
+                  -10만
+                </button>
+                <button
+                  type="button"
+                  class="quick-btn"
+                  @click="addQuantity(10000)"
+                >
+                  +1만
+                </button>
+                <button
+                  type="button"
+                  class="quick-btn"
+                  @click="addQuantity(100000)"
+                >
+                  +10만
+                </button>
+                <button
+                  type="button"
+                  class="quick-btn"
+                  @click="addQuantity(1000000)"
+                >
+                  +100만
+                </button>
               </div>
-              <div v-else class="quick-add-btns">
-                <button type="button" class="quick-btn quick-minus" @click="addQuantity(-10)">-10</button>
-                <button type="button" class="quick-btn quick-minus" @click="addQuantity(-1)">-1</button>
-                <button type="button" class="quick-btn" @click="addQuantity(1)">+1</button>
-                <button type="button" class="quick-btn" @click="addQuantity(10)">+10</button>
+              <div
+                v-else
+                class="quick-add-btns"
+              >
+                <button
+                  type="button"
+                  class="quick-btn quick-minus"
+                  @click="addQuantity(-10)"
+                >
+                  -10
+                </button>
+                <button
+                  type="button"
+                  class="quick-btn quick-minus"
+                  @click="addQuantity(-1)"
+                >
+                  -1
+                </button>
+                <button
+                  type="button"
+                  class="quick-btn"
+                  @click="addQuantity(1)"
+                >
+                  +1
+                </button>
+                <button
+                  type="button"
+                  class="quick-btn"
+                  @click="addQuantity(10)"
+                >
+                  +10
+                </button>
               </div>
             </div>
           </div>
-          <div v-if="!isCashHolding(h)" class="hcard-edit-row">
+          <div
+            v-if="!isCashHolding(h)"
+            class="hcard-edit-row"
+          >
             <label class="hcard-edit-label">평단가 <span class="opt-label">(선택)</span></label>
             <div class="hcard-edit-field">
               <input
@@ -55,19 +131,56 @@
                 pattern="[0-9,]*[.]?[0-9]*"
                 class="hcard-edit-inp"
                 :placeholder="h.market === 'KR' ? '원 단위' : 'USD'"
-              />
-              <div v-if="h.market === 'KR'" class="quick-add-btns">
-                <button type="button" class="quick-btn" @click="addAvgPrice(1000)">+1천</button>
-                <button type="button" class="quick-btn" @click="addAvgPrice(5000)">+5천</button>
-                <button type="button" class="quick-btn" @click="addAvgPrice(10000)">+1만</button>
-                <button type="button" class="quick-btn" @click="addAvgPrice(100000)">+10만</button>
+              >
+              <div
+                v-if="h.market === 'KR'"
+                class="quick-add-btns"
+              >
+                <button
+                  type="button"
+                  class="quick-btn"
+                  @click="addAvgPrice(1000)"
+                >
+                  +1천
+                </button>
+                <button
+                  type="button"
+                  class="quick-btn"
+                  @click="addAvgPrice(5000)"
+                >
+                  +5천
+                </button>
+                <button
+                  type="button"
+                  class="quick-btn"
+                  @click="addAvgPrice(10000)"
+                >
+                  +1만
+                </button>
+                <button
+                  type="button"
+                  class="quick-btn"
+                  @click="addAvgPrice(100000)"
+                >
+                  +10만
+                </button>
               </div>
             </div>
           </div>
         </div>
         <div class="hcard-actions">
-          <button class="act-btn act-save" @click="$emit('save-edit', h)">저장</button>
-          <button class="act-btn act-cancel" @click="$emit('cancel-edit')">취소</button>
+          <button
+            class="act-btn act-save"
+            @click="$emit('save-edit', h)"
+          >
+            저장
+          </button>
+          <button
+            class="act-btn act-cancel"
+            @click="$emit('cancel-edit')"
+          >
+            취소
+          </button>
         </div>
       </template>
       <template v-else>
@@ -77,15 +190,30 @@
             <div>
               <div class="h-name">
                 {{ h.name }}
-                <span v-if="h.accountLabel" class="acct-badge">{{ h.accountLabel }}</span>
+                <span
+                  v-if="h.accountLabel"
+                  class="acct-badge"
+                >{{ h.accountLabel }}</span>
               </div>
-              <div class="h-sym">{{ isCashHolding(h) ? "현금성 자산" : h.symbol }}</div>
+              <div class="h-sym">
+                {{ isCashHolding(h) ? "현금성 자산" : h.symbol }}
+              </div>
             </div>
           </div>
           <div class="hcard-price-wrap">
-            <div class="hcard-price">{{ fmtCurPrice(h) }}</div>
-            <span v-if="isCashHolding(h)" class="txt-muted" style="margin-top:4px; display:inline-block;">—</span>
-            <span v-else :class="['change-badge', changePctCls(h) || 'neutral']" style="margin-top:4px; display:inline-block;">{{ fmtChangePctDisplay(h) }}</span>
+            <div class="hcard-price">
+              {{ fmtCurPrice(h) }}
+            </div>
+            <span
+              v-if="isCashHolding(h)"
+              class="txt-muted"
+              style="margin-top:4px; display:inline-block;"
+            >—</span>
+            <span
+              v-else
+              :class="['change-badge', changePctCls(h) || 'neutral']"
+              style="margin-top:4px; display:inline-block;"
+            >{{ fmtChangePctDisplay(h) }}</span>
           </div>
         </div>
         <div class="hcard-body">
@@ -97,24 +225,49 @@
             <span class="hcard-label">평가금액</span>
             <span>{{ fmtHoldVal(h) }}</span>
           </div>
-          <div v-if="h.avgPrice && !isCashHolding(h)" class="hcard-row">
+          <div
+            v-if="h.avgPrice && !isCashHolding(h)"
+            class="hcard-row"
+          >
             <span class="hcard-label">평단가</span>
             <span>{{ fmtByMkt(h.avgPrice, h.market) }}</span>
           </div>
-          <div v-if="holdPnl(h) !== null && !isCashHolding(h)" class="hcard-row">
+          <div
+            v-if="holdPnl(h) !== null && !isCashHolding(h)"
+            class="hcard-row"
+          >
             <span class="hcard-label">평가손익</span>
             <span :class="pnlCls(holdPnl(h))">{{ fmtHoldPnl(h) }}</span>
           </div>
-          <div v-if="holdPnlPct(h) !== null && !isCashHolding(h)" class="hcard-row">
+          <div
+            v-if="holdPnlPct(h) !== null && !isCashHolding(h)"
+            class="hcard-row"
+          >
             <span class="hcard-label">수익률</span>
             <span :class="pnlCls(holdPnlPct(h))">{{ fmtHoldPnlPct(h) }}</span>
           </div>
         </div>
         <div class="hcard-actions">
-          <button v-if="!isCashHolding(h)" class="act-btn act-analyze" @click="$emit('analyze', h)">✨ AI 분석</button>
+          <button
+            v-if="!isCashHolding(h)"
+            class="act-btn act-analyze"
+            @click="$emit('analyze', h)"
+          >
+            ✨ AI 분석
+          </button>
           <template v-if="!readonly">
-            <button class="act-btn act-edit" @click="$emit('start-edit', h)">수정</button>
-            <button class="act-btn act-del" @click="$emit('remove', h.id)">삭제</button>
+            <button
+              class="act-btn act-edit"
+              @click="$emit('start-edit', h)"
+            >
+              수정
+            </button>
+            <button
+              class="act-btn act-del"
+              @click="$emit('remove', h.id)"
+            >
+              삭제
+            </button>
           </template>
         </div>
       </template>
@@ -127,7 +280,7 @@ export default {
   name: 'HoldingsCards',
   props: {
     sortedHoldings: { type: Array, required: true },
-    editingId: { default: null },
+    editingId: { type: [Number, String], default: null },
     editForm: { type: Object, required: true },
     fmtCurPrice: { type: Function, required: true },
     fmtChangePctDisplay: { type: Function, required: true },
