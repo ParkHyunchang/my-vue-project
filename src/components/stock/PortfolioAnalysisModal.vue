@@ -21,7 +21,7 @@
             {{ loadingText }}
           </div>
           <div class="pana-loading-hint">
-            최대 30초 소요될 수 있습니다.
+            리포트 생성에 최대 1분 정도 걸릴 수 있습니다.
           </div>
         </div>
 
@@ -63,31 +63,6 @@
           v-else-if="report"
           class="pana-result"
         >
-          <section
-            v-if="commonCandidates.length"
-            class="pana-section"
-          >
-            <div class="pana-section-head">
-              <h4>공통 단기 계좌 편입 후보</h4>
-            </div>
-            <p class="pana-holding-reason">
-              단기와 종합 진단에 같은 후보 데이터가 적용됩니다. 최종 진입 판단은 아래 AI 분석의 조건을 확인하세요.
-            </p>
-            <ul class="pana-action-cards">
-              <li
-                v-for="candidate in commonCandidates"
-                :key="candidate.key"
-                class="pana-action-card"
-              >
-                <div class="pana-action-card-head">
-                  <span class="pana-action-chip">{{ candidate.label }}</span>
-                </div>
-                <p class="pana-action-text">
-                  {{ candidate.summary }}
-                </p>
-              </li>
-            </ul>
-          </section>
           <template v-if="reportSections">
             <template
               v-for="block in reportSections.blocks"
@@ -209,6 +184,32 @@
             v-else
             :text="report"
           />
+
+          <section
+            v-if="commonCandidates.length"
+            class="pana-section"
+          >
+            <div class="pana-section-head">
+              <h4>공통 단기 계좌 편입 후보</h4>
+            </div>
+            <p class="pana-holding-reason">
+              단기와 종합 진단에 같은 후보 데이터가 적용됩니다. 최종 진입 판단은 위 AI 분석의 조건을 확인하세요.
+            </p>
+            <ul class="pana-action-cards">
+              <li
+                v-for="candidate in commonCandidates"
+                :key="candidate.key"
+                class="pana-action-card"
+              >
+                <div class="pana-action-card-head">
+                  <span class="pana-action-chip">{{ candidate.label }}</span>
+                </div>
+                <p class="pana-action-text">
+                  {{ candidate.summary }}
+                </p>
+              </li>
+            </ul>
+          </section>
 
           <div class="pana-meta">
             <span class="pana-provider-tag">{{ providerName }}<span v-if="model"> · {{ model }}</span></span>
