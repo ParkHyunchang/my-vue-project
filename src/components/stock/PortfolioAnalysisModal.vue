@@ -63,6 +63,31 @@
           v-else-if="report"
           class="pana-result"
         >
+          <section
+            v-if="commonCandidates.length"
+            class="pana-section"
+          >
+            <div class="pana-section-head">
+              <h4>공통 단기 계좌 편입 후보</h4>
+            </div>
+            <p class="pana-holding-reason">
+              단기와 종합 진단에 같은 후보 데이터가 적용됩니다. 최종 진입 판단은 아래 AI 분석의 조건을 확인하세요.
+            </p>
+            <ul class="pana-action-cards">
+              <li
+                v-for="candidate in commonCandidates"
+                :key="candidate.key"
+                class="pana-action-card"
+              >
+                <div class="pana-action-card-head">
+                  <span class="pana-action-chip">{{ candidate.label }}</span>
+                </div>
+                <p class="pana-action-text">
+                  {{ candidate.summary }}
+                </p>
+              </li>
+            </ul>
+          </section>
           <template v-if="reportSections">
             <template
               v-for="block in reportSections.blocks"
@@ -230,7 +255,7 @@
 </template>
 
 <script>
-import { computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import axios from '@/axios';
 import Modal from '@/components/Modal.vue';
 import MarkdownView from '@/components/common/MarkdownView.vue';
@@ -604,6 +629,7 @@ export default {
   },
   emits: ['close'],
   setup(props) {
+    const commonCandidates = ref([]);
     const {
       loading,
       error,
@@ -653,10 +679,36 @@ export default {
       );
     }
 
+    async function fetchCommonCandidates() {
+      try {
+        const [kr, us] = await Promise.all([
+          axios.get('/api/stock/swing-candidates/kr/catalysts', { params: { limit: 3 } }),
+          axios.get('/api/stock/swing-candidates/us/signals', { params: { limit: 3 } }),
+        ]);
+        const krItems = (kr.data || []).map((item) => ({
+          key: `kr-${item.candidate?.symbol}`,
+          label: `${item.candidate?.name || item.candidate?.symbol} · KR`,
+          summary: `KRX 등락률 ${item.candidate?.changePercent ?? '-'}%, 거래량 ${item.candidate?.volumeRatio ?? '-'}배 · DART/종목 뉴스 촉매 확인`,
+        }));
+        const usItems = (us.data || []).map((item) => ({
+          key: `us-${item.candidate?.symbol}`,
+          label: `${item.candidate?.name || item.candidate?.symbol} · US`,
+          summary: `Alpha Vantage 평균 감성 ${item.averageSentiment ?? '-'} · 긍정 감성 뉴스 및 Yahoo 컨센서스 확인`,
+        }));
+        commonCandidates.value = [...krItems, ...usItems];
+      } catch (err) {
+        commonCandidates.value = [];
+        logger.debug('공통 단기 후보 조회 생략:', err);
+      }
+    }
+
     watch(
       () => props.show,
       (showVal, prevShow) => {
-        if (showVal && !prevShow) fetchAnalysis();
+        if (showVal && !prevShow) {
+          fetchCommonCandidates();
+          fetchAnalysis();
+        }
       },
     );
 
@@ -665,6 +717,7 @@ export default {
       error,
       blocked,
       report,
+      commonCandidates,
       reportSections,
       providerName,
       model,
