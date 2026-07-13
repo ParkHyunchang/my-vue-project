@@ -235,7 +235,7 @@
               분석 중...
             </template>
             <template v-else-if="cooldownSec > 0">
-              {{ cooldownSec }}초 후 가능
+              {{ cooldownText }} 후 가능
             </template>
             <template v-else>
               다시 진단
@@ -640,6 +640,7 @@ export default {
       analyzedAt,
       retryCountdown,
       cooldownSec,
+      cooldownText,
       allDisabled,
       loadingText,
       runAnalysis,
@@ -724,6 +725,7 @@ export default {
       analyzedAt,
       retryCountdown,
       cooldownSec,
+      cooldownText,
       allDisabled,
       loadingText,
       fetchAnalysis,

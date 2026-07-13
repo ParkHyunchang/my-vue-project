@@ -103,10 +103,29 @@ export function useAiAnalysis({
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   });
 
+  // 재시도 버튼 대기: 로컬 연타 방지(30초)와 provider 차단 해제(retryAt) 중 더 늦은 시점.
+  // 로컬 쿨다운만 보면 provider가 아직 차단 중일 때 눌러 무조건 실패하는 요청이 나간다.
   const cooldownSec = computed(() => {
-    if (!lastFetchAt.value) return 0;
-    const elapsed = Math.floor((now.value - lastFetchAt.value) / 1000);
-    return Math.max(0, 30 - elapsed);
+    let localSec = 0;
+    if (lastFetchAt.value) {
+      const elapsed = Math.floor((now.value - lastFetchAt.value) / 1000);
+      localSec = Math.max(0, 30 - elapsed);
+    }
+    let retrySec = 0;
+    if (retryAt.value) {
+      retrySec = Math.max(0, Math.floor((retryAt.value.getTime() - now.value) / 1000));
+    }
+    return Math.max(localSec, retrySec);
+  });
+
+  const cooldownText = computed(() => {
+    const sec = cooldownSec.value;
+    if (sec <= 0) return '';
+    if (sec < 60) return `${sec}초`;
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    if (h > 0) return `${h}시간 ${String(m).padStart(2, '0')}분`;
+    return `${m}분 ${String(sec % 60).padStart(2, '0')}초`;
   });
 
   const allDisabled = computed(() =>
@@ -140,6 +159,7 @@ export function useAiAnalysis({
     providersStatus,
     retryCountdown,
     cooldownSec,
+    cooldownText,
     allDisabled,
     loadingText,
     reset,
