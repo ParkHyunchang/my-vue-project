@@ -98,6 +98,12 @@
                 주문 초안
               </button><button
                 v-if="proposal.status === 'ORDER_DRAFT'"
+                :disabled="pending"
+                @click="editDraft(proposal)"
+              >
+                수량·가격 수정
+              </button><button
+                v-if="proposal.status === 'ORDER_DRAFT'"
                 :disabled="pending || !config.orderEnabled"
                 :title="config.orderEnabled ? '키움 주문을 전송합니다.' : '주문 전송은 비활성화되어 있습니다.'"
                 @click="execute(proposal)"
@@ -133,6 +139,7 @@ async function addWatch () { const query = /^\d{6}$/.test(code.value) ? code.val
 async function removeWatch (id) { pending.value = true; try { await axios.delete(`/api/kiwoom/strategy/watchlist/${id}`); await load() } catch { error.value = '관심종목을 삭제하지 못했습니다.' } finally { pending.value = false } }
 async function approve (id) { await action(`/api/kiwoom/strategy/proposals/${id}/approve`) }
 async function draft (id) { await action(`/api/kiwoom/strategy/proposals/${id}/draft`) }
+async function editDraft (proposal) { const quantity = Number(window.prompt('주문 수량을 입력하세요.', proposal.quantity)); if (!Number.isInteger(quantity) || quantity <= 0) return; const limitPrice = Number(window.prompt('지정가를 입력하세요.', proposal.limitPrice)); if (!Number.isInteger(limitPrice) || limitPrice <= 0) return; pending.value = true; error.value = ''; try { await axios.patch(`/api/kiwoom/strategy/proposals/${proposal.id}/draft`, { quantity, limitPrice }); await load() } catch (e) { error.value = e.response?.data?.message || '주문 초안을 수정하지 못했습니다.' } finally { pending.value = false } }
 async function reject (id) { const reason = window.prompt('거절 사유를 입력하세요. (선택)', ''); if (reason !== null) await action(`/api/kiwoom/strategy/proposals/${id}/reject`, { reason }) }
 async function execute (proposal) { if (window.confirm(`${proposal.action} ${proposal.stockName} ${proposal.quantity}주 주문을 키움에 전송할까요? 되돌릴 수 없습니다.`)) await action(`/api/kiwoom/strategy/proposals/${proposal.id}/execute`, { confirmed: true }) }
 async function action (url, body) { pending.value = true; error.value = ''; try { await axios.post(url, body); await load() } catch (e) { error.value = e.response?.data?.message || '요청을 처리하지 못했습니다.' } finally { pending.value = false } }
