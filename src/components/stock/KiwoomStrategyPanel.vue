@@ -1,5 +1,20 @@
 <template>
   <section class="strategy-panel">
+    <div class="operations">
+      <span :class="{ stopped: operations.emergencyStopped }">{{ operations.emergencyStopped ? '긴급 중지 활성' : '운영 상태 정상' }}</span><button
+        v-if="!operations.emergencyStopped"
+        :disabled="pending"
+        @click="emergencyStop"
+      >
+        긴급 중지
+      </button><button
+        v-else
+        :disabled="pending"
+        @click="emergencyResume"
+      >
+        긴급 중지 해제
+      </button>
+    </div>
     <header>
       <div><small>KIWOOM STRATEGY</small><h3>AI 전략 제안 <em>{{ config.dryRun ? 'DRY-RUN' : 'ORDER ENABLED' }}</em></h3></div><button
         :disabled="pending || !configured"
@@ -108,7 +123,7 @@ import { onMounted, ref } from 'vue'
 import axios from '@/axios'
 defineProps({ configured: Boolean })
 const watchlist = ref([]), runs = ref([]), code = ref(''), name = ref(''), note = ref('')
-const config = ref({ orderEnabled: false, dryRun: true }), pending = ref(false), loading = ref(false), error = ref('')
+const config = ref({ orderEnabled: false, dryRun: true }), operations = ref({ emergencyStopped: false }), pending = ref(false), loading = ref(false), error = ref('')
 const date = (value) => value ? new Date(value).toLocaleString('ko-KR', { hour12: false }) : ''
 const canApprove = (p) => p.status === 'PROPOSED' && p.action !== 'HOLD' && !p.guardFlags
 const canReject = (p) => ['PROPOSED', 'APPROVED'].includes(p.status)
@@ -121,7 +136,10 @@ async function draft (id) { await action(`/api/kiwoom/strategy/proposals/${id}/d
 async function reject (id) { const reason = window.prompt('거절 사유를 입력하세요. (선택)', ''); if (reason !== null) await action(`/api/kiwoom/strategy/proposals/${id}/reject`, { reason }) }
 async function execute (proposal) { if (window.confirm(`${proposal.action} ${proposal.stockName} ${proposal.quantity}주 주문을 키움에 전송할까요? 되돌릴 수 없습니다.`)) await action(`/api/kiwoom/strategy/proposals/${proposal.id}/execute`, { confirmed: true }) }
 async function action (url, body) { pending.value = true; error.value = ''; try { await axios.post(url, body); await load() } catch (e) { error.value = e.response?.data?.message || '요청을 처리하지 못했습니다.' } finally { pending.value = false } }
-onMounted(load)
+async function loadOperations () { try { operations.value = (await axios.get('/api/kiwoom/strategy/health')).data } catch { /* 운영 상태 조회 실패는 기존 전략 기능을 막지 않는다. */ } }
+async function emergencyStop () { if (!window.confirm('자동 판단과 주문 전송을 긴급 중지할까요?')) return; pending.value = true; try { await axios.post('/api/kiwoom/auto-trade/emergency-stop'); await loadOperations() } catch (e) { error.value = e.response?.data?.message || '긴급 중지에 실패했습니다.' } finally { pending.value = false } }
+async function emergencyResume () { if (!window.confirm('긴급 중지를 해제할까요? 자동 판단은 별도로 다시 시작해야 합니다.')) return; pending.value = true; try { await axios.post('/api/kiwoom/auto-trade/emergency-resume'); await loadOperations() } catch (e) { error.value = e.response?.data?.message || '긴급 중지 해제에 실패했습니다.' } finally { pending.value = false } }
+onMounted(async () => { await load(); await loadOperations() })
 </script>
 
 <style scoped>
