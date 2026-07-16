@@ -31,7 +31,7 @@
       </button>
     </header>
     <p class="notice">
-      제안은 승인과 주문 초안 단계를 거칩니다. 주문 전송은 별도 최종 확인과 서버 설정이 모두 필요합니다.
+      {{ config.autoExecute ? `자동 주문 활성: 예약 판단에서 신뢰도 ${config.autoExecuteMinConfidence}% 이상인 지정가 제안만 전송합니다.` : '제안은 승인과 주문 초안 단계를 거칩니다. 자동 주문 전송은 현재 비활성화되어 있습니다.' }}
     </p>
     <p
       v-if="error"
@@ -136,7 +136,7 @@ import { onMounted, ref } from 'vue'
 import axios from '@/axios'
 defineProps({ configured: Boolean })
 const watchlist = ref([]), runs = ref([]), code = ref(''), name = ref(''), note = ref('')
-const config = ref({ orderEnabled: false, dryRun: true }), operations = ref({ emergencyStopped: false }), pending = ref(false), loading = ref(false), error = ref('')
+const config = ref({ orderEnabled: false, dryRun: true, autoExecute: false, autoExecuteMinConfidence: 85 }), operations = ref({ emergencyStopped: false }), pending = ref(false), loading = ref(false), error = ref('')
 const date = (value) => value ? new Date(value).toLocaleString('ko-KR', { hour12: false }) : ''
 const canApprove = (p) => p.status === 'PROPOSED' && p.action !== 'HOLD' && !p.guardFlags
 const canReject = (p) => ['PROPOSED', 'APPROVED'].includes(p.status)
