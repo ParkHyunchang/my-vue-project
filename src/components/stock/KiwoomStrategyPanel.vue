@@ -116,8 +116,20 @@
                 @click="execute(proposal)"
               >
                 최종 주문 확인
+              </button><button
+                v-if="['ORDERED', 'PARTIALLY_FILLED'].includes(proposal.status)"
+                :disabled="pending || !config.orderEnabled || operations.emergencyStopped"
+                @click="amendOrder(proposal)"
+              >
+                주문 정정
+              </button><button
+                v-if="['ORDERED', 'PARTIALLY_FILLED'].includes(proposal.status)"
+                :disabled="pending"
+                @click="cancelOrder(proposal)"
+              >
+                주문 취소
               </button>
-            </div><small v-if="proposal.status === 'ORDERED'">주문 전송됨</small><small v-if="proposal.status === 'REJECTED'">거절됨 · {{ proposal.rejectionReason }}</small><small v-if="proposal.status === 'ORDER_FAILED'">전송 실패: {{ proposal.errorMessage }}</small>
+            </div><small v-if="proposal.status === 'ORDERED'">주문 전송됨</small><small v-if="proposal.status === 'CANCEL_REQUESTED'">취소 요청됨 · 주문 상태 동기화 대기 중</small><small v-if="proposal.status === 'CANCELED'">주문 취소됨</small><small v-if="proposal.status === 'REJECTED'">거절됨 · {{ proposal.rejectionReason }}</small><small v-if="proposal.status === 'ORDER_FAILED'">전송 실패: {{ proposal.errorMessage }}</small>
           </div>
         </div>
       </article><p
@@ -149,6 +161,8 @@ async function draft (id) { await action(`/api/kiwoom/strategy/proposals/${id}/d
 async function editDraft (proposal) { const quantity = Number(window.prompt('주문 수량을 입력하세요.', proposal.quantity)); if (!Number.isInteger(quantity) || quantity <= 0) return; const limitPrice = Number(window.prompt('지정가를 입력하세요.', proposal.limitPrice)); if (!Number.isInteger(limitPrice) || limitPrice <= 0) return; pending.value = true; error.value = ''; try { await axios.patch(`/api/kiwoom/strategy/proposals/${proposal.id}/draft`, { quantity, limitPrice }); await load() } catch (e) { error.value = e.response?.data?.message || '주문 초안을 수정하지 못했습니다.' } finally { pending.value = false } }
 async function reject (id) { const reason = window.prompt('거절 사유를 입력하세요. (선택)', ''); if (reason !== null) await action(`/api/kiwoom/strategy/proposals/${id}/reject`, { reason }) }
 async function execute (proposal) { if (window.confirm(`${proposal.action} ${proposal.stockName} ${proposal.quantity}주 주문을 키움에 전송할까요? 되돌릴 수 없습니다.`)) await action(`/api/kiwoom/strategy/proposals/${proposal.id}/execute`, { confirmed: true }) }
+async function amendOrder (proposal) { const maximum = proposal.remainingQuantity || proposal.quantity; const quantity = Number(window.prompt(`정정할 수량을 입력하세요. (최대 ${maximum}주)`, maximum)); if (!Number.isInteger(quantity) || quantity <= 0 || quantity > maximum) return; const limitPrice = Number(window.prompt('새 지정가를 입력하세요.', proposal.limitPrice)); if (!Number.isInteger(limitPrice) || limitPrice <= 0) return; if (window.confirm(`${proposal.stockName} 주문을 ${quantity}주, ${limitPrice.toLocaleString()}원으로 정정할까요?`)) { pending.value = true; error.value = ''; try { await axios.patch(`/api/kiwoom/strategy/proposals/${proposal.id}/order`, { quantity, limitPrice }); await load() } catch (e) { error.value = e.response?.data?.message || '주문 정정에 실패했습니다.' } finally { pending.value = false } } }
+async function cancelOrder (proposal) { const maximum = proposal.remainingQuantity || proposal.quantity; const quantity = Number(window.prompt(`취소할 수량을 입력하세요. (최대 ${maximum}주)`, maximum)); if (!Number.isInteger(quantity) || quantity <= 0 || quantity > maximum) return; if (window.confirm(`${proposal.stockName} ${quantity}주 주문을 취소할까요?`)) await action(`/api/kiwoom/strategy/proposals/${proposal.id}/cancel`, { quantity }) }
 async function action (url, body) { pending.value = true; error.value = ''; try { await axios.post(url, body); await load() } catch (e) { error.value = e.response?.data?.message || '요청을 처리하지 못했습니다.' } finally { pending.value = false } }
 async function loadOperations () { try { operations.value = (await axios.get('/api/kiwoom/strategy/health')).data } catch { /* 운영 상태 조회 실패는 기존 전략 기능을 막지 않는다. */ } }
 async function emergencyStop () { if (!window.confirm('자동 판단과 주문 전송을 긴급 중지할까요?')) return; pending.value = true; try { await axios.post('/api/kiwoom/auto-trade/emergency-stop'); await loadOperations() } catch (e) { error.value = e.response?.data?.message || '긴급 중지에 실패했습니다.' } finally { pending.value = false } }
