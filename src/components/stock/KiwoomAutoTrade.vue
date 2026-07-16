@@ -41,6 +41,7 @@
         <small>{{ item.label }}</small><strong :class="item.tone">{{ formatWon(item.value) }}</strong>
       </article>
     </div>
+    <KiwoomStrategyPanel :configured="status.configured" />
     <section class="log-card">
       <header>
         <span>●</span> 실시간 시세 · 주문 체결 로그 <button @click="logs = []">
@@ -70,6 +71,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import axios from '@/axios'
+import KiwoomStrategyPanel from '@/components/stock/KiwoomStrategyPanel.vue'
 
 // 토큰·계좌번호는 프론트에 저장하지 않습니다. 서버가 httpOnly 인증과 키움 토큰을 모두 관리합니다.
 const status = ref({ configured: false, connected: false, tokenValid: false, autoTrading: false, mode: 'mock' })
