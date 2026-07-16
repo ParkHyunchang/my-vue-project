@@ -139,26 +139,38 @@
         :holdings="allHoldings"
       />
     </div>
+
+    <div
+      v-if="isAdmin"
+      v-show="activeTab === 'auto-trade'"
+      class="tab-content"
+    >
+      <KiwoomAutoTrade />
+    </div>
   </div>
 </template>
 
 <script>
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useStore } from "vuex";
 import axios from "@/axios";
 import PortfolioPanel from "@/components/stock/PortfolioPanel.vue";
 import AllAccountsPanel from "@/components/stock/AllAccountsPanel.vue";
 import HeatmapPanel from "@/components/stock/HeatmapPanel.vue";
 import Top10Panel from "@/components/stock/Top10Panel.vue";
 import NewsPanel from "@/components/stock/NewsPanel.vue";
+import KiwoomAutoTrade from "@/components/stock/KiwoomAutoTrade.vue";
 import { ACCOUNT_CONFIGS, ACCOUNT_TAB_ORDER } from "@/config/stockAccounts";
 
 export default {
   name: "StockPage",
-  components: { PortfolioPanel, AllAccountsPanel, HeatmapPanel, Top10Panel, NewsPanel },
+  components: { PortfolioPanel, AllAccountsPanel, HeatmapPanel, Top10Panel, NewsPanel, KiwoomAutoTrade },
   setup() {
     const route = useRoute();
     const router = useRouter();
+    const store = useStore();
+    const isAdmin = computed(() => store.getters["auth/isAdmin"]);
 
     const activeTab = ref("all");
     const holdingsByAccount = ref({
@@ -184,14 +196,16 @@ export default {
       icon: ACCOUNT_CONFIGS[accountType].tabIcon,
       label: ACCOUNT_CONFIGS[accountType].tabLabel,
     }));
-    const tabs = [
+    const tabs = computed(() => [
       { id: "all", icon: "🧮", label: "종합" },
       ...accountTabs,
       { id: "heatmap", icon: "🗺️", label: "히트맵" },
       { id: "top10", icon: "🏆", label: "시총 top10" },
       { id: "news", icon: "📰", label: "뉴스" },
-    ];
-    const VALID_TABS = tabs.map((tab) => tab.id);
+      // 자동매매(키움 실계좌)는 백엔드에서도 ADMIN 전용이라 탭 자체를 숨김
+      ...(isAdmin.value ? [{ id: "auto-trade", icon: "🤖", label: "자동매매" }] : []),
+    ]);
+    const VALID_TABS = computed(() => tabs.value.map((tab) => tab.id));
 
     const allHoldings = computed(() =>
       Object.values(holdingsByAccount.value).flat(),
@@ -250,7 +264,7 @@ export default {
 
     onMounted(async () => {
       const tabFromUrl = normalizeTab(route.query.tab);
-      if (tabFromUrl && VALID_TABS.includes(tabFromUrl)) {
+      if (tabFromUrl && VALID_TABS.value.includes(tabFromUrl)) {
         activeTab.value = tabFromUrl;
       }
       try {
@@ -266,6 +280,7 @@ export default {
       allHoldings,
       holdingsByAccount,
       accountsLoading,
+      isAdmin,
       tabs,
       switchTab,
       onHoldingsChanged,
