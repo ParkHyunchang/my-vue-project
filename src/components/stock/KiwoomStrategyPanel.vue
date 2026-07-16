@@ -84,7 +84,7 @@
             <b>{{ proposal.action }}</b><span>{{ proposal.stockName }} ({{ proposal.stockCode }})</span><span v-if="proposal.quantity">{{ proposal.quantity.toLocaleString() }}주</span><span v-if="proposal.limitPrice">{{ proposal.limitPrice.toLocaleString() }}원</span><small>{{ proposal.confidence }}% · {{ proposal.reason }}</small><small
               v-if="proposal.guardFlags"
               class="guards"
-            >안전 경고: {{ proposal.guardFlags }}</small><small>상태: {{ proposal.status }}</small><div class="workflow-actions">
+            >안전 경고: {{ guardText(proposal.guardFlags) }}</small><small>상태: {{ proposal.status }}</small><div class="workflow-actions">
               <button
                 v-if="canApprove(proposal)"
                 :disabled="pending"
@@ -150,6 +150,8 @@ defineProps({ configured: Boolean })
 const watchlist = ref([]), runs = ref([]), code = ref(''), name = ref(''), note = ref('')
 const config = ref({ orderEnabled: false, dryRun: true, autoExecute: false, autoExecuteMinConfidence: 85 }), operations = ref({ emergencyStopped: false }), pending = ref(false), loading = ref(false), error = ref('')
 const date = (value) => value ? new Date(value).toLocaleString('ko-KR', { hour12: false }) : ''
+const GUARD_LABELS = { MAX_ORDER_AMOUNT: '주문한도 초과', DAILY_LIMIT: '일일 제안 한도', SYMBOL_COOLDOWN: '재제안 쿨다운', MARKET_CLOSED: '장외 시간', INSUFFICIENT_DEPOSIT: '예수금 부족', MAX_BUY_BUDGET: '매수 비율 한도 초과' }
+const guardText = (flags) => (flags || '').split(',').filter(Boolean).map((f) => GUARD_LABELS[f] || f).join(', ')
 const canApprove = (p) => p.status === 'PROPOSED' && p.action !== 'HOLD' && !p.guardFlags
 const canReject = (p) => ['PROPOSED', 'APPROVED'].includes(p.status)
 async function load () { loading.value = true; try { const [watch, history, strategyConfig] = await Promise.all([axios.get('/api/kiwoom/strategy/watchlist'), axios.get('/api/kiwoom/strategy/runs?limit=10'), axios.get('/api/kiwoom/strategy/config')]); watchlist.value = watch.data; runs.value = history.data; config.value = strategyConfig.data } catch (e) { error.value = e.response?.data?.message || '전략 데이터를 불러오지 못했습니다.' } finally { loading.value = false } }
