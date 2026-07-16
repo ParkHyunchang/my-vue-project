@@ -17,7 +17,7 @@
     </div>
     <header>
       <div><small>KIWOOM STRATEGY</small><h3>AI 전략 제안 <em>{{ config.dryRun ? 'DRY-RUN' : 'ORDER ENABLED' }}</em></h3></div><button
-        :disabled="pending || !configured"
+        :disabled="pending || !configured || operations.emergencyStopped"
         @click="decide"
       >
         지금 판단
