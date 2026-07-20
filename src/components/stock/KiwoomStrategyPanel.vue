@@ -60,34 +60,12 @@
     >
       {{ error }}
     </p>
-    <form
-      class="watch-form"
-      @submit.prevent="addWatch"
-    >
-      <input
-        v-model.trim="code"
-        maxlength="100"
-        placeholder="종목코드 (선택)"
-      ><input
-        v-model.trim="name"
-        maxlength="100"
-        placeholder="종목명 (코드 없이 등록 가능)"
-      ><input
-        v-model.trim="note"
-        maxlength="200"
-        placeholder="메모 (선택)"
-      ><button :disabled="pending">
-        추가
-      </button>
-    </form>
-    <div class="watch-list">
+    <div class="candidate-list">
       <span
-        v-for="item in watchlist"
-        :key="item.id"
-      >{{ item.stockName }} · {{ item.stockCode }} <button
-        type="button"
-        @click="removeWatch(item.id)"
-      >×</button></span><small v-if="!watchlist.length">관심종목을 추가하면 전략 판단 대상에 포함됩니다.</small>
+        v-for="c in candidates"
+        :key="c.code"
+        class="candidate-chip"
+      >{{ c.name }} · {{ c.code }} <span :class="['change-badge', changeClass(c.changePercent)]">{{ formatChangePct(c.changePercent) }}</span> <small>거래량 {{ c.volumeRatio }}배</small></span><small v-if="!candidates.length">현재 KRX 자동 스캔 매매 후보가 없습니다.</small>
     </div>
     <div class="runs">
       <article
@@ -174,18 +152,18 @@
 import { onMounted, ref } from 'vue'
 import axios from '@/axios'
 import KiwoomStrategySettingsModal from '@/components/stock/KiwoomStrategySettingsModal.vue'
+import { useStockFormatters } from '@/composables/useStockFormatters'
 defineProps({ configured: Boolean })
-const watchlist = ref([]), runs = ref([]), code = ref(''), name = ref(''), note = ref('')
+const { formatChangePct, changeClass } = useStockFormatters()
+const candidates = ref([]), runs = ref([])
 const config = ref({ orderEnabled: false, dryRun: true, autoExecute: false, autoExecuteMinConfidence: 85 }), operations = ref({ emergencyStopped: false }), pending = ref(false), loading = ref(false), error = ref(''), showSettings = ref(false)
 const date = (value) => value ? new Date(value).toLocaleString('ko-KR', { hour12: false }) : ''
 const GUARD_LABELS = { MAX_ORDER_AMOUNT: '주문한도 초과', DAILY_LIMIT: '일일 제안 한도', SYMBOL_COOLDOWN: '재제안 쿨다운', MARKET_CLOSED: '장외 시간', INSUFFICIENT_DEPOSIT: '예수금 부족', MAX_BUY_BUDGET: '매수 비율 한도 초과', DAILY_LOSS_LIMIT: '일일 손실 한도' }
 const guardText = (flags) => (flags || '').split(',').filter(Boolean).map((f) => GUARD_LABELS[f] || f).join(', ')
 const canApprove = (p) => p.status === 'PROPOSED' && p.action !== 'HOLD' && !p.guardFlags
 const canReject = (p) => ['PROPOSED', 'APPROVED'].includes(p.status)
-async function load () { loading.value = true; try { const [watch, history, strategyConfig] = await Promise.all([axios.get('/api/kiwoom/strategy/watchlist'), axios.get('/api/kiwoom/strategy/runs?limit=10'), axios.get('/api/kiwoom/strategy/config')]); watchlist.value = watch.data; runs.value = history.data; config.value = strategyConfig.data } catch (e) { error.value = e.response?.data?.message || '전략 데이터를 불러오지 못했습니다.' } finally { loading.value = false } }
+async function load () { loading.value = true; try { const [universe, history, strategyConfig] = await Promise.all([axios.get('/api/kiwoom/strategy/universe'), axios.get('/api/kiwoom/strategy/runs?limit=10'), axios.get('/api/kiwoom/strategy/config')]); candidates.value = universe.data; runs.value = history.data; config.value = strategyConfig.data } catch (e) { error.value = e.response?.data?.message || '전략 데이터를 불러오지 못했습니다.' } finally { loading.value = false } }
 async function decide () { pending.value = true; error.value = ''; try { await axios.post('/api/kiwoom/strategy/decide'); await load() } catch (e) { error.value = e.response?.data?.message || '전략 판단에 실패했습니다.' } finally { pending.value = false } }
-async function addWatch () { const query = /^\d{6}$/.test(code.value) ? code.value : (name.value || code.value); if (!query) { error.value = '종목코드 또는 종목명을 입력하세요.'; return } pending.value = true; error.value = ''; try { let stockCode = query; let stockName = ''; if (!/^\d{6}$/.test(query)) { const { data } = await axios.get('/api/stock/search', { params: { q: query } }); const exact = data.filter((item) => item.market === 'KR' && item.name === query); if (exact.length !== 1) { error.value = exact.length > 1 ? '같은 이름의 종목이 여러 개입니다. 종목코드를 입력하세요.' : '국내 종목명을 찾지 못했습니다.'; return } stockCode = exact[0].symbol.replace(/\.(KS|KQ)$/i, ''); stockName = exact[0].name } await axios.post('/api/kiwoom/strategy/watchlist', { stockCode, stockName, note: note.value }); code.value = ''; name.value = ''; note.value = ''; await load() } catch (e) { error.value = e.response?.data?.message || '관심종목을 추가하지 못했습니다.' } finally { pending.value = false } }
-async function removeWatch (id) { pending.value = true; try { await axios.delete(`/api/kiwoom/strategy/watchlist/${id}`); await load() } catch { error.value = '관심종목을 삭제하지 못했습니다.' } finally { pending.value = false } }
 async function approve (id) { await action(`/api/kiwoom/strategy/proposals/${id}/approve`) }
 async function draft (id) { await action(`/api/kiwoom/strategy/proposals/${id}/draft`) }
 async function editDraft (proposal) { const quantity = Number(window.prompt('주문 수량을 입력하세요.', proposal.quantity)); if (!Number.isInteger(quantity) || quantity <= 0) return; const limitPrice = Number(window.prompt('지정가를 입력하세요.', proposal.limitPrice)); if (!Number.isInteger(limitPrice) || limitPrice <= 0) return; pending.value = true; error.value = ''; try { await axios.patch(`/api/kiwoom/strategy/proposals/${proposal.id}/draft`, { quantity, limitPrice }); await load() } catch (e) { error.value = e.response?.data?.message || '주문 초안을 수정하지 못했습니다.' } finally { pending.value = false } }
@@ -204,5 +182,8 @@ onMounted(async () => { await load(); await loadOperations() })
 </script>
 
 <style scoped>
-.strategy-panel{margin:14px 0;color:var(--text-primary);background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:18px}.header-actions{display:flex;gap:6px;flex-shrink:0}.risk-strip{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0;padding:8px 10px;border:1px solid var(--card-border);border-radius:10px;font-size:.78rem}.risk-strip small{color:var(--text-muted)}.risk-strip button{margin-left:auto;padding:4px 8px;font-size:.75rem}.risk-triggered{background:#5a2323;color:#ffb4b4;border-radius:99px;padding:4px 9px;font-weight:700}.risk-loop{background:#30343a;color:#d9dce0;border-radius:99px;padding:4px 9px}.risk-loop.on{background:#1f3a2a;color:#9fe2b8}.strategy-panel header{display:flex;align-items:center;justify-content:space-between}.strategy-panel h3{margin:4px 0}.strategy-panel header small{color:var(--accent);font-weight:800;letter-spacing:.1em}.strategy-panel em{font-style:normal;color:#e9b664;font-size:.7rem;margin-left:6px}.strategy-panel button{cursor:pointer;border:1px solid var(--card-border-strong);border-radius:8px;padding:7px 10px;background:transparent;color:var(--text-primary)}.strategy-panel button:disabled{opacity:.5;cursor:not-allowed}.notice,.error{padding:10px;border-radius:8px;font-size:.82rem}.notice{background:#3c3424;color:#f2ce8b}.error{background:#482424;color:#ffb4b4}.watch-form{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:7px;margin:12px 0}.watch-form input{min-width:0;border:1px solid var(--card-border);border-radius:8px;padding:8px;background:transparent;color:inherit}.watch-list{display:flex;flex-wrap:wrap;gap:6px}.watch-list span{background:#1f2924;border-radius:99px;font-size:.77rem;padding:5px 8px}.watch-list span button{border:0;padding:0 0 0 5px;color:#ff9f9f}.watch-list small,.empty{color:var(--text-muted)}.runs{margin-top:15px}.runs article{border-top:1px solid var(--card-border);padding:12px 0}.run-meta{display:flex;gap:8px;align-items:center}.run-meta b{font-size:.7rem;background:#303a34;padding:3px 6px;border-radius:5px}.run-meta small{color:var(--text-muted)}.runs p{font-size:.84rem;margin:7px 0}.proposals{display:flex;flex-wrap:wrap;gap:7px}.proposal{border-radius:8px;padding:7px;font-size:.76rem;display:flex;gap:5px;flex-wrap:wrap}.proposal small{width:100%;opacity:.8}.proposal.BUY{background:#4a2626;color:#ffbab4}.proposal.SELL{background:#213853;color:#b9d7ff}.proposal.HOLD{background:#30343a;color:#d9dce0}.workflow-actions{display:flex;gap:5px;width:100%;margin-top:4px}.workflow-actions button{padding:4px 6px;font-size:.75rem}@media(max-width:700px){.watch-form{grid-template-columns:1fr 1fr}.watch-form input:last-of-type{grid-column:span 2}}
+.strategy-panel{margin:14px 0;color:var(--text-primary);background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:18px}.header-actions{display:flex;gap:6px;flex-shrink:0}.risk-strip{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0;padding:8px 10px;border:1px solid var(--card-border);border-radius:10px;font-size:.78rem}.risk-strip small{color:var(--text-muted)}.risk-strip button{margin-left:auto;padding:4px 8px;font-size:.75rem}.risk-triggered{background:#5a2323;color:#ffb4b4;border-radius:99px;padding:4px 9px;font-weight:700}.risk-loop{background:#30343a;color:#d9dce0;border-radius:99px;padding:4px 9px}.risk-loop.on{background:#1f3a2a;color:#9fe2b8}.strategy-panel header{display:flex;align-items:center;justify-content:space-between}.strategy-panel h3{margin:4px 0}.strategy-panel header small{color:var(--accent);font-weight:800;letter-spacing:.1em}.strategy-panel em{font-style:normal;color:#e9b664;font-size:.7rem;margin-left:6px}.strategy-panel button{cursor:pointer;border:1px solid var(--card-border-strong);border-radius:8px;padding:7px 10px;background:transparent;color:var(--text-primary)}.strategy-panel button:disabled{opacity:.5;cursor:not-allowed}.notice,.error{padding:10px;border-radius:8px;font-size:.82rem}.notice{background:#3c3424;color:#f2ce8b}.error{background:#482424;color:#ffb4b4}.candidate-list{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.candidate-chip{display:inline-flex;align-items:center;gap:5px;background:#1f2924;border-radius:99px;font-size:.77rem;padding:5px 9px}.empty{color:var(--text-muted)}.runs{margin-top:15px}.runs article{border-top:1px solid var(--card-border);padding:12px 0}.run-meta{display:flex;gap:8px;align-items:center}.run-meta b{font-size:.7rem;background:#303a34;padding:3px 6px;border-radius:5px}.run-meta small{color:var(--text-muted)}.runs p{font-size:.84rem;margin:7px 0}.proposals{display:flex;flex-wrap:wrap;gap:7px}.proposal{border-radius:8px;padding:7px;font-size:.76rem;display:flex;gap:5px;flex-wrap:wrap}.proposal small{width:100%;opacity:.8}.proposal.BUY{background:#4a2626;color:#ffbab4}.proposal.SELL{background:#213853;color:#b9d7ff}.proposal.HOLD{background:#30343a;color:#d9dce0}.workflow-actions{display:flex;gap:5px;width:100%;margin-top:4px}.workflow-actions button{padding:4px 6px;font-size:.75rem}
 </style>
+
+<!-- .change-badge 색상 클래스는 전역 stock.css에 정의됨 (Top10Panel.vue와 동일 패턴) -->
+<style src="@/assets/css/stock.css" scoped></style>
