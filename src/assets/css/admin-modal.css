@@ -289,6 +289,63 @@ body::-webkit-scrollbar-track,
   word-break: break-word;
 }
 
+/* ---- 설정 폼 (라벨 + 입력 행 — 본문을 채우고 자체 스크롤) ---- */
+.amodal-form {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding-right: 0.25rem;
+}
+
+.amodal-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.amodal-field > label {
+  font-size: 0.84rem;
+  color: #ccc;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.amodal-field-hint {
+  display: block;
+  font-size: 0.74rem;
+  color: #777;
+}
+
+.amodal-input {
+  width: 140px;
+  flex-shrink: 0;
+  background: #0e0e15;
+  border: 1px solid #2f2f3d;
+  border-radius: 8px;
+  color: #ddd;
+  font-size: 0.85rem;
+  padding: 0.45rem 0.6rem;
+  box-sizing: border-box;
+  text-align: right;
+}
+
+.amodal-input:focus {
+  outline: none;
+  border-color: #7c6fff;
+}
+
+.amodal-check {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: #7c6fff;
+  cursor: pointer;
+}
+
 /* ---- 푸터 + 버튼 ---- */
 .amodal-foot {
   display: flex;
