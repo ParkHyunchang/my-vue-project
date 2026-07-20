@@ -229,6 +229,14 @@ function close () {
   emit('close')
 }
 
+// 백엔드 예외는 GlobalExceptionHandler가 문자열 그대로 반환한다(admin-prompt-management.vue와 동일 패턴).
+// 그 외(예: Jackson 역직렬화 실패 등 스프링 기본 에러 응답)는 message 필드가 아예 없을 수 있어 기본 문구로 대체한다.
+function extractErrorMessage (e, fallback) {
+  const data = e.response?.data
+  if (typeof data === 'string' && data) return data
+  return data?.message || fallback
+}
+
 async function save () {
   saving.value = true
   error.value = ''
@@ -236,7 +244,7 @@ async function save () {
     await axios.patch('/api/kiwoom/strategy/settings', { ...form.value, prompt })
     emit('saved')
   } catch (e) {
-    error.value = e.response?.data?.message || '설정을 저장하지 못했습니다.'
+    error.value = extractErrorMessage(e, '설정을 저장하지 못했습니다.')
   } finally {
     saving.value = false
   }
@@ -258,7 +266,7 @@ onMounted(async () => {
     }
     original.value = JSON.stringify(form.value)
   } catch (e) {
-    error.value = e.response?.data?.message || '설정을 불러오지 못했습니다.'
+    error.value = extractErrorMessage(e, '설정을 불러오지 못했습니다.')
   } finally {
     loading.value = false
   }
