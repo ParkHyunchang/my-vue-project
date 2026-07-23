@@ -83,6 +83,20 @@
                   class="amodal-input"
                 >
               </div>
+              <div class="amodal-field">
+                <label for="ks-daily">하루 매수·매도 제안 한도 (건)
+                  <span class="amodal-field-hint">오늘 생성된 BUY+SELL 제안(상태 무관)이 이 건수에 도달하면 신규 제안이 안전 경고로 막힙니다. (1~200)</span>
+                </label>
+                <input
+                  id="ks-daily"
+                  v-model.number="form.dailyMaxProposals"
+                  type="number"
+                  min="1"
+                  max="200"
+                  step="1"
+                  class="amodal-input"
+                >
+              </div>
 
               <p class="amodal-section-label">
                 손절 · 익절 · 보유기간
@@ -207,7 +221,7 @@ defineProps({ dryRun: Boolean })
 const emit = defineEmits(['close', 'saved'])
 
 const loading = ref(true), saving = ref(false), error = ref('')
-const form = ref({ autoExecute: false, autoExecuteMinConfidence: 85, maxBuyDepositPercent: 10, swingStopLossPercent: 3, swingTakeProfitPercent: 6, swingMaxHoldingDays: 5, riskLoopEnabled: false, dailyLossLimitAmount: 0 })
+const form = ref({ autoExecute: false, autoExecuteMinConfidence: 85, maxBuyDepositPercent: 10, dailyMaxProposals: 10, swingStopLossPercent: 3, swingTakeProfitPercent: 6, swingMaxHoldingDays: 5, riskLoopEnabled: false, dailyLossLimitAmount: 0 })
 const original = ref('')
 // 서버의 PATCH 는 prompt 를 항상 저장한다(비면 기본 지침으로 덮어씀) — 조회한 값을 그대로 되돌려보내 커스텀 프롬프트 유실을 막는다.
 let prompt = ''
@@ -220,6 +234,7 @@ const validationError = computed(() => {
     if (typeof v !== 'number' || Number.isNaN(v) || v < 0 || v > 100) return `${label}은 0~100 사이 값이어야 합니다.`
   }
   if (!Number.isInteger(f.swingMaxHoldingDays) || f.swingMaxHoldingDays < 1 || f.swingMaxHoldingDays > 30) return '최대 보유일은 1~30 사이 정수여야 합니다.'
+  if (!Number.isInteger(f.dailyMaxProposals) || f.dailyMaxProposals < 1 || f.dailyMaxProposals > 200) return '하루 제안 한도는 1~200 사이 정수여야 합니다.'
   if (!Number.isInteger(f.dailyLossLimitAmount) || f.dailyLossLimitAmount < 0) return '일일 손실 한도는 0 이상의 정수(원)여야 합니다.'
   return ''
 })
@@ -258,6 +273,7 @@ onMounted(async () => {
       autoExecute: !!data.autoExecute,
       autoExecuteMinConfidence: data.autoExecuteMinConfidence ?? 85,
       maxBuyDepositPercent: data.maxBuyDepositPercent ?? 10,
+      dailyMaxProposals: data.dailyMaxProposals ?? 10,
       swingStopLossPercent: data.swingStopLossPercent ?? 3,
       swingTakeProfitPercent: data.swingTakeProfitPercent ?? 6,
       swingMaxHoldingDays: data.swingMaxHoldingDays ?? 5,
