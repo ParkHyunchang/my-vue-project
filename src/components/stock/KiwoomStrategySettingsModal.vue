@@ -51,9 +51,13 @@
                 ⚠ 자동 전송이 켜지면 신뢰도 기준을 넘는 지정가 제안이 사람 확인 없이 전송됩니다.
                 {{ dryRun ? '현재는 dry-run 상태라 실제 주문은 나가지 않습니다.' : '현재 실주문 전송이 활성화되어 있습니다.' }}
               </div>
-              <div class="amodal-field">
+              <div class="amodal-field amodal-field-wide">
                 <label for="ks-conf">자동 전송 최소 신뢰도 (%)
-                  <span class="amodal-field-hint">이 값보다 낮은 신뢰도의 제안은 자동 전송하지 않습니다. (0~100)</span>
+                  <span class="amodal-field-hint">
+                    이 값보다 낮은 신뢰도의 제안은 자동 전송하지 않습니다. (0~100)<br>
+                    신뢰도는 AI가 매 제안마다 스스로 매기는 확신 점수입니다 — 근거가 약하거나 데이터가 애매하면 40 이하, 표준 조건을 충족하면 50~70, 여러 지표가 강하게 겹치면 80 이상으로 판단합니다.<br>
+                    이 임계값은 <b>자동 전송 여부만</b> 결정합니다 — 미만이거나 안전 경고(장외시간·예산초과·일일한도 등)가 붙은 제안은 자동 전송 없이 그대로 남아 승인/거절 버튼으로 수동 처리해야 합니다. 즉 값을 낮추면 더 많은 제안이 자동으로 나가고, 높이면 확신이 아주 강한 것만 자동으로 나갑니다.
+                  </span>
                 </label>
                 <input
                   id="ks-conf"
@@ -288,3 +292,15 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style scoped>
+/* 설명이 긴 필드는 amodal-field의 좌우 배치 대신 세로로 쌓아 가독성을 확보한다. */
+.amodal-field-wide {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.amodal-field-wide .amodal-input {
+  align-self: flex-end;
+}
+</style>

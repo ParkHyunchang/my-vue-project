@@ -413,6 +413,10 @@ body::-webkit-scrollbar-track,
     padding: 0.75rem 0.6rem;
   }
   .amodal-box {
+    /* 모바일 브라우저의 100vh는 주소창 등 UI가 접히기 전 최대 높이 기준이라 실제 보이는
+       영역보다 커서 하단(footer 버튼)이 화면 밖으로 밀려날 수 있다. dvh를 지원하는 브라우저는
+       실제 뷰포트 기준으로 다시 계산해 덮어쓴다(미지원 브라우저는 위 vh 값을 그대로 씀). */
     height: calc(100vh - 1.5rem);
+    height: calc(100dvh - 1.5rem);
   }
 }
