@@ -60,6 +60,9 @@
     >
       {{ error }}
     </p>
+    <p class="usage-summary">
+      오늘 AI 호출 {{ todayUsage.calls }}회 · 추정 입력 {{ todayUsage.input.toLocaleString() }} / 출력 {{ todayUsage.output.toLocaleString() }} 토큰
+    </p>
     <div class="candidate-list">
       <span
         v-for="c in candidates"
@@ -190,6 +193,13 @@ const groupedRuns = computed(() => {
     groups[groups.length - 1].items.push(run)
   }
   return groups
+})
+const todayUsage = computed(() => {
+  const today = dateKey(new Date())
+  return runs.value.filter(run => dateKey(run.createdAt) === today && run.aiCalled).reduce(
+    (total, run) => ({ calls: total.calls + 1, input: total.input + Number(run.inputTokens || 0), output: total.output + Number(run.outputTokens || 0) }),
+    { calls: 0, input: 0, output: 0 }
+  )
 })
 const GUARD_LABELS = { MAX_ORDER_AMOUNT: '주문한도 초과', DAILY_LIMIT: '일일 제안 한도', SYMBOL_COOLDOWN: '재제안 쿨다운', MARKET_CLOSED: '장외 시간', INSUFFICIENT_DEPOSIT: '예수금 부족', MAX_BUY_BUDGET: '매수 비율 한도 초과', DAILY_LOSS_LIMIT: '일일 손실 한도' }
 const guardText = (flags) => (flags || '').split(',').filter(Boolean).map((f) => GUARD_LABELS[f] || f).join(', ')
