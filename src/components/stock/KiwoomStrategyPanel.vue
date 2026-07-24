@@ -78,70 +78,78 @@
         <div class="run-date-divider">
           <span>{{ group.label }}</span>
         </div>
-        <article
-          v-for="run in group.items"
-          :key="run.id"
+        <template
+          v-for="item in group.items"
+          :key="item.key"
         >
-          <div class="run-meta">
-            <b>{{ run.status }}</b><small>{{ date(run.createdAt) }} · {{ run.triggeredBy }}</small>
-          </div><p>{{ run.marketView || run.errorMessage || '생성된 제안이 없습니다.' }}</p><div class="proposals">
-            <div
-              v-for="proposal in run.proposals"
-              :key="proposal.id"
-              :class="['proposal', proposal.action]"
-            >
-              <b>{{ proposal.action }}</b><span>{{ proposal.stockName }} ({{ proposal.stockCode }})</span><span v-if="proposal.quantity">{{ proposal.quantity.toLocaleString() }}주</span><span v-if="proposal.limitPrice">{{ proposal.limitPrice.toLocaleString() }}원</span><small>{{ proposal.confidence }}% · {{ proposal.reason }}</small><small
-                v-if="proposal.guardFlags"
-                class="guards"
-              >안전 경고: {{ guardText(proposal.guardFlags) }}</small><small>상태: {{ proposal.status }}</small><div class="workflow-actions">
-                <button
-                  v-if="canApprove(proposal)"
-                  :disabled="pending"
-                  @click="approve(proposal.id)"
-                >
-                  승인
-                </button><button
-                  v-if="canReject(proposal)"
-                  :disabled="pending"
-                  @click="reject(proposal.id)"
-                >
-                  거절
-                </button><button
-                  v-if="proposal.status === 'APPROVED'"
-                  :disabled="pending"
-                  @click="draft(proposal.id)"
-                >
-                  주문 초안
-                </button><button
-                  v-if="proposal.status === 'ORDER_DRAFT'"
-                  :disabled="pending"
-                  @click="editDraft(proposal)"
-                >
-                  수량·가격 수정
-                </button><button
-                  v-if="proposal.status === 'ORDER_DRAFT'"
-                  :disabled="pending || !config.orderEnabled"
-                  :title="config.orderEnabled ? '키움 주문을 전송합니다.' : '주문 전송은 비활성화되어 있습니다.'"
-                  @click="execute(proposal)"
-                >
-                  최종 주문 확인
-                </button><button
-                  v-if="['ORDERED', 'PARTIALLY_FILLED'].includes(proposal.status)"
-                  :disabled="pending || !config.orderEnabled || operations.emergencyStopped"
-                  @click="amendOrder(proposal)"
-                >
-                  주문 정정
-                </button><button
-                  v-if="['ORDERED', 'PARTIALLY_FILLED'].includes(proposal.status)"
-                  :disabled="pending"
-                  @click="cancelOrder(proposal)"
-                >
-                  주문 취소
-                </button>
-              </div><small v-if="proposal.status === 'ORDERED'">주문 전송됨</small><small v-if="proposal.status === 'CANCEL_REQUESTED'">취소 요청됨 · 주문 상태 동기화 대기 중</small><small v-if="proposal.status === 'CANCELED'">주문 취소됨</small><small v-if="proposal.status === 'REJECTED'">거절됨 · {{ proposal.rejectionReason }}</small><small v-if="proposal.status === 'ORDER_FAILED'">전송 실패: {{ proposal.errorMessage }}</small>
+          <p
+            v-if="item.type === 'skipped-group'"
+            class="run-skipped-group"
+          >
+            변경 없음으로 건너뜀 {{ item.count }}건 · {{ date(item.from) }} ~ {{ date(item.to) }}
+          </p>
+          <article v-else>
+            <div class="run-meta">
+              <b>{{ item.run.status }}</b><small>{{ date(item.run.createdAt) }} · {{ item.run.triggeredBy }}</small>
+            </div><p>{{ item.run.marketView || item.run.errorMessage || '생성된 제안이 없습니다.' }}</p><div class="proposals">
+              <div
+                v-for="proposal in item.run.proposals"
+                :key="proposal.id"
+                :class="['proposal', proposal.action]"
+              >
+                <b>{{ proposal.action }}</b><span>{{ proposal.stockName }} ({{ proposal.stockCode }})</span><span v-if="proposal.quantity">{{ proposal.quantity.toLocaleString() }}주</span><span v-if="proposal.limitPrice">{{ proposal.limitPrice.toLocaleString() }}원</span><small>{{ proposal.confidence }}% · {{ proposal.reason }}</small><small
+                  v-if="proposal.guardFlags"
+                  class="guards"
+                >안전 경고: {{ guardText(proposal.guardFlags) }}</small><small>상태: {{ proposal.status }}</small><div class="workflow-actions">
+                  <button
+                    v-if="canApprove(proposal)"
+                    :disabled="pending"
+                    @click="approve(proposal.id)"
+                  >
+                    승인
+                  </button><button
+                    v-if="canReject(proposal)"
+                    :disabled="pending"
+                    @click="reject(proposal.id)"
+                  >
+                    거절
+                  </button><button
+                    v-if="proposal.status === 'APPROVED'"
+                    :disabled="pending"
+                    @click="draft(proposal.id)"
+                  >
+                    주문 초안
+                  </button><button
+                    v-if="proposal.status === 'ORDER_DRAFT'"
+                    :disabled="pending"
+                    @click="editDraft(proposal)"
+                  >
+                    수량·가격 수정
+                  </button><button
+                    v-if="proposal.status === 'ORDER_DRAFT'"
+                    :disabled="pending || !config.orderEnabled"
+                    :title="config.orderEnabled ? '키움 주문을 전송합니다.' : '주문 전송은 비활성화되어 있습니다.'"
+                    @click="execute(proposal)"
+                  >
+                    최종 주문 확인
+                  </button><button
+                    v-if="['ORDERED', 'PARTIALLY_FILLED'].includes(proposal.status)"
+                    :disabled="pending || !config.orderEnabled || operations.emergencyStopped"
+                    @click="amendOrder(proposal)"
+                  >
+                    주문 정정
+                  </button><button
+                    v-if="['ORDERED', 'PARTIALLY_FILLED'].includes(proposal.status)"
+                    :disabled="pending"
+                    @click="cancelOrder(proposal)"
+                  >
+                    주문 취소
+                  </button>
+                </div><small v-if="proposal.status === 'ORDERED'">주문 전송됨</small><small v-if="proposal.status === 'CANCEL_REQUESTED'">취소 요청됨 · 주문 상태 동기화 대기 중</small><small v-if="proposal.status === 'CANCELED'">주문 취소됨</small><small v-if="proposal.status === 'REJECTED'">거절됨 · {{ proposal.rejectionReason }}</small><small v-if="proposal.status === 'ORDER_FAILED'">전송 실패: {{ proposal.errorMessage }}</small>
+              </div>
             </div>
-          </div>
-        </article>
+          </article>
+        </template>
       </template><p
         v-if="!loading && !runs.length"
         class="empty"
@@ -181,6 +189,8 @@ function dateLabel (value) {
   if (diffDays === 1) return '어제'
   return d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })
 }
+// SKIPPED(후보 변경 없어 AI 호출 생략)는 15분마다 쌓여 스크롤만 늘리므로
+// 연속된 구간을 한 줄 요약으로 접는다. 실제로 의미 있는 판단(SUCCESS/FAILED/BLOCKED 등)은 그대로 카드로 보여준다.
 const groupedRuns = computed(() => {
   const groups = []
   let currentKey = null
@@ -190,7 +200,19 @@ const groupedRuns = computed(() => {
       groups.push({ key, label: dateLabel(run.createdAt), items: [] })
       currentKey = key
     }
-    groups[groups.length - 1].items.push(run)
+    const items = groups[groups.length - 1].items
+    const last = items[items.length - 1]
+    if (run.status === 'SKIPPED') {
+      // runs는 최신순(id desc)이라 그룹 내 첫 SKIPPED가 구간의 최신 시각(to), 이후 더 과거로 갈수록 from을 갱신한다.
+      if (last && last.type === 'skipped-group') {
+        last.count++
+        last.from = run.createdAt
+      } else {
+        items.push({ type: 'skipped-group', key: `skip-${run.id}`, count: 1, to: run.createdAt, from: run.createdAt })
+      }
+    } else {
+      items.push({ type: 'run', key: run.id, run })
+    }
   }
   return groups
 })
@@ -225,7 +247,7 @@ onMounted(async () => { await load(); await loadOperations() })
 </script>
 
 <style scoped>
-.strategy-panel{margin:14px 0;color:var(--text-primary);background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:18px}.header-actions{display:flex;gap:6px;flex-shrink:0}.risk-strip{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0;padding:8px 10px;border:1px solid var(--card-border);border-radius:10px;font-size:.78rem}.risk-strip small{color:var(--text-muted)}.risk-strip button{margin-left:auto;padding:4px 8px;font-size:.75rem}.risk-triggered{background:#5a2323;color:#ffb4b4;border-radius:99px;padding:4px 9px;font-weight:700}.risk-loop{background:#30343a;color:#d9dce0;border-radius:99px;padding:4px 9px}.risk-loop.on{background:#1f3a2a;color:#9fe2b8}.strategy-panel header{display:flex;align-items:center;justify-content:space-between}.strategy-panel h3{margin:4px 0}.strategy-panel header small{color:var(--accent);font-weight:800;letter-spacing:.1em}.strategy-panel em{font-style:normal;color:#e9b664;font-size:.7rem;margin-left:6px}.strategy-panel button{cursor:pointer;border:1px solid var(--card-border-strong);border-radius:8px;padding:7px 10px;background:transparent;color:var(--text-primary)}.strategy-panel button:disabled{opacity:.5;cursor:not-allowed}.notice,.error{padding:10px;border-radius:8px;font-size:.82rem}.notice{background:#3c3424;color:#f2ce8b}.error{background:#482424;color:#ffb4b4}.candidate-list{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.candidate-chip{display:inline-flex;align-items:center;gap:5px;background:#1f2924;border-radius:99px;font-size:.77rem;padding:5px 9px}.empty{color:var(--text-muted)}.runs{margin-top:15px}.run-date-divider{display:flex;align-items:center;gap:8px;margin:14px 0 4px}.run-date-divider span{font-size:.72rem;font-weight:800;color:var(--accent);letter-spacing:.05em;background:var(--card-bg);white-space:nowrap}.run-date-divider::after{content:"";flex:1;height:1px;background:var(--card-border)}.runs article{border-top:1px solid var(--card-border);padding:12px 0}.run-meta{display:flex;gap:8px;align-items:center}.run-meta b{font-size:.7rem;background:#303a34;padding:3px 6px;border-radius:5px}.run-meta small{color:var(--text-muted)}.runs p{font-size:.84rem;margin:7px 0}.proposals{display:flex;flex-wrap:wrap;gap:7px}.proposal{border-radius:8px;padding:7px;font-size:.76rem;display:flex;gap:5px;flex-wrap:wrap}.proposal small{width:100%;opacity:.8}.proposal.BUY{background:#4a2626;color:#ffbab4}.proposal.SELL{background:#213853;color:#b9d7ff}.proposal.HOLD{background:#30343a;color:#d9dce0}.workflow-actions{display:flex;gap:5px;width:100%;margin-top:4px}.workflow-actions button{padding:4px 6px;font-size:.75rem}
+.strategy-panel{margin:14px 0;color:var(--text-primary);background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:18px}.header-actions{display:flex;gap:6px;flex-shrink:0}.risk-strip{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0;padding:8px 10px;border:1px solid var(--card-border);border-radius:10px;font-size:.78rem}.risk-strip small{color:var(--text-muted)}.risk-strip button{margin-left:auto;padding:4px 8px;font-size:.75rem}.risk-triggered{background:#5a2323;color:#ffb4b4;border-radius:99px;padding:4px 9px;font-weight:700}.risk-loop{background:#30343a;color:#d9dce0;border-radius:99px;padding:4px 9px}.risk-loop.on{background:#1f3a2a;color:#9fe2b8}.strategy-panel header{display:flex;align-items:center;justify-content:space-between}.strategy-panel h3{margin:4px 0}.strategy-panel header small{color:var(--accent);font-weight:800;letter-spacing:.1em}.strategy-panel em{font-style:normal;color:#e9b664;font-size:.7rem;margin-left:6px}.strategy-panel button{cursor:pointer;border:1px solid var(--card-border-strong);border-radius:8px;padding:7px 10px;background:transparent;color:var(--text-primary)}.strategy-panel button:disabled{opacity:.5;cursor:not-allowed}.notice,.error{padding:10px;border-radius:8px;font-size:.82rem}.notice{background:#3c3424;color:#f2ce8b}.error{background:#482424;color:#ffb4b4}.candidate-list{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.candidate-chip{display:inline-flex;align-items:center;gap:5px;background:#1f2924;border-radius:99px;font-size:.77rem;padding:5px 9px}.empty{color:var(--text-muted)}.runs{margin-top:15px}.run-date-divider{display:flex;align-items:center;gap:8px;margin:14px 0 4px}.run-date-divider span{font-size:.72rem;font-weight:800;color:var(--accent);letter-spacing:.05em;background:var(--card-bg);white-space:nowrap}.run-date-divider::after{content:"";flex:1;height:1px;background:var(--card-border)}.runs article{border-top:1px solid var(--card-border);padding:12px 0}.run-skipped-group{border-top:1px solid var(--card-border);padding:8px 0;margin:0;color:var(--text-muted);font-size:.76rem}.run-meta{display:flex;gap:8px;align-items:center}.run-meta b{font-size:.7rem;background:#303a34;padding:3px 6px;border-radius:5px}.run-meta small{color:var(--text-muted)}.runs p{font-size:.84rem;margin:7px 0}.proposals{display:flex;flex-wrap:wrap;gap:7px}.proposal{border-radius:8px;padding:7px;font-size:.76rem;display:flex;gap:5px;flex-wrap:wrap}.proposal small{width:100%;opacity:.8}.proposal.BUY{background:#4a2626;color:#ffbab4}.proposal.SELL{background:#213853;color:#b9d7ff}.proposal.HOLD{background:#30343a;color:#d9dce0}.workflow-actions{display:flex;gap:5px;width:100%;margin-top:4px}.workflow-actions button{padding:4px 6px;font-size:.75rem}
 </style>
 
 <!-- .change-badge 색상 클래스는 전역 stock.css에 정의됨 (Top10Panel.vue와 동일 패턴) -->
