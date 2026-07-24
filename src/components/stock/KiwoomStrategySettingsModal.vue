@@ -49,7 +49,7 @@
                 class="amodal-note"
               >
                 ⚠ 자동 전송이 켜지면 신뢰도 기준을 넘는 지정가 제안이 사람 확인 없이 전송됩니다.
-                {{ dryRun ? '현재는 dry-run 상태라 실제 주문은 나가지 않습니다.' : '현재 실주문 전송이 활성화되어 있습니다.' }}
+                {{ orderEnabled ? '현재 실주문 전송이 활성화되어 있습니다.' : '서버 주문 전송이 비활성화되어 있습니다.' }}
               </div>
               <div class="amodal-field amodal-field-wide">
                 <label for="ks-conf">자동 전송 최소 신뢰도 (%)
@@ -221,7 +221,7 @@
 import { computed, onMounted, ref } from 'vue'
 import axios from '@/axios'
 
-defineProps({ dryRun: Boolean })
+defineProps({ orderEnabled: Boolean })
 const emit = defineEmits(['close', 'saved'])
 
 const loading = ref(true), saving = ref(false), error = ref('')

@@ -23,7 +23,7 @@
       주문 상태 동기화
     </button>
     <header>
-      <div><small>KIWOOM STRATEGY</small><h3>AI 전략 제안 <em>{{ config.dryRun ? 'DRY-RUN' : 'ORDER ENABLED' }}</em></h3></div><div class="header-actions">
+      <div><small>KIWOOM STRATEGY</small><h3>AI 전략 제안 <em>{{ config.orderEnabled ? 'ORDER ENABLED' : 'ORDER DISABLED' }}</em></h3></div><div class="header-actions">
         <button
           :disabled="pending"
           @click="showSettings = true"
@@ -159,7 +159,7 @@
     </div>
     <KiwoomStrategySettingsModal
       v-if="showSettings"
-      :dry-run="config.dryRun"
+      :order-enabled="config.orderEnabled"
       @close="showSettings = false"
       @saved="onSettingsSaved"
     />
@@ -175,7 +175,7 @@ import { useStockFormatters } from '@/composables/useStockFormatters'
 defineProps({ configured: Boolean })
 const { formatChangePct, changeClass } = useStockFormatters()
 const candidates = ref([]), runs = ref([])
-const config = ref({ orderEnabled: false, dryRun: true, autoExecute: false, autoExecuteMinConfidence: 85 }), operations = ref({ emergencyStopped: false }), pending = ref(false), loading = ref(false), error = ref(''), showSettings = ref(false)
+const config = ref({ orderEnabled: false, autoExecute: false, autoExecuteMinConfidence: 85 }), operations = ref({ emergencyStopped: false }), pending = ref(false), loading = ref(false), error = ref(''), showSettings = ref(false)
 const date = (value) => value ? new Date(value).toLocaleString('ko-KR', { hour12: false }) : ''
 // "지금 판단"을 눌러도 예전 기록과 섞여 전부 방금 일어난 것처럼 보이는 걸 막기 위해 날짜별로 묶어
 // 구분선을 둔다. 서버가 최근 3일치만 남기므로(KiwoomStrategyHistoryCleanupService) 그룹 수는 최대 3~4개.
