@@ -1,0 +1,32 @@
+.sj-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px;
+}
+@media (max-width: 640px) {
+  .sj-container { padding: 16px; }
+}
+.page-header { margin-bottom: 16px; }
+.page-header h2 { margin: 0 0 4px; font-size: 22px; color: var(--text-primary); }
+.page-subtitle { margin: 0; font-size: 13px; color: var(--text-muted); }
+
+.sj-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.sj-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text-muted);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.sj-tab-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-on-accent);
+}
+.sj-tab-icon { font-size: 15px; }
