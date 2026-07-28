@@ -1,180 +1,232 @@
 <template>
-  <!-- body 로 teleport — scoped CSS 가 적용되지 않으므로 전역 admin-modal.css 의 amodal-* 만 사용한다. -->
   <teleport to="body">
     <div
       class="amodal-overlay"
       data-lenis-prevent
       @click.self="close"
     >
-      <div class="amodal-box">
+      <div class="amodal-box trade-settings-modal">
         <div class="amodal-head">
           <div>
-            <h2>전략 설정</h2>
-            <span :class="['amodal-badge', form.autoExecute ? 'amodal-badge-on' : 'amodal-badge-off']">자동 전송 {{ form.autoExecute ? 'ON' : 'OFF' }}</span>
+            <h2>매매 규칙 설정</h2>
+            <span :class="['amodal-badge', form.autoExecute ? 'amodal-badge-on' : 'amodal-badge-off']">
+              자동 주문 {{ form.autoExecute ? '켜짐' : '꺼짐' }}
+            </span>
           </div>
           <button
             class="amodal-close"
             aria-label="닫기"
             @click="close"
           >
-            ✕
+            ×
           </button>
         </div>
 
         <div class="amodal-body">
-          <div
+          <p
             v-if="loading"
             class="amodal-desc"
           >
-            불러오는 중...
-          </div>
+            설정을 불러오는 중...
+          </p>
           <template v-else>
+            <div class="easy-guide">
+              <b>숫자만 바꾸면 됩니다.</b>
+              <span>저장하기를 눌러야 실제 매매 규칙에 적용됩니다.</span>
+            </div>
+
             <div class="amodal-form thin-scrollbar">
-              <p class="amodal-section-label">
-                자동 전송
-              </p>
-              <div class="amodal-field">
-                <label for="ks-auto">자동 주문 전송 (autoExecute)
-                  <span class="amodal-field-hint">예약 판단·리스크 청산 제안을 승인 없이 키움에 전송합니다.</span>
-                </label>
-                <input
-                  id="ks-auto"
-                  v-model="form.autoExecute"
-                  type="checkbox"
-                  class="amodal-check"
-                >
-              </div>
-              <div
-                v-if="form.autoExecute"
-                class="amodal-note"
-              >
-                ⚠ 자동 전송이 켜지면 신뢰도 기준을 넘는 지정가 제안이 사람 확인 없이 전송됩니다.
-                {{ orderEnabled ? '현재 실주문 전송이 활성화되어 있습니다.' : '서버 주문 전송이 비활성화되어 있습니다.' }}
-              </div>
-              <div class="amodal-field amodal-field-wide">
-                <label for="ks-conf">자동 전송 최소 신뢰도 (%)
-                  <span class="amodal-field-hint">
-                    이 값보다 낮은 신뢰도의 제안은 자동 전송하지 않습니다. (0~100)<br>
-                    신뢰도는 AI가 매 제안마다 스스로 매기는 확신 점수입니다 — 근거가 약하거나 데이터가 애매하면 40 이하, 표준 조건을 충족하면 50~70, 여러 지표가 강하게 겹치면 80 이상으로 판단합니다.<br>
-                    이 임계값은 <b>자동 전송 여부만</b> 결정합니다 — 미만이거나 안전 경고(장외시간·예산초과·일일한도 등)가 붙은 제안은 자동 전송 없이 그대로 남아 승인/거절 버튼으로 수동 처리해야 합니다. 즉 값을 낮추면 더 많은 제안이 자동으로 나가고, 높이면 확신이 아주 강한 것만 자동으로 나갑니다.
-                  </span>
-                </label>
-                <input
-                  id="ks-conf"
-                  v-model.number="form.autoExecuteMinConfidence"
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="1"
-                  class="amodal-input"
-                >
-              </div>
+              <section class="setting-card buy-card">
+                <p class="setting-step">
+                  1. 새 주식을 살 때
+                </p>
+                <p class="setting-description">
+                  자동으로 살지, 한 번에 얼마까지 살지만 정합니다.
+                </p>
 
-              <p class="amodal-section-label">
-                매수 한도
-              </p>
-              <div class="amodal-field">
-                <label for="ks-budget">매수 1건당 예수금 비율 (%)
-                  <span class="amodal-field-hint">한 번의 매수 금액이 예수금의 이 비율을 넘으면 차단합니다. (0~100)</span>
-                </label>
-                <input
-                  id="ks-budget"
-                  v-model.number="form.maxBuyDepositPercent"
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.5"
-                  class="amodal-input"
+                <div class="amodal-field switch-field">
+                  <label for="ks-auto">
+                    자동으로 주문 보내기
+                    <span class="amodal-field-hint">AI가 조건을 만족한 매수·매도 제안을 사람 확인 없이 키움에 보냅니다.</span>
+                  </label>
+                  <input
+                    id="ks-auto"
+                    v-model="form.autoExecute"
+                    type="checkbox"
+                    class="amodal-check"
+                  >
+                </div>
+                <p
+                  v-if="form.autoExecute"
+                  class="amodal-note warning-note"
                 >
-              </div>
-              <div class="amodal-field">
-                <label for="ks-daily">하루 매수·매도 제안 한도 (건)
-                  <span class="amodal-field-hint">오늘 생성된 BUY+SELL 제안(상태 무관)이 이 건수에 도달하면 신규 제안이 안전 경고로 막힙니다. (1~200)</span>
-                </label>
-                <input
-                  id="ks-daily"
-                  v-model.number="form.dailyMaxProposals"
-                  type="number"
-                  min="1"
-                  max="200"
-                  step="1"
-                  class="amodal-input"
-                >
-              </div>
+                  실제 주문이 자동으로 전송됩니다. 아래 조건을 충분히 확인하세요.
+                </p>
 
-              <p class="amodal-section-label">
-                손절 · 익절 · 보유기간
-              </p>
-              <div class="amodal-field">
-                <label for="ks-sl">손절 기준 (%)
-                  <span class="amodal-field-hint">평단 대비 이 비율 이상 하락하면 청산 대상입니다. (0~100)</span>
-                </label>
-                <input
-                  id="ks-sl"
-                  v-model.number="form.swingStopLossPercent"
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.5"
-                  class="amodal-input"
-                >
-              </div>
-              <div class="amodal-field">
-                <label for="ks-tp">익절 기준 (%)
-                  <span class="amodal-field-hint">평단 대비 이 비율 이상 상승하면 청산 대상입니다. (0~100)</span>
-                </label>
-                <input
-                  id="ks-tp"
-                  v-model.number="form.swingTakeProfitPercent"
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.5"
-                  class="amodal-input"
-                >
-              </div>
-              <div class="amodal-field">
-                <label for="ks-days">최대 보유일 (일)
-                  <span class="amodal-field-hint">엔진이 매수한 종목을 이 일수보다 오래 들고 있으면 청산 대상입니다. (1~30)</span>
-                </label>
-                <input
-                  id="ks-days"
-                  v-model.number="form.swingMaxHoldingDays"
-                  type="number"
-                  min="1"
-                  max="30"
-                  step="1"
-                  class="amodal-input"
-                >
-              </div>
+                <div class="amodal-field">
+                  <label for="ks-conf">
+                    AI 확신 점수
+                    <span class="amodal-field-hint">이 점수 이상일 때만 자동 주문합니다. 숫자가 클수록 더 까다롭게 고릅니다.</span>
+                  </label>
+                  <div class="number-with-unit">
+                    <input
+                      id="ks-conf"
+                      v-model.number="form.autoExecuteMinConfidence"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="1"
+                      class="amodal-input"
+                    >
+                    <span>% 이상</span>
+                  </div>
+                </div>
 
-              <p class="amodal-section-label">
-                리스크 관리
-              </p>
-              <div class="amodal-field">
-                <label for="ks-loop">손절·익절 집행 루프
-                  <span class="amodal-field-hint">장중 5분마다 보유 종목을 검사해 손절·익절·보유기간 청산 SELL 제안을 만듭니다.</span>
-                </label>
-                <input
-                  id="ks-loop"
-                  v-model="form.riskLoopEnabled"
-                  type="checkbox"
-                  class="amodal-check"
-                >
-              </div>
-              <div class="amodal-field">
-                <label for="ks-loss">일일 손실 한도 (원)
-                  <span class="amodal-field-hint">당일 총자산이 장 시작 스냅샷보다 이 금액 이상 줄면 신규 매수를 차단합니다. 0 = 비활성{{ form.dailyLossLimitAmount > 0 ? ` · 현재 ${Number(form.dailyLossLimitAmount).toLocaleString()}원` : '' }}</span>
-                </label>
-                <input
-                  id="ks-loss"
-                  v-model.number="form.dailyLossLimitAmount"
-                  type="number"
-                  min="0"
-                  step="10000"
-                  class="amodal-input"
-                >
-              </div>
+                <div class="amodal-field">
+                  <label for="ks-budget">
+                    한 번에 살 수 있는 돈
+                    <span class="amodal-field-hint">예수금 중 한 번의 매수에 쓸 수 있는 최대 비율입니다.</span>
+                  </label>
+                  <div class="number-with-unit">
+                    <input
+                      id="ks-budget"
+                      v-model.number="form.maxBuyDepositPercent"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.5"
+                      class="amodal-input"
+                    >
+                    <span>%</span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="setting-card sell-card">
+                <p class="setting-step">
+                  2. 산 주식을 팔 때
+                </p>
+                <p class="setting-description">
+                  손실을 줄이거나 이익을 지키기 위한 매도 규칙입니다.
+                </p>
+
+                <div class="amodal-field switch-field">
+                  <label for="ks-loop">
+                    손절·익절 자동 확인
+                    <span class="amodal-field-hint">장중 5분마다 보유 종목을 확인해 아래 조건에 맞으면 매도 제안을 만듭니다.</span>
+                  </label>
+                  <input
+                    id="ks-loop"
+                    v-model="form.riskLoopEnabled"
+                    type="checkbox"
+                    class="amodal-check"
+                  >
+                </div>
+
+                <div class="amodal-field">
+                  <label for="ks-sl">
+                    손실이 이만큼 나면 팔기
+                    <span class="amodal-field-hint">평균 매수가보다 이 비율 이상 내려가면 손절 대상입니다. 0은 사용하지 않음입니다.</span>
+                  </label>
+                  <div class="number-with-unit negative-unit">
+                    <span>-</span>
+                    <input
+                      id="ks-sl"
+                      v-model.number="form.swingStopLossPercent"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.5"
+                      class="amodal-input"
+                    >
+                    <span>%</span>
+                  </div>
+                </div>
+
+                <div class="amodal-field">
+                  <label for="ks-tp">
+                    이익이 이만큼 나면 팔기
+                    <span class="amodal-field-hint">평균 매수가보다 이 비율 이상 오르면 익절 대상입니다. 0은 사용하지 않음입니다.</span>
+                  </label>
+                  <div class="number-with-unit positive-unit">
+                    <span>+</span>
+                    <input
+                      id="ks-tp"
+                      v-model.number="form.swingTakeProfitPercent"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.5"
+                      class="amodal-input"
+                    >
+                    <span>%</span>
+                  </div>
+                </div>
+
+                <div class="amodal-field">
+                  <label for="ks-days">
+                    가장 오래 들고 있을 날짜
+                    <span class="amodal-field-hint">자동매매가 산 종목을 이 날짜보다 오래 들고 있으면 매도 대상입니다.</span>
+                  </label>
+                  <div class="number-with-unit">
+                    <input
+                      id="ks-days"
+                      v-model.number="form.swingMaxHoldingDays"
+                      type="number"
+                      min="1"
+                      max="30"
+                      step="1"
+                      class="amodal-input"
+                    >
+                    <span>거래일</span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="setting-card safety-card">
+                <p class="setting-step">
+                  3. 하루 안전장치
+                </p>
+                <div class="amodal-field">
+                  <label for="ks-loss">
+                    오늘 손실이 이 금액이면 새 매수 멈추기
+                    <span class="amodal-field-hint">장 시작 때보다 총자산이 이 금액 이상 줄면 그날 새 매수만 막습니다. 이미 가진 주식의 매도는 막지 않습니다. 0은 사용하지 않음입니다.</span>
+                  </label>
+                  <div class="number-with-unit">
+                    <input
+                      id="ks-loss"
+                      v-model.number="form.dailyLossLimitAmount"
+                      type="number"
+                      min="0"
+                      step="1000"
+                      class="amodal-input"
+                    >
+                    <span>원</span>
+                  </div>
+                </div>
+
+                <details class="advanced-settings">
+                  <summary>고급 설정 보기</summary>
+                  <div class="amodal-field">
+                    <label for="ks-daily">
+                      하루 주문 제안 횟수
+                      <span class="amodal-field-hint">매수와 매도 제안을 합친 하루 최대 횟수입니다. 너무 낮으면 필요한 매도 제안도 막힐 수 있습니다.</span>
+                    </label>
+                    <div class="number-with-unit">
+                      <input
+                        id="ks-daily"
+                        v-model.number="form.dailyMaxProposals"
+                        type="number"
+                        min="1"
+                        max="200"
+                        step="1"
+                        class="amodal-input"
+                      >
+                      <span>건</span>
+                    </div>
+                  </div>
+                </details>
+              </section>
             </div>
 
             <div
@@ -193,7 +245,7 @@
         </div>
 
         <div class="amodal-foot">
-          <span class="amodal-tools-note">{{ isDirty ? '저장 안 됨' : '' }}</span>
+          <span class="amodal-tools-note">{{ isDirty ? '아직 저장되지 않았습니다' : '' }}</span>
           <div class="amodal-foot-right">
             <button
               class="amodal-btn amodal-btn-ghost"
@@ -207,7 +259,7 @@
               :disabled="saving || loading || !isDirty || !!validationError"
               @click="save"
             >
-              {{ saving ? '저장 중...' : '저장' }}
+              {{ saving ? '저장 중...' : '저장하기' }}
             </button>
           </div>
         </div>
@@ -217,39 +269,37 @@
 </template>
 
 <script setup>
-/* global defineProps, defineEmits */
+/* global defineEmits */
 import { computed, onMounted, ref } from 'vue'
 import axios from '@/axios'
 
-defineProps({ orderEnabled: Boolean })
 const emit = defineEmits(['close', 'saved'])
 
-const loading = ref(true), saving = ref(false), error = ref('')
+const loading = ref(true)
+const saving = ref(false)
+const error = ref('')
 const form = ref({ autoExecute: false, autoExecuteMinConfidence: 85, maxBuyDepositPercent: 10, dailyMaxProposals: 10, swingStopLossPercent: 3, swingTakeProfitPercent: 6, swingMaxHoldingDays: 5, riskLoopEnabled: false, dailyLossLimitAmount: 0 })
 const original = ref('')
-// 서버의 PATCH 는 prompt 를 항상 저장한다(비면 기본 지침으로 덮어씀) — 조회한 값을 그대로 되돌려보내 커스텀 프롬프트 유실을 막는다.
 let prompt = ''
 
 const isDirty = computed(() => JSON.stringify(form.value) !== original.value)
 const validationError = computed(() => {
   const f = form.value
-  if (!Number.isInteger(f.autoExecuteMinConfidence) || f.autoExecuteMinConfidence < 0 || f.autoExecuteMinConfidence > 100) return '자동 전송 최소 신뢰도는 0~100 사이 정수여야 합니다.'
-  for (const [label, v] of [['매수 예수금 비율', f.maxBuyDepositPercent], ['손절 기준', f.swingStopLossPercent], ['익절 기준', f.swingTakeProfitPercent]]) {
-    if (typeof v !== 'number' || Number.isNaN(v) || v < 0 || v > 100) return `${label}은 0~100 사이 값이어야 합니다.`
+  if (!Number.isInteger(f.autoExecuteMinConfidence) || f.autoExecuteMinConfidence < 0 || f.autoExecuteMinConfidence > 100) return 'AI 확신 점수는 0부터 100 사이의 정수여야 합니다.'
+  for (const [label, value] of [['한 번에 살 수 있는 돈', f.maxBuyDepositPercent], ['손절 기준', f.swingStopLossPercent], ['익절 기준', f.swingTakeProfitPercent]]) {
+    if (typeof value !== 'number' || Number.isNaN(value) || value < 0 || value > 100) return `${label}은 0부터 100 사이여야 합니다.`
   }
-  if (!Number.isInteger(f.swingMaxHoldingDays) || f.swingMaxHoldingDays < 1 || f.swingMaxHoldingDays > 30) return '최대 보유일은 1~30 사이 정수여야 합니다.'
-  if (!Number.isInteger(f.dailyMaxProposals) || f.dailyMaxProposals < 1 || f.dailyMaxProposals > 200) return '하루 제안 한도는 1~200 사이 정수여야 합니다.'
+  if (!Number.isInteger(f.swingMaxHoldingDays) || f.swingMaxHoldingDays < 1 || f.swingMaxHoldingDays > 30) return '가장 오래 들고 있을 날짜는 1부터 30 거래일 사이여야 합니다.'
+  if (!Number.isInteger(f.dailyMaxProposals) || f.dailyMaxProposals < 1 || f.dailyMaxProposals > 200) return '하루 주문 제안 횟수는 1부터 200 사이의 정수여야 합니다.'
   if (!Number.isInteger(f.dailyLossLimitAmount) || f.dailyLossLimitAmount < 0) return '일일 손실 한도는 0 이상의 정수(원)여야 합니다.'
   return ''
 })
 
 function close () {
-  if (isDirty.value && !window.confirm('저장하지 않은 변경사항이 있습니다. 닫으시겠습니까?')) return
+  if (isDirty.value && !window.confirm('저장하지 않은 변경사항이 있습니다. 닫을까요?')) return
   emit('close')
 }
 
-// 백엔드 예외는 GlobalExceptionHandler가 문자열 그대로 반환한다(admin-prompt-management.vue와 동일 패턴).
-// 그 외(예: Jackson 역직렬화 실패 등 스프링 기본 에러 응답)는 message 필드가 아예 없을 수 있어 기본 문구로 대체한다.
 function extractErrorMessage (e, fallback) {
   const data = e.response?.data
   if (typeof data === 'string' && data) return data
@@ -257,6 +307,7 @@ function extractErrorMessage (e, fallback) {
 }
 
 async function save () {
+  if (!original.value.includes('"autoExecute":true') && form.value.autoExecute && !window.confirm('자동 주문을 켜면 조건에 맞는 주문이 사람 확인 없이 키움에 전송될 수 있습니다. 계속할까요?')) return
   saving.value = true
   error.value = ''
   try {
@@ -294,13 +345,27 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* 설명이 긴 필드는 amodal-field의 좌우 배치 대신 세로로 쌓아 가독성을 확보한다. */
-.amodal-field-wide {
-  align-items: flex-start;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-.amodal-field-wide .amodal-input {
-  align-self: flex-end;
+.trade-settings-modal { max-width: 640px; }
+.easy-guide { display: grid; gap: 3px; margin: 0 0 14px; padding: 12px; border-radius: 10px; background: #1f2924; color: #dff5e5; font-size: .86rem; }
+.easy-guide span { color: #b6c6ba; font-size: .78rem; }
+.setting-card { margin: 0 0 12px; padding: 14px; border: 1px solid var(--card-border); border-radius: 12px; }
+.buy-card { border-left: 3px solid #d98a51; }
+.sell-card { border-left: 3px solid #68a6e8; }
+.safety-card { border-left: 3px solid #d4b466; }
+.setting-step { margin: 0; font-size: 1rem; font-weight: 800; }
+.setting-description { margin: 4px 0 10px; color: var(--text-muted); font-size: .78rem; }
+.switch-field { align-items: center; }
+.number-with-unit { display: inline-flex; align-items: center; justify-content: flex-end; gap: 5px; min-width: 118px; white-space: nowrap; font-size: .82rem; color: var(--text-muted); }
+.number-with-unit .amodal-input { width: 78px; text-align: right; }
+.negative-unit > :first-child { color: #f29090; font-weight: 800; }
+.positive-unit > :first-child { color: #80d69a; font-weight: 800; }
+.warning-note { margin-top: 0; }
+.advanced-settings { margin-top: 4px; }
+.advanced-settings summary { cursor: pointer; color: var(--text-muted); font-size: .82rem; }
+.advanced-settings .amodal-field { margin-top: 12px; }
+@media (max-width: 520px) {
+  .setting-card { padding: 12px; }
+  .amodal-field { align-items: flex-start; flex-direction: column; gap: 6px; }
+  .number-with-unit { align-self: flex-end; }
 }
 </style>
