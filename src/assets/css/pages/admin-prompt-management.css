@@ -92,6 +92,17 @@
   white-space: nowrap;
 }
 
+.badge-default {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  color: #aaa;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  white-space: nowrap;
+}
+
 .btn-edit {
   border: none;
   border-radius: 8px;

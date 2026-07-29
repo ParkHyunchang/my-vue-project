@@ -41,7 +41,11 @@
               <span
                 v-if="p.customized"
                 class="badge-customized"
-              >커스텀 지침 사용 중</span>
+              >프롬프트 작성됨</span>
+              <span
+                v-else
+                class="badge-default"
+              >프롬프트 없음 (기본 동작 사용)</span>
             </div>
             <p class="card-desc">
               {{ p.description }}
@@ -142,7 +146,7 @@
               :disabled="saving || resetting"
               @click="resetToDefault"
             >
-              {{ resetting ? '초기화 중...' : '기본값으로 초기화' }}
+              {{ resetting ? '삭제 중...' : '기본 동작 사용 (프롬프트 내용 삭제)' }}
             </button>
             <div class="amodal-foot-right">
               <button
@@ -254,14 +258,14 @@ export default {
         .finally(() => { this.saving = false })
     },
     resetToDefault() {
-      if (!window.confirm('저장된 커스텀 지침을 지우고 코드 기본 지침으로 되돌립니다. 계속할까요?')) return
+      if (!window.confirm('저장된 프롬프트 내용이 삭제되며, AI는 기본 동작으로 응답합니다. 계속할까요?')) return
       this.resetting = true
       this.validationError = ''
       axios.post(`/api/admin/prompts/${this.selected.key}/reset`)
         .then(res => {
           this.applyUpdated(res.data)
           this.editContent = res.data.effectiveInstruction || ''
-          this.$store.dispatch('toast/showToast', { message: '기본 지침으로 초기화되었습니다.', type: 'success' })
+          this.$store.dispatch('toast/showToast', { message: '프롬프트 내용이 삭제되어 기본 동작을 사용합니다.', type: 'success' })
         })
         .catch(() => {
           this.validationError = '초기화에 실패했습니다.'
