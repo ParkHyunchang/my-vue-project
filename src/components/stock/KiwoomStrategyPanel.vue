@@ -29,11 +29,6 @@
           @click="showSettings = true"
         >
           전략 설정
-        </button><button
-          :disabled="pending || !configured || operations.emergencyStopped"
-          @click="decide"
-        >
-          지금 판단
         </button>
       </div>
     </header>
@@ -44,15 +39,10 @@
       <span
         v-if="operations.risk.triggered"
         class="risk-triggered"
-      >일일 손실 한도 발동 · 신규 매수 차단</span><span v-else-if="operations.risk.dailyLossLimitAmount > 0">일일 손실 {{ Number(operations.risk.drawdown).toLocaleString() }}원 / 한도 {{ Number(operations.risk.dailyLossLimitAmount).toLocaleString() }}원</span><span v-else>일일 손실 한도 미설정</span><span :class="['risk-loop', { on: operations.risk.riskLoopEnabled }]">손절·익절 루프 {{ operations.risk.riskLoopEnabled ? 'ON' : 'OFF' }}</span><small v-if="operations.risk.lastScanAt">마지막 스캔 {{ date(operations.risk.lastScanAt) }}</small><button
-        :disabled="pending || !configured || operations.emergencyStopped"
-        @click="riskScan"
-      >
-        리스크 스캔
-      </button>
+      >일일 손실 한도 발동 · 신규 매수 차단</span><span v-else-if="operations.risk.dailyLossLimitAmount > 0">일일 손실 {{ Number(operations.risk.drawdown).toLocaleString() }}원 / 한도 {{ Number(operations.risk.dailyLossLimitAmount).toLocaleString() }}원</span><span v-else>일일 손실 한도 미설정</span><span :class="['risk-loop', { on: operations.risk.riskLoopEnabled }]">손절·익절 루프 {{ operations.risk.riskLoopEnabled ? 'ON' : 'OFF' }}</span><small v-if="operations.risk.lastScanAt">마지막 스캔 {{ date(operations.risk.lastScanAt) }}</small>
     </div>
     <p class="notice">
-      {{ config.autoExecute ? `자동 주문 활성: 예약 판단에서 신뢰도 ${config.autoExecuteMinConfidence}% 이상인 지정가 제안만 전송합니다.` : '제안은 승인과 주문 초안 단계를 거칩니다. 자동 주문 전송은 현재 비활성화되어 있습니다.' }}
+      {{ config.autoExecute ? `완전 자동매매 활성: 예약 판단에서 신뢰도 ${config.autoExecuteMinConfidence}% 이상인 제안을 안전 검사 후 자동 전송합니다.` : '자동 주문 전송이 꺼져 있습니다. 전략 설정에서 켜야 완전 자동매매가 시작됩니다.' }}
     </p>
     <p
       v-if="error"
@@ -100,52 +90,7 @@
                 <b>{{ proposal.action }}</b><span>{{ proposal.stockName }} ({{ proposal.stockCode }})</span><span v-if="proposal.quantity">{{ proposal.quantity.toLocaleString() }}주</span><span v-if="proposal.limitPrice">{{ proposal.limitPrice.toLocaleString() }}원</span><small>{{ proposal.confidence }}% · {{ proposal.reason }}</small><small
                   v-if="proposal.guardFlags"
                   class="guards"
-                >안전 경고: {{ guardText(proposal.guardFlags) }}</small><small>상태: {{ proposal.status }}</small><div class="workflow-actions">
-                  <button
-                    v-if="canApprove(proposal)"
-                    :disabled="pending"
-                    @click="approve(proposal.id)"
-                  >
-                    승인
-                  </button><button
-                    v-if="canReject(proposal)"
-                    :disabled="pending"
-                    @click="reject(proposal.id)"
-                  >
-                    거절
-                  </button><button
-                    v-if="proposal.status === 'APPROVED'"
-                    :disabled="pending"
-                    @click="draft(proposal.id)"
-                  >
-                    주문 초안
-                  </button><button
-                    v-if="proposal.status === 'ORDER_DRAFT'"
-                    :disabled="pending"
-                    @click="editDraft(proposal)"
-                  >
-                    수량·가격 수정
-                  </button><button
-                    v-if="proposal.status === 'ORDER_DRAFT'"
-                    :disabled="pending || !config.orderEnabled"
-                    :title="config.orderEnabled ? '키움 주문을 전송합니다.' : '주문 전송은 비활성화되어 있습니다.'"
-                    @click="execute(proposal)"
-                  >
-                    최종 주문 확인
-                  </button><button
-                    v-if="['ORDERED', 'PARTIALLY_FILLED'].includes(proposal.status)"
-                    :disabled="pending || !config.orderEnabled || operations.emergencyStopped"
-                    @click="amendOrder(proposal)"
-                  >
-                    주문 정정
-                  </button><button
-                    v-if="['ORDERED', 'PARTIALLY_FILLED'].includes(proposal.status)"
-                    :disabled="pending"
-                    @click="cancelOrder(proposal)"
-                  >
-                    주문 취소
-                  </button>
-                </div><small v-if="proposal.status === 'ORDERED'">주문 전송됨</small><small v-if="proposal.status === 'CANCEL_REQUESTED'">취소 요청됨 · 주문 상태 동기화 대기 중</small><small v-if="proposal.status === 'CANCELED'">주문 취소됨</small><small v-if="proposal.status === 'REJECTED'">거절됨 · {{ proposal.rejectionReason }}</small><small v-if="proposal.status === 'ORDER_FAILED'">전송 실패: {{ proposal.errorMessage }}</small>
+                >안전 경고: {{ guardText(proposal.guardFlags) }}</small><small>상태: {{ proposal.status }}</small><small v-if="proposal.status === 'ORDERED'">주문 전송됨</small><small v-if="proposal.status === 'CANCEL_REQUESTED'">취소 요청됨 · 주문 상태 동기화 대기 중</small><small v-if="proposal.status === 'CANCELED'">주문 취소됨</small><small v-if="proposal.status === 'REJECTED'">거절됨 · {{ proposal.rejectionReason }}</small><small v-if="proposal.status === 'ORDER_FAILED'">전송 실패: {{ proposal.errorMessage }}</small>
               </div>
             </div>
           </article>
@@ -225,23 +170,11 @@ const todayUsage = computed(() => {
 })
 const GUARD_LABELS = { MAX_ORDER_AMOUNT: '주문한도 초과', DAILY_LIMIT: '일일 제안 한도', SYMBOL_COOLDOWN: '재제안 쿨다운', MARKET_CLOSED: '장외 시간', INSUFFICIENT_DEPOSIT: '예수금 부족', MAX_BUY_BUDGET: '매수 비율 한도 초과', DAILY_LOSS_LIMIT: '일일 손실 한도' }
 const guardText = (flags) => (flags || '').split(',').filter(Boolean).map((f) => GUARD_LABELS[f] || f).join(', ')
-const canApprove = (p) => p.status === 'PROPOSED' && p.action !== 'HOLD' && !p.guardFlags
-const canReject = (p) => ['PROPOSED', 'APPROVED'].includes(p.status)
 async function load () { loading.value = true; try { const [universe, history, strategyConfig] = await Promise.all([axios.get('/api/kiwoom/strategy/universe'), axios.get('/api/kiwoom/strategy/runs?limit=50'), axios.get('/api/kiwoom/strategy/config')]); candidates.value = universe.data; runs.value = history.data; config.value = strategyConfig.data } catch (e) { error.value = e.response?.data?.message || '전략 데이터를 불러오지 못했습니다.' } finally { loading.value = false } }
-async function decide () { pending.value = true; error.value = ''; try { await axios.post('/api/kiwoom/strategy/decide'); await load() } catch (e) { error.value = e.response?.data?.message || '전략 판단에 실패했습니다.' } finally { pending.value = false } }
-async function approve (id) { await action(`/api/kiwoom/strategy/proposals/${id}/approve`) }
-async function draft (id) { await action(`/api/kiwoom/strategy/proposals/${id}/draft`) }
-async function editDraft (proposal) { const quantity = Number(window.prompt('주문 수량을 입력하세요.', proposal.quantity)); if (!Number.isInteger(quantity) || quantity <= 0) return; const limitPrice = Number(window.prompt('지정가를 입력하세요.', proposal.limitPrice)); if (!Number.isInteger(limitPrice) || limitPrice <= 0) return; pending.value = true; error.value = ''; try { await axios.patch(`/api/kiwoom/strategy/proposals/${proposal.id}/draft`, { quantity, limitPrice }); await load() } catch (e) { error.value = e.response?.data?.message || '주문 초안을 수정하지 못했습니다.' } finally { pending.value = false } }
-async function reject (id) { const reason = window.prompt('거절 사유를 입력하세요. (선택)', ''); if (reason !== null) await action(`/api/kiwoom/strategy/proposals/${id}/reject`, { reason }) }
-async function execute (proposal) { if (window.confirm(`${proposal.action} ${proposal.stockName} ${proposal.quantity}주 주문을 키움에 전송할까요? 되돌릴 수 없습니다.`)) await action(`/api/kiwoom/strategy/proposals/${proposal.id}/execute`, { confirmed: true }) }
-async function amendOrder (proposal) { const maximum = proposal.remainingQuantity || proposal.quantity; const quantity = Number(window.prompt(`정정할 수량을 입력하세요. (최대 ${maximum}주)`, maximum)); if (!Number.isInteger(quantity) || quantity <= 0 || quantity > maximum) return; const limitPrice = Number(window.prompt('새 지정가를 입력하세요.', proposal.limitPrice)); if (!Number.isInteger(limitPrice) || limitPrice <= 0) return; if (window.confirm(`${proposal.stockName} 주문을 ${quantity}주, ${limitPrice.toLocaleString()}원으로 정정할까요?`)) { pending.value = true; error.value = ''; try { await axios.patch(`/api/kiwoom/strategy/proposals/${proposal.id}/order`, { quantity, limitPrice }); await load() } catch (e) { error.value = e.response?.data?.message || '주문 정정에 실패했습니다.' } finally { pending.value = false } } }
-async function cancelOrder (proposal) { const maximum = proposal.remainingQuantity || proposal.quantity; const quantity = Number(window.prompt(`취소할 수량을 입력하세요. (최대 ${maximum}주)`, maximum)); if (!Number.isInteger(quantity) || quantity <= 0 || quantity > maximum) return; if (window.confirm(`${proposal.stockName} ${quantity}주 주문을 취소할까요?`)) await action(`/api/kiwoom/strategy/proposals/${proposal.id}/cancel`, { quantity }) }
-async function action (url, body) { pending.value = true; error.value = ''; try { await axios.post(url, body); await load() } catch (e) { error.value = e.response?.data?.message || '요청을 처리하지 못했습니다.' } finally { pending.value = false } }
 async function loadOperations () { try { operations.value = (await axios.get('/api/kiwoom/strategy/health')).data } catch { /* 운영 상태 조회 실패는 기존 전략 기능을 막지 않는다. */ } }
 async function emergencyStop () { if (!window.confirm('자동 판단과 주문 전송을 긴급 중지할까요?')) return; pending.value = true; try { await axios.post('/api/kiwoom/auto-trade/emergency-stop'); await loadOperations() } catch (e) { error.value = e.response?.data?.message || '긴급 중지에 실패했습니다.' } finally { pending.value = false } }
 async function emergencyResume () { if (!window.confirm('긴급 중지를 해제할까요? 자동 판단은 별도로 다시 시작해야 합니다.')) return; pending.value = true; try { await axios.post('/api/kiwoom/auto-trade/emergency-resume'); await loadOperations() } catch (e) { error.value = e.response?.data?.message || '긴급 중지 해제에 실패했습니다.' } finally { pending.value = false } }
 async function syncOrders () { pending.value = true; error.value = ''; try { const { data } = await axios.post('/api/kiwoom/strategy/orders/sync'); if (data.updated > 0) await load(); else error.value = data.message } catch (e) { error.value = e.response?.data?.message || '주문 상태 동기화에 실패했습니다.' } finally { pending.value = false } }
-async function riskScan () { pending.value = true; error.value = ''; try { const { data } = await axios.post('/api/kiwoom/strategy/risk/scan'); if (data.proposalCount > 0) await load(); else error.value = data.message; await loadOperations() } catch (e) { error.value = e.response?.data?.message || '리스크 스캔에 실패했습니다.' } finally { pending.value = false } }
 async function onSettingsSaved () { showSettings.value = false; await load(); await loadOperations() }
 onMounted(async () => { await load(); await loadOperations() })
 </script>
