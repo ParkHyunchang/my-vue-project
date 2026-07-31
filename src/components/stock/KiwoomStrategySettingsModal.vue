@@ -102,6 +102,73 @@
                 </div>
               </section>
 
+              <section class="setting-card screen-card">
+                <p class="setting-step">
+                  2. 매수 후보 찾기
+                </p>
+                <p class="setting-description">
+                  조건을 충족한 종목만 AI가 다시 평가합니다. 기준을 낮추면 후보와 판단 횟수는 늘지만, 거래가 반드시 늘어나지는 않습니다.
+                </p>
+
+                <div class="amodal-field">
+                  <label for="ks-reevaluation">
+                    같은 후보 다시 판단하는 간격
+                    <span class="amodal-field-hint">후보 목록이 같아도 이 시간이 지나면 AI가 다시 매수·보유 판단을 합니다.</span>
+                  </label>
+                  <div class="number-with-unit">
+                    <input
+                      id="ks-reevaluation"
+                      v-model.number="form.candidateReevaluationMinutes"
+                      type="number"
+                      min="15"
+                      max="240"
+                      step="15"
+                      class="amodal-input"
+                    >
+                    <span>분</span>
+                  </div>
+                </div>
+
+                <div class="amodal-field">
+                  <label for="ks-min-change">
+                    후보 최소 당일 상승률
+                    <span class="amodal-field-hint">이 비율 이상 오른 종목만 후보가 됩니다. 급등 추격 여부는 AI가 한 번 더 판단합니다.</span>
+                  </label>
+                  <div class="number-with-unit positive-unit">
+                    <span>+</span>
+                    <input
+                      id="ks-min-change"
+                      v-model.number="form.swingMinChangePercent"
+                      type="number"
+                      min="0.5"
+                      max="15"
+                      step="0.5"
+                      class="amodal-input"
+                    >
+                    <span>%</span>
+                  </div>
+                </div>
+
+                <div class="amodal-field">
+                  <label for="ks-min-volume">
+                    후보 최소 거래량 증가
+                    <span class="amodal-field-hint">20일 평균 거래량 대비 배수입니다. 2배는 평소보다 거래량이 두 배 이상인 종목을 뜻합니다.</span>
+                  </label>
+                  <div class="number-with-unit">
+                    <input
+                      id="ks-min-volume"
+                      v-model.number="form.swingMinVolumeRatio"
+                      type="number"
+                      min="1"
+                      max="20"
+                      step="0.5"
+                      class="amodal-input"
+                    >
+                    <span>배</span>
+                  </div>
+                </div>
+              </section>
+
               <section class="setting-card sell-card">
                 <p class="setting-step">
                   2. 산 주식을 팔 때
@@ -278,7 +345,7 @@ const emit = defineEmits(['close', 'saved'])
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
-const form = ref({ autoExecute: false, autoExecuteMinConfidence: 85, maxBuyDepositPercent: 10, dailyMaxProposals: 10, swingStopLossPercent: 3, swingTakeProfitPercent: 6, swingMaxHoldingDays: 5, riskLoopEnabled: false, dailyLossLimitAmount: 0 })
+const form = ref({ autoExecute: false, autoExecuteMinConfidence: 85, maxBuyDepositPercent: 10, candidateReevaluationMinutes: 60, swingMinChangePercent: 2, swingMinVolumeRatio: 2, dailyMaxProposals: 10, swingStopLossPercent: 3, swingTakeProfitPercent: 6, swingMaxHoldingDays: 5, riskLoopEnabled: false, dailyLossLimitAmount: 0 })
 const original = ref('')
 let prompt = ''
 
@@ -286,6 +353,9 @@ const isDirty = computed(() => JSON.stringify(form.value) !== original.value)
 const validationError = computed(() => {
   const f = form.value
   if (!Number.isInteger(f.autoExecuteMinConfidence) || f.autoExecuteMinConfidence < 0 || f.autoExecuteMinConfidence > 100) return 'AI 확신 점수는 0부터 100 사이의 정수여야 합니다.'
+  if (!Number.isInteger(f.candidateReevaluationMinutes) || f.candidateReevaluationMinutes < 15 || f.candidateReevaluationMinutes > 240) return '후보 재판단 주기는 15부터 240분 사이의 정수여야 합니다.'
+  if (typeof f.swingMinChangePercent !== 'number' || Number.isNaN(f.swingMinChangePercent) || f.swingMinChangePercent < 0.5 || f.swingMinChangePercent > 15) return '후보 최소 상승률은 0.5부터 15 사이여야 합니다.'
+  if (typeof f.swingMinVolumeRatio !== 'number' || Number.isNaN(f.swingMinVolumeRatio) || f.swingMinVolumeRatio < 1 || f.swingMinVolumeRatio > 20) return '후보 최소 거래량 증가는 1부터 20배 사이여야 합니다.'
   for (const [label, value] of [['한 번에 살 수 있는 돈', f.maxBuyDepositPercent], ['손절 기준', f.swingStopLossPercent], ['익절 기준', f.swingTakeProfitPercent]]) {
     if (typeof value !== 'number' || Number.isNaN(value) || value < 0 || value > 100) return `${label}은 0부터 100 사이여야 합니다.`
   }
@@ -328,6 +398,9 @@ onMounted(async () => {
       autoExecute: !!data.autoExecute,
       autoExecuteMinConfidence: data.autoExecuteMinConfidence ?? 85,
       maxBuyDepositPercent: data.maxBuyDepositPercent ?? 10,
+      candidateReevaluationMinutes: data.candidateReevaluationMinutes ?? 60,
+      swingMinChangePercent: data.swingMinChangePercent ?? 2,
+      swingMinVolumeRatio: data.swingMinVolumeRatio ?? 2,
       dailyMaxProposals: data.dailyMaxProposals ?? 10,
       swingStopLossPercent: data.swingStopLossPercent ?? 3,
       swingTakeProfitPercent: data.swingTakeProfitPercent ?? 6,
@@ -350,6 +423,7 @@ onMounted(async () => {
 .easy-guide span { color: #b6c6ba; font-size: .78rem; }
 .setting-card { margin: 0 0 12px; padding: 14px; border: 1px solid var(--card-border); border-radius: 12px; }
 .buy-card { border-left: 3px solid #d98a51; }
+.screen-card { border-left: 3px solid #9e8ee8; }
 .sell-card { border-left: 3px solid #68a6e8; }
 .safety-card { border-left: 3px solid #d4b466; }
 .setting-step { margin: 0; font-size: 1rem; font-weight: 800; }
