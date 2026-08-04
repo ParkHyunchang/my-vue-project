@@ -1,27 +1,43 @@
 <template>
   <section class="strategy-panel">
     <div class="operations">
-      <span :class="{ stopped: operations.emergencyStopped }">{{ operations.emergencyStopped ? '긴급 중지 활성' : '운영 상태 정상' }}</span><button
-        v-if="!operations.emergencyStopped"
-        :disabled="pending"
-        @click="emergencyStop"
-      >
-        긴급 중지
-      </button><button
-        v-else
-        :disabled="pending"
-        @click="emergencyResume"
-      >
-        긴급 중지 해제
-      </button>
+      <div class="operations-status">
+        <span :class="{ stopped: operations.emergencyStopped }">{{ operations.emergencyStopped ? '긴급 중지 활성' : '운영 상태 정상' }}</span>
+        <small>자동매매 제어</small>
+      </div>
+      <div class="operation-actions">
+        <button
+          class="reassess-now"
+          :disabled="pending || operations.emergencyStopped"
+          @click="decideNow"
+        >
+          지금 재판단
+        </button>
+        <button
+          class="sync-orders"
+          :disabled="pending"
+          @click="syncOrders"
+        >
+          주문 상태 동기화
+        </button>
+        <button
+          v-if="!operations.emergencyStopped"
+          class="emergency-action"
+          :disabled="pending"
+          @click="emergencyStop"
+        >
+          긴급 중지
+        </button>
+        <button
+          v-else
+          class="resume-action"
+          :disabled="pending"
+          @click="emergencyResume"
+        >
+          긴급 중지 해제
+        </button>
+      </div>
     </div>
-    <button
-      class="sync-orders"
-      :disabled="pending"
-      @click="syncOrders"
-    >
-      주문 상태 동기화
-    </button>
     <header>
       <div><small>KIWOOM STRATEGY</small><h3>AI 전략 제안 <em>{{ config.orderEnabled ? 'ORDER ENABLED' : 'ORDER DISABLED' }}</em></h3></div><div class="header-actions">
         <button
@@ -189,13 +205,14 @@ async function load () { loading.value = true; try { const [universe, history, s
 async function loadOperations () { try { operations.value = (await axios.get('/api/kiwoom/strategy/health')).data } catch { /* 운영 상태 조회 실패는 기존 전략 기능을 막지 않는다. */ } }
 async function emergencyStop () { if (!window.confirm('자동 판단과 주문 전송을 긴급 중지할까요?')) return; pending.value = true; try { await axios.post('/api/kiwoom/auto-trade/emergency-stop'); await loadOperations() } catch (e) { error.value = e.response?.data?.message || '긴급 중지에 실패했습니다.' } finally { pending.value = false } }
 async function emergencyResume () { if (!window.confirm('긴급 중지를 해제할까요? 자동 판단은 별도로 다시 시작해야 합니다.')) return; pending.value = true; try { await axios.post('/api/kiwoom/auto-trade/emergency-resume'); await loadOperations() } catch (e) { error.value = e.response?.data?.message || '긴급 중지 해제에 실패했습니다.' } finally { pending.value = false } }
+async function decideNow () { if (!window.confirm('현재 시세와 보유 종목으로 즉시 재판단할까요? 자동매매가 활성화되어 있으면 안전 검사를 통과한 주문은 자동 전송됩니다.')) return; pending.value = true; error.value = ''; try { await axios.post('/api/kiwoom/strategy/decide'); await Promise.all([load(), loadOperations()]) } catch (e) { error.value = e.response?.data?.message || '즉시 재판단에 실패했습니다.' } finally { pending.value = false } }
 async function syncOrders () { pending.value = true; error.value = ''; try { const { data } = await axios.post('/api/kiwoom/strategy/orders/sync'); if (data.updated > 0) await load(); else error.value = data.message } catch (e) { error.value = e.response?.data?.message || '주문 상태 동기화에 실패했습니다.' } finally { pending.value = false } }
 async function onSettingsSaved () { showSettings.value = false; await load(); await loadOperations() }
 onMounted(async () => { await load(); await loadOperations() })
 </script>
 
 <style scoped>
-.strategy-panel{margin:14px 0;color:var(--text-primary);background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:18px}.header-actions{display:flex;gap:6px;flex-shrink:0}.risk-strip{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0;padding:8px 10px;border:1px solid var(--card-border);border-radius:10px;font-size:.78rem}.risk-strip small{color:var(--text-muted)}.risk-strip button{margin-left:auto;padding:4px 8px;font-size:.75rem}.risk-triggered{background:#5a2323;color:#ffb4b4;border-radius:99px;padding:4px 9px;font-weight:700}.risk-loop{background:#30343a;color:#d9dce0;border-radius:99px;padding:4px 9px}.risk-loop.on{background:#1f3a2a;color:#9fe2b8}.strategy-panel header{display:flex;align-items:center;justify-content:space-between}.strategy-panel h3{margin:4px 0}.strategy-panel header small{color:var(--accent);font-weight:800;letter-spacing:.1em}.strategy-panel em{font-style:normal;color:#e9b664;font-size:.7rem;margin-left:6px}.strategy-panel button{cursor:pointer;border:1px solid var(--card-border-strong);border-radius:8px;padding:7px 10px;background:transparent;color:var(--text-primary)}.strategy-panel button:disabled{opacity:.5;cursor:not-allowed}.notice,.error{padding:10px;border-radius:8px;font-size:.82rem}.notice{background:#3c3424;color:#f2ce8b}.error{background:#482424;color:#ffb4b4}.broker-holdings{margin:12px 0;padding:10px;border:1px solid #31516f;border-radius:10px;background:#1b2938}.broker-holdings-title{display:flex;justify-content:space-between;gap:8px;font-size:.78rem}.broker-holdings-title small{color:#9ab5cd}.broker-holding-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.broker-holding{display:flex;flex-direction:column;gap:2px;padding:7px 8px;border-radius:7px;background:#243d55;font-size:.74rem}.broker-holding small{color:#c4d7e8}.candidate-list{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.candidate-chip{display:inline-flex;align-items:center;gap:5px;background:#1f2924;border-radius:99px;font-size:.77rem;padding:5px 9px}.empty{color:var(--text-muted)}.runs{margin-top:15px}.run-date-divider{display:flex;align-items:center;gap:8px;margin:14px 0 4px}.run-date-divider span{font-size:.72rem;font-weight:800;color:var(--accent);letter-spacing:.05em;background:var(--card-bg);white-space:nowrap}.run-date-divider::after{content:"";flex:1;height:1px;background:var(--card-border)}.runs article{border-top:1px solid var(--card-border);padding:12px 0}.run-skipped-group{border-top:1px solid var(--card-border);padding:8px 0;margin:0;color:var(--text-muted);font-size:.76rem}.run-meta{display:flex;gap:8px;align-items:center}.run-meta b{font-size:.7rem;background:#303a34;padding:3px 6px;border-radius:5px}.run-meta small{color:var(--text-muted)}.runs p{font-size:.84rem;margin:7px 0}.proposals{display:flex;flex-wrap:wrap;gap:7px}.proposal{border-radius:8px;padding:7px;font-size:.76rem;display:flex;gap:5px;flex-wrap:wrap}.proposal small{width:100%;opacity:.8}.proposal.BUY{background:#4a2626;color:#ffbab4}.proposal.SELL{background:#213853;color:#b9d7ff}.proposal.HOLD{background:#30343a;color:#d9dce0}.workflow-actions{display:flex;gap:5px;width:100%;margin-top:4px}.workflow-actions button{padding:4px 6px;font-size:.75rem}
+.strategy-panel{margin:14px 0;color:var(--text-primary);background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:18px}.operations{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;padding:10px 12px;border:1px solid var(--card-border);border-radius:10px;background:rgba(255,255,255,.02)}.operations-status{display:flex;align-items:baseline;gap:8px;min-width:0}.operations-status span{font-weight:700}.operations-status span.stopped{color:#ff9c9c}.operations-status small{color:var(--text-muted);font-size:.75rem}.operation-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px}.header-actions{display:flex;gap:6px;flex-shrink:0}.risk-strip{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0;padding:8px 10px;border:1px solid var(--card-border);border-radius:10px;font-size:.78rem}.risk-strip small{color:var(--text-muted)}.risk-strip button{margin-left:auto;padding:4px 8px;font-size:.75rem}.risk-triggered{background:#5a2323;color:#ffb4b4;border-radius:99px;padding:4px 9px;font-weight:700}.risk-loop{background:#30343a;color:#d9dce0;border-radius:99px;padding:4px 9px}.risk-loop.on{background:#1f3a2a;color:#9fe2b8}.strategy-panel header{display:flex;align-items:center;justify-content:space-between}.strategy-panel h3{margin:4px 0}.strategy-panel header small{color:var(--accent);font-weight:800;letter-spacing:.1em}.strategy-panel em{font-style:normal;color:#e9b664;font-size:.7rem;margin-left:6px}.strategy-panel button{cursor:pointer;border:1px solid var(--card-border-strong);border-radius:8px;padding:7px 10px;background:transparent;color:var(--text-primary)}.strategy-panel button:disabled{opacity:.5;cursor:not-allowed}.reassess-now{border-color:#7760cc!important;background:#5a48ae!important;color:#fff!important;font-weight:700}.emergency-action{border-color:#8b4848!important;color:#ffb0b0!important}.resume-action{border-color:#417a68!important;color:#9fe2b8!important}.notice,.error{padding:10px;border-radius:8px;font-size:.82rem}.notice{background:#3c3424;color:#f2ce8b}.error{background:#482424;color:#ffb4b4}.broker-holdings{margin:12px 0;padding:10px;border:1px solid #31516f;border-radius:10px;background:#1b2938}.broker-holdings-title{display:flex;justify-content:space-between;gap:8px;font-size:.78rem}.broker-holdings-title small{color:#9ab5cd}.broker-holding-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.broker-holding{display:flex;flex-direction:column;gap:2px;padding:7px 8px;border-radius:7px;background:#243d55;font-size:.74rem}.broker-holding small{color:#c4d7e8}.candidate-list{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.candidate-chip{display:inline-flex;align-items:center;gap:5px;background:#1f2924;border-radius:99px;font-size:.77rem;padding:5px 9px}.empty{color:var(--text-muted)}.runs{margin-top:15px}.run-date-divider{display:flex;align-items:center;gap:8px;margin:14px 0 4px}.run-date-divider span{font-size:.72rem;font-weight:800;color:var(--accent);letter-spacing:.05em;background:var(--card-bg);white-space:nowrap}.run-date-divider::after{content:"";flex:1;height:1px;background:var(--card-border)}.runs article{border-top:1px solid var(--card-border);padding:12px 0}.run-skipped-group{border-top:1px solid var(--card-border);padding:8px 0;margin:0;color:var(--text-muted);font-size:.76rem}.run-meta{display:flex;gap:8px;align-items:center}.run-meta b{font-size:.7rem;background:#303a34;padding:3px 6px;border-radius:5px}.run-meta small{color:var(--text-muted)}.runs p{font-size:.84rem;margin:7px 0}.proposals{display:flex;flex-wrap:wrap;gap:7px}.proposal{border-radius:8px;padding:7px;font-size:.76rem;display:flex;gap:5px;flex-wrap:wrap}.proposal small{width:100%;opacity:.8}.proposal.BUY{background:#4a2626;color:#ffbab4}.proposal.SELL{background:#213853;color:#b9d7ff}.proposal.HOLD{background:#30343a;color:#d9dce0}.workflow-actions{display:flex;gap:5px;width:100%;margin-top:4px}.workflow-actions button{padding:4px 6px;font-size:.75rem}@media (max-width:640px){.strategy-panel{padding:14px}.operations{align-items:stretch;flex-direction:column}.operations-status{justify-content:space-between}.operation-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.operation-actions button{width:100%}.operation-actions .reassess-now{grid-column:1 / -1}.strategy-panel header{align-items:flex-start;gap:10px}.broker-holdings-title{align-items:flex-start;flex-direction:column}.broker-holding{flex:1;min-width:132px}}
 </style>
 
 <!-- .change-badge 색상 클래스는 전역 stock.css에 정의됨 (Top10Panel.vue와 동일 패턴) -->
