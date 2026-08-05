@@ -155,7 +155,18 @@
 <script setup>
 /* global defineProps */
 import { computed, onMounted, ref } from 'vue'
-import axios from '@/axios'
+import {
+  emergencyResume as requestEmergencyResume,
+  emergencyStop as requestEmergencyStop,
+  fetchAccountHoldings,
+  fetchStrategyConfig,
+  fetchStrategyHealth,
+  fetchStrategyRuns,
+  fetchStrategyUniverse,
+  resetDailyLossGuard as requestDailyLossReset,
+  runStrategyDecision,
+  syncStrategyOrders
+} from '@/api/kiwoomApi'
 import KiwoomStrategySettingsModal from '@/components/stock/KiwoomStrategySettingsModal.vue'
 import { useStockFormatters } from '@/composables/useStockFormatters'
 defineProps({ configured: Boolean })
@@ -238,13 +249,13 @@ const proposalStatusLabel = (status) => PROPOSAL_STATUS_LABELS[status] || status
 const runStatusLabel = (status) => RUN_STATUS_LABELS[status] || status
 const actionLabel = (action) => ACTION_LABELS[action] || action
 const triggerLabel = (trigger) => TRIGGER_LABELS[trigger] || trigger
-async function load () { loading.value = true; try { const [universe, history, strategyConfig, holdings] = await Promise.all([axios.get('/api/kiwoom/strategy/universe'), axios.get('/api/kiwoom/strategy/runs?limit=50'), axios.get('/api/kiwoom/strategy/config'), axios.get('/api/kiwoom/auto-trade/holdings')]); candidates.value = universe.data; runs.value = history.data; config.value = strategyConfig.data; brokerHoldings.value = holdings.data } catch (e) { error.value = e.response?.data?.message || '전략 데이터를 불러오지 못했습니다.' } finally { loading.value = false } }
-async function loadOperations () { try { operations.value = (await axios.get('/api/kiwoom/strategy/health')).data } catch { /* 운영 상태 조회 실패는 기존 전략 기능을 막지 않는다. */ } }
-async function emergencyStop () { if (!window.confirm('자동 판단과 주문 전송을 긴급 중지할까요?')) return; pending.value = true; try { await axios.post('/api/kiwoom/auto-trade/emergency-stop'); await loadOperations() } catch (e) { error.value = e.response?.data?.message || '긴급 중지에 실패했습니다.' } finally { pending.value = false } }
-async function emergencyResume () { if (!window.confirm('긴급 중지를 해제할까요? 자동 판단은 별도로 다시 시작해야 합니다.')) return; pending.value = true; try { await axios.post('/api/kiwoom/auto-trade/emergency-resume'); await loadOperations() } catch (e) { error.value = e.response?.data?.message || '긴급 중지 해제에 실패했습니다.' } finally { pending.value = false } }
-async function decideNow () { if (!window.confirm('현재 시세와 보유 종목으로 즉시 재판단할까요? 자동매매가 활성화되어 있으면 안전 검사를 통과한 주문은 자동 전송됩니다.')) return; pending.value = true; error.value = ''; try { await axios.post('/api/kiwoom/strategy/decide'); await Promise.all([load(), loadOperations()]) } catch (e) { error.value = e.response?.data?.message || '즉시 재판단에 실패했습니다.' } finally { pending.value = false } }
-async function syncOrders () { pending.value = true; error.value = ''; try { const { data } = await axios.post('/api/kiwoom/strategy/orders/sync'); if (data.updated > 0) await load(); else error.value = data.message } catch (e) { error.value = e.response?.data?.message || '주문 상태 동기화에 실패했습니다.' } finally { pending.value = false } }
-async function resetDailyLossGuard () { if (!window.confirm('오늘의 일일 손실 차단을 해제할까요? 현재 자산을 오늘의 새 기준점으로 저장하며, 이후 신규 매수가 다시 가능해집니다.')) return; pending.value = true; error.value = ''; try { await axios.post('/api/kiwoom/strategy/risk/daily-loss/reset'); await loadOperations() } catch (e) { error.value = e.response?.data?.message || '일일 손실 차단 해제에 실패했습니다.' } finally { pending.value = false } }
+async function load () { loading.value = true; try { const [universe, history, strategyConfig, holdings] = await Promise.all([fetchStrategyUniverse(), fetchStrategyRuns(50), fetchStrategyConfig(), fetchAccountHoldings()]); candidates.value = universe.data; runs.value = history.data; config.value = strategyConfig.data; brokerHoldings.value = holdings.data } catch (e) { error.value = e.response?.data?.message || '전략 데이터를 불러오지 못했습니다.' } finally { loading.value = false } }
+async function loadOperations () { try { operations.value = (await fetchStrategyHealth()).data } catch { /* 운영 상태 조회 실패는 기존 전략 기능을 막지 않는다. */ } }
+async function emergencyStop () { if (!window.confirm('자동 판단과 주문 전송을 긴급 중지할까요?')) return; pending.value = true; try { await requestEmergencyStop(); await loadOperations() } catch (e) { error.value = e.response?.data?.message || '긴급 중지에 실패했습니다.' } finally { pending.value = false } }
+async function emergencyResume () { if (!window.confirm('긴급 중지를 해제할까요? 자동 판단은 별도로 다시 시작해야 합니다.')) return; pending.value = true; try { await requestEmergencyResume(); await loadOperations() } catch (e) { error.value = e.response?.data?.message || '긴급 중지 해제에 실패했습니다.' } finally { pending.value = false } }
+async function decideNow () { if (!window.confirm('현재 시세와 보유 종목으로 즉시 재판단할까요? 자동매매가 활성화되어 있으면 안전 검사를 통과한 주문은 자동 전송됩니다.')) return; pending.value = true; error.value = ''; try { await runStrategyDecision(); await Promise.all([load(), loadOperations()]) } catch (e) { error.value = e.response?.data?.message || '즉시 재판단에 실패했습니다.' } finally { pending.value = false } }
+async function syncOrders () { pending.value = true; error.value = ''; try { const { data } = await syncStrategyOrders(); if (data.updated > 0) await load(); else error.value = data.message } catch (e) { error.value = e.response?.data?.message || '주문 상태 동기화에 실패했습니다.' } finally { pending.value = false } }
+async function resetDailyLossGuard () { if (!window.confirm('오늘의 일일 손실 차단을 해제할까요? 현재 자산을 오늘의 새 기준점으로 저장하며, 이후 신규 매수가 다시 가능해집니다.')) return; pending.value = true; error.value = ''; try { await requestDailyLossReset(); await loadOperations() } catch (e) { error.value = e.response?.data?.message || '일일 손실 차단 해제에 실패했습니다.' } finally { pending.value = false } }
 async function onSettingsSaved () { showSettings.value = false; await load(); await loadOperations() }
 onMounted(async () => { await load(); await loadOperations() })
 </script>

@@ -358,7 +358,7 @@
 <script setup>
 /* global defineEmits */
 import { computed, onMounted, ref } from 'vue'
-import axios from '@/axios'
+import { fetchStrategySettings, updateStrategySettings } from '@/api/kiwoomApi'
 
 const emit = defineEmits(['close', 'saved'])
 
@@ -402,7 +402,7 @@ async function save () {
   saving.value = true
   error.value = ''
   try {
-    await axios.patch('/api/kiwoom/strategy/settings', { ...form.value, prompt })
+    await updateStrategySettings({ ...form.value, prompt })
     emit('saved')
   } catch (e) {
     error.value = extractErrorMessage(e, '설정을 저장하지 못했습니다.')
@@ -413,7 +413,7 @@ async function save () {
 
 onMounted(async () => {
   try {
-    const { data } = await axios.get('/api/kiwoom/strategy/settings')
+    const { data } = await fetchStrategySettings()
     prompt = data.prompt || ''
     form.value = {
       autoExecute: !!data.autoExecute,

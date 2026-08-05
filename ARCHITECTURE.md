@@ -10,8 +10,11 @@ Vue 3 + Vuex 프론트엔드 구조 규칙집.
 ```
 src/
 ├── api/                 # HTTP 호출 전용 함수. axios 직접 호출은 여기서만
-│   ├── resourceApi.js   # 범용 CRUD 팩토리 함수
-│   └── adminContent.js  # 어드민 콘텐츠(career, experience, portfolio-skills) API
+│   ├── resourceApi.js       # 범용 CRUD 팩토리 함수
+│   ├── adminContentApi.js   # 어드민 콘텐츠(career, experience, portfolio-skills) API
+│   ├── kiwoomApi.js         # 키움 자동매매 전략·운영 API
+│   ├── sajuApi.js           # 사주 계산·프로필 API
+│   └── stockApi.js          # 주식 시세 API
 ├── assets/              # 정적 파일
 │   └── css/             # 전역 스타일, 공통 유틸 CSS (admin-modal.css, thin-scrollbar 등)
 ├── components/          # 재사용 가능한 UI 단위. 특정 페이지에 종속되지 않는 것
@@ -22,6 +25,7 @@ src/
 │   ├── history/         # 히스토리 도메인 컴포넌트
 │   ├── home/            # 홈(포트폴리오) 섹션 컴포넌트
 │   ├── realestate/      # 부동산 도메인 컴포넌트
+│   ├── saju/            # 사주 도메인 컴포넌트
 │   ├── stock/           # 주식/포트폴리오 도메인 컴포넌트
 │   ├── subscription/    # 구독 도메인 컴포넌트
 │   └── travel/          # 여행 도메인 컴포넌트
@@ -250,10 +254,11 @@ grep -r "/api/xxx" src/ --include="*.vue" --include="*.js" -n
 아래 항목은 현재 코드에서 위 규칙을 따르지 않고 있다.  
 새 코드에서는 예외사항 패턴을 따르지 않는다.
 
-### API 서비스 레이어 미사용 (41개 파일 직접 axios 호출)
+### API 서비스 레이어 미사용 (다수 파일 직접 axios 호출)
 
-현재 `src/api/`는 어드민 CRUD 3개 엔드포인트만 커버한다.  
-나머지 41개 파일이 컴포넌트/페이지 내에서 axios를 직접 호출 중이다.
+현재 `src/api/`는 어드민 CRUD · 주식 시세 · 사주 · 키움 전략 도메인만 커버한다.  
+나머지 파일이 컴포넌트/페이지 내에서 axios를 직접 호출 중이다.  
+**신규 파일은 이 예외를 따르지 않는다** — 새 엔드포인트는 반드시 `src/api/xxxApi.js`를 먼저 만들고 경유한다.
 
 주요 위반 파일:
 

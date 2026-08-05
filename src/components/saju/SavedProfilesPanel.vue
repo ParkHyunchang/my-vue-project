@@ -102,7 +102,7 @@
 
 <script>
 import { ref, reactive, watch, onMounted } from "vue";
-import axios from "@/axios";
+import { fetchSajuProfiles, reanalyzeSajuProfile, deleteSajuProfile } from "@/api/sajuApi";
 import PaljaDisplay from "./PaljaDisplay.vue";
 import MarkdownView from "@/components/common/MarkdownView.vue";
 
@@ -120,7 +120,7 @@ export default {
     async function load() {
       loading.value = true;
       try {
-        const res = await axios.get("/api/saju/profiles");
+        const res = await fetchSajuProfiles();
         items.value = Array.isArray(res.data) ? res.data : [];
       } catch {
         items.value = [];
@@ -138,7 +138,7 @@ export default {
       busyId.value = p.id;
       delete reanalyzeBlocked[p.id];
       try {
-        const res = await axios.post(`/api/saju/profiles/${p.id}/reanalyze`);
+        const res = await reanalyzeSajuProfile(p.id);
         const data = res.data || {};
         if (data.palja) p.paljaJson = data.palja;
         if (data.blocked) {
@@ -160,7 +160,7 @@ export default {
       if (!confirm(`'${p.label}' 사주를 삭제할까요?`)) return;
       busyId.value = p.id;
       try {
-        await axios.delete(`/api/saju/profiles/${p.id}`);
+        await deleteSajuProfile(p.id);
         if (expandedId.value === p.id) expandedId.value = null;
         await load();
       } catch {

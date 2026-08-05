@@ -195,7 +195,7 @@
 
 <script>
 import { reactive, ref, computed } from "vue";
-import axios from "@/axios";
+import { createSajuProfile } from "@/api/sajuApi";
 import MarkdownView from "@/components/common/MarkdownView.vue";
 import PaljaDisplay from "./PaljaDisplay.vue";
 
@@ -278,7 +278,7 @@ export default {
         } else {
           payload.birthDate = form.birthDate;
         }
-        const res = await axios.post("/api/saju/profiles", payload);
+        const res = await createSajuProfile(payload);
         result.value = res.data || {};
         emit("saved-profile");
       } catch (e) {
