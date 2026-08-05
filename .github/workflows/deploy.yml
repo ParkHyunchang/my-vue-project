@@ -64,17 +64,19 @@ jobs:
             export PATH="/usr/local/bin:$PATH"
             echo "$GHCR_PAT" | $DOCKER login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
             $DOCKER pull "$IMAGE_NAME"
-            $DOCKER network inspect my-vue-project-internal >/dev/null 2>&1 || \
-              $DOCKER network create --internal my-vue-project-internal
+            # 기존 internal 네트워크는 Synology에서 호스트 포트 공개가 되지 않는 경우가 있어,
+            # 백엔드 포트를 열지 않는 전용 bridge 네트워크로 단계적으로 이전한다.
+            $DOCKER network inspect my-vue-project-private >/dev/null 2>&1 || \
+              $DOCKER network create my-vue-project-private
             # 백엔드가 아직 이전 배포 상태여도 새 프론트가 내부망으로 접근할 수 있게 연결한다.
-            $DOCKER network connect my-vue-project-internal vue_personal_project-backend 2>/dev/null || true
+            $DOCKER network connect my-vue-project-private vue_personal_project-backend 2>/dev/null || true
             $DOCKER stop vue_personal_project 2>/dev/null || true
             $DOCKER rm vue_personal_project 2>/dev/null || true
             $DOCKER run -d \
               --name vue_personal_project \
               --restart unless-stopped \
-              --network my-vue-project-internal \
-              -p 3100:80 \
+              --network my-vue-project-private \
+              -p 127.0.0.1:3100:80 \
               "$IMAGE_NAME"
             $DOCKER image prune -f
             echo "✅ 프론트엔드 배포 완료!"

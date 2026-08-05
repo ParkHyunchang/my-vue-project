@@ -133,7 +133,7 @@ const res = await adminCareerApi.list()
 컨테이너 내부 nginx([nginx.conf](nginx.conf))는 SPA 정적 호스팅 + 백엔드 리버스 프록시를 담당합니다.
 
 - **HTTPS 오프로드(TLS 처리)** 는 Synology 역방향 프록시에서 수행되므로 컨테이너는 `listen 80` 평문으로 동작합니다. `X-Forwarded-Proto=https` 가 들어오는 환경이라 HSTS는 활성화되어 있습니다.
-- **백엔드 업스트림**은 프론트·백엔드 전용 Docker 네트워크(`my-vue-project-internal`)의 백엔드 컨테이너 이름으로 잡혀 있습니다. 백엔드의 3200 포트는 NAS 호스트나 외부에 공개하지 않으며, `/api/*` 요청은 내부망에서만 전달됩니다.
+- **백엔드 업스트림**은 프론트·백엔드 전용 Docker 네트워크(`my-vue-project-private`)의 백엔드 컨테이너 이름으로 잡혀 있습니다. 백엔드의 3200 포트는 NAS 호스트나 외부에 공개하지 않으며, `/api/*` 요청은 전용 Docker 네트워크에서만 전달됩니다. 프론트의 3100 포트는 NAS 로컬호스트에만 공개되므로 Synology 역방향 프록시를 통해서만 접근합니다.
 - **캐시 정책**
   - 해시 붙은 정적 자산(`*.js`, `*.css`, `*.woff2` 등) → `Cache-Control: public, immutable`, 1년
   - `index.html` / SPA 라우팅 → `expires -1` (캐시 금지) — 새 배포가 즉시 반영되도록
