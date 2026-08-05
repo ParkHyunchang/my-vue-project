@@ -277,7 +277,7 @@
                 <div class="amodal-field">
                   <label for="ks-loss">
                     오늘 손실이 이 금액이면 새 매수 멈추기
-                    <span class="amodal-field-hint">장 시작 때보다 총자산이 이 금액 이상 줄면 그날 새 매수만 막습니다. 이미 가진 주식의 매도는 막지 않습니다. 0은 사용하지 않음입니다.</span>
+                    <span class="amodal-field-hint">당일 자동매매가 처음 잔고를 확인한 총자산과 비교해 이 금액 이상 줄면, 그날 새 매수 자동 전송만 막습니다. 이미 가진 주식의 매도·손절·익절은 계속 실행합니다.</span>
                   </label>
                   <div class="number-with-unit">
                     <input
@@ -291,13 +291,16 @@
                     <span>원</span>
                   </div>
                 </div>
+                <p class="amodal-note">
+                  <b>발동 후 동작:</b> 장 마감까지 신규 매수만 차단하고 다음 거래일에 자동 초기화됩니다. 발동한 뒤에는 값을 0으로 바꿔도 그날 차단은 유지됩니다. <b>0원</b>은 다음 손실 점검부터 이 안전장치를 사용하지 않는 설정입니다.
+                </p>
 
                 <details class="advanced-settings">
                   <summary>고급 설정 보기</summary>
                   <div class="amodal-field">
                     <label for="ks-daily">
                       하루 주문 제안 횟수
-                      <span class="amodal-field-hint">매수와 매도 제안을 합친 하루 최대 횟수입니다. 너무 낮으면 필요한 매도 제안도 막힐 수 있습니다.</span>
+                      <span class="amodal-field-hint">AI가 만든 매수·매도 제안의 하루 최대 합계입니다. HOLD는 세지 않으며, 제안이 실제 체결되지 않아도 횟수에 포함됩니다. 손절·익절 같은 보호성 매도는 이 한도와 별도로 동작합니다.</span>
                     </label>
                     <div class="number-with-unit">
                       <input
