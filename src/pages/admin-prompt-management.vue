@@ -92,6 +92,13 @@
               이 화면에서는 <b>지침만</b> 수정하면 됩니다.
               분석 데이터와 응답 형식(JSON)은 실행 시 시스템이 자동으로 붙입니다.
             </div>
+            <div
+              v-if="selected.key === 'KIWOOM_TRADE_STRATEGY'"
+              class="amodal-note"
+            >
+              <b>매매 규칙 설정의 숫자가 최우선입니다.</b>
+              여기에는 거래량·상승률·손절·익절처럼 고정된 숫자를 적지 마세요. 실행할 때 저장된 매매 규칙 값이 자동으로 붙고, 서로 다르면 그 값이 적용됩니다.
+            </div>
 
             <p class="amodal-section-label">
               지침

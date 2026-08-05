@@ -111,17 +111,17 @@
           </p>
           <article v-else>
             <div class="run-meta">
-              <b>{{ item.run.status }}</b><small>{{ date(item.run.createdAt) }} · {{ item.run.triggeredBy }}</small>
+              <b>{{ runStatusLabel(item.run.status) }}</b><small>{{ date(item.run.createdAt) }} · {{ triggerLabel(item.run.triggeredBy) }}</small>
             </div><p>{{ item.run.marketView || item.run.errorMessage || '생성된 제안이 없습니다.' }}</p><div class="proposals">
               <div
                 v-for="proposal in item.run.proposals"
                 :key="proposal.id"
                 :class="['proposal', proposal.action]"
               >
-                <b>{{ proposal.action }}</b><span>{{ proposal.stockName }} ({{ proposal.stockCode }})</span><span v-if="proposal.quantity">{{ proposal.quantity.toLocaleString() }}주</span><span v-if="proposal.limitPrice">{{ proposal.limitPrice.toLocaleString() }}원</span><small>{{ proposal.confidence }}% · {{ proposal.reason }}</small><small
+                <b>{{ actionLabel(proposal.action) }}</b><span>{{ proposal.stockName }} ({{ proposal.stockCode }})</span><span v-if="proposal.quantity">{{ proposal.quantity.toLocaleString() }}주</span><span v-if="proposal.limitPrice">{{ proposal.limitPrice.toLocaleString() }}원</span><small>{{ proposal.confidence }}% · {{ proposal.reason }}</small><small
                   v-if="proposal.guardFlags"
                   class="guards"
-                >안전 경고: {{ guardText(proposal.guardFlags) }}</small><small>상태: {{ proposal.status }}</small><small v-if="proposal.status === 'ORDERED'">주문 전송됨</small><small v-if="proposal.status === 'CANCEL_REQUESTED'">취소 요청됨 · 주문 상태 동기화 대기 중</small><small v-if="proposal.status === 'CANCELED'">주문 취소됨</small><small v-if="proposal.status === 'REJECTED'">거절됨 · {{ proposal.rejectionReason }}</small><small v-if="proposal.status === 'ORDER_FAILED'">전송 실패: {{ proposal.errorMessage }}</small>
+                >안전 경고: {{ guardText(proposal.guardFlags) }}</small><small>상태: {{ proposalStatusLabel(proposal.status) }}</small><small v-if="proposal.status === 'ORDERED'">주문 전송됨</small><small v-if="proposal.status === 'CANCEL_REQUESTED'">취소 요청됨 · 주문 상태 동기화 대기 중</small><small v-if="proposal.status === 'CANCELED'">주문 취소됨</small><small v-if="proposal.status === 'REJECTED'">거절됨 · {{ proposal.rejectionReason }}</small><small v-if="proposal.status === 'ORDER_FAILED'">전송 실패: {{ proposal.errorMessage }}</small>
               </div>
             </div>
           </article>
@@ -201,6 +201,32 @@ const todayUsage = computed(() => {
 })
 const GUARD_LABELS = { MAX_ORDER_AMOUNT: '주문한도 초과', DAILY_LIMIT: '일일 제안 한도', SYMBOL_COOLDOWN: '재제안 쿨다운', MARKET_CLOSED: '장외 시간', INSUFFICIENT_DEPOSIT: '예수금 부족', MAX_BUY_BUDGET: '매수 비율 한도 초과', DAILY_LOSS_LIMIT: '일일 손실 한도' }
 const guardText = (flags) => (flags || '').split(',').filter(Boolean).map((f) => GUARD_LABELS[f] || f).join(', ')
+const PROPOSAL_STATUS_LABELS = {
+  PROPOSED: '주문 제안됨',
+  APPROVED: '주문 승인됨',
+  REJECTED: '주문 거절됨',
+  ORDER_DRAFT: '주문 초안 생성됨',
+  ORDERED: '주문 전송됨',
+  PARTIALLY_FILLED: '일부 체결됨',
+  CANCEL_REQUESTED: '주문 취소 요청됨',
+  FILLED: '전량 체결됨',
+  CANCELED: '주문 취소됨',
+  ORDER_FAILED: '주문 전송 실패',
+  ORDER_UNKNOWN: '주문 상태 확인 필요'
+}
+const RUN_STATUS_LABELS = {
+  SUCCESS: '판단 완료',
+  FAILED: '판단 실패',
+  PARSE_FAILED: '응답 해석 실패',
+  BLOCKED: '안전 규칙으로 차단됨',
+  SKIPPED: '판단 건너뜀'
+}
+const ACTION_LABELS = { BUY: '매수', SELL: '매도', HOLD: '보유' }
+const TRIGGER_LABELS = { MANUAL: '수동 실행', SCHEDULE: '자동 실행', RISK: '위험 관리' }
+const proposalStatusLabel = (status) => PROPOSAL_STATUS_LABELS[status] || status
+const runStatusLabel = (status) => RUN_STATUS_LABELS[status] || status
+const actionLabel = (action) => ACTION_LABELS[action] || action
+const triggerLabel = (trigger) => TRIGGER_LABELS[trigger] || trigger
 async function load () { loading.value = true; try { const [universe, history, strategyConfig, holdings] = await Promise.all([axios.get('/api/kiwoom/strategy/universe'), axios.get('/api/kiwoom/strategy/runs?limit=50'), axios.get('/api/kiwoom/strategy/config'), axios.get('/api/kiwoom/auto-trade/holdings')]); candidates.value = universe.data; runs.value = history.data; config.value = strategyConfig.data; brokerHoldings.value = holdings.data } catch (e) { error.value = e.response?.data?.message || '전략 데이터를 불러오지 못했습니다.' } finally { loading.value = false } }
 async function loadOperations () { try { operations.value = (await axios.get('/api/kiwoom/strategy/health')).data } catch { /* 운영 상태 조회 실패는 기존 전략 기능을 막지 않는다. */ } }
 async function emergencyStop () { if (!window.confirm('자동 판단과 주문 전송을 긴급 중지할까요?')) return; pending.value = true; try { await axios.post('/api/kiwoom/auto-trade/emergency-stop'); await loadOperations() } catch (e) { error.value = e.response?.data?.message || '긴급 중지에 실패했습니다.' } finally { pending.value = false } }

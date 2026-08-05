@@ -150,6 +150,26 @@
                 </div>
 
                 <div class="amodal-field">
+                  <label for="ks-max-change">
+                    후보 최대 당일 상승률
+                    <span class="amodal-field-hint">이 비율보다 많이 오른 종목은 급등 추격을 피하기 위해 신규 매수 후보에서 제외합니다.</span>
+                  </label>
+                  <div class="number-with-unit positive-unit">
+                    <span>+</span>
+                    <input
+                      id="ks-max-change"
+                      v-model.number="form.swingMaxChangePercent"
+                      type="number"
+                      min="0.5"
+                      max="30"
+                      step="0.5"
+                      class="amodal-input"
+                    >
+                    <span>%</span>
+                  </div>
+                </div>
+
+                <div class="amodal-field">
                   <label for="ks-min-volume">
                     후보 최소 거래량 증가
                     <span class="amodal-field-hint">20일 평균 거래량 대비 배수입니다. 2배는 평소보다 거래량이 두 배 이상인 종목을 뜻합니다.</span>
@@ -345,7 +365,7 @@ const emit = defineEmits(['close', 'saved'])
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
-const form = ref({ autoExecute: false, autoExecuteMinConfidence: 85, maxBuyDepositPercent: 10, candidateReevaluationMinutes: 60, swingMinChangePercent: 2, swingMinVolumeRatio: 2, dailyMaxProposals: 10, swingStopLossPercent: 3, swingTakeProfitPercent: 6, swingMaxHoldingDays: 5, riskLoopEnabled: false, dailyLossLimitAmount: 0 })
+const form = ref({ autoExecute: false, autoExecuteMinConfidence: 85, maxBuyDepositPercent: 10, candidateReevaluationMinutes: 60, swingMinChangePercent: 2, swingMaxChangePercent: 8, swingMinVolumeRatio: 2, dailyMaxProposals: 10, swingStopLossPercent: 3, swingTakeProfitPercent: 6, swingMaxHoldingDays: 5, riskLoopEnabled: false, dailyLossLimitAmount: 0 })
 const original = ref('')
 let prompt = ''
 
@@ -355,6 +375,7 @@ const validationError = computed(() => {
   if (!Number.isInteger(f.autoExecuteMinConfidence) || f.autoExecuteMinConfidence < 0 || f.autoExecuteMinConfidence > 100) return 'AI 확신 점수는 0부터 100 사이의 정수여야 합니다.'
   if (!Number.isInteger(f.candidateReevaluationMinutes) || f.candidateReevaluationMinutes < 15 || f.candidateReevaluationMinutes > 240) return '후보 재판단 주기는 15부터 240분 사이의 정수여야 합니다.'
   if (typeof f.swingMinChangePercent !== 'number' || Number.isNaN(f.swingMinChangePercent) || f.swingMinChangePercent < 0.5 || f.swingMinChangePercent > 15) return '후보 최소 상승률은 0.5부터 15 사이여야 합니다.'
+  if (typeof f.swingMaxChangePercent !== 'number' || Number.isNaN(f.swingMaxChangePercent) || f.swingMaxChangePercent < f.swingMinChangePercent || f.swingMaxChangePercent > 30) return '후보 최대 상승률은 최소 상승률 이상, 30 이하이어야 합니다.'
   if (typeof f.swingMinVolumeRatio !== 'number' || Number.isNaN(f.swingMinVolumeRatio) || f.swingMinVolumeRatio < 1 || f.swingMinVolumeRatio > 20) return '후보 최소 거래량 증가는 1부터 20배 사이여야 합니다.'
   for (const [label, value] of [['한 번에 살 수 있는 돈', f.maxBuyDepositPercent], ['손절 기준', f.swingStopLossPercent], ['익절 기준', f.swingTakeProfitPercent]]) {
     if (typeof value !== 'number' || Number.isNaN(value) || value < 0 || value > 100) return `${label}은 0부터 100 사이여야 합니다.`
@@ -400,6 +421,7 @@ onMounted(async () => {
       maxBuyDepositPercent: data.maxBuyDepositPercent ?? 10,
       candidateReevaluationMinutes: data.candidateReevaluationMinutes ?? 60,
       swingMinChangePercent: data.swingMinChangePercent ?? 2,
+      swingMaxChangePercent: data.swingMaxChangePercent ?? 8,
       swingMinVolumeRatio: data.swingMinVolumeRatio ?? 2,
       dailyMaxProposals: data.dailyMaxProposals ?? 10,
       swingStopLossPercent: data.swingStopLossPercent ?? 3,
