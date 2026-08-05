@@ -295,27 +295,24 @@
                   <b>발동 후 동작:</b> 장 마감까지 신규 매수만 차단하고 다음 거래일에 자동 초기화됩니다. 발동한 뒤에는 값을 0으로 바꿔도 그날 차단은 유지됩니다. <b>0원</b>은 다음 손실 점검부터 이 안전장치를 사용하지 않는 설정입니다.
                 </p>
 
-                <details class="advanced-settings">
-                  <summary>고급 설정 보기</summary>
-                  <div class="amodal-field">
-                    <label for="ks-daily">
-                      하루 주문 제안 횟수
-                      <span class="amodal-field-hint">AI가 만든 매수·매도 제안의 하루 최대 합계입니다. HOLD는 세지 않으며, 제안이 실제 체결되지 않아도 횟수에 포함됩니다. 손절·익절 같은 보호성 매도는 이 한도와 별도로 동작합니다.</span>
-                    </label>
-                    <div class="number-with-unit">
-                      <input
-                        id="ks-daily"
-                        v-model.number="form.dailyMaxProposals"
-                        type="number"
-                        min="1"
-                        max="200"
-                        step="1"
-                        class="amodal-input"
-                      >
-                      <span>건</span>
-                    </div>
+                <div class="amodal-field">
+                  <label for="ks-daily">
+                    오늘 신규 매수 체결 건수 제한
+                    <span class="amodal-field-hint">실제로 체결 수량이 발생한 신규 매수 주문의 하루 최대 합계입니다. 미체결 주문, 주문 전송 실패, AI 제안만 생성된 경우는 포함하지 않습니다. 부분 체결은 한 건으로 셉니다. 익절·손절 매도와 후보 검토는 제한하지 않습니다.</span>
+                  </label>
+                  <div class="number-with-unit">
+                    <input
+                      id="ks-daily"
+                      v-model.number="form.dailyMaxProposals"
+                      type="number"
+                      min="1"
+                      max="200"
+                      step="1"
+                      class="amodal-input"
+                    >
+                    <span>건</span>
                   </div>
-                </details>
+                </div>
               </section>
             </div>
 
@@ -384,7 +381,7 @@ const validationError = computed(() => {
     if (typeof value !== 'number' || Number.isNaN(value) || value < 0 || value > 100) return `${label}은 0부터 100 사이여야 합니다.`
   }
   if (!Number.isInteger(f.swingMaxHoldingDays) || f.swingMaxHoldingDays < 1 || f.swingMaxHoldingDays > 30) return '가장 오래 들고 있을 날짜는 1부터 30 거래일 사이여야 합니다.'
-  if (!Number.isInteger(f.dailyMaxProposals) || f.dailyMaxProposals < 1 || f.dailyMaxProposals > 200) return '하루 주문 제안 횟수는 1부터 200 사이의 정수여야 합니다.'
+  if (!Number.isInteger(f.dailyMaxProposals) || f.dailyMaxProposals < 1 || f.dailyMaxProposals > 200) return '오늘 신규 매수 체결 건수 제한은 1부터 200 사이의 정수여야 합니다.'
   if (!Number.isInteger(f.dailyLossLimitAmount) || f.dailyLossLimitAmount < 0) return '일일 손실 한도는 0 이상의 정수(원)여야 합니다.'
   return ''
 })
@@ -459,9 +456,6 @@ onMounted(async () => {
 .negative-unit > :first-child { color: #f29090; font-weight: 800; }
 .positive-unit > :first-child { color: #80d69a; font-weight: 800; }
 .warning-note { margin-top: 0; }
-.advanced-settings { margin-top: 4px; }
-.advanced-settings summary { cursor: pointer; color: var(--text-muted); font-size: .82rem; }
-.advanced-settings .amodal-field { margin-top: 12px; }
 @media (max-width: 520px) {
   .setting-card { padding: 12px; }
   .amodal-field { align-items: flex-start; flex-direction: column; gap: 6px; }
