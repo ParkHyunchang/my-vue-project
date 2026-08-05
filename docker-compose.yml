@@ -15,4 +15,5 @@ services:
 
 networks:
   app-network:
-    driver: bridge
+    name: my-vue-project-internal
+    external: true
