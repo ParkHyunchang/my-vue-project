@@ -109,12 +109,18 @@
               <th class="th-r">
                 평단가
               </th>
+              <th class="th-r">
+                현재가
+              </th>
+              <th class="th-r">
+                수익률
+              </th>
               <th />
             </tr>
           </thead>
           <tbody>
             <tr
-              v-for="holding in brokerHoldings"
+              v-for="holding in displayedBrokerHoldings"
               :key="holding.stockCode"
             >
               <td class="hname-cell">
@@ -136,6 +142,12 @@
               <td class="td-r">
                 {{ Number(holding.averagePrice).toLocaleString() }}원
               </td>
+              <td class="td-r">
+                {{ Number(holding.currentPrice || 0).toLocaleString() }}원
+              </td>
+              <td class="td-r">
+                <span :class="changeClass(holding.profitLossPercent)">{{ formatChangePct(holding.profitLossPercent) }}</span>
+              </td>
               <td class="td-act">
                 <button
                   class="liquidate-one"
@@ -154,7 +166,7 @@
         class="holdings-cards"
       >
         <div
-          v-for="holding in brokerHoldings"
+          v-for="holding in displayedBrokerHoldings"
           :key="holding.stockCode"
           class="holding-card"
         >
@@ -167,6 +179,14 @@
                 <div class="h-sym">
                   {{ holding.stockCode }}
                 </div>
+              </div>
+            </div>
+            <div class="hcard-price-wrap">
+              <div class="hcard-price">
+                {{ Number(holding.currentPrice || 0).toLocaleString() }}원
+              </div>
+              <div :class="['hcard-change', changeClass(holding.profitLossPercent)]">
+                {{ formatChangePct(holding.profitLossPercent) }}
               </div>
             </div>
           </div>
@@ -307,11 +327,24 @@ import {
 } from '@/api/kiwoomApi'
 import KiwoomStrategySettingsModal from '@/components/stock/KiwoomStrategySettingsModal.vue'
 import { useStockFormatters } from '@/composables/useStockFormatters'
-defineProps({ configured: Boolean, autoTrading: Boolean })
+const props = defineProps({
+  configured: Boolean,
+  autoTrading: Boolean,
+  priceTicks: { type: Object, default: () => ({}) },
+})
 const { formatChangePct, changeClass } = useStockFormatters()
 const candidates = ref([]), runs = ref([]), brokerHoldings = ref([])
 const config = ref({ orderEnabled: false, autoExecute: false, autoExecuteMinConfidence: 85 }), operations = ref({}), pending = ref(false), loading = ref(false), error = ref(''), settingsMessage = ref(''), showSettings = ref(false)
 const liquidationMessage = ref(''), liquidationFailed = ref(false)
+const displayedBrokerHoldings = computed(() => brokerHoldings.value.map((holding) => {
+  const livePrice = Number(props.priceTicks[holding.stockCode]?.price)
+  const currentPrice = Number.isFinite(livePrice) && livePrice > 0 ? livePrice : Number(holding.currentPrice || 0)
+  const averagePrice = Number(holding.averagePrice || 0)
+  const profitLossPercent = averagePrice > 0 && currentPrice > 0
+    ? ((currentPrice - averagePrice) / averagePrice) * 100
+    : Number(holding.profitLossPercent || 0)
+  return { ...holding, currentPrice, profitLossPercent }
+}))
 // 검토 내역은 기본 접힌 상태로 두고, 가장 최근 판단 1건만 자동으로 펼쳐 첫 진입 시 정보 과부하를 막는다.
 const expandedRunIds = ref(new Set())
 let lastAutoExpandedId = null
