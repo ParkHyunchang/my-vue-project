@@ -1,14 +1,21 @@
 <template>
   <section class="strategy-panel">
-    <div class="operations">
-      <div class="operations-status">
-        <span :class="{ stopped: !autoTrading }">{{ autoTrading ? '자동주문 실행 중' : '자동주문 완전 중지' }}</span>
-        <small>시작·중지는 위 자동주문 버튼에서 제어합니다.</small>
+    <section class="panel-card">
+      <div class="panel-card-head">
+        <h3>AI 전략 제안</h3>
+        <div class="status-chips">
+          <span :class="['status-chip', { stopped: !autoTrading }]">{{ autoTrading ? '자동주문 실행 중' : '자동주문 완전 중지' }}</span>
+          <span :class="['status-chip', { on: config.orderEnabled }]">{{ config.orderEnabled ? 'ORDER ENABLED' : 'ORDER DISABLED' }}</span>
+        </div>
       </div>
-      <div class="operation-actions">
+      <p class="notice">
+        {{ config.autoExecute ? `완전 자동매매 활성: 예약 판단에서 신뢰도 ${config.autoExecuteMinConfidence}% 이상인 제안을 안전 검사 후 자동 전송합니다.` : '자동 주문 전송이 꺼져 있습니다. 전략 설정에서 켜야 완전 자동매매가 시작됩니다.' }}
+      </p>
+      <div class="panel-card-actions">
         <button
           class="reassess-now"
           :disabled="pending"
+          :title="DECIDE_NOW_HINT"
           @click="decideNow"
         >
           지금 재판단
@@ -16,49 +23,63 @@
         <button
           class="sync-orders"
           :disabled="pending"
+          :title="SYNC_ORDERS_HINT"
           @click="syncOrders"
         >
           주문 상태 동기화
         </button>
-      </div>
-    </div>
-    <header>
-      <div><small>KIWOOM STRATEGY</small><h3>AI 전략 제안 <em>{{ config.orderEnabled ? 'ORDER ENABLED' : 'ORDER DISABLED' }}</em></h3></div><div class="header-actions">
         <button
           :disabled="pending"
+          :title="STRATEGY_SETTINGS_HINT"
           @click="showSettings = true"
         >
           전략 설정
         </button>
       </div>
-    </header>
-    <div
-      v-if="operations.risk"
-      class="risk-strip"
-    >
-      <span
-        v-if="operations.risk.triggered"
-        class="risk-triggered"
-      >일일 손실 한도 발동 · 손실 {{ won(operations.risk.drawdown) }} / 한도 {{ won(operations.risk.dailyLossLimitAmount) }} · 신규 매수 차단</span><span v-else-if="operations.risk.dailyLossLimitAmount > 0">일일 손실 {{ won(operations.risk.drawdown) }} / 한도 {{ won(operations.risk.dailyLossLimitAmount) }}</span><span v-else>일일 손실 한도 미설정</span><button
-        v-if="operations.risk.triggered"
-        class="daily-loss-reset"
-        :disabled="pending"
-        @click="resetDailyLossGuard"
+      <p
+        v-if="settingsMessage"
+        class="settings-applied"
       >
-        오늘 손실 차단 해제
-      </button><small
-        v-if="operations.risk.snapshotDate"
-        class="risk-assets"
-      >기준 자산 {{ won(operations.risk.baseAsset) }} · 현재 자산 {{ won(operations.risk.lastAsset) }}</small><span :class="['risk-loop', { on: operations.risk.riskLoopEnabled }]">손절·익절 루프 {{ operations.risk.riskLoopEnabled ? 'ON' : 'OFF' }}</span><small v-if="operations.risk.lastScanAt">마지막 스캔 {{ date(operations.risk.lastScanAt) }}</small>
-    </div>
-    <p class="notice">
-      {{ config.autoExecute ? `완전 자동매매 활성: 예약 판단에서 신뢰도 ${config.autoExecuteMinConfidence}% 이상인 제안을 안전 검사 후 자동 전송합니다.` : '자동 주문 전송이 꺼져 있습니다. 전략 설정에서 켜야 완전 자동매매가 시작됩니다.' }}
-    </p>
-    <p
-      v-if="settingsMessage"
-      class="settings-applied"
+        설정 저장 결과: {{ settingsMessage }}
+      </p>
+      <p class="usage-summary">
+        오늘 AI 호출 {{ todayUsage.calls }}회 · 추정 입력 {{ todayUsage.input.toLocaleString() }} / 출력 {{ todayUsage.output.toLocaleString() }} 토큰
+      </p>
+    </section>
+    <section
+      v-if="operations.risk"
+      class="panel-card"
     >
-      설정 저장 결과: {{ settingsMessage }}
+      <div class="panel-card-head">
+        <h3>리스크 관리</h3>
+        <span
+          :class="['status-chip', 'risk-loop', { on: operations.risk.riskLoopEnabled }]"
+          :title="RISK_LOOP_HINT"
+        >손절·익절 루프 {{ operations.risk.riskLoopEnabled ? 'ON' : 'OFF' }}</span>
+      </div>
+      <div class="risk-strip">
+        <span
+          v-if="operations.risk.triggered"
+          class="risk-triggered"
+        >일일 손실 한도 발동 · 손실 {{ won(operations.risk.drawdown) }} / 한도 {{ won(operations.risk.dailyLossLimitAmount) }} · 신규 매수 차단</span><span v-else-if="operations.risk.dailyLossLimitAmount > 0">일일 손실 {{ won(operations.risk.drawdown) }} / 한도 {{ won(operations.risk.dailyLossLimitAmount) }}</span><span v-else>일일 손실 한도 미설정</span><button
+          v-if="operations.risk.triggered"
+          class="daily-loss-reset"
+          :disabled="pending"
+          :title="DAILY_LOSS_RESET_HINT"
+          @click="resetDailyLossGuard"
+        >
+          오늘 손실 차단 해제
+        </button><small
+          v-if="operations.risk.snapshotDate"
+          class="risk-assets"
+        >기준 자산 {{ won(operations.risk.baseAsset) }} · 현재 자산 {{ won(operations.risk.lastAsset) }}</small><small v-if="operations.risk.lastScanAt">마지막 스캔 {{ date(operations.risk.lastScanAt) }}</small>
+      </div>
+    </section>
+    <p
+      v-if="error"
+      class="error"
+    >
+      {{ error }}
     </p>
     <section class="broker-holdings">
       <div class="broker-holdings-title">
@@ -73,19 +94,106 @@
       </div>
       <div
         v-if="brokerHoldings.length"
-        class="broker-holding-list"
+        class="holdings-table-wrap"
       >
-        <span
+        <table class="holdings-table">
+          <thead>
+            <tr>
+              <th>종목</th>
+              <th class="th-r">
+                보유수량
+              </th>
+              <th class="th-r">
+                매도가능수량
+              </th>
+              <th class="th-r">
+                평단가
+              </th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="holding in brokerHoldings"
+              :key="holding.stockCode"
+            >
+              <td class="hname-cell">
+                <div>
+                  <div class="h-name">
+                    {{ holding.stockName }}
+                  </div>
+                  <div class="h-sym">
+                    {{ holding.stockCode }}
+                  </div>
+                </div>
+              </td>
+              <td class="td-r">
+                {{ Number(holding.quantity).toLocaleString() }}주
+              </td>
+              <td class="td-r">
+                {{ Number(holding.sellableQuantity).toLocaleString() }}주
+              </td>
+              <td class="td-r">
+                {{ Number(holding.averagePrice).toLocaleString() }}원
+              </td>
+              <td class="td-act">
+                <button
+                  class="liquidate-one"
+                  :disabled="pending"
+                  @click="liquidateOne(holding)"
+                >
+                  시장가 청산
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div
+        v-if="brokerHoldings.length"
+        class="holdings-cards"
+      >
+        <div
           v-for="holding in brokerHoldings"
           :key="holding.stockCode"
-          class="broker-holding"
-        ><b>{{ holding.stockName }} · {{ holding.stockCode }}</b><small>보유 {{ Number(holding.quantity).toLocaleString() }}주 / 매도가능 {{ Number(holding.sellableQuantity).toLocaleString() }}주</small><small>평단 {{ Number(holding.averagePrice).toLocaleString() }}원</small><button
-          class="liquidate-one"
-          :disabled="pending"
-          @click="liquidateOne(holding)"
+          class="holding-card"
         >
-          시장가 청산
-        </button></span>
+          <div class="hcard-header">
+            <div class="hcard-name-wrap">
+              <div>
+                <div class="h-name">
+                  {{ holding.stockName }}
+                </div>
+                <div class="h-sym">
+                  {{ holding.stockCode }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="hcard-body">
+            <div class="hcard-row">
+              <span class="hcard-label">보유수량</span>
+              <span>{{ Number(holding.quantity).toLocaleString() }}주</span>
+            </div>
+            <div class="hcard-row">
+              <span class="hcard-label">매도가능수량</span>
+              <span>{{ Number(holding.sellableQuantity).toLocaleString() }}주</span>
+            </div>
+            <div class="hcard-row">
+              <span class="hcard-label">평단가</span>
+              <span>{{ Number(holding.averagePrice).toLocaleString() }}원</span>
+            </div>
+          </div>
+          <div class="hcard-actions">
+            <button
+              class="liquidate-one"
+              :disabled="pending"
+              @click="liquidateOne(holding)"
+            >
+              시장가 청산
+            </button>
+          </div>
+        </div>
       </div>
       <p
         v-if="liquidationMessage"
@@ -94,15 +202,6 @@
         {{ liquidationMessage }}
       </p>
     </section>
-    <p
-      v-if="error"
-      class="error"
-    >
-      {{ error }}
-    </p>
-    <p class="usage-summary">
-      오늘 AI 호출 {{ todayUsage.calls }}회 · 추정 입력 {{ todayUsage.input.toLocaleString() }} / 출력 {{ todayUsage.output.toLocaleString() }} 토큰
-    </p>
     <div class="candidate-list">
       <span
         v-for="c in candidates"
@@ -128,19 +227,50 @@
           >
             변경 없음으로 건너뜀 {{ item.count }}건 · {{ date(item.from) }} ~ {{ date(item.to) }}
           </p>
-          <article v-else>
-            <div class="run-meta">
-              <b>{{ runStatusLabel(item.run.status) }}</b><small>{{ date(item.run.createdAt) }} · {{ triggerLabel(item.run.triggeredBy) }}</small>
-            </div><p>{{ item.run.marketView || item.run.errorMessage || '생성된 제안이 없습니다.' }}</p><div class="proposals">
-              <div
-                v-for="proposal in item.run.proposals"
-                :key="proposal.id"
-                :class="['proposal', proposal.action]"
-              >
-                <b>{{ actionLabel(proposal.action) }}</b><span>{{ proposal.stockName }} ({{ proposal.stockCode }})</span><span v-if="proposal.quantity">{{ proposal.quantity.toLocaleString() }}주</span><span v-if="proposal.limitPrice">{{ proposal.limitPrice.toLocaleString() }}원</span><small>{{ proposal.confidence }}% · {{ proposal.reason }}</small><small
-                  v-if="proposal.guardFlags"
-                  class="guards"
-                >안전 경고: {{ guardText(proposal.guardFlags) }}</small><small>상태: {{ proposalStatusLabel(proposal.status) }}</small><small v-if="proposal.status === 'ORDERED'">주문 전송됨</small><small v-if="proposal.status === 'CANCEL_REQUESTED'">취소 요청됨 · 주문 상태 동기화 대기 중</small><small v-if="proposal.status === 'CANCELED'">주문 취소됨</small><small v-if="proposal.status === 'REJECTED'">거절됨 · {{ proposal.rejectionReason }}</small><small v-if="proposal.status === 'ORDER_FAILED'">전송 실패: {{ proposal.errorMessage }}</small>
+          <article
+            v-else
+            class="run-card"
+            :class="{ expanded: isRunExpanded(item.run.id) }"
+          >
+            <button
+              type="button"
+              class="run-summary"
+              :aria-expanded="isRunExpanded(item.run.id)"
+              @click="toggleRun(item.run.id)"
+            >
+              <span class="run-chevron">▸</span>
+              <span>{{ runSummaryText(item.run) }}</span>
+            </button>
+            <div
+              v-show="isRunExpanded(item.run.id)"
+              class="run-detail"
+            >
+              <p>{{ item.run.marketView || item.run.errorMessage || '생성된 제안이 없습니다.' }}</p>
+              <div class="proposals-grid">
+                <div
+                  v-for="proposal in item.run.proposals"
+                  :key="proposal.id"
+                  class="proposal-card"
+                >
+                  <div class="proposal-primary">
+                    <span :class="['action-badge', proposal.action]">{{ actionDisplayLabel(proposal) }}</span>
+                    <span class="proposal-name">{{ proposal.stockName }} <small>({{ proposal.stockCode }})</small></span>
+                    <span v-if="proposal.quantity">{{ proposal.quantity.toLocaleString() }}주</span>
+                    <span v-if="proposal.limitPrice">{{ proposal.limitPrice.toLocaleString() }}원</span>
+                    <span :class="['status-badge', statusTone(proposal.status)]">{{ proposalStatusLabel(proposal.status) }}</span>
+                  </div>
+                  <p class="proposal-secondary">
+                    신뢰도 {{ proposal.confidence }}% · {{ proposal.reason }}
+                  </p>
+                  <small
+                    v-if="proposal.guardFlags"
+                    class="guards"
+                  >안전 경고: {{ guardText(proposal.guardFlags) }}</small>
+                  <small
+                    v-if="statusDetail(proposal)"
+                    class="status-detail"
+                  >{{ statusDetail(proposal) }}</small>
+                </div>
               </div>
             </div>
           </article>
@@ -182,6 +312,21 @@ const { formatChangePct, changeClass } = useStockFormatters()
 const candidates = ref([]), runs = ref([]), brokerHoldings = ref([])
 const config = ref({ orderEnabled: false, autoExecute: false, autoExecuteMinConfidence: 85 }), operations = ref({}), pending = ref(false), loading = ref(false), error = ref(''), settingsMessage = ref(''), showSettings = ref(false)
 const liquidationMessage = ref(''), liquidationFailed = ref(false)
+// 검토 내역은 기본 접힌 상태로 두고, 가장 최근 판단 1건만 자동으로 펼쳐 첫 진입 시 정보 과부하를 막는다.
+const expandedRunIds = ref(new Set())
+let lastAutoExpandedId = null
+const isRunExpanded = (id) => expandedRunIds.value.has(id)
+function toggleRun (id) {
+  if (expandedRunIds.value.has(id)) expandedRunIds.value.delete(id)
+  else expandedRunIds.value.add(id)
+}
+function autoExpandLatestRun () {
+  const latest = runs.value.find((run) => run.status !== 'SKIPPED')
+  if (latest && latest.id !== lastAutoExpandedId) {
+    expandedRunIds.value.add(latest.id)
+    lastAutoExpandedId = latest.id
+  }
+}
 const date = (value) => value ? new Date(value).toLocaleString('ko-KR', { hour12: false }) : ''
 const won = (value) => `${Number(value || 0).toLocaleString()}원`
 // "지금 판단"을 눌러도 예전 기록과 섞여 전부 방금 일어난 것처럼 보이는 걸 막기 위해 날짜별로 묶어
@@ -257,10 +402,49 @@ const TRIGGER_LABELS = { MANUAL: '수동 실행', SCHEDULE: '자동 실행', RIS
 const proposalStatusLabel = (status) => PROPOSAL_STATUS_LABELS[status] || status
 const runStatusLabel = (status) => RUN_STATUS_LABELS[status] || status
 const actionLabel = (action) => ACTION_LABELS[action] || action
+// AI는 "이미 보유 중이라 매도하지 않음"과 "후보였지만 매수하지 않음"을 구분 없이 모두 HOLD로 반환하므로,
+// 현재 보유 목록과 대조해 화면에서만 다른 문구로 보여준다(과거 이력은 현재 보유 기준이라 오차가 있을 수 있음).
+const isHeld = (stockCode) => brokerHoldings.value.some((h) => h.stockCode === stockCode)
+function actionDisplayLabel (proposal) {
+  if (proposal.action === 'HOLD') return isHeld(proposal.stockCode) ? '보유 유지' : '관망'
+  return actionLabel(proposal.action)
+}
 const triggerLabel = (trigger) => TRIGGER_LABELS[trigger] || trigger
-async function load () { loading.value = true; try { const [universe, history, strategyConfig, holdings] = await Promise.all([fetchStrategyUniverse(), fetchStrategyRuns(50), fetchStrategyConfig(), fetchAccountHoldings()]); candidates.value = universe.data; runs.value = history.data; config.value = strategyConfig.data; brokerHoldings.value = holdings.data } catch (e) { error.value = e.response?.data?.message || '전략 데이터를 불러오지 못했습니다.' } finally { loading.value = false } }
+// 상태 배지 색상 분류: 진행 중(neutral) · 완료(success) · 확인 필요(warn) · 실패(danger)
+const STATUS_TONES = { PROPOSED: 'neutral', APPROVED: 'neutral', ORDER_DRAFT: 'neutral', ORDERED: 'success', PARTIALLY_FILLED: 'success', FILLED: 'success', CANCEL_REQUESTED: 'warn', CANCELED: 'warn', ORDER_UNKNOWN: 'warn', REJECTED: 'danger', ORDER_FAILED: 'danger' }
+const statusTone = (status) => STATUS_TONES[status] || 'neutral'
+// 상태 배지만으로 부족한, 새 정보가 있는 경우에만 상세 텍스트를 덧붙인다.
+function statusDetail (proposal) {
+  if (proposal.status === 'REJECTED') return `거절 사유: ${proposal.rejectionReason}`
+  if (proposal.status === 'ORDER_FAILED') return `전송 실패: ${proposal.errorMessage}`
+  if (proposal.status === 'CANCEL_REQUESTED') {
+    return proposal.cancelReason
+      ? `취소 사유: ${proposal.cancelReason} · 주문 상태 동기화 대기 중`
+      : '주문 상태 동기화 대기 중'
+  }
+  if (proposal.status === 'CANCELED' && proposal.cancelReason) return `취소 사유: ${proposal.cancelReason}`
+  return ''
+}
+function runSummaryText (run) {
+  const parts = [date(run.createdAt), triggerLabel(run.triggeredBy), runStatusLabel(run.status)]
+  if (run.proposals?.length) {
+    const counts = ['BUY', 'SELL', 'HOLD']
+      .map((action) => ({ action, count: run.proposals.filter((p) => p.action === action).length }))
+      .filter((c) => c.count > 0)
+      .map((c) => `${actionLabel(c.action)} ${c.count}`)
+      .join(' · ')
+    parts.push(`제안 ${run.proposals.length}건 (${counts})`)
+  }
+  return parts.join(' · ')
+}
+async function load () { loading.value = true; try { const [universe, history, strategyConfig, holdings] = await Promise.all([fetchStrategyUniverse(), fetchStrategyRuns(50), fetchStrategyConfig(), fetchAccountHoldings()]); candidates.value = universe.data; runs.value = history.data; config.value = strategyConfig.data; brokerHoldings.value = holdings.data; autoExpandLatestRun() } catch (e) { error.value = e.response?.data?.message || '전략 데이터를 불러오지 못했습니다.' } finally { loading.value = false } }
 async function loadOperations () { try { operations.value = (await fetchStrategyHealth()).data } catch { /* 운영 상태 조회 실패는 기존 전략 기능을 막지 않는다. */ } }
-async function decideNow () { if (!window.confirm('현재 시세와 보유 종목으로 즉시 재판단할까요? 자동매매가 활성화되어 있으면 안전 검사를 통과한 주문은 자동 전송됩니다.')) return; pending.value = true; error.value = ''; try { await runStrategyDecision(); await Promise.all([load(), loadOperations()]) } catch (e) { error.value = e.response?.data?.message || '즉시 재판단에 실패했습니다.' } finally { pending.value = false } }
+// 버튼 title 툴팁에도 그대로 재사용해 확인 문구와 설명이 어긋나지 않게 한다.
+const DECIDE_NOW_HINT = '현재 시세와 보유 종목으로 즉시 재판단할까요? 자동매매가 활성화되어 있으면 안전 검사를 통과한 주문은 자동 전송됩니다.'
+const SYNC_ORDERS_HINT = '키움 서버에 전송한 주문의 체결·취소 상태를 다시 조회해 반영합니다.'
+const STRATEGY_SETTINGS_HINT = '자동매매 조건(신뢰도 기준, 주문 한도, 손절·익절 등)을 설정합니다.'
+const RISK_LOOP_HINT = '가격이 익절·손절 조건에 도달하면 자동으로 매도 주문을 요청합니다.'
+async function decideNow () { if (!window.confirm(DECIDE_NOW_HINT)) return; pending.value = true; error.value = ''; try { await runStrategyDecision(); await Promise.all([load(), loadOperations()]) } catch (e) { error.value = e.response?.data?.message || '즉시 재판단에 실패했습니다.' } finally { pending.value = false } }
 async function syncOrders () { pending.value = true; error.value = ''; try { const { data } = await syncStrategyOrders(); if (data.updated > 0) await load(); else error.value = data.message } catch (e) { error.value = e.response?.data?.message || '주문 상태 동기화에 실패했습니다.' } finally { pending.value = false } }
 // 실계좌 시장가 매도라 되돌릴 수 없다. 확인 문구에 대상 종목과 수량을 그대로 적어 오조작을 막는다.
 async function runLiquidation (stockCodes, question) {
@@ -284,7 +468,8 @@ async function liquidateAll () {
 async function liquidateOne (holding) {
   await runLiquidation([holding.stockCode], `${holding.stockName}(${holding.stockCode}) ${Number(holding.quantity).toLocaleString()}주를 시장가로 매도합니다. 되돌릴 수 없습니다. 진행할까요?`)
 }
-async function resetDailyLossGuard () { if (!window.confirm('오늘의 일일 손실 차단을 해제할까요? 현재 자산을 오늘의 새 기준점으로 저장하며, 이후 신규 매수가 다시 가능해집니다.')) return; pending.value = true; error.value = ''; try { await requestDailyLossReset(); await loadOperations() } catch (e) { error.value = e.response?.data?.message || '일일 손실 차단 해제에 실패했습니다.' } finally { pending.value = false } }
+const DAILY_LOSS_RESET_HINT = '오늘의 일일 손실 차단을 해제할까요? 현재 자산을 오늘의 새 기준점으로 저장하며, 이후 신규 매수가 다시 가능해집니다.'
+async function resetDailyLossGuard () { if (!window.confirm(DAILY_LOSS_RESET_HINT)) return; pending.value = true; error.value = ''; try { await requestDailyLossReset(); await loadOperations() } catch (e) { error.value = e.response?.data?.message || '일일 손실 차단 해제에 실패했습니다.' } finally { pending.value = false } }
 async function onSettingsSaved (result = {}) {
   showSettings.value = false
   settingsMessage.value = [result.applyMessage, result.dailyLossApplyMessage].filter(Boolean).join(' · ') || '새 설정을 저장했습니다.'
@@ -294,19 +479,8 @@ async function onSettingsSaved (result = {}) {
 onMounted(async () => { await load(); await loadOperations() })
 </script>
 
-<style scoped>
-.strategy-panel{margin:14px 0;color:var(--text-primary);background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:18px}.operations{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;padding:10px 12px;border:1px solid var(--card-border);border-radius:10px;background:rgba(255,255,255,.02)}.operations-status{display:flex;align-items:baseline;gap:8px;min-width:0}.operations-status span{font-weight:700}.operations-status span.stopped{color:#ff9c9c}.operations-status small{color:var(--text-muted);font-size:.75rem}.operation-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px}.header-actions{display:flex;gap:6px;flex-shrink:0}.risk-strip{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0;padding:8px 10px;border:1px solid var(--card-border);border-radius:10px;font-size:.78rem}.risk-strip small{color:var(--text-muted)}.risk-strip button{margin-left:auto;padding:4px 8px;font-size:.75rem}.risk-triggered{background:#5a2323;color:#ffb4b4;border-radius:99px;padding:4px 9px;font-weight:700}.risk-loop{background:#30343a;color:#d9dce0;border-radius:99px;padding:4px 9px}.risk-loop.on{background:#1f3a2a;color:#9fe2b8}.strategy-panel header{display:flex;align-items:center;justify-content:space-between}.strategy-panel h3{margin:4px 0}.strategy-panel header small{color:var(--accent);font-weight:800;letter-spacing:.1em}.strategy-panel em{font-style:normal;color:#e9b664;font-size:.7rem;margin-left:6px}.strategy-panel button{cursor:pointer;border:1px solid var(--card-border-strong);border-radius:8px;padding:7px 10px;background:transparent;color:var(--text-primary)}.strategy-panel button:disabled{opacity:.5;cursor:not-allowed}.reassess-now{border-color:#7760cc!important;background:#5a48ae!important;color:#fff!important;font-weight:700}.notice,.error{padding:10px;border-radius:8px;font-size:.82rem}.notice{background:#3c3424;color:#f2ce8b}.error{background:#482424;color:#ffb4b4}.broker-holdings{margin:12px 0;padding:10px;border:1px solid #31516f;border-radius:10px;background:#1b2938}.broker-holdings-title{display:flex;justify-content:space-between;gap:8px;font-size:.78rem}.broker-holding-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.broker-holding{display:flex;flex-direction:column;gap:2px;padding:7px 8px;border-radius:7px;background:#243d55;font-size:.74rem}.broker-holding small{color:#c4d7e8}.candidate-list{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.candidate-chip{display:inline-flex;align-items:center;gap:5px;background:#1f2924;border-radius:99px;font-size:.77rem;padding:5px 9px}.empty{color:var(--text-muted)}.runs{margin-top:15px}.run-date-divider{display:flex;align-items:center;gap:8px;margin:14px 0 4px}.run-date-divider span{font-size:.72rem;font-weight:800;color:var(--accent);letter-spacing:.05em;background:var(--card-bg);white-space:nowrap}.run-date-divider::after{content:"";flex:1;height:1px;background:var(--card-border)}.runs article{border-top:1px solid var(--card-border);padding:12px 0}.run-skipped-group{border-top:1px solid var(--card-border);padding:8px 0;margin:0;color:var(--text-muted);font-size:.76rem}.run-meta{display:flex;gap:8px;align-items:center}.run-meta b{font-size:.7rem;background:#303a34;padding:3px 6px;border-radius:5px}.run-meta small{color:var(--text-muted)}.runs p{font-size:.84rem;margin:7px 0}.proposals{display:flex;flex-wrap:wrap;gap:7px}.proposal{border-radius:8px;padding:7px;font-size:.76rem;display:flex;gap:5px;flex-wrap:wrap}.proposal small{width:100%;opacity:.8}.proposal.BUY{background:#4a2626;color:#ffbab4}.proposal.SELL{background:#213853;color:#b9d7ff}.proposal.HOLD{background:#30343a;color:#d9dce0}.workflow-actions{display:flex;gap:5px;width:100%;margin-top:4px}.workflow-actions button{padding:4px 6px;font-size:.75rem}@media (max-width:640px){.strategy-panel{padding:14px}.operations{align-items:stretch;flex-direction:column}.operations-status{justify-content:space-between}.operation-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.operation-actions button{width:100%}.operation-actions .reassess-now{grid-column:1 / -1}.strategy-panel header{align-items:flex-start;gap:10px}.broker-holdings-title{align-items:flex-start;flex-direction:column}.broker-holding{flex:1;min-width:132px}}
-</style>
-
 <!-- .change-badge 색상 클래스는 전역 stock.css에 정의됨 (Top10Panel.vue와 동일 패턴) -->
 <style src="@/assets/css/stock.css" scoped></style>
 <style scoped>
-.daily-loss-reset{margin-left:0!important;border-color:#b87931!important;background:#4b321c!important;color:#ffd597!important;font-weight:700}
-.settings-applied{padding:9px 10px;border:1px solid #32694b;border-radius:8px;background:#183c2a;color:#a9e8c2;font-size:.8rem}
-.broker-holdings-title{align-items:center}
-.liquidate-all{margin-left:auto;padding:5px 9px!important;font-size:.75rem;border-color:#a34a45!important;background:#4d211f!important;color:#ffb9b3!important;font-weight:700}
-.liquidate-one{margin-top:4px;padding:3px 6px!important;font-size:.7rem;border-color:#7d4340!important;background:#3c1f1e!important;color:#f0aca6!important}
-.liquidation-result{margin:8px 0 0;padding:8px 10px;border:1px solid #32694b;border-radius:8px;background:#183c2a;color:#a9e8c2;font-size:.76rem;word-break:break-word}
-.liquidation-result.failed{border-color:#7a3a3a;background:#3d1f1f;color:#ffb4b4}
-@media (max-width:640px){.broker-holdings-title{align-items:stretch}.liquidate-all{margin-left:0;width:100%}}
+.strategy-panel{margin:14px 0;color:var(--text-primary);background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:18px}.panel-card{margin-bottom:14px;padding:14px 16px;border:1px solid var(--card-border);border-radius:10px;background:rgba(255,255,255,.02)}.panel-card-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px}.panel-card-head h3{margin:0;font-size:1rem}.status-chips{display:flex;flex-wrap:wrap;gap:6px}.status-chip{background:#30343a;color:#d9dce0;border-radius:99px;padding:4px 9px;font-size:.75rem;font-weight:700}.status-chip.on{background:#1f3a2a;color:#9fe2b8}.status-chip.stopped{background:#5a2323;color:#ff9c9c}.panel-card-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.risk-strip{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--card-border);border-radius:10px;font-size:.78rem}.risk-strip small{color:var(--text-muted)}.risk-strip button{margin-left:auto;padding:4px 8px;font-size:.75rem}.risk-triggered{background:#5a2323;color:#ffb4b4;border-radius:99px;padding:4px 9px;font-weight:700}.risk-loop{background:#30343a;color:#d9dce0;border-radius:99px;padding:4px 9px}.risk-loop.on{background:#1f3a2a;color:#9fe2b8}.strategy-panel button{cursor:pointer;border:1px solid var(--card-border-strong);border-radius:8px;padding:7px 10px;background:transparent;color:var(--text-primary)}.strategy-panel button:disabled{opacity:.5;cursor:not-allowed}.reassess-now{border-color:#7760cc!important;background:#5a48ae!important;color:#fff!important;font-weight:700}.notice,.error{padding:10px;border-radius:8px;font-size:.82rem}.notice{background:#3c3424;color:#f2ce8b}.error{margin-bottom:14px;background:#482424;color:#ffb4b4}.broker-holdings{margin:0 0 12px;padding:10px;border:1px solid #31516f;border-radius:10px;background:#1b2938}.broker-holdings-title{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.78rem}.candidate-list{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.candidate-chip{display:inline-flex;align-items:center;gap:5px;background:#1f2924;border-radius:99px;font-size:.77rem;padding:5px 9px}.empty{color:var(--text-muted)}.runs{margin-top:15px}.run-date-divider{display:flex;align-items:center;gap:8px;margin:14px 0 4px}.run-date-divider span{font-size:.72rem;font-weight:800;color:var(--accent);letter-spacing:.05em;background:var(--card-bg);white-space:nowrap}.run-date-divider::after{content:"";flex:1;height:1px;background:var(--card-border)}.run-skipped-group{border-top:1px solid var(--card-border);padding:8px 0;margin:0;color:var(--text-muted);font-size:.76rem}.runs p{font-size:.84rem;margin:7px 0}.run-card{border-top:1px solid var(--card-border);padding:10px 0}.run-summary{display:flex;align-items:center;gap:8px;width:100%;padding:6px 2px!important;border:none!important;border-radius:6px;background:transparent!important;color:var(--text-primary)!important;text-align:left;font-size:.82rem;cursor:pointer}.run-summary:hover{background:rgba(255,255,255,.04)!important}.run-chevron{display:inline-block;color:var(--text-muted);transition:transform .15s;flex-shrink:0}.run-card.expanded .run-chevron{transform:rotate(90deg)}.run-detail{padding:6px 4px 4px 22px}.run-detail>p{font-size:.84rem;margin:0 0 8px;color:var(--text-secondary)}.proposals-grid{display:flex;flex-direction:column;gap:8px}.proposal-card{border:1px solid var(--card-border);border-radius:8px;padding:9px 10px;font-size:.78rem}.proposal-primary{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.proposal-name small{color:var(--text-muted)}.proposal-secondary{margin:6px 0 0;color:var(--text-secondary);opacity:.85;font-size:.78rem;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}.status-detail{display:block;margin-top:4px;color:var(--text-muted)}.guards{display:block;margin-top:4px;color:#ffd597}.action-badge{border-radius:99px;padding:3px 9px;font-weight:700;font-size:.72rem}.action-badge.BUY{background:#4a2626;color:#ffbab4}.action-badge.SELL{background:#213853;color:#b9d7ff}.action-badge.HOLD{background:#30343a;color:#d9dce0}.status-badge{margin-left:auto;border-radius:99px;padding:3px 9px;font-size:.72rem;font-weight:700}.status-badge.success{background:#1f3a2a;color:#9fe2b8}.status-badge.neutral{background:#30343a;color:#d9dce0}.status-badge.warn{background:#4b321c;color:#ffd597}.status-badge.danger{background:#4d211f;color:#ffb9b3}.daily-loss-reset{margin-left:0!important;border-color:#b87931!important;background:#4b321c!important;color:#ffd597!important;font-weight:700}.settings-applied{padding:9px 10px;border:1px solid #32694b;border-radius:8px;background:#183c2a;color:#a9e8c2;font-size:.8rem}.usage-summary{margin:10px 0 0;color:var(--text-muted);font-size:.74rem}.liquidate-all{margin-left:auto;padding:5px 9px!important;font-size:.75rem;border-color:#a34a45!important;background:#4d211f!important;color:#ffb9b3!important;font-weight:700}.liquidate-one{margin-top:4px;padding:3px 6px!important;font-size:.7rem;border-color:#7d4340!important;background:#3c1f1e!important;color:#f0aca6!important}.liquidation-result{margin:8px 0 0;padding:8px 10px;border:1px solid #32694b;border-radius:8px;background:#183c2a;color:#a9e8c2;font-size:.76rem;word-break:break-word}.liquidation-result.failed{border-color:#7a3a3a;background:#3d1f1f;color:#ffb4b4}@media (max-width:640px){.strategy-panel{padding:14px}.panel-card{padding:12px}.panel-card-head{align-items:flex-start}.panel-card-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.panel-card-actions button{width:100%}.panel-card-actions .reassess-now{grid-column:1 / -1}.broker-holdings-title{flex-direction:column;align-items:stretch}.liquidate-all{margin-left:0;width:100%}}
 </style>
