@@ -44,7 +44,7 @@
     >
       <article class="total-asset-card">
         <small>추정예탁자산</small>
-        <strong>{{ formatWon(account.totalAsset) }}</strong>
+        <strong>{{ formatWon(totalAsset) }}</strong>
         <p>{{ account.totalAssetSource || '예수금과 보유주식 평가액 기준' }}</p>
       </article>
       <div class="summary-details">
@@ -93,11 +93,12 @@ import KiwoomStrategyPanel from '@/components/stock/KiwoomStrategyPanel.vue'
 
 // 토큰·계좌번호는 프론트에 저장하지 않습니다. 서버가 httpOnly 인증과 키움 토큰을 모두 관리합니다.
 const status = ref({ configured: false, connected: false, tokenValid: false, autoTrading: false, orderEnabled: false, consecutiveApiFailures: 0 })
-const account = ref({ totalAsset: 0, totalAssetSource: '', deposit: 0, orderAvailable: 0, profitLoss: 0, totalEvaluation: 0 })
+const account = ref({ totalAsset: null, totalAssetSource: '', deposit: 0, orderAvailable: null, profitLoss: 0, totalEvaluation: 0 })
 const logs = ref([]), pending = ref(false), errorMessage = ref(''), logElement = ref(null)
 let eventSource
+const totalAsset = computed(() => account.value.totalAsset ?? (Number(account.value.deposit || 0) + Number(account.value.totalEvaluation || 0)))
 const summaryCards = computed(() => [
-  { label: '주문가능금액', value: account.value.orderAvailable },
+  { label: '주문가능금액', value: account.value.orderAvailable ?? account.value.deposit },
   { label: '예수금', value: account.value.deposit },
   { label: '주식 평가금액', value: account.value.totalEvaluation },
   { label: '평가손익', value: account.value.profitLoss, tone: account.value.profitLoss >= 0 ? 'profit' : 'loss' },
