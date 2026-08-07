@@ -252,8 +252,8 @@
 
                 <div class="amodal-field">
                   <label for="ks-days">
-                    가장 오래 들고 있을 날짜
-                    <span class="amodal-field-hint">자동매매가 산 종목을 이 날짜보다 오래 들고 있으면 매도 대상입니다.</span>
+                    최대 보유기간
+                    <span class="amodal-field-hint">매수 체결일 다음 KRX 거래일부터 계산합니다. 토·일요일과 KRX 휴장일은 세지 않으며, 설정 기간을 초과한 첫 거래일에 자동 매도합니다. 예: 5거래일이면 5거래일까지 보유하고 6번째 거래일에 청산합니다.</span>
                   </label>
                   <div class="number-with-unit">
                     <input
