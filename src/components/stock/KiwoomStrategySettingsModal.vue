@@ -402,8 +402,8 @@ async function save () {
   saving.value = true
   error.value = ''
   try {
-    await updateStrategySettings({ ...form.value, prompt })
-    emit('saved')
+    const { data } = await updateStrategySettings({ ...form.value, prompt })
+    emit('saved', data)
   } catch (e) {
     error.value = extractErrorMessage(e, '설정을 저장하지 못했습니다.')
   } finally {

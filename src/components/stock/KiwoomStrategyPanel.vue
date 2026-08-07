@@ -70,6 +70,12 @@
     <p class="notice">
       {{ config.autoExecute ? `완전 자동매매 활성: 예약 판단에서 신뢰도 ${config.autoExecuteMinConfidence}% 이상인 제안을 안전 검사 후 자동 전송합니다.` : '자동 주문 전송이 꺼져 있습니다. 전략 설정에서 켜야 완전 자동매매가 시작됩니다.' }}
     </p>
+    <p
+      v-if="settingsMessage"
+      class="settings-applied"
+    >
+      설정 저장 결과: {{ settingsMessage }}
+    </p>
     <section class="broker-holdings">
       <div class="broker-holdings-title">
         <b>키움 실계좌 보유현황</b><small>자동매매 기준 · {{ brokerHoldings.length ? `마지막 동기화 ${date(brokerHoldings[0].syncedAt)}` : '아직 동기화된 보유종목 없음' }}</small>
@@ -172,7 +178,7 @@ import { useStockFormatters } from '@/composables/useStockFormatters'
 defineProps({ configured: Boolean })
 const { formatChangePct, changeClass } = useStockFormatters()
 const candidates = ref([]), runs = ref([]), brokerHoldings = ref([])
-const config = ref({ orderEnabled: false, autoExecute: false, autoExecuteMinConfidence: 85 }), operations = ref({ emergencyStopped: false }), pending = ref(false), loading = ref(false), error = ref(''), showSettings = ref(false)
+const config = ref({ orderEnabled: false, autoExecute: false, autoExecuteMinConfidence: 85 }), operations = ref({ emergencyStopped: false }), pending = ref(false), loading = ref(false), error = ref(''), settingsMessage = ref(''), showSettings = ref(false)
 const date = (value) => value ? new Date(value).toLocaleString('ko-KR', { hour12: false }) : ''
 const won = (value) => `${Number(value || 0).toLocaleString()}원`
 // "지금 판단"을 눌러도 예전 기록과 섞여 전부 방금 일어난 것처럼 보이는 걸 막기 위해 날짜별로 묶어
@@ -256,7 +262,12 @@ async function emergencyResume () { if (!window.confirm('긴급 중지를 해제
 async function decideNow () { if (!window.confirm('현재 시세와 보유 종목으로 즉시 재판단할까요? 자동매매가 활성화되어 있으면 안전 검사를 통과한 주문은 자동 전송됩니다.')) return; pending.value = true; error.value = ''; try { await runStrategyDecision(); await Promise.all([load(), loadOperations()]) } catch (e) { error.value = e.response?.data?.message || '즉시 재판단에 실패했습니다.' } finally { pending.value = false } }
 async function syncOrders () { pending.value = true; error.value = ''; try { const { data } = await syncStrategyOrders(); if (data.updated > 0) await load(); else error.value = data.message } catch (e) { error.value = e.response?.data?.message || '주문 상태 동기화에 실패했습니다.' } finally { pending.value = false } }
 async function resetDailyLossGuard () { if (!window.confirm('오늘의 일일 손실 차단을 해제할까요? 현재 자산을 오늘의 새 기준점으로 저장하며, 이후 신규 매수가 다시 가능해집니다.')) return; pending.value = true; error.value = ''; try { await requestDailyLossReset(); await loadOperations() } catch (e) { error.value = e.response?.data?.message || '일일 손실 차단 해제에 실패했습니다.' } finally { pending.value = false } }
-async function onSettingsSaved () { showSettings.value = false; await load(); await loadOperations() }
+async function onSettingsSaved (result = {}) {
+  showSettings.value = false
+  settingsMessage.value = [result.applyMessage, result.dailyLossApplyMessage].filter(Boolean).join(' · ') || '새 설정을 저장했습니다.'
+  await load()
+  await loadOperations()
+}
 onMounted(async () => { await load(); await loadOperations() })
 </script>
 
@@ -268,4 +279,5 @@ onMounted(async () => { await load(); await loadOperations() })
 <style src="@/assets/css/stock.css" scoped></style>
 <style scoped>
 .daily-loss-reset{margin-left:0!important;border-color:#b87931!important;background:#4b321c!important;color:#ffd597!important;font-weight:700}
+.settings-applied{padding:9px 10px;border:1px solid #32694b;border-radius:8px;background:#183c2a;color:#a9e8c2;font-size:.8rem}
 </style>
