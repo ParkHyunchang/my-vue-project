@@ -86,3 +86,14 @@ export function resetDailyLossGuard() {
 export function fetchAccountHoldings() {
   return http.get(`${AUTO_TRADE_PATH}/holdings`)
 }
+
+/**
+ * 보유 종목 수동 시장가 청산 — 미체결 매도 주문을 취소하고 매도가능수량이 돌아오는 대로 전량 매도한다.
+ * 정규장 밖이거나 주문 전송이 꺼져 있으면 409.
+ * @param {string[]} stockCodes - 비우면 보유 전 종목
+ * 응답: { accepted, message, items: [{ stockCode, stockName, quantity, submittedQuantity,
+ *   canceledOrders, brokerOrderNo, status, message }] } — status: SUBMITTED | WAITING_SELLABLE | FAILED
+ */
+export function liquidateHoldings(stockCodes = []) {
+  return http.post(`${AUTO_TRADE_PATH}/holdings/liquidate`, { stockCodes })
+}

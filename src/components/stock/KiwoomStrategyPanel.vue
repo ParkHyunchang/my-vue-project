@@ -62,7 +62,14 @@
     </p>
     <section class="broker-holdings">
       <div class="broker-holdings-title">
-        <b>키움 실계좌 보유현황</b><small>자동매매 기준 · {{ brokerHoldings.length ? `마지막 동기화 ${date(brokerHoldings[0].syncedAt)}` : '아직 동기화된 보유종목 없음' }}</small>
+        <b>키움 실계좌 보유현황</b><small>자동매매 기준 · {{ brokerHoldings.length ? `마지막 동기화 ${date(brokerHoldings[0].syncedAt)}` : '아직 동기화된 보유종목 없음' }}</small><button
+          v-if="brokerHoldings.length"
+          class="liquidate-all"
+          :disabled="pending"
+          @click="liquidateAll"
+        >
+          전 종목 시장가 청산
+        </button>
       </div>
       <div
         v-if="brokerHoldings.length"
@@ -72,8 +79,20 @@
           v-for="holding in brokerHoldings"
           :key="holding.stockCode"
           class="broker-holding"
-        ><b>{{ holding.stockName }} · {{ holding.stockCode }}</b><small>보유 {{ Number(holding.quantity).toLocaleString() }}주 / 매도가능 {{ Number(holding.sellableQuantity).toLocaleString() }}주</small><small>평단 {{ Number(holding.averagePrice).toLocaleString() }}원</small></span>
+        ><b>{{ holding.stockName }} · {{ holding.stockCode }}</b><small>보유 {{ Number(holding.quantity).toLocaleString() }}주 / 매도가능 {{ Number(holding.sellableQuantity).toLocaleString() }}주</small><small>평단 {{ Number(holding.averagePrice).toLocaleString() }}원</small><button
+          class="liquidate-one"
+          :disabled="pending"
+          @click="liquidateOne(holding)"
+        >
+          시장가 청산
+        </button></span>
       </div>
+      <p
+        v-if="liquidationMessage"
+        :class="['liquidation-result', { failed: liquidationFailed }]"
+      >
+        {{ liquidationMessage }}
+      </p>
     </section>
     <p
       v-if="error"
@@ -151,6 +170,7 @@ import {
   fetchStrategyHealth,
   fetchStrategyRuns,
   fetchStrategyUniverse,
+  liquidateHoldings,
   resetDailyLossGuard as requestDailyLossReset,
   runStrategyDecision,
   syncStrategyOrders
@@ -161,6 +181,7 @@ defineProps({ configured: Boolean, autoTrading: Boolean })
 const { formatChangePct, changeClass } = useStockFormatters()
 const candidates = ref([]), runs = ref([]), brokerHoldings = ref([])
 const config = ref({ orderEnabled: false, autoExecute: false, autoExecuteMinConfidence: 85 }), operations = ref({}), pending = ref(false), loading = ref(false), error = ref(''), settingsMessage = ref(''), showSettings = ref(false)
+const liquidationMessage = ref(''), liquidationFailed = ref(false)
 const date = (value) => value ? new Date(value).toLocaleString('ko-KR', { hour12: false }) : ''
 const won = (value) => `${Number(value || 0).toLocaleString()}원`
 // "지금 판단"을 눌러도 예전 기록과 섞여 전부 방금 일어난 것처럼 보이는 걸 막기 위해 날짜별로 묶어
@@ -241,6 +262,28 @@ async function load () { loading.value = true; try { const [universe, history, s
 async function loadOperations () { try { operations.value = (await fetchStrategyHealth()).data } catch { /* 운영 상태 조회 실패는 기존 전략 기능을 막지 않는다. */ } }
 async function decideNow () { if (!window.confirm('현재 시세와 보유 종목으로 즉시 재판단할까요? 자동매매가 활성화되어 있으면 안전 검사를 통과한 주문은 자동 전송됩니다.')) return; pending.value = true; error.value = ''; try { await runStrategyDecision(); await Promise.all([load(), loadOperations()]) } catch (e) { error.value = e.response?.data?.message || '즉시 재판단에 실패했습니다.' } finally { pending.value = false } }
 async function syncOrders () { pending.value = true; error.value = ''; try { const { data } = await syncStrategyOrders(); if (data.updated > 0) await load(); else error.value = data.message } catch (e) { error.value = e.response?.data?.message || '주문 상태 동기화에 실패했습니다.' } finally { pending.value = false } }
+// 실계좌 시장가 매도라 되돌릴 수 없다. 확인 문구에 대상 종목과 수량을 그대로 적어 오조작을 막는다.
+async function runLiquidation (stockCodes, question) {
+  if (!window.confirm(question)) return
+  pending.value = true; error.value = ''; liquidationMessage.value = ''; liquidationFailed.value = false
+  try {
+    const { data } = await liquidateHoldings(stockCodes)
+    const items = data.items || []
+    liquidationFailed.value = items.some((item) => item.status === 'FAILED')
+    liquidationMessage.value = [data.message, ...items.map((item) => `${item.stockName}: ${item.message}`)].join(' · ')
+    await load()
+  } catch (e) {
+    liquidationFailed.value = true
+    liquidationMessage.value = e.response?.data?.message || '청산 요청에 실패했습니다.'
+  } finally { pending.value = false }
+}
+async function liquidateAll () {
+  const shares = brokerHoldings.value.reduce((sum, holding) => sum + Number(holding.quantity || 0), 0)
+  await runLiquidation([], `보유 ${brokerHoldings.value.length}종목 ${shares.toLocaleString()}주 전부를 시장가로 매도합니다. 되돌릴 수 없습니다. 진행할까요?`)
+}
+async function liquidateOne (holding) {
+  await runLiquidation([holding.stockCode], `${holding.stockName}(${holding.stockCode}) ${Number(holding.quantity).toLocaleString()}주를 시장가로 매도합니다. 되돌릴 수 없습니다. 진행할까요?`)
+}
 async function resetDailyLossGuard () { if (!window.confirm('오늘의 일일 손실 차단을 해제할까요? 현재 자산을 오늘의 새 기준점으로 저장하며, 이후 신규 매수가 다시 가능해집니다.')) return; pending.value = true; error.value = ''; try { await requestDailyLossReset(); await loadOperations() } catch (e) { error.value = e.response?.data?.message || '일일 손실 차단 해제에 실패했습니다.' } finally { pending.value = false } }
 async function onSettingsSaved (result = {}) {
   showSettings.value = false
@@ -260,4 +303,10 @@ onMounted(async () => { await load(); await loadOperations() })
 <style scoped>
 .daily-loss-reset{margin-left:0!important;border-color:#b87931!important;background:#4b321c!important;color:#ffd597!important;font-weight:700}
 .settings-applied{padding:9px 10px;border:1px solid #32694b;border-radius:8px;background:#183c2a;color:#a9e8c2;font-size:.8rem}
+.broker-holdings-title{align-items:center}
+.liquidate-all{margin-left:auto;padding:5px 9px!important;font-size:.75rem;border-color:#a34a45!important;background:#4d211f!important;color:#ffb9b3!important;font-weight:700}
+.liquidate-one{margin-top:4px;padding:3px 6px!important;font-size:.7rem;border-color:#7d4340!important;background:#3c1f1e!important;color:#f0aca6!important}
+.liquidation-result{margin:8px 0 0;padding:8px 10px;border:1px solid #32694b;border-radius:8px;background:#183c2a;color:#a9e8c2;font-size:.76rem;word-break:break-word}
+.liquidation-result.failed{border-color:#7a3a3a;background:#3d1f1f;color:#ffb4b4}
+@media (max-width:640px){.broker-holdings-title{align-items:stretch}.liquidate-all{margin-left:0;width:100%}}
 </style>
