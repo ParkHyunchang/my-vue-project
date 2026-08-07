@@ -375,7 +375,7 @@ const todayUsage = computed(() => {
     { calls: 0, input: 0, output: 0 }
   )
 })
-const GUARD_LABELS = { MAX_ORDER_AMOUNT: '주문한도 초과', DAILY_LIMIT: '오늘 신규 매수 체결 건수 한도', SYMBOL_COOLDOWN: '재제안 쿨다운', MARKET_CLOSED: '장외 시간', INSUFFICIENT_DEPOSIT: '예수금 부족', MAX_BUY_BUDGET: '매수 비율 한도 초과', DAILY_LOSS_LIMIT: '일일 손실 한도' }
+const GUARD_LABELS = { MAX_ORDER_AMOUNT: '주문한도 초과', DAILY_LIMIT: '오늘 신규 매수 체결 건수 한도', SYMBOL_COOLDOWN: '같은 종목 재주문 대기중(최근 주문 있음)', MARKET_CLOSED: '장외 시간', INSUFFICIENT_DEPOSIT: '예수금 부족', MAX_BUY_BUDGET: '매수 비율 한도 초과', DAILY_LOSS_LIMIT: '일일 손실 한도' }
 const guardText = (flags) => (flags || '').split(',').filter(Boolean).map((f) => GUARD_LABELS[f] || f).join(', ')
 const PROPOSAL_STATUS_LABELS = {
   PROPOSED: '주문 제안됨',
@@ -402,13 +402,7 @@ const TRIGGER_LABELS = { MANUAL: '수동 실행', SCHEDULE: '자동 실행', RIS
 const proposalStatusLabel = (status) => PROPOSAL_STATUS_LABELS[status] || status
 const runStatusLabel = (status) => RUN_STATUS_LABELS[status] || status
 const actionLabel = (action) => ACTION_LABELS[action] || action
-// AI는 "이미 보유 중이라 매도하지 않음"과 "후보였지만 매수하지 않음"을 구분 없이 모두 HOLD로 반환하므로,
-// 현재 보유 목록과 대조해 화면에서만 다른 문구로 보여준다(과거 이력은 현재 보유 기준이라 오차가 있을 수 있음).
-const isHeld = (stockCode) => brokerHoldings.value.some((h) => h.stockCode === stockCode)
-function actionDisplayLabel (proposal) {
-  if (proposal.action === 'HOLD') return isHeld(proposal.stockCode) ? '보유 유지' : '관망'
-  return actionLabel(proposal.action)
-}
+const actionDisplayLabel = (proposal) => actionLabel(proposal.action)
 const triggerLabel = (trigger) => TRIGGER_LABELS[trigger] || trigger
 // 상태 배지 색상 분류: 진행 중(neutral) · 완료(success) · 확인 필요(warn) · 실패(danger)
 const STATUS_TONES = { PROPOSED: 'neutral', APPROVED: 'neutral', ORDER_DRAFT: 'neutral', ORDERED: 'success', PARTIALLY_FILLED: 'success', FILLED: 'success', CANCEL_REQUESTED: 'warn', CANCELED: 'warn', ORDER_UNKNOWN: 'warn', REJECTED: 'danger', ORDER_FAILED: 'danger' }

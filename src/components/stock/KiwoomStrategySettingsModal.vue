@@ -251,6 +251,45 @@
                 </div>
 
                 <div class="amodal-field">
+                  <label for="ks-tp2">
+                    2차 익절 기준(0=사용 안 함)
+                    <span class="amodal-field-hint">여기에 값을 넣으면 위 1차 기준에서 전량 매도하는 대신, 보유수량이 2주 이상일 때 1차/2차 두 단계로 나눠 팝니다. 1주만 보유 중이면 항상 1차 기준으로 전량 매도합니다.</span>
+                  </label>
+                  <div class="number-with-unit positive-unit">
+                    <span>+</span>
+                    <input
+                      id="ks-tp2"
+                      v-model.number="form.swingTakeProfitPercent2"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.5"
+                      class="amodal-input"
+                    >
+                    <span>%</span>
+                  </div>
+                </div>
+
+                <div class="amodal-field">
+                  <label for="ks-tp-split">
+                    1차에서 팔 비율
+                    <span class="amodal-field-hint">2차 익절 기준을 사용할 때, 보유수량 중 1차 가격에서 매도할 비율입니다. 나머지는 2차 가격에서 매도합니다.</span>
+                  </label>
+                  <div class="number-with-unit">
+                    <input
+                      id="ks-tp-split"
+                      v-model.number="form.swingTakeProfitSplitPercent"
+                      type="number"
+                      min="1"
+                      max="99"
+                      step="1"
+                      class="amodal-input"
+                    >
+                    <span>%</span>
+                  </div>
+                </div>
+
+                <div class="amodal-field">
                   <label for="ks-days">
                     최대 보유기간
                     <span class="amodal-field-hint">매수 체결일 다음 KRX 거래일부터 계산합니다. 토·일요일과 KRX 휴장일은 세지 않으며, 설정 기간을 초과한 첫 거래일에 자동 매도합니다. 예: 5거래일이면 5거래일까지 보유하고 6번째 거래일에 청산합니다.</span>
@@ -365,7 +404,7 @@ const emit = defineEmits(['close', 'saved'])
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
-const form = ref({ autoExecute: false, autoExecuteMinConfidence: 85, maxBuyDepositPercent: 10, candidateReevaluationMinutes: 60, swingMinChangePercent: 2, swingMaxChangePercent: 8, swingMinVolumeRatio: 2, dailyMaxProposals: 10, swingStopLossPercent: 3, swingTakeProfitPercent: 6, swingMaxHoldingDays: 5, riskLoopEnabled: false, dailyLossLimitAmount: 0 })
+const form = ref({ autoExecute: false, autoExecuteMinConfidence: 85, maxBuyDepositPercent: 10, candidateReevaluationMinutes: 60, swingMinChangePercent: 2, swingMaxChangePercent: 8, swingMinVolumeRatio: 2, dailyMaxProposals: 10, swingStopLossPercent: 3, swingTakeProfitPercent: 6, swingTakeProfitPercent2: 0, swingTakeProfitSplitPercent: 50, swingMaxHoldingDays: 5, riskLoopEnabled: false, dailyLossLimitAmount: 0 })
 const original = ref('')
 let prompt = ''
 
@@ -377,9 +416,11 @@ const validationError = computed(() => {
   if (typeof f.swingMinChangePercent !== 'number' || Number.isNaN(f.swingMinChangePercent) || f.swingMinChangePercent < 0.5 || f.swingMinChangePercent > 15) return '후보 최소 상승률은 0.5부터 15 사이여야 합니다.'
   if (typeof f.swingMaxChangePercent !== 'number' || Number.isNaN(f.swingMaxChangePercent) || f.swingMaxChangePercent < f.swingMinChangePercent || f.swingMaxChangePercent > 30) return '후보 최대 상승률은 최소 상승률 이상, 30 이하이어야 합니다.'
   if (typeof f.swingMinVolumeRatio !== 'number' || Number.isNaN(f.swingMinVolumeRatio) || f.swingMinVolumeRatio < 1 || f.swingMinVolumeRatio > 20) return '후보 최소 거래량 증가는 1부터 20배 사이여야 합니다.'
-  for (const [label, value] of [['한 번에 살 수 있는 돈', f.maxBuyDepositPercent], ['손절 기준', f.swingStopLossPercent], ['익절 기준', f.swingTakeProfitPercent]]) {
+  for (const [label, value] of [['한 번에 살 수 있는 돈', f.maxBuyDepositPercent], ['손절 기준', f.swingStopLossPercent], ['익절 기준', f.swingTakeProfitPercent], ['2차 익절 기준', f.swingTakeProfitPercent2]]) {
     if (typeof value !== 'number' || Number.isNaN(value) || value < 0 || value > 100) return `${label}은 0부터 100 사이여야 합니다.`
   }
+  if (typeof f.swingTakeProfitSplitPercent !== 'number' || Number.isNaN(f.swingTakeProfitSplitPercent) || f.swingTakeProfitSplitPercent < 1 || f.swingTakeProfitSplitPercent > 99) return '1차에서 팔 비율은 1부터 99 사이여야 합니다.'
+  if (f.swingTakeProfitPercent2 > 0 && f.swingTakeProfitPercent2 <= f.swingTakeProfitPercent) return '2차 익절 기준은 1차 익절 기준보다 커야 합니다.'
   if (!Number.isInteger(f.swingMaxHoldingDays) || f.swingMaxHoldingDays < 1 || f.swingMaxHoldingDays > 30) return '가장 오래 들고 있을 날짜는 1부터 30 거래일 사이여야 합니다.'
   if (!Number.isInteger(f.dailyMaxProposals) || f.dailyMaxProposals < 1 || f.dailyMaxProposals > 200) return '오늘 신규 매수 체결 건수 제한은 1부터 200 사이의 정수여야 합니다.'
   if (!Number.isInteger(f.dailyLossLimitAmount) || f.dailyLossLimitAmount < 0) return '일일 손실 한도는 0 이상의 정수(원)여야 합니다.'
@@ -426,6 +467,8 @@ onMounted(async () => {
       dailyMaxProposals: data.dailyMaxProposals ?? 10,
       swingStopLossPercent: data.swingStopLossPercent ?? 3,
       swingTakeProfitPercent: data.swingTakeProfitPercent ?? 6,
+      swingTakeProfitPercent2: data.swingTakeProfitPercent2 ?? 0,
+      swingTakeProfitSplitPercent: data.swingTakeProfitSplitPercent ?? 50,
       swingMaxHoldingDays: data.swingMaxHoldingDays ?? 5,
       riskLoopEnabled: !!data.riskLoopEnabled,
       dailyLossLimitAmount: data.dailyLossLimitAmount ?? 0
