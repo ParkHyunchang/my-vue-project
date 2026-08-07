@@ -36,7 +36,7 @@ export function fetchStrategyConfig() {
 
 /**
  * 자동매매 운영 상태(health) 조회.
- * 응답: { configured, autoTrading, emergencyStopped, decisionRunning, consecutiveApiFailures,
+ * 응답: { configured, autoTrading, decisionRunning, consecutiveApiFailures,
  *   lastApiFailureAt, lastApiFailureMessage, lastRunAt, runCount, proposalCount, risk, recentAudit }
  */
 export function fetchStrategyHealth() {
@@ -61,7 +61,7 @@ export function updateStrategySettings(payload) {
   return http.patch(`${STRATEGY_PATH}/settings`, payload)
 }
 
-/** 즉시 재판단 실행. 긴급 중지·중복 실행 시 409. */
+/** 즉시 재판단 실행. 판단 중복 실행 시 409. */
 export function runStrategyDecision() {
   return http.post(`${STRATEGY_PATH}/decide`)
 }
@@ -81,18 +81,8 @@ export function resetDailyLossGuard() {
 
 /**
  * 키움 실계좌 보유현황 조회.
- * 응답: [{ stockCode, stockName, quantity, sellableQuantity, averagePrice, syncedAt }]
+ * 응답: [{ stockCode, stockName, quantity, sellableQuantity, averagePrice, positionOpenedAt, syncedAt }]
  */
 export function fetchAccountHoldings() {
   return http.get(`${AUTO_TRADE_PATH}/holdings`)
-}
-
-/** 자동 판단·주문 전송 긴급 중지. */
-export function emergencyStop() {
-  return http.post(`${AUTO_TRADE_PATH}/emergency-stop`)
-}
-
-/** 긴급 중지 해제. 자동 판단은 별도로 다시 시작해야 한다. */
-export function emergencyResume() {
-  return http.post(`${AUTO_TRADE_PATH}/emergency-resume`)
 }

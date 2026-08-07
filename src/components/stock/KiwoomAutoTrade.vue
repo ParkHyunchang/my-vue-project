@@ -24,7 +24,7 @@
           :disabled="pending"
           @click="toggleAutoTrade"
         >
-          {{ status.autoTrading ? '● 자동매매 정지' : '○ 자동매매 시작' }}
+          {{ status.autoTrading ? '● 자동주문 완전 중지' : '○ 자동주문 시작' }}
         </button><button
           :disabled="pending || !status.configured"
           @click="refreshToken"
@@ -41,7 +41,10 @@
         <small>{{ item.label }}</small><strong :class="item.tone">{{ formatWon(item.value) }}</strong>
       </article>
     </div>
-    <KiwoomStrategyPanel :configured="status.configured" />
+    <KiwoomStrategyPanel
+      :configured="status.configured"
+      :auto-trading="status.autoTrading"
+    />
     <section class="log-card">
       <header>
         <span>●</span> 실시간 시세 · 주문 체결 로그 <button @click="logs = []">
@@ -83,7 +86,7 @@ const formatWon = (value) => `${Number(value || 0).toLocaleString('ko-KR')}원`
 function pushLog(type, message) { logs.value.push({ id: `${Date.now()}-${Math.random()}`, type, message, time: new Date().toLocaleTimeString('ko-KR', { hour12: false }) }); if (logs.value.length > 300) logs.value.shift(); nextTick(() => { if (logElement.value) logElement.value.scrollTop = logElement.value.scrollHeight }) }
 async function loadStatus() { status.value = (await axios.get('/api/kiwoom/auto-trade/status')).data }
 async function loadSummary() { if (!status.value.configured) return; try { account.value = (await axios.get('/api/kiwoom/auto-trade/summary')).data } catch { /* 토큰이 없을 땐 상태 UI만 표시 */ } }
-async function toggleAutoTrade() { pending.value = true; errorMessage.value = ''; try { const { data } = await axios.post('/api/kiwoom/auto-trade/control', { enabled: !status.value.autoTrading }); status.value.autoTrading = data.autoTrading; pushLog('system', data.autoTrading ? '자동매매 엔진을 시작했습니다.' : '자동매매 엔진을 정지했습니다.') } catch (e) { errorMessage.value = e.response?.data?.message || '자동매매 상태 변경에 실패했습니다.' } finally { pending.value = false; await loadStatus() } }
+async function toggleAutoTrade() { const enabling = !status.value.autoTrading; const question = enabling ? '자동주문을 시작할까요? 현재 보유종목의 익절·손절·최대 보유기간을 다시 계산하고 장중이면 즉시 적용합니다.' : '자동주문을 완전히 중지할까요? 신규 주문을 멈추고 시스템이 전송한 미체결 매수·매도 주문도 취소합니다.'; if (!window.confirm(question)) return; pending.value = true; errorMessage.value = ''; try { const { data } = await axios.post('/api/kiwoom/auto-trade/control', { enabled: enabling }); status.value.autoTrading = data.autoTrading; if (data.autoTrading) pushLog('system', '자동주문을 시작하고 보유종목 청산 기준을 다시 계산했습니다.'); else { const failed = data.orderCancellationFailed || 0; pushLog(failed ? 'error' : 'system', `자동주문을 완전히 중지했습니다. 미체결 자동주문 취소 요청 ${data.orderCancellationRequested || 0}건${failed ? `, 취소 실패 ${failed}건은 키움 주문을 확인하세요.` : ''}`) } } catch (e) { errorMessage.value = e.response?.data?.message || '자동주문 상태 변경에 실패했습니다.' } finally { pending.value = false; await loadStatus() } }
 async function refreshToken() { pending.value = true; errorMessage.value = ''; try { await axios.post('/api/kiwoom/auto-trade/token/refresh'); pushLog('system', '키움 Access Token을 갱신했습니다.'); await loadSummary() } catch (e) { errorMessage.value = e.response?.data?.message || '토큰 갱신에 실패했습니다.' } finally { pending.value = false; await loadStatus() } }
 function connectEvents() { eventSource = new EventSource(`${process.env.VUE_APP_API_URL || ''}/api/kiwoom/auto-trade/events`, { withCredentials: true }); eventSource.addEventListener('kiwoom', e => { const data = JSON.parse(e.data); pushLog(data.type || 'market', data.message || JSON.stringify(data)) }); eventSource.onerror = () => pushLog('error', '실시간 로그 연결이 재시도 중입니다.') }
 onMounted(async () => { try { await loadStatus(); await loadSummary(); connectEvents() } catch { errorMessage.value = '자동매매 API 상태를 불러오지 못했습니다.' } })
