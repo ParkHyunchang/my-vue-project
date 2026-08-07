@@ -38,14 +38,24 @@
         </button>
       </div>
     </div>
-    <div class="summary">
-      <article
-        v-for="item in summaryCards"
-        :key="item.label"
-      >
-        <small>{{ item.label }}</small><strong :class="item.tone">{{ formatWon(item.value) }}</strong>
+    <section
+      class="asset-summary"
+      aria-label="계좌 자산 요약"
+    >
+      <article class="total-asset-card">
+        <small>추정예탁자산</small>
+        <strong>{{ formatWon(account.totalAsset) }}</strong>
+        <p>{{ account.totalAssetSource || '예수금과 보유주식 평가액 기준' }}</p>
       </article>
-    </div>
+      <div class="summary-details">
+        <article
+          v-for="item in summaryCards"
+          :key="item.label"
+        >
+          <small>{{ item.label }}</small><strong :class="item.tone">{{ formatWon(item.value) }}</strong>
+        </article>
+      </div>
+    </section>
     <KiwoomStrategyPanel
       :configured="status.configured"
       :auto-trading="status.autoTrading"
@@ -83,10 +93,15 @@ import KiwoomStrategyPanel from '@/components/stock/KiwoomStrategyPanel.vue'
 
 // 토큰·계좌번호는 프론트에 저장하지 않습니다. 서버가 httpOnly 인증과 키움 토큰을 모두 관리합니다.
 const status = ref({ configured: false, connected: false, tokenValid: false, autoTrading: false, orderEnabled: false, consecutiveApiFailures: 0 })
-const account = ref({ deposit: 0, profitLoss: 0, totalEvaluation: 0 })
+const account = ref({ totalAsset: 0, totalAssetSource: '', deposit: 0, orderAvailable: 0, profitLoss: 0, totalEvaluation: 0 })
 const logs = ref([]), pending = ref(false), errorMessage = ref(''), logElement = ref(null)
 let eventSource
-const summaryCards = computed(() => [{ label: '예수금', value: account.value.deposit }, { label: '평가손익', value: account.value.profitLoss, tone: account.value.profitLoss >= 0 ? 'profit' : 'loss' }, { label: '총 평가금액', value: account.value.totalEvaluation }])
+const summaryCards = computed(() => [
+  { label: '주문가능금액', value: account.value.orderAvailable },
+  { label: '예수금', value: account.value.deposit },
+  { label: '주식 평가금액', value: account.value.totalEvaluation },
+  { label: '평가손익', value: account.value.profitLoss, tone: account.value.profitLoss >= 0 ? 'profit' : 'loss' },
+])
 const formatWon = (value) => `${Number(value || 0).toLocaleString('ko-KR')}원`
 // 시작/중지 확인 문구와 버튼 아래 설명을 하나로 유지해 문구가 서로 어긋나지 않도록 한다.
 const TOGGLE_ON_HINT = '자동주문을 시작할까요? 현재 보유종목의 익절·손절·최대 보유기간을 다시 계산하고 장중이면 즉시 적용합니다.'
@@ -103,5 +118,6 @@ onBeforeUnmount(() => eventSource?.close())
 </script>
 
 <style scoped>
+.asset-summary{display:grid;grid-template-columns:minmax(220px,1.1fr) 2fr;gap:14px;margin-bottom:14px}.total-asset-card,.summary-details article{background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px}.total-asset-card{padding:19px;background:linear-gradient(135deg,var(--card-bg),#293127)}.total-asset-card small,.summary-details small{color:var(--text-muted)}.total-asset-card strong{display:block;margin:8px 0 5px;font-size:1.5rem;letter-spacing:-.03em}.total-asset-card p{margin:0;color:var(--text-muted);font-size:.72rem}.summary-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.summary-details article{padding:14px}.summary-details strong{display:block;margin-top:6px;font-size:1rem}@media(max-width:700px){.asset-summary{grid-template-columns:1fr}.summary-details{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .auto-trade-panel{color:var(--text-primary)}.panel-header,.control-card,.log-card,.summary article{background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px}.panel-header,.control-card{display:flex;justify-content:space-between;align-items:center;padding:20px;margin-bottom:14px}.panel-header p{margin:0;color:var(--accent);font-size:.7rem;font-weight:800;letter-spacing:.14em}.panel-header h3{margin:6px 0}.panel-header small,.connection small{color:var(--text-muted)}.panel-header b{font-size:.75rem;padding:6px 10px;border-radius:99px}.panel-header b.live{color:#ffb0a5;background:#43201e}.notice{padding:11px 14px;border-radius:10px;background:#3a3324;color:var(--text-secondary)}.error{background:#472424;color:#ffb4b4}.connection{display:flex;gap:10px;align-items:center}.connection i{width:10px;height:10px;border-radius:50%;background:#7c8390}.connection i.online{background:#48d597;box-shadow:0 0 10px #48d597}.connection strong,.connection small{display:block}.actions{display:flex;gap:8px;align-items:flex-start}.actions button,.log-card button{cursor:pointer;border:1px solid var(--card-border-strong);background:transparent;color:var(--text-secondary);padding:8px 11px;border-radius:9px}.actions button.running{color:#9ff0bd;border-color:#48d597}.actions button.primary{background:var(--accent);border-color:var(--accent);color:#1a1508;font-weight:700}.actions button:disabled{opacity:.5;cursor:not-allowed}.toggle-wrap{display:flex;flex-direction:column;gap:5px}.toggle-hint{max-width:280px;color:var(--text-muted);font-size:.68rem;line-height:1.4}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}.summary article{padding:17px}.summary small{color:var(--text-muted)}.summary strong{display:block;margin-top:8px;font-size:1.1rem}.profit{color:#e75e5e}.loss{color:#6399f1}.log-card{overflow:hidden}.log-card header{padding:13px 16px;border-bottom:1px solid var(--card-border);font-size:.82rem;font-weight:700}.log-card header span{color:#48d597}.log-card header button{float:right;padding:3px 7px;font-size:.7rem}.terminal{height:280px;overflow:auto;padding:13px 16px;background:#0a0f0d;font:12px/1.65 ui-monospace,Consolas,monospace}.terminal p{margin:0;word-break:break-word}.terminal time{color:#77827c;margin-right:10px}.terminal .system{color:#74dd9c}.terminal .error{color:#f48d8d;background:transparent}.empty{color:#65736b}@media(max-width:700px){.panel-header,.control-card{align-items:flex-start;flex-direction:column}.summary{grid-template-columns:1fr}.actions{width:100%;flex-direction:column}.actions button,.toggle-wrap{width:100%}.toggle-hint{max-width:none}}
 </style>
