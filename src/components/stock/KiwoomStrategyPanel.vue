@@ -61,7 +61,7 @@
         <span
           v-if="operations.risk.triggered"
           class="risk-triggered"
-        >일일 손실 한도 발동 · 손실 {{ won(operations.risk.drawdown) }} / 한도 {{ won(operations.risk.dailyLossLimitAmount) }} · 신규 매수 차단</span><span v-else-if="operations.risk.dailyLossLimitAmount > 0">일일 손실 {{ won(operations.risk.drawdown) }} / 한도 {{ won(operations.risk.dailyLossLimitAmount) }}</span><span v-else>일일 손실 한도 미설정</span><button
+        >일일 손실 한도 발동 · 손실 {{ won(operations.risk.drawdown) }} ({{ percent(operations.risk.drawdownPercent) }}) / 한도 {{ percent(operations.risk.dailyLossLimitPercent) }} · 신규 매수 차단</span><span v-else-if="operations.risk.dailyLossLimitPercent > 0">일일 손실 {{ won(operations.risk.drawdown) }} ({{ percent(operations.risk.drawdownPercent) }}) / 한도 {{ percent(operations.risk.dailyLossLimitPercent) }}</span><span v-else>일일 손실 한도 미설정</span><button
           v-if="operations.risk.triggered"
           class="daily-loss-reset"
           :disabled="pending"
@@ -72,7 +72,7 @@
         </button><small
           v-if="operations.risk.snapshotDate"
           class="risk-assets"
-        >기준 자산 {{ won(operations.risk.baseAsset) }} · 현재 자산 {{ won(operations.risk.lastAsset) }}</small><small v-if="operations.risk.lastScanAt">마지막 스캔 {{ date(operations.risk.lastScanAt) }}</small>
+        >기준 자산 {{ won(operations.risk.baseAsset) }} · 순입출금 {{ signedWon(operations.risk.netCashFlow) }} · 보정 기준 {{ won(operations.risk.adjustedBaseAsset) }} · 현재 자산 {{ won(operations.risk.lastAsset) }}</small><small v-if="operations.risk.lastScanAt">마지막 스캔 {{ date(operations.risk.lastScanAt) }}</small>
       </div>
     </section>
     <p
@@ -362,6 +362,8 @@ function autoExpandLatestRun () {
 }
 const date = (value) => value ? new Date(value).toLocaleString('ko-KR', { hour12: false }) : ''
 const won = (value) => `${Number(value || 0).toLocaleString()}원`
+const signedWon = (value) => `${Number(value || 0) > 0 ? '+' : ''}${won(value)}`
+const percent = (value) => `${Number(value || 0).toFixed(2)}%`
 // "지금 판단"을 눌러도 예전 기록과 섞여 전부 방금 일어난 것처럼 보이는 걸 막기 위해 날짜별로 묶어
 // 구분선을 둔다. 서버가 최근 3일치만 남기므로(KiwoomStrategyHistoryCleanupService) 그룹 수는 최대 3~4개.
 const dayMs = 24 * 60 * 60 * 1000

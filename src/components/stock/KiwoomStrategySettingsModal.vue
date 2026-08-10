@@ -315,23 +315,24 @@
                 </p>
                 <div class="amodal-field">
                   <label for="ks-loss">
-                    오늘 손실이 이 금액이면 새 매수 멈추기
-                    <span class="amodal-field-hint">당일 자동매매가 처음 잔고를 확인한 총자산과 비교해 이 금액 이상 줄면, 그날 새 매수 자동 전송만 막습니다. 이미 가진 주식의 매도·손절·익절은 계속 실행합니다.</span>
+                    오늘 손실률이 이 비율이면 새 매수 멈추기
+                    <span class="amodal-field-hint">당일 첫 잔고 확인 시점의 총자산을 기준으로 계산합니다. 이후 입금·출금은 키움 거래내역을 조회해 기준자산에 보정하므로, 자금 이동 자체가 손실로 계산되지 않습니다.</span>
                   </label>
                   <div class="number-with-unit">
                     <input
                       id="ks-loss"
-                      v-model.number="form.dailyLossLimitAmount"
+                      v-model.number="form.dailyLossLimitPercent"
                       type="number"
                       min="0"
-                      step="1000"
+                      max="30"
+                      step="0.1"
                       class="amodal-input"
                     >
-                    <span>원</span>
+                    <span>%</span>
                   </div>
                 </div>
                 <p class="amodal-note">
-                  <b>발동 후 동작:</b> 장 마감까지 신규 매수만 차단하고 다음 거래일에 자동 초기화됩니다. 발동한 뒤에는 값을 0으로 바꿔도 그날 차단은 유지됩니다. <b>0원</b>은 다음 손실 점검부터 이 안전장치를 사용하지 않는 설정입니다.
+                  <b>발동 후 동작:</b> 장 마감까지 신규 매수만 차단하고 다음 거래일에 자동 초기화됩니다. 발동한 뒤에는 값을 0으로 바꿔도 그날 차단은 유지됩니다. <b>0%</b>는 다음 손실 점검부터 이 안전장치를 사용하지 않는 설정입니다.
                 </p>
 
                 <div class="amodal-field">
@@ -404,7 +405,7 @@ const emit = defineEmits(['close', 'saved'])
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
-const form = ref({ autoExecute: false, autoExecuteMinConfidence: 85, maxBuyDepositPercent: 10, candidateReevaluationMinutes: 60, swingMinChangePercent: 2, swingMaxChangePercent: 8, swingMinVolumeRatio: 2, dailyMaxProposals: 10, swingStopLossPercent: 3, swingTakeProfitPercent: 6, swingTakeProfitPercent2: 0, swingTakeProfitSplitPercent: 50, swingMaxHoldingDays: 5, riskLoopEnabled: false, dailyLossLimitAmount: 0 })
+const form = ref({ autoExecute: false, autoExecuteMinConfidence: 85, maxBuyDepositPercent: 10, candidateReevaluationMinutes: 60, swingMinChangePercent: 2, swingMaxChangePercent: 8, swingMinVolumeRatio: 2, dailyMaxProposals: 10, swingStopLossPercent: 3, swingTakeProfitPercent: 6, swingTakeProfitPercent2: 0, swingTakeProfitSplitPercent: 50, swingMaxHoldingDays: 5, riskLoopEnabled: false, dailyLossLimitPercent: 0 })
 const original = ref('')
 let prompt = ''
 
@@ -423,7 +424,7 @@ const validationError = computed(() => {
   if (f.swingTakeProfitPercent2 > 0 && f.swingTakeProfitPercent2 <= f.swingTakeProfitPercent) return '2차 익절 기준은 1차 익절 기준보다 커야 합니다.'
   if (!Number.isInteger(f.swingMaxHoldingDays) || f.swingMaxHoldingDays < 1 || f.swingMaxHoldingDays > 30) return '가장 오래 들고 있을 날짜는 1부터 30 거래일 사이여야 합니다.'
   if (!Number.isInteger(f.dailyMaxProposals) || f.dailyMaxProposals < 1 || f.dailyMaxProposals > 200) return '오늘 신규 매수 체결 건수 제한은 1부터 200 사이의 정수여야 합니다.'
-  if (!Number.isInteger(f.dailyLossLimitAmount) || f.dailyLossLimitAmount < 0) return '일일 손실 한도는 0 이상의 정수(원)여야 합니다.'
+  if (typeof f.dailyLossLimitPercent !== 'number' || Number.isNaN(f.dailyLossLimitPercent) || f.dailyLossLimitPercent < 0 || f.dailyLossLimitPercent > 30) return '일일 손실 한도는 0부터 30% 사이여야 합니다.'
   return ''
 })
 
@@ -471,7 +472,7 @@ onMounted(async () => {
       swingTakeProfitSplitPercent: data.swingTakeProfitSplitPercent ?? 50,
       swingMaxHoldingDays: data.swingMaxHoldingDays ?? 5,
       riskLoopEnabled: !!data.riskLoopEnabled,
-      dailyLossLimitAmount: data.dailyLossLimitAmount ?? 0
+      dailyLossLimitPercent: data.dailyLossLimitPercent ?? 0
     }
     original.value = JSON.stringify(form.value)
   } catch (e) {
