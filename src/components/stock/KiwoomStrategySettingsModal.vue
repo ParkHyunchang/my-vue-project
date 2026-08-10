@@ -63,6 +63,25 @@
                   실제 주문이 자동으로 전송됩니다. 아래 조건을 충분히 확인하세요.
                 </p>
 
+                <div class="amodal-field switch-field">
+                  <label for="ks-catalyst-required">
+                    자동매수 촉매 확인 필수
+                    <span class="amodal-field-hint">관련 공시·뉴스가 확인된 종목만 자동매수합니다. 촉매가 없거나 API 장애로 확인할 수 없으면 안전 관망합니다.</span>
+                  </label>
+                  <input
+                    id="ks-catalyst-required"
+                    v-model="form.requireCatalystForAutoBuy"
+                    type="checkbox"
+                    class="amodal-check"
+                  >
+                </div>
+                <p
+                  v-if="!form.requireCatalystForAutoBuy"
+                  class="amodal-note warning-note"
+                >
+                  촉매 미확인 종목도 가격·거래량과 AI 신뢰도 조건만으로 자동매수될 수 있습니다.
+                </p>
+
                 <div class="amodal-field">
                   <label for="ks-conf">
                     AI 확신 점수
@@ -405,7 +424,7 @@ const emit = defineEmits(['close', 'saved'])
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
-const form = ref({ autoExecute: false, autoExecuteMinConfidence: 85, maxBuyDepositPercent: 10, candidateReevaluationMinutes: 60, swingMinChangePercent: 2, swingMaxChangePercent: 8, swingMinVolumeRatio: 2, dailyMaxProposals: 10, swingStopLossPercent: 3, swingTakeProfitPercent: 6, swingTakeProfitPercent2: 0, swingTakeProfitSplitPercent: 50, swingMaxHoldingDays: 5, riskLoopEnabled: false, dailyLossLimitPercent: 0 })
+const form = ref({ autoExecute: false, requireCatalystForAutoBuy: true, autoExecuteMinConfidence: 85, maxBuyDepositPercent: 10, candidateReevaluationMinutes: 60, swingMinChangePercent: 2, swingMaxChangePercent: 8, swingMinVolumeRatio: 2, dailyMaxProposals: 10, swingStopLossPercent: 3, swingTakeProfitPercent: 6, swingTakeProfitPercent2: 0, swingTakeProfitSplitPercent: 50, swingMaxHoldingDays: 5, riskLoopEnabled: false, dailyLossLimitPercent: 0 })
 const original = ref('')
 let prompt = ''
 
@@ -459,6 +478,7 @@ onMounted(async () => {
     prompt = data.prompt || ''
     form.value = {
       autoExecute: !!data.autoExecute,
+      requireCatalystForAutoBuy: data.requireCatalystForAutoBuy !== false,
       autoExecuteMinConfidence: data.autoExecuteMinConfidence ?? 85,
       maxBuyDepositPercent: data.maxBuyDepositPercent ?? 10,
       candidateReevaluationMinutes: data.candidateReevaluationMinutes ?? 60,

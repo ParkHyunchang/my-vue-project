@@ -28,7 +28,7 @@ export function fetchStrategyRuns(limit = 10) {
  * 전략 정적 설정 + 런타임 조정값 조회.
  * 응답: { enabled, orderEnabled, maxOrderAmount, dailyMaxProposals, cooldownMinutes,
  *   allowMarketOrders, autoExecute, autoExecuteMinConfidence, maxBuyDepositPercent,
- *   candidateReevaluationMinutes, swing*, riskLoopEnabled, dailyLossLimitAmount }
+ *   candidateReevaluationMinutes, requireCatalystForAutoBuy, swing*, riskLoopEnabled, dailyLossLimitPercent }
  */
 export function fetchStrategyConfig() {
   return http.get(`${STRATEGY_PATH}/config`)
@@ -53,9 +53,9 @@ export function fetchStrategySettings() {
 /**
  * 전략 설정 저장.
  * @param {Object} payload - { autoExecute, autoExecuteMinConfidence, maxBuyDepositPercent,
- *   candidateReevaluationMinutes, swingMinChangePercent, swingMaxChangePercent, swingMinVolumeRatio,
+ *   candidateReevaluationMinutes, requireCatalystForAutoBuy, swingMinChangePercent, swingMaxChangePercent, swingMinVolumeRatio,
  *   swingStopLossPercent, swingTakeProfitPercent, swingMaxHoldingDays, riskLoopEnabled,
- *   dailyLossLimitAmount, dailyMaxProposals, prompt }
+ *   dailyLossLimitPercent, dailyMaxProposals, prompt }
  */
 export function updateStrategySettings(payload) {
   return http.patch(`${STRATEGY_PATH}/settings`, payload)
