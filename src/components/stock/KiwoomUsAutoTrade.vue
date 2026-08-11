@@ -67,8 +67,8 @@
 
     <section class="rules card">
       <header>
-        <strong>현재 적용 중인 7가지 매매 규칙</strong><button @click="showSettings = !showSettings">
-          {{ showSettings ? '설정 닫기' : '전략 설정' }}
+        <strong>현재 적용 중인 7가지 매매 규칙</strong><button @click="openSettings">
+          전략 설정
         </button>
       </header>
       <ol>
@@ -80,213 +80,257 @@
         <li>자동매매 종목은 최대 {{ settings.maxPositions }}개, 하루 매수는 최대 {{ settings.dailyMaxBuys }}번입니다.</li>
         <li>-{{ settings.stopLossPercent }}% 손절, +{{ settings.takeProfitPercent }}%부터 나눠 익절하고 {{ settings.maxHoldingDays }}일 안에 정리합니다.</li>
       </ol>
-      <div
-        v-if="showSettings"
-        class="settings-area"
-      >
-        <div class="easy-guide">
-          <b>숫자만 바꾸면 됩니다.</b>
-          <span>각 숫자가 실제로 무엇을 뜻하는지 아래에 적었습니다. 저장하기를 눌러야 자동매매에 적용됩니다.</span>
-        </div>
-        <form
-          class="strategy-settings"
-          @submit.prevent="saveSettings"
+      <teleport to="body">
+        <div
+          v-if="showSettings"
+          class="amodal-overlay"
+          data-lenis-prevent
+          @click.self="closeSettings"
         >
-          <section class="setting-card screen-card">
-            <p class="setting-step">
-              1. 매수 후보 찾기
-            </p>
-            <p class="setting-description">
-              너무 조용한 종목과 이미 급등한 종목을 피하고, 거래가 활발해진 종목만 찾습니다.
-            </p>
-            <div class="setting-field">
-              <label>오늘 최소 상승률<span>이만큼 이상 오른 종목부터 후보로 봅니다.</span></label>
-              <div class="number-with-unit">
-                <b>+</b><input
-                  v-model.number="settings.minChangePercent"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                ><em>%</em>
+          <div class="amodal-box us-settings-modal">
+            <div class="amodal-head">
+              <div>
+                <h2>미국주식 매매 규칙 설정</h2>
+                <span class="amodal-badge amodal-badge-on">D+0 USD만 사용</span>
               </div>
+              <button
+                class="amodal-close"
+                aria-label="닫기"
+                :disabled="pending"
+                @click="closeSettings"
+              >
+                ×
+              </button>
             </div>
-            <div class="setting-field">
-              <label>오늘 최대 상승률<span>이보다 많이 오른 종목은 급등 추격을 피하기 위해 제외합니다.</span></label>
-              <div class="number-with-unit">
-                <b>+</b><input
-                  v-model.number="settings.maxChangePercent"
-                  type="number"
-                  min="0"
-                  max="30"
-                  step="0.1"
-                ><em>%</em>
-              </div>
-            </div>
-            <div class="setting-field">
-              <label>최소 거래량 증가<span>2배는 현재 거래량이 전일 거래량의 두 배 이상이라는 뜻입니다.</span></label>
-              <div class="number-with-unit">
-                <input
-                  v-model.number="settings.minVolumeRatio"
-                  type="number"
-                  min="1"
-                  max="20"
-                  step="0.1"
-                ><em>배</em>
-              </div>
-            </div>
-          </section>
+            <div class="amodal-body">
+              <div class="settings-area">
+                <div class="easy-guide">
+                  <b>숫자만 바꾸면 됩니다.</b>
+                  <span>각 숫자가 실제로 무엇을 뜻하는지 아래에 적었습니다. 저장하기를 눌러야 자동매매에 적용됩니다.</span>
+                </div>
+                <form
+                  id="us-strategy-settings"
+                  class="strategy-settings amodal-form thin-scrollbar"
+                  @submit.prevent="saveSettings"
+                >
+                  <section class="setting-card screen-card">
+                    <p class="setting-step">
+                      1. 매수 후보 찾기
+                    </p>
+                    <p class="setting-description">
+                      너무 조용한 종목과 이미 급등한 종목을 피하고, 거래가 활발해진 종목만 찾습니다.
+                    </p>
+                    <div class="setting-field">
+                      <label>오늘 최소 상승률<span>이만큼 이상 오른 종목부터 후보로 봅니다.</span></label>
+                      <div class="number-with-unit">
+                        <b>+</b><input
+                          v-model.number="settings.minChangePercent"
+                          type="number"
+                          min="0"
+                          max="20"
+                          step="0.1"
+                        ><em>%</em>
+                      </div>
+                    </div>
+                    <div class="setting-field">
+                      <label>오늘 최대 상승률<span>이보다 많이 오른 종목은 급등 추격을 피하기 위해 제외합니다.</span></label>
+                      <div class="number-with-unit">
+                        <b>+</b><input
+                          v-model.number="settings.maxChangePercent"
+                          type="number"
+                          min="0"
+                          max="30"
+                          step="0.1"
+                        ><em>%</em>
+                      </div>
+                    </div>
+                    <div class="setting-field">
+                      <label>최소 거래량 증가<span>2배는 현재 거래량이 전일 거래량의 두 배 이상이라는 뜻입니다.</span></label>
+                      <div class="number-with-unit">
+                        <input
+                          v-model.number="settings.minVolumeRatio"
+                          type="number"
+                          min="1"
+                          max="20"
+                          step="0.1"
+                        ><em>배</em>
+                      </div>
+                    </div>
+                  </section>
 
-          <section class="setting-card buy-card">
-            <p class="setting-step">
-              2. 한 번에 살 때
-            </p>
-            <p class="setting-description">
-              미리 환전한 달러 중 한 번에 얼마를 쓰고, 몇 종목까지 살지 정합니다.
-            </p>
-            <div class="setting-field">
-              <label>한 번에 살 수 있는 돈<span>현재 D+0 USD 예수금 중 한 번의 매수에 쓸 최대 비율입니다. 지금 기준 약 ${{ money(estimatedOrderUsd) }}입니다.</span></label>
-              <div class="number-with-unit">
-                <input
-                  v-model.number="settings.maxOrderPercent"
-                  type="number"
-                  min="0.1"
-                  max="100"
-                  step="0.1"
-                ><em>%</em>
-              </div>
-            </div>
-            <div class="setting-field">
-              <label>동시에 보유할 자동매매 종목<span>장기투자나 직접 산 미국주식은 세지 않고, 자동매매로 산 종목만 셉니다.</span></label>
-              <div class="number-with-unit">
-                <input
-                  v-model.number="settings.maxPositions"
-                  type="number"
-                  min="1"
-                  max="20"
-                  step="1"
-                ><em>종목</em>
-              </div>
-            </div>
-            <div class="setting-field">
-              <label>하루에 새로 살 수 있는 횟수<span>실제 주문을 보낸 횟수를 제한합니다. 매도와 후보 확인은 계속합니다.</span></label>
-              <div class="number-with-unit">
-                <input
-                  v-model.number="settings.dailyMaxBuys"
-                  type="number"
-                  min="1"
-                  max="20"
-                  step="1"
-                ><em>번</em>
-              </div>
-            </div>
-            <div class="setting-field">
-              <label>같은 종목을 다시 사기까지 기다릴 기간<span>최근 매수 주문 뒤 이 기간 동안 같은 종목을 다시 매수하지 않습니다.</span></label>
-              <div class="number-with-unit">
-                <input
-                  v-model.number="settings.symbolCooldownDays"
-                  type="number"
-                  min="1"
-                  max="30"
-                  step="1"
-                ><em>일</em>
-              </div>
-            </div>
-          </section>
+                  <section class="setting-card buy-card">
+                    <p class="setting-step">
+                      2. 한 번에 살 때
+                    </p>
+                    <p class="setting-description">
+                      미리 환전한 달러 중 한 번에 얼마를 쓰고, 몇 종목까지 살지 정합니다.
+                    </p>
+                    <div class="setting-field">
+                      <label>한 번에 살 수 있는 돈<span>현재 D+0 USD 예수금 중 한 번의 매수에 쓸 최대 비율입니다. 지금 기준 약 ${{ money(estimatedOrderUsd) }}입니다.</span></label>
+                      <div class="number-with-unit">
+                        <input
+                          v-model.number="settings.maxOrderPercent"
+                          type="number"
+                          min="0.1"
+                          max="100"
+                          step="0.1"
+                        ><em>%</em>
+                      </div>
+                    </div>
+                    <div class="setting-field">
+                      <label>동시에 보유할 자동매매 종목<span>장기투자나 직접 산 미국주식은 세지 않고, 자동매매로 산 종목만 셉니다.</span></label>
+                      <div class="number-with-unit">
+                        <input
+                          v-model.number="settings.maxPositions"
+                          type="number"
+                          min="1"
+                          max="20"
+                          step="1"
+                        ><em>종목</em>
+                      </div>
+                    </div>
+                    <div class="setting-field">
+                      <label>하루에 새로 살 수 있는 횟수<span>실제 주문을 보낸 횟수를 제한합니다. 매도와 후보 확인은 계속합니다.</span></label>
+                      <div class="number-with-unit">
+                        <input
+                          v-model.number="settings.dailyMaxBuys"
+                          type="number"
+                          min="1"
+                          max="20"
+                          step="1"
+                        ><em>번</em>
+                      </div>
+                    </div>
+                    <div class="setting-field">
+                      <label>같은 종목을 다시 사기까지 기다릴 기간<span>최근 매수 주문 뒤 이 기간 동안 같은 종목을 다시 매수하지 않습니다.</span></label>
+                      <div class="number-with-unit">
+                        <input
+                          v-model.number="settings.symbolCooldownDays"
+                          type="number"
+                          min="1"
+                          max="30"
+                          step="1"
+                        ><em>일</em>
+                      </div>
+                    </div>
+                  </section>
 
-          <section class="setting-card sell-card">
-            <p class="setting-step">
-              3. 산 주식을 팔 때
-            </p>
-            <p class="setting-description">
-              손실을 줄이고 이익을 나눠 지키는 자동 매도 기준입니다.
-            </p>
-            <div class="setting-field">
-              <label>손실이 이만큼 나면 팔기<span>평균 매수가보다 이 비율 이상 내려가면 보유수량을 모두 손절합니다.</span></label>
-              <div class="number-with-unit negative">
-                <b>-</b><input
-                  v-model.number="settings.stopLossPercent"
-                  type="number"
-                  min="0.1"
-                  max="30"
-                  step="0.1"
-                ><em>%</em>
-              </div>
-            </div>
-            <div class="setting-field">
-              <label>1차 이익 실현<span>이만큼 오르면 보유수량의 절반을 먼저 팝니다. 1주만 있으면 전량 매도합니다.</span></label>
-              <div class="number-with-unit">
-                <b>+</b><input
-                  v-model.number="settings.takeProfitPercent"
-                  type="number"
-                  min="0.1"
-                  max="100"
-                  step="0.1"
-                ><em>%</em>
-              </div>
-            </div>
-            <div class="setting-field">
-              <label>2차 이익 실현<span>남은 수량은 이 수익률에 도달하면 모두 팝니다. 1차보다 큰 값이어야 합니다.</span></label>
-              <div class="number-with-unit">
-                <b>+</b><input
-                  v-model.number="settings.takeProfitPercent2"
-                  type="number"
-                  min="0.1"
-                  max="100"
-                  step="0.1"
-                ><em>%</em>
-              </div>
-            </div>
-            <div class="setting-field">
-              <label>가장 오래 보유할 기간<span>매수 후 이 기간이 지나면 수익률과 관계없이 정리합니다.</span></label>
-              <div class="number-with-unit">
-                <input
-                  v-model.number="settings.maxHoldingDays"
-                  type="number"
-                  min="1"
-                  max="30"
-                  step="1"
-                ><em>일</em>
-              </div>
-            </div>
-          </section>
+                  <section class="setting-card sell-card">
+                    <p class="setting-step">
+                      3. 산 주식을 팔 때
+                    </p>
+                    <p class="setting-description">
+                      손실을 줄이고 이익을 나눠 지키는 자동 매도 기준입니다.
+                    </p>
+                    <div class="setting-field">
+                      <label>손실이 이만큼 나면 팔기<span>평균 매수가보다 이 비율 이상 내려가면 보유수량을 모두 손절합니다.</span></label>
+                      <div class="number-with-unit negative">
+                        <b>-</b><input
+                          v-model.number="settings.stopLossPercent"
+                          type="number"
+                          min="0.1"
+                          max="30"
+                          step="0.1"
+                        ><em>%</em>
+                      </div>
+                    </div>
+                    <div class="setting-field">
+                      <label>1차 이익 실현<span>이만큼 오르면 보유수량의 절반을 먼저 팝니다. 1주만 있으면 전량 매도합니다.</span></label>
+                      <div class="number-with-unit">
+                        <b>+</b><input
+                          v-model.number="settings.takeProfitPercent"
+                          type="number"
+                          min="0.1"
+                          max="100"
+                          step="0.1"
+                        ><em>%</em>
+                      </div>
+                    </div>
+                    <div class="setting-field">
+                      <label>2차 이익 실현<span>남은 수량은 이 수익률에 도달하면 모두 팝니다. 1차보다 큰 값이어야 합니다.</span></label>
+                      <div class="number-with-unit">
+                        <b>+</b><input
+                          v-model.number="settings.takeProfitPercent2"
+                          type="number"
+                          min="0.1"
+                          max="100"
+                          step="0.1"
+                        ><em>%</em>
+                      </div>
+                    </div>
+                    <div class="setting-field">
+                      <label>가장 오래 보유할 기간<span>매수 후 이 기간이 지나면 수익률과 관계없이 정리합니다.</span></label>
+                      <div class="number-with-unit">
+                        <input
+                          v-model.number="settings.maxHoldingDays"
+                          type="number"
+                          min="1"
+                          max="30"
+                          step="1"
+                        ><em>일</em>
+                      </div>
+                    </div>
+                  </section>
 
-          <section class="setting-card safety-card">
-            <p class="setting-step">
-              4. 하루 안전장치
-            </p>
-            <p class="setting-description">
-              자동매매 자산의 하루 손실이 커지면 그날의 새 매수를 멈춥니다.
-            </p>
-            <div class="setting-field">
-              <label>오늘 손실률이 이 비율이면 새 매수 멈추기<span>그날 처음 확인한 자동매매용 USD와 자동매매 보유종목 평가액을 기준으로 계산합니다. 0%는 사용하지 않음입니다.</span></label>
-              <div class="number-with-unit negative">
-                <b>-</b><input
-                  v-model.number="settings.dailyLossLimitPercent"
-                  type="number"
-                  min="0"
-                  max="30"
-                  step="0.1"
-                ><em>%</em>
+                  <section class="setting-card safety-card">
+                    <p class="setting-step">
+                      4. 하루 안전장치
+                    </p>
+                    <p class="setting-description">
+                      자동매매 자산의 하루 손실이 커지면 그날의 새 매수를 멈춥니다.
+                    </p>
+                    <div class="setting-field">
+                      <label>오늘 손실률이 이 비율이면 새 매수 멈추기<span>그날 처음 확인한 자동매매용 USD와 자동매매 보유종목 평가액을 기준으로 계산합니다. 0%는 사용하지 않음입니다.</span></label>
+                      <div class="number-with-unit negative">
+                        <b>-</b><input
+                          v-model.number="settings.dailyLossLimitPercent"
+                          type="number"
+                          min="0"
+                          max="30"
+                          step="0.1"
+                        ><em>%</em>
+                      </div>
+                    </div>
+                  </section>
+
+                  <p
+                    v-if="validationError"
+                    class="settings-error"
+                  >
+                    ⚠ {{ validationError }}
+                  </p>
+                  <p
+                    v-if="error"
+                    class="settings-error"
+                  >
+                    ⚠ {{ error }}
+                  </p>
+                </form>
               </div>
             </div>
-          </section>
-
-          <p
-            v-if="validationError"
-            class="settings-error"
-          >
-            ⚠ {{ validationError }}
-          </p>
-          <button
-            class="save-settings"
-            type="submit"
-            :disabled="pending || !!validationError"
-          >
-            {{ pending ? '저장 중...' : '설정 저장하기' }}
-          </button>
-        </form>
-      </div>
+            <div class="amodal-foot">
+              <span class="settings-unsaved">{{ settingsDirty ? '아직 저장되지 않았습니다' : '' }}</span>
+              <div class="amodal-foot-right">
+                <button
+                  class="amodal-btn amodal-btn-ghost"
+                  :disabled="pending"
+                  @click="closeSettings"
+                >
+                  취소
+                </button>
+                <button
+                  class="amodal-btn amodal-btn-primary"
+                  type="submit"
+                  form="us-strategy-settings"
+                  :disabled="pending || !settingsDirty || !!validationError"
+                >
+                  {{ pending ? '저장 중...' : '저장하기' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </teleport>
     </section>
 
     <div class="grids">
@@ -380,11 +424,12 @@ const summary = ref({ cash: { availableUsd: 0 }, stockEvaluationUsd: 0, managedE
 const settings = ref({ minChangePercent: 1, maxChangePercent: 4, minVolumeRatio: 1.5, maxOrderPercent: 10, maxPositions: 2, dailyMaxBuys: 1, symbolCooldownDays: 5, maxHoldingDays: 3, stopLossPercent: 2.5, takeProfitPercent: 4, takeProfitPercent2: 7, dailyLossLimitPercent: 2 })
 const candidates = ref([]), holdings = ref([]), logs = ref([])
 const pending = ref(false), error = ref(''), showSettings = ref(false), logBox = ref(null)
-let source
+let source, settingsOriginal = ''
 const money = value => Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const validNumber = (value, min, max) => typeof value === 'number' && !Number.isNaN(value) && value >= min && value <= max
 const validInteger = (value, min, max) => Number.isInteger(value) && value >= min && value <= max
 const estimatedOrderUsd = computed(() => Number(summary.value.cash?.availableUsd || 0) * Number(settings.value.maxOrderPercent || 0) / 100)
+const settingsDirty = computed(() => showSettings.value && JSON.stringify(settings.value) !== settingsOriginal)
 const validationError = computed(() => {
   const s = settings.value
   if (!validNumber(s.minChangePercent, 0, 20)) return '오늘 최소 상승률은 0부터 20% 사이여야 합니다.'
@@ -419,7 +464,9 @@ async function action(fn) { pending.value = true; error.value = ''; try { await 
 async function toggle() { const enabled = !status.value.autoTrading; if (!window.confirm(enabled ? '실계좌 미국주식 자동매매를 시작할까요? 매수에는 D+0 USD 예수금만 사용합니다.' : '신규 자동주문을 중지할까요? 이미 접수된 주문은 키움에서 확인하세요.')) return; await action(async () => { await axios.post(`${BASE}/control`, { enabled }); await loadAll() }) }
 async function runDecision() { await action(async () => { const { data } = await axios.post(`${BASE}/decide`); pushLog({ type: 'SYSTEM', message: data.message, createdAt: new Date().toISOString() }); await loadAll() }) }
 async function refreshAll() { await action(async () => loadAll(true)) }
-async function saveSettings() { if (validationError.value) return; await action(async () => { settings.value = (await axios.patch(`${BASE}/settings`, settings.value)).data; showSettings.value = false; pushLog({ type: 'SYSTEM', message: '미국주식 자동매매 전략 설정을 저장했습니다.', createdAt: new Date().toISOString() }) }) }
+function openSettings() { settingsOriginal = JSON.stringify(settings.value); error.value = ''; showSettings.value = true }
+function closeSettings() { if (pending.value) return; if (settingsDirty.value && !window.confirm('저장하지 않은 변경사항이 있습니다. 닫을까요?')) return; settings.value = JSON.parse(settingsOriginal); showSettings.value = false }
+async function saveSettings() { if (validationError.value) return; await action(async () => { settings.value = (await axios.patch(`${BASE}/settings`, settings.value)).data; settingsOriginal = JSON.stringify(settings.value); showSettings.value = false; pushLog({ type: 'SYSTEM', message: '미국주식 자동매매 전략 설정을 저장했습니다.', createdAt: new Date().toISOString() }) }) }
 function connect() { source = new EventSource(`${process.env.VUE_APP_API_URL || ''}${BASE}/events`, { withCredentials: true }); source.addEventListener('kiwoom-us', event => pushLog(JSON.parse(event.data))) }
 onMounted(() => action(async () => { await loadAll(); connect() }))
 onBeforeUnmount(() => source?.close())
@@ -428,5 +475,5 @@ onBeforeUnmount(() => source?.close())
 <style scoped>
 .us-auto{color:var(--text-primary)}.hero,.controls,.card,.summary article{border:1px solid var(--card-border);border-radius:16px;background:var(--card-bg)}.hero,.controls{display:flex;align-items:center;justify-content:space-between;padding:20px;margin-bottom:14px}.hero p{margin:0;color:#68a4ff;font-size:.7rem;font-weight:800;letter-spacing:.14em}.hero h3{margin:6px 0}.hero small,.controls small,.summary span,td small{display:block;color:var(--text-muted)}.hero b{padding:6px 10px;border-radius:99px;background:#43201e;color:#ffb0a5;font-size:.75rem}.usd-notice{display:flex;flex-direction:column;gap:4px;margin-bottom:14px;padding:14px 16px;border:1px solid #32694f;border-radius:12px;background:#19382b;color:#b9f5d8}.usd-notice span{font-size:.78rem}.error{padding:12px;border-radius:10px;background:#472424;color:#ffb4b4}.buttons{display:flex;gap:8px}.buttons button,.card button,.strategy-settings button{padding:8px 11px;border:1px solid var(--card-border-strong);border-radius:9px;background:transparent;color:var(--text-secondary);cursor:pointer}.buttons button:first-child{background:var(--accent);color:#18140b;font-weight:700}.buttons button.danger{background:#762f35;color:#fff}.buttons button:disabled{opacity:.45}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}.summary article{padding:17px}.summary small{color:var(--text-muted)}.summary strong{display:block;margin:7px 0;font-size:1.25rem}.card{margin-bottom:14px;overflow:hidden}.card>header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--card-border)}.rules ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 28px;margin:15px 20px 18px;padding-left:20px;color:var(--text-secondary);font-size:.8rem}.grids{display:grid;grid-template-columns:1fr 1fr;gap:14px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:.78rem}th,td{padding:10px 12px;border-bottom:1px solid var(--card-border);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}td small{max-width:130px;overflow:hidden;text-overflow:ellipsis}.up,.buy{color:#ef7777}.down,.sell{color:#72a7ff}.empty{padding:25px!important;color:var(--text-muted)!important;text-align:center!important}.terminal{height:280px;overflow:auto;padding:13px 16px;background:#0a0f0d;font:12px/1.65 ui-monospace,Consolas,monospace}.terminal p{margin:0;word-break:break-word}.terminal time{margin-right:9px;color:#78847e}.terminal b{margin-right:5px}.terminal .candidate{color:#e7cf78}.terminal .system{color:#77dda0}.terminal .error-line{color:#f08d8d}@media(max-width:800px){.hero,.controls{align-items:flex-start;flex-direction:column;gap:12px}.buttons{width:100%;flex-direction:column}.summary,.grids{grid-template-columns:1fr}.rules ol{grid-template-columns:1fr}}
 .market-hours>div{padding:14px 17px;color:var(--text-secondary);font-size:.8rem}.market-hours p{margin:5px 0}.market-hours b{color:var(--text-primary)}.market-hours header span{padding:5px 9px;border-radius:99px;font-size:.72rem;font-weight:700}.market-hours header .open{background:#1c5138;color:#9af0bd}.market-hours header .closed{background:#4b2929;color:#ffb4b4}
-.settings-area{padding:0 18px 18px}.easy-guide{display:grid;gap:3px;margin-bottom:12px;padding:12px;border-radius:10px;background:#1f2924;color:#dff5e5;font-size:.86rem}.easy-guide span{color:#b6c6ba;font-size:.78rem}.strategy-settings{display:grid;grid-template-columns:1fr 1fr;gap:12px}.setting-card{padding:14px;border:1px solid var(--card-border);border-radius:12px}.screen-card{border-left:3px solid #9e8ee8}.buy-card{border-left:3px solid #d98a51}.sell-card{border-left:3px solid #68a6e8}.safety-card{border-left:3px solid #d4b466}.setting-step{margin:0;font-size:1rem;font-weight:800}.setting-description{margin:4px 0 10px;color:var(--text-muted);font-size:.78rem}.setting-field{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0;border-top:1px solid var(--card-border)}.setting-field label{color:var(--text-primary);font-size:.82rem;font-weight:700}.setting-field label span{display:block;margin-top:3px;color:var(--text-muted);font-size:.72rem;font-weight:400;line-height:1.45}.number-with-unit{display:flex;align-items:center;justify-content:flex-end;gap:5px;min-width:112px;color:#80d69a}.number-with-unit.negative{color:#f29090}.number-with-unit input{box-sizing:border-box;width:72px;padding:8px;border:1px solid var(--card-border);border-radius:8px;background:var(--input-bg,#171b20);color:var(--text-primary);text-align:right}.number-with-unit em{min-width:24px;color:var(--text-muted);font-size:.78rem;font-style:normal}.settings-error{grid-column:1/-1;margin:0;padding:10px;border-radius:8px;background:#472424;color:#ffb4b4;font-size:.8rem}.save-settings{grid-column:1/-1;justify-self:end;background:var(--accent)!important;color:#18140b!important;font-weight:800}.save-settings:disabled{cursor:not-allowed;opacity:.45}@media(max-width:800px){.strategy-settings{grid-template-columns:1fr}}@media(max-width:520px){.settings-area{padding:0 12px 14px}.setting-field{align-items:flex-start;flex-direction:column}.number-with-unit{align-self:flex-end}}
+.us-settings-modal{max-width:640px}.settings-area{display:flex;flex-direction:column;min-height:0;height:100%}.easy-guide{display:grid;gap:3px;margin-bottom:12px;padding:12px;border-radius:10px;background:#1f2924;color:#dff5e5;font-size:.86rem}.easy-guide span{color:#b6c6ba;font-size:.78rem}.strategy-settings{display:grid;grid-template-columns:1fr 1fr;gap:12px}.setting-card{padding:14px;border:1px solid var(--card-border);border-radius:12px}.screen-card{border-left:3px solid #9e8ee8}.buy-card{border-left:3px solid #d98a51}.sell-card{border-left:3px solid #68a6e8}.safety-card{border-left:3px solid #d4b466}.setting-step{margin:0;font-size:1rem;font-weight:800}.setting-description{margin:4px 0 10px;color:var(--text-muted);font-size:.78rem}.setting-field{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0;border-top:1px solid var(--card-border)}.setting-field label{color:var(--text-primary);font-size:.82rem;font-weight:700}.setting-field label span{display:block;margin-top:3px;color:var(--text-muted);font-size:.72rem;font-weight:400;line-height:1.45}.number-with-unit{display:flex;align-items:center;justify-content:flex-end;gap:5px;min-width:112px;color:#80d69a}.number-with-unit.negative{color:#f29090}.number-with-unit input{box-sizing:border-box;width:72px;padding:8px;border:1px solid var(--card-border);border-radius:8px;background:var(--input-bg,#171b20);color:var(--text-primary);text-align:right}.number-with-unit em{min-width:24px;color:var(--text-muted);font-size:.78rem;font-style:normal}.settings-error{grid-column:1/-1;margin:0;padding:10px;border-radius:8px;background:#472424;color:#ffb4b4;font-size:.8rem}.settings-unsaved{color:var(--text-muted);font-size:.78rem}@media(max-width:800px){.strategy-settings{grid-template-columns:1fr}}@media(max-width:520px){.setting-field{align-items:flex-start;flex-direction:column}.number-with-unit{align-self:flex-end}}
 </style>
