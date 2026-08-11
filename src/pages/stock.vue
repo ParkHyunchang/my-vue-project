@@ -145,7 +145,26 @@
       v-show="activeTab === 'auto-trade'"
       class="tab-content"
     >
-      <KiwoomAutoTrade />
+      <div
+        class="auto-market-tabs"
+        role="tablist"
+        aria-label="자동매매 국가 선택"
+      >
+        <button
+          :class="{ active: autoTradeMarket === 'KR' }"
+          @click="autoTradeMarket = 'KR'"
+        >
+          🇰🇷 한국
+        </button>
+        <button
+          :class="{ active: autoTradeMarket === 'US' }"
+          @click="autoTradeMarket = 'US'"
+        >
+          🇺🇸 미국
+        </button>
+      </div>
+      <KiwoomAutoTrade v-if="autoTradeMarket === 'KR'" />
+      <KiwoomUsAutoTrade v-else />
     </div>
   </div>
 </template>
@@ -161,11 +180,12 @@ import HeatmapPanel from "@/components/stock/HeatmapPanel.vue";
 import Top10Panel from "@/components/stock/Top10Panel.vue";
 import NewsPanel from "@/components/stock/NewsPanel.vue";
 import KiwoomAutoTrade from "@/components/stock/KiwoomAutoTrade.vue";
+import KiwoomUsAutoTrade from "@/components/stock/KiwoomUsAutoTrade.vue";
 import { ACCOUNT_CONFIGS, ACCOUNT_TAB_ORDER } from "@/config/stockAccounts";
 
 export default {
   name: "StockPage",
-  components: { PortfolioPanel, AllAccountsPanel, HeatmapPanel, Top10Panel, NewsPanel, KiwoomAutoTrade },
+  components: { PortfolioPanel, AllAccountsPanel, HeatmapPanel, Top10Panel, NewsPanel, KiwoomAutoTrade, KiwoomUsAutoTrade },
   setup() {
     const route = useRoute();
     const router = useRouter();
@@ -173,6 +193,7 @@ export default {
     const isAdmin = computed(() => store.getters["auth/isAdmin"]);
 
     const activeTab = ref("all");
+    const autoTradeMarket = ref("KR");
     const holdingsByAccount = ref({
       general: [],
       isa: [],
@@ -277,6 +298,7 @@ export default {
 
     return {
       activeTab,
+      autoTradeMarket,
       allHoldings,
       holdingsByAccount,
       accountsLoading,
@@ -296,3 +318,9 @@ export default {
 <style src="@/assets/css/pages/stock.css" scoped></style>
 
 <style src="@/assets/css/stock.css" scoped></style>
+
+<style scoped>
+.auto-market-tabs{display:flex;gap:8px;margin:0 0 14px;padding:5px;width:max-content;border:1px solid var(--card-border);border-radius:12px;background:var(--card-bg)}
+.auto-market-tabs button{padding:8px 18px;border:0;border-radius:8px;background:transparent;color:var(--text-muted);font-weight:700;cursor:pointer}
+.auto-market-tabs button.active{background:var(--accent);color:#17130a}
+</style>
