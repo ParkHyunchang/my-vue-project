@@ -31,9 +31,10 @@
         </button>
         <button
           :disabled="pending || !status.configured"
+          :title="decisionButtonHint"
           @click="runDecision"
         >
-          후보 지금 확인
+          {{ decisionButtonLabel }}
         </button>
         <button
           :disabled="pending || !status.configured"
@@ -429,6 +430,10 @@ const money = value => Number(value || 0).toLocaleString('en-US', { minimumFract
 const validNumber = (value, min, max) => typeof value === 'number' && !Number.isNaN(value) && value >= min && value <= max
 const validInteger = (value, min, max) => Number.isInteger(value) && value >= min && value <= max
 const estimatedOrderUsd = computed(() => Number(summary.value.cash?.availableUsd || 0) * Number(settings.value.maxOrderPercent || 0) / 100)
+const decisionButtonLabel = computed(() => status.value.autoTrading ? '후보 확인·매수 판단' : '후보만 확인')
+const decisionButtonHint = computed(() => status.value.autoTrading
+  ? '자동매매 실행 중이므로 조건을 통과하면 실계좌 매수 주문이 전송될 수 있습니다.'
+  : '자동매매가 꺼져 있어 후보만 기록하고 주문은 전송하지 않습니다.')
 const settingsDirty = computed(() => showSettings.value && JSON.stringify(settings.value) !== settingsOriginal)
 const validationError = computed(() => {
   const s = settings.value
@@ -448,7 +453,7 @@ const validationError = computed(() => {
 })
 const signed = value => `${Number(value || 0) >= 0 ? '+' : ''}${Number(value || 0).toFixed(2)}`
 const logTime = value => value ? new Date(value).toLocaleString('ko-KR', { hour12: false }) : new Date().toLocaleTimeString('ko-KR', { hour12: false })
-const label = type => ({ CANDIDATE: '후보', BUY_ORDER: '매수주문', BUY_FILLED: '매수체결', SELL_ORDER: '매도주문', SELL_FILLED: '매도체결', ERROR: '오류', START: '시작', STOP: '중지' }[type] || type || '시스템')
+const label = type => ({ CANDIDATE: '후보', BUY_ORDER: '매수주문', BUY_FILLED: '매수체결', SELL_ORDER: '매도주문', SELL_FILLED: '매도체결', BUY_CANCEL: '매수취소요청', SELL_CANCEL: '매도취소요청', ORDER_CANCELED: '취소완료', ORDER_UNKNOWN: '주문확인필요', ERROR: '오류', START: '시작', STOP: '중지' }[type] || type || '시스템')
 const tone = type => type?.includes('BUY') ? 'buy' : type?.includes('SELL') ? 'sell' : type === 'CANDIDATE' ? 'candidate' : type === 'ERROR' ? 'error-line' : 'system'
 function pushLog(item) { logs.value.push({ id: `${Date.now()}-${Math.random()}`, ...item }); if (logs.value.length > 300) logs.value.shift(); nextTick(() => { if (logBox.value) logBox.value.scrollTop = logBox.value.scrollHeight }) }
 async function loadAll(sync = false) {
@@ -461,8 +466,12 @@ async function loadAll(sync = false) {
   }
 }
 async function action(fn) { pending.value = true; error.value = ''; try { await fn() } catch (e) { error.value = e.response?.data?.message || e.message || '요청에 실패했습니다.' } finally { pending.value = false } }
-async function toggle() { const enabled = !status.value.autoTrading; if (!window.confirm(enabled ? '실계좌 미국주식 자동매매를 시작할까요? 매수에는 D+0 USD 예수금만 사용합니다.' : '신규 자동주문을 중지할까요? 이미 접수된 주문은 키움에서 확인하세요.')) return; await action(async () => { await axios.post(`${BASE}/control`, { enabled }); await loadAll() }) }
-async function runDecision() { await action(async () => { const { data } = await axios.post(`${BASE}/decide`); pushLog({ type: 'SYSTEM', message: data.message, createdAt: new Date().toISOString() }); await loadAll() }) }
+async function toggle() { const enabled = !status.value.autoTrading; if (!window.confirm(enabled ? '실계좌 미국주식 자동매매를 시작할까요? 매수에는 D+0 USD 예수금만 사용합니다.' : '신규 자동주문과 자동매도 판단을 중지할까요? 이미 접수된 주문의 체결·취소 동기화는 계속됩니다.')) return; await action(async () => { await axios.post(`${BASE}/control`, { enabled }); await loadAll() }) }
+async function runDecision() {
+  if (status.value.autoTrading && !window.confirm('현재 자동매매가 실행 중입니다. 조건을 통과한 후보가 있으면 실계좌 매수 주문이 전송될 수 있습니다. 계속할까요?')) return
+  const allowOrder = status.value.autoTrading
+  await action(async () => { const { data } = await axios.post(`${BASE}/decide`, null, { params: { allowOrder } }); pushLog({ type: 'SYSTEM', message: data.message, createdAt: new Date().toISOString() }); await loadAll() })
+}
 async function refreshAll() { await action(async () => loadAll(true)) }
 function openSettings() { settingsOriginal = JSON.stringify(settings.value); error.value = ''; showSettings.value = true }
 function closeSettings() { if (pending.value) return; if (settingsDirty.value && !window.confirm('저장하지 않은 변경사항이 있습니다. 닫을까요?')) return; settings.value = JSON.parse(settingsOriginal); showSettings.value = false }
