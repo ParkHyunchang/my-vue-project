@@ -44,10 +44,25 @@
       </div>
     </section>
 
+    <section class="market-hours card">
+      <header>
+        <strong>미국장 자동매매 운영시간</strong><span :class="status.marketOpen ? 'open' : 'closed'">
+          {{ status.marketOpen ? '정규장 운영 중' : '장 운영시간 아님' }}
+        </span>
+      </header>
+      <div>
+        <p><b>현재 적용:</b> {{ status.marketSeason }} · 정규장 {{ status.regularSessionKst }} (한국시간)</p>
+        <p><b>신규매수:</b> {{ status.entrySessionKst }} · 개장 직후 30분과 마감 전 1시간은 진입하지 않습니다.</p>
+        <p><b>매도·체결:</b> 정규장 전체에서만 감시·동기화하며 프리마켓과 애프터마켓에는 주문하지 않습니다.</p>
+        <p><b>달력:</b> 2026~2028년 NYSE 휴장일과 조기폐장을 반영하고, 이후 연도는 일정 등록 전까지 주문을 차단합니다.</p>
+      </div>
+    </section>
+
     <section class="summary">
       <article><small>사용 가능 USD</small><strong>${{ money(summary.cash?.availableUsd) }}</strong><span>D+0 외화예수금</span></article>
-      <article><small>미국주식 평가액</small><strong>${{ money(summary.investedUsd) }}</strong><span>{{ summary.positionCount || 0 }}종목</span></article>
-      <article><small>USD 기준 총자산</small><strong>${{ money(summary.totalAssetUsd) }}</strong><span>원화 주문 가능액 제외</span></article>
+      <article><small>건당 주문 한도</small><strong>${{ money(summary.perOrderLimitUsd) }}</strong><span>현재 USD의 {{ settings.maxOrderPercent }}%</span></article>
+      <article><small>자동매매 총 배정</small><strong>${{ money(summary.allocationLimitUsd) }}</strong><span>현재 자동관리 ${{ money(summary.managedEvaluationUsd) }}</span></article>
+      <article><small>미국주식 평가액</small><strong>${{ money(summary.stockEvaluationUsd) }}</strong><span>전체 {{ summary.positionCount || 0 }}종목 · 자동 {{ summary.managedPositionCount || 0 }}종목</span></article>
     </section>
 
     <section class="rules card">
@@ -61,7 +76,7 @@
         <li>거래대금 상위 50위 유동성 종목</li>
         <li>당일 등락률 {{ settings.minChangePercent }}~{{ settings.maxChangePercent }}%</li>
         <li>전일 대비 거래량 {{ settings.minVolumeRatio }}배 이상</li>
-        <li>D+0 USD 예수금·건당 ${{ money(settings.maxOrderUsd) }} 이내</li>
+        <li>D+0 USD의 건당 {{ settings.maxOrderPercent }}%·자동매매 자금의 총 {{ settings.maxAllocationPercent }}% 이내</li>
         <li>최대 {{ settings.maxPositions }}종목·일 {{ settings.dailyMaxBuys }}회·재진입 {{ settings.symbolCooldownDays }}일 제한</li>
         <li>손절 -{{ settings.stopLossPercent }}%·익절 +{{ settings.takeProfitPercent }}/{{ settings.takeProfitPercent2 }}%·일손실 -{{ settings.dailyLossLimitPercent }}%</li>
       </ol>
@@ -70,17 +85,40 @@
         class="settings"
         @submit.prevent="saveSettings"
       >
-        <label>건당 USD<input
-          v-model.number="settings.maxOrderUsd"
+        <label>건당 예수금 비율 %<input
+          v-model.number="settings.maxOrderPercent"
           type="number"
-          min="1"
-          step="1"
+          min="0.1"
+          max="100"
+          step="0.1"
         ></label>
-        <label>총 배정 USD<input
-          v-model.number="settings.maxAllocatedUsd"
+        <label>총 배정 비율 %<input
+          v-model.number="settings.maxAllocationPercent"
+          type="number"
+          min="0.1"
+          max="100"
+          step="0.1"
+        ></label>
+        <label>최소 당일 등락률 %<input
+          v-model.number="settings.minChangePercent"
+          type="number"
+          min="0"
+          max="20"
+          step="0.1"
+        ></label>
+        <label>최대 당일 등락률 %<input
+          v-model.number="settings.maxChangePercent"
+          type="number"
+          min="0"
+          max="30"
+          step="0.1"
+        ></label>
+        <label>최소 거래량 비율 배<input
+          v-model.number="settings.minVolumeRatio"
           type="number"
           min="1"
-          step="1"
+          max="20"
+          step="0.1"
         ></label>
         <label>최대 종목<input
           v-model.number="settings.maxPositions"
@@ -93,6 +131,18 @@
           type="number"
           min="1"
           max="20"
+        ></label>
+        <label>재진입 제한 일수<input
+          v-model.number="settings.symbolCooldownDays"
+          type="number"
+          min="1"
+          max="30"
+        ></label>
+        <label>최대 보유일수<input
+          v-model.number="settings.maxHoldingDays"
+          type="number"
+          min="1"
+          max="30"
         ></label>
         <label>손절 %<input
           v-model.number="settings.stopLossPercent"
@@ -110,6 +160,13 @@
           v-model.number="settings.takeProfitPercent2"
           type="number"
           min="0.1"
+          step="0.1"
+        ></label>
+        <label>일일 손실 한도 %<input
+          v-model.number="settings.dailyLossLimitPercent"
+          type="number"
+          min="0"
+          max="30"
           step="0.1"
         ></label>
         <button
@@ -207,9 +264,9 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import axios from '@/axios'
 
 const BASE = '/api/kiwoom/us/auto-trade'
-const status = ref({ configured: false, autoTrading: false, orderEnabled: false, marketOpen: false })
-const summary = ref({ cash: { availableUsd: 0 }, investedUsd: 0, totalAssetUsd: 0, positionCount: 0 })
-const settings = ref({ minChangePercent: 1, maxChangePercent: 4, minVolumeRatio: 1.5, maxOrderUsd: 200, maxAllocatedUsd: 400, maxPositions: 2, dailyMaxBuys: 1, symbolCooldownDays: 5, stopLossPercent: 2.5, takeProfitPercent: 4, takeProfitPercent2: 7, dailyLossLimitPercent: 2 })
+const status = ref({ configured: false, autoTrading: false, orderEnabled: false, marketOpen: false, entryWindow: false, marketSeason: '', regularSessionKst: '', entrySessionKst: '' })
+const summary = ref({ cash: { availableUsd: 0 }, stockEvaluationUsd: 0, managedEvaluationUsd: 0, allocationLimitUsd: 0, perOrderLimitUsd: 0, positionCount: 0, managedPositionCount: 0 })
+const settings = ref({ minChangePercent: 1, maxChangePercent: 4, minVolumeRatio: 1.5, maxOrderPercent: 10, maxAllocationPercent: 20, maxPositions: 2, dailyMaxBuys: 1, symbolCooldownDays: 5, maxHoldingDays: 3, stopLossPercent: 2.5, takeProfitPercent: 4, takeProfitPercent2: 7, dailyLossLimitPercent: 2 })
 const candidates = ref([]), holdings = ref([]), logs = ref([])
 const pending = ref(false), error = ref(''), showSettings = ref(false), logBox = ref(null)
 let source
@@ -239,5 +296,6 @@ onBeforeUnmount(() => source?.close())
 </script>
 
 <style scoped>
-.us-auto{color:var(--text-primary)}.hero,.controls,.card,.summary article{border:1px solid var(--card-border);border-radius:16px;background:var(--card-bg)}.hero,.controls{display:flex;align-items:center;justify-content:space-between;padding:20px;margin-bottom:14px}.hero p{margin:0;color:#68a4ff;font-size:.7rem;font-weight:800;letter-spacing:.14em}.hero h3{margin:6px 0}.hero small,.controls small,.summary span,td small{display:block;color:var(--text-muted)}.hero b{padding:6px 10px;border-radius:99px;background:#43201e;color:#ffb0a5;font-size:.75rem}.usd-notice{display:flex;flex-direction:column;gap:4px;margin-bottom:14px;padding:14px 16px;border:1px solid #32694f;border-radius:12px;background:#19382b;color:#b9f5d8}.usd-notice span{font-size:.78rem}.error{padding:12px;border-radius:10px;background:#472424;color:#ffb4b4}.buttons{display:flex;gap:8px}.buttons button,.card button,.settings button{padding:8px 11px;border:1px solid var(--card-border-strong);border-radius:9px;background:transparent;color:var(--text-secondary);cursor:pointer}.buttons button:first-child{background:var(--accent);color:#18140b;font-weight:700}.buttons button.danger{background:#762f35;color:#fff}.buttons button:disabled{opacity:.45}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}.summary article{padding:17px}.summary small{color:var(--text-muted)}.summary strong{display:block;margin:7px 0;font-size:1.25rem}.card{margin-bottom:14px;overflow:hidden}.card>header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--card-border)}.rules ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 28px;margin:15px 20px 18px;padding-left:20px;color:var(--text-secondary);font-size:.8rem}.settings{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 18px 18px}.settings label{color:var(--text-muted);font-size:.72rem}.settings input{box-sizing:border-box;width:100%;margin-top:4px;padding:8px;border:1px solid var(--card-border);border-radius:8px;background:var(--input-bg,#171b20);color:var(--text-primary)}.grids{display:grid;grid-template-columns:1fr 1fr;gap:14px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:.78rem}th,td{padding:10px 12px;border-bottom:1px solid var(--card-border);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}td small{max-width:130px;overflow:hidden;text-overflow:ellipsis}.up,.buy{color:#ef7777}.down,.sell{color:#72a7ff}.empty{padding:25px!important;color:var(--text-muted)!important;text-align:center!important}.terminal{height:280px;overflow:auto;padding:13px 16px;background:#0a0f0d;font:12px/1.65 ui-monospace,Consolas,monospace}.terminal p{margin:0;word-break:break-word}.terminal time{margin-right:9px;color:#78847e}.terminal b{margin-right:5px}.terminal .candidate{color:#e7cf78}.terminal .system{color:#77dda0}.terminal .error-line{color:#f08d8d}@media(max-width:800px){.hero,.controls{align-items:flex-start;flex-direction:column;gap:12px}.buttons{width:100%;flex-direction:column}.summary,.grids{grid-template-columns:1fr}.rules ol{grid-template-columns:1fr}.settings{grid-template-columns:repeat(2,1fr)}}
+.us-auto{color:var(--text-primary)}.hero,.controls,.card,.summary article{border:1px solid var(--card-border);border-radius:16px;background:var(--card-bg)}.hero,.controls{display:flex;align-items:center;justify-content:space-between;padding:20px;margin-bottom:14px}.hero p{margin:0;color:#68a4ff;font-size:.7rem;font-weight:800;letter-spacing:.14em}.hero h3{margin:6px 0}.hero small,.controls small,.summary span,td small{display:block;color:var(--text-muted)}.hero b{padding:6px 10px;border-radius:99px;background:#43201e;color:#ffb0a5;font-size:.75rem}.usd-notice{display:flex;flex-direction:column;gap:4px;margin-bottom:14px;padding:14px 16px;border:1px solid #32694f;border-radius:12px;background:#19382b;color:#b9f5d8}.usd-notice span{font-size:.78rem}.error{padding:12px;border-radius:10px;background:#472424;color:#ffb4b4}.buttons{display:flex;gap:8px}.buttons button,.card button,.settings button{padding:8px 11px;border:1px solid var(--card-border-strong);border-radius:9px;background:transparent;color:var(--text-secondary);cursor:pointer}.buttons button:first-child{background:var(--accent);color:#18140b;font-weight:700}.buttons button.danger{background:#762f35;color:#fff}.buttons button:disabled{opacity:.45}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}.summary article{padding:17px}.summary small{color:var(--text-muted)}.summary strong{display:block;margin:7px 0;font-size:1.25rem}.card{margin-bottom:14px;overflow:hidden}.card>header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--card-border)}.rules ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 28px;margin:15px 20px 18px;padding-left:20px;color:var(--text-secondary);font-size:.8rem}.settings{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 18px 18px}.settings label{color:var(--text-muted);font-size:.72rem}.settings input{box-sizing:border-box;width:100%;margin-top:4px;padding:8px;border:1px solid var(--card-border);border-radius:8px;background:var(--input-bg,#171b20);color:var(--text-primary)}.grids{display:grid;grid-template-columns:1fr 1fr;gap:14px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:.78rem}th,td{padding:10px 12px;border-bottom:1px solid var(--card-border);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}td small{max-width:130px;overflow:hidden;text-overflow:ellipsis}.up,.buy{color:#ef7777}.down,.sell{color:#72a7ff}.empty{padding:25px!important;color:var(--text-muted)!important;text-align:center!important}.terminal{height:280px;overflow:auto;padding:13px 16px;background:#0a0f0d;font:12px/1.65 ui-monospace,Consolas,monospace}.terminal p{margin:0;word-break:break-word}.terminal time{margin-right:9px;color:#78847e}.terminal b{margin-right:5px}.terminal .candidate{color:#e7cf78}.terminal .system{color:#77dda0}.terminal .error-line{color:#f08d8d}@media(max-width:800px){.hero,.controls{align-items:flex-start;flex-direction:column;gap:12px}.buttons{width:100%;flex-direction:column}.summary,.grids{grid-template-columns:1fr}.rules ol{grid-template-columns:1fr}.settings{grid-template-columns:repeat(2,1fr)}}
+.market-hours>div{padding:14px 17px;color:var(--text-secondary);font-size:.8rem}.market-hours p{margin:5px 0}.market-hours b{color:var(--text-primary)}.market-hours header span{padding:5px 9px;border-radius:99px;font-size:.72rem;font-weight:700}.market-hours header .open{background:#1c5138;color:#9af0bd}.market-hours header .closed{background:#4b2929;color:#ffb4b4}
 </style>
