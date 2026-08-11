@@ -5,9 +5,14 @@
       <b>실전 계좌</b>
     </header>
 
-    <div class="usd-notice">
-      <strong>매수 자금: 미리 환전한 D+0 USD 외화예수금만</strong>
-      <span>원화 주문 가능액과 자동환전은 사용하지 않습니다. 화면의 USD 잔액보다 주문 한도가 항상 작거나 같습니다.</span>
+    <div
+      class="usd-notice"
+      :class="{ blocked: usdOnlyBlocked }"
+    >
+      <strong>{{ usdOnlyBlocked ? '매수 차단: 원화주문설정금이 있습니다' : '매수 자금: 미리 환전한 D+0 USD 외화예수금만' }}</strong>
+      <span v-if="usdOnlyBlocked">현재 원화주문설정금 {{ won(summary.cash?.krwOrderSettingAmount) }}원입니다. 자동매매 시작과 실제 매수 주문을 차단합니다.</span>
+      <span v-else>원화주문설정금 0원입니다. 실제 매수 직전에 원화주문 서비스 해지 상태와 외화 주문가능수량을 다시 확인하고, USD의 1%도 남깁니다.</span>
+      <small>키움의 미국주식 원화주문 서비스가 해지되어 있지 않으면 실제 매수 단계에서 무조건 차단됩니다.</small>
     </div>
     <p
       v-if="error"
@@ -19,11 +24,11 @@
     <section class="controls">
       <div>
         <strong>{{ status.autoTrading ? '자동매매 실행 중' : '자동매매 중지' }}</strong>
-        <small>{{ status.marketOpen ? '미국 정규장 운영 중' : '미국 정규장 밖' }} · 주문전송 {{ status.orderEnabled ? '허용' : '잠금' }}</small>
+        <small>{{ status.marketOpen ? '미국 정규장 운영 중' : '미국 정규장 밖' }} · 주문전송 {{ status.orderEnabled ? '허용' : '잠금' }} · 원화설정금 {{ usdOnlyBlocked ? '있음(차단)' : '0원' }}</small>
       </div>
       <div class="buttons">
         <button
-          :disabled="pending"
+          :disabled="pending || (!status.autoTrading && usdOnlyBlocked)"
           :class="{ danger: status.autoTrading }"
           @click="toggle"
         >
@@ -61,20 +66,21 @@
 
     <section class="summary">
       <article><small>사용 가능 USD</small><strong>${{ money(summary.cash?.availableUsd) }}</strong><span>D+0 외화예수금</span></article>
-      <article><small>한 번 살 수 있는 금액</small><strong>${{ money(estimatedOrderUsd) }}</strong><span>현재 USD의 {{ settings.maxOrderPercent }}%</span></article>
+      <article><small>한 번 살 수 있는 금액</small><strong>${{ money(estimatedOrderUsd) }}</strong><span>현재 USD의 최대 {{ Math.min(settings.maxOrderPercent, 99) }}%</span></article>
       <article><small>자동매매로 보유 중</small><strong>{{ summary.managedPositionCount || 0 }}종목</strong><span>평가액 ${{ money(summary.managedEvaluationUsd) }}</span></article>
       <article><small>미국주식 평가액</small><strong>${{ money(summary.stockEvaluationUsd) }}</strong><span>전체 {{ summary.positionCount || 0 }}종목 · 자동 {{ summary.managedPositionCount || 0 }}종목</span></article>
     </section>
 
     <section class="rules card">
       <header>
-        <strong>현재 적용 중인 7가지 매매 규칙</strong><button @click="openSettings">
+        <strong>현재 적용 중인 8가지 매매 규칙</strong><button @click="openSettings">
           전략 설정
         </button>
       </header>
       <ol>
         <li>개장 직후 30분과 마감 전 1시간을 피해 매수합니다.</li>
-        <li>당일 거래대금 상위 50위 안에 든 종목만 봅니다.</li>
+        <li>S&amp;P 500 또는 NASDAQ-100 편입 종목만 봅니다.</li>
+        <li>그중 당일 거래대금 상위 50위 안에 든 종목만 봅니다.</li>
         <li>오늘 {{ settings.minChangePercent }}~{{ settings.maxChangePercent }}% 오른 종목만 고릅니다.</li>
         <li>거래량이 전일의 {{ settings.minVolumeRatio }}배 이상인 종목만 고릅니다.</li>
         <li>한 번에 최대 약 ${{ money(estimatedOrderUsd) }}만 매수합니다.</li>
@@ -109,6 +115,23 @@
                   <b>숫자만 바꾸면 됩니다.</b>
                   <span>각 숫자가 실제로 무엇을 뜻하는지 아래에 적었습니다. 저장하기를 눌러야 자동매매에 적용됩니다.</span>
                 </div>
+                <div
+                  class="won-order-service"
+                  :class="krwOrderStatus.code.toLowerCase()"
+                >
+                  <div>
+                    <small>키움 원화주문 서비스</small>
+                    <strong>{{ krwOrderStatus.label }}</strong>
+                    <span>{{ krwOrderStatus.message }}</span>
+                  </div>
+                  <button
+                    type="button"
+                    :disabled="pending"
+                    @click="refreshCashPolicyStatus"
+                  >
+                    상태 새로고침
+                  </button>
+                </div>
                 <form
                   id="us-strategy-settings"
                   class="strategy-settings amodal-form thin-scrollbar"
@@ -121,6 +144,24 @@
                     <p class="setting-description">
                       너무 조용한 종목과 이미 급등한 종목을 피하고, 거래가 활발해진 종목만 찾습니다.
                     </p>
+                    <div class="setting-field fixed-rule">
+                      <label>S&amp;P 500·NASDAQ-100 종목만<span>두 지수 중 하나에 편입된 종목만 후보가 됩니다. 목록 확인 실패 시에는 새로 매수하지 않습니다.</span></label>
+                      <div class="fixed-rule-actions">
+                        <div
+                          class="rule-status"
+                          :class="status.indexUniverse?.available ? 'ready' : 'blocked'"
+                        >
+                          {{ status.indexUniverse?.available ? `적용 중 · ${status.indexUniverse.unionCount}종목` : '목록 확인 필요' }}
+                        </div>
+                        <button
+                          type="button"
+                          :disabled="pending"
+                          @click="refreshIndexUniverse"
+                        >
+                          목록 새로고침
+                        </button>
+                      </div>
+                    </div>
                     <div class="setting-field">
                       <label>오늘 최소 상승률<span>이만큼 이상 오른 종목부터 후보로 봅니다.</span></label>
                       <div class="number-with-unit">
@@ -344,7 +385,7 @@
                 v-for="item in candidates"
                 :key="item.symbol"
               >
-                <td><b>{{ item.symbol }}</b><small>{{ item.name }}</small></td><td>${{ money(item.price) }}</td><td class="up">
+                <td><b>{{ item.symbol }}</b><small>{{ item.name }} · {{ item.indexMembership }}</small></td><td>${{ money(item.price) }}</td><td class="up">
                   +{{ Number(item.changePercent).toFixed(2) }}%
                 </td><td>{{ Number(item.volumeRatio).toFixed(2) }}배</td>
               </tr>
@@ -421,15 +462,18 @@ import axios from '@/axios'
 
 const BASE = '/api/kiwoom/us/auto-trade'
 const status = ref({ configured: false, autoTrading: false, orderEnabled: false, marketOpen: false, entryWindow: false, marketSeason: '', regularSessionKst: '', entrySessionKst: '' })
-const summary = ref({ cash: { availableUsd: 0 }, stockEvaluationUsd: 0, managedEvaluationUsd: 0, perOrderLimitUsd: 0, positionCount: 0, managedPositionCount: 0 })
+const summary = ref({ cash: { availableUsd: 0, krwOrderSettingAmount: 0, usdOnlyBuyAllowed: true, blockReason: '' }, stockEvaluationUsd: 0, managedEvaluationUsd: 0, perOrderLimitUsd: 0, positionCount: 0, managedPositionCount: 0, krwOrderServiceStatus: { code: 'UNKNOWN', label: '확인 불가', message: '계좌 상태를 불러오는 중입니다.' } })
 const settings = ref({ minChangePercent: 1, maxChangePercent: 4, minVolumeRatio: 1.5, maxOrderPercent: 10, maxPositions: 2, dailyMaxBuys: 1, symbolCooldownDays: 5, maxHoldingDays: 3, stopLossPercent: 2.5, takeProfitPercent: 4, takeProfitPercent2: 7, dailyLossLimitPercent: 2 })
 const candidates = ref([]), holdings = ref([]), logs = ref([])
 const pending = ref(false), error = ref(''), showSettings = ref(false), logBox = ref(null)
 let source, settingsOriginal = ''
 const money = value => Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const won = value => Number(value || 0).toLocaleString('ko-KR', { maximumFractionDigits: 0 })
 const validNumber = (value, min, max) => typeof value === 'number' && !Number.isNaN(value) && value >= min && value <= max
 const validInteger = (value, min, max) => Number.isInteger(value) && value >= min && value <= max
-const estimatedOrderUsd = computed(() => Number(summary.value.cash?.availableUsd || 0) * Number(settings.value.maxOrderPercent || 0) / 100)
+const usdOnlyBlocked = computed(() => summary.value.cash?.usdOnlyBuyAllowed === false)
+const krwOrderStatus = computed(() => summary.value.krwOrderServiceStatus || { code: 'UNKNOWN', label: '확인 불가', message: '계좌 상태를 확인할 수 없습니다.' })
+const estimatedOrderUsd = computed(() => Number(summary.value.cash?.availableUsd || 0) * Math.min(Number(settings.value.maxOrderPercent || 0), 99) / 100)
 const decisionButtonLabel = computed(() => status.value.autoTrading ? '후보 확인·매수 판단' : '후보만 확인')
 const decisionButtonHint = computed(() => status.value.autoTrading
   ? '자동매매 실행 중이므로 조건을 통과하면 실계좌 매수 주문이 전송될 수 있습니다.'
@@ -453,8 +497,8 @@ const validationError = computed(() => {
 })
 const signed = value => `${Number(value || 0) >= 0 ? '+' : ''}${Number(value || 0).toFixed(2)}`
 const logTime = value => value ? new Date(value).toLocaleString('ko-KR', { hour12: false }) : new Date().toLocaleTimeString('ko-KR', { hour12: false })
-const label = type => ({ CANDIDATE: '후보', BUY_ORDER: '매수주문', BUY_FILLED: '매수체결', SELL_ORDER: '매도주문', SELL_FILLED: '매도체결', BUY_CANCEL: '매수취소요청', SELL_CANCEL: '매도취소요청', ORDER_CANCELED: '취소완료', ORDER_UNKNOWN: '주문확인필요', ERROR: '오류', START: '시작', STOP: '중지' }[type] || type || '시스템')
-const tone = type => type?.includes('BUY') ? 'buy' : type?.includes('SELL') ? 'sell' : type === 'CANDIDATE' ? 'candidate' : type === 'ERROR' ? 'error-line' : 'system'
+const label = type => ({ CANDIDATE: '후보', BUY_ORDER: '매수주문', BUY_FILLED: '매수체결', SELL_ORDER: '매도주문', SELL_FILLED: '매도체결', BUY_CANCEL: '매수취소요청', SELL_CANCEL: '매도취소요청', ORDER_CANCELED: '취소완료', ORDER_UNKNOWN: '주문확인필요', USD_CASH_BLOCK: 'USD매수차단', ERROR: '오류', START: '시작', STOP: '중지' }[type] || type || '시스템')
+const tone = type => type?.includes('BUY') ? 'buy' : type?.includes('SELL') ? 'sell' : type === 'CANDIDATE' ? 'candidate' : ['ERROR', 'USD_CASH_BLOCK'].includes(type) ? 'error-line' : 'system'
 function pushLog(item) { logs.value.push({ id: `${Date.now()}-${Math.random()}`, ...item }); if (logs.value.length > 300) logs.value.shift(); nextTick(() => { if (logBox.value) logBox.value.scrollTop = logBox.value.scrollHeight }) }
 async function loadAll(sync = false) {
   const statusRes = await axios.get(`${BASE}/status`); status.value = statusRes.data
@@ -466,13 +510,15 @@ async function loadAll(sync = false) {
   }
 }
 async function action(fn) { pending.value = true; error.value = ''; try { await fn() } catch (e) { error.value = e.response?.data?.message || e.message || '요청에 실패했습니다.' } finally { pending.value = false } }
-async function toggle() { const enabled = !status.value.autoTrading; if (!window.confirm(enabled ? '실계좌 미국주식 자동매매를 시작할까요? 매수에는 D+0 USD 예수금만 사용합니다.' : '신규 자동주문과 자동매도 판단을 중지할까요? 이미 접수된 주문의 체결·취소 동기화는 계속됩니다.')) return; await action(async () => { await axios.post(`${BASE}/control`, { enabled }); await loadAll() }) }
+async function toggle() { const enabled = !status.value.autoTrading; if (enabled && usdOnlyBlocked.value) { error.value = summary.value.cash?.blockReason || '원화주문설정금이 있어 자동매매를 시작할 수 없습니다.'; return } if (!window.confirm(enabled ? '실계좌 미국주식 자동매매를 시작할까요? 시작 시 원화주문설정금 0원을 다시 확인하고, 실제 매수 직전에도 D+0 USD 예수금을 재검증합니다.' : '신규 자동주문과 자동매도 판단을 중지할까요? 이미 접수된 주문의 체결·취소 동기화는 계속됩니다.')) return; await action(async () => { await axios.post(`${BASE}/control`, { enabled }); await loadAll() }) }
 async function runDecision() {
   if (status.value.autoTrading && !window.confirm('현재 자동매매가 실행 중입니다. 조건을 통과한 후보가 있으면 실계좌 매수 주문이 전송될 수 있습니다. 계속할까요?')) return
   const allowOrder = status.value.autoTrading
   await action(async () => { const { data } = await axios.post(`${BASE}/decide`, null, { params: { allowOrder } }); pushLog({ type: 'SYSTEM', message: data.message, createdAt: new Date().toISOString() }); await loadAll() })
 }
 async function refreshAll() { await action(async () => loadAll(true)) }
+async function refreshCashPolicyStatus() { await action(async () => { summary.value = (await axios.get(`${BASE}/summary`)).data }) }
+async function refreshIndexUniverse() { await action(async () => { await axios.post(`${BASE}/index-universe/refresh`); status.value = (await axios.get(`${BASE}/status`)).data }) }
 function openSettings() { settingsOriginal = JSON.stringify(settings.value); error.value = ''; showSettings.value = true }
 function closeSettings() { if (pending.value) return; if (settingsDirty.value && !window.confirm('저장하지 않은 변경사항이 있습니다. 닫을까요?')) return; settings.value = JSON.parse(settingsOriginal); showSettings.value = false }
 async function saveSettings() { if (validationError.value) return; await action(async () => { settings.value = (await axios.patch(`${BASE}/settings`, settings.value)).data; settingsOriginal = JSON.stringify(settings.value); showSettings.value = false; pushLog({ type: 'SYSTEM', message: '미국주식 자동매매 전략 설정을 저장했습니다.', createdAt: new Date().toISOString() }) }) }
@@ -483,6 +529,8 @@ onBeforeUnmount(() => source?.close())
 
 <style scoped>
 .us-auto{color:var(--text-primary)}.hero,.controls,.card,.summary article{border:1px solid var(--card-border);border-radius:16px;background:var(--card-bg)}.hero,.controls{display:flex;align-items:center;justify-content:space-between;padding:20px;margin-bottom:14px}.hero p{margin:0;color:#68a4ff;font-size:.7rem;font-weight:800;letter-spacing:.14em}.hero h3{margin:6px 0}.hero small,.controls small,.summary span,td small{display:block;color:var(--text-muted)}.hero b{padding:6px 10px;border-radius:99px;background:#43201e;color:#ffb0a5;font-size:.75rem}.usd-notice{display:flex;flex-direction:column;gap:4px;margin-bottom:14px;padding:14px 16px;border:1px solid #32694f;border-radius:12px;background:#19382b;color:#b9f5d8}.usd-notice span{font-size:.78rem}.error{padding:12px;border-radius:10px;background:#472424;color:#ffb4b4}.buttons{display:flex;gap:8px}.buttons button,.card button,.strategy-settings button{padding:8px 11px;border:1px solid var(--card-border-strong);border-radius:9px;background:transparent;color:var(--text-secondary);cursor:pointer}.buttons button:first-child{background:var(--accent);color:#18140b;font-weight:700}.buttons button.danger{background:#762f35;color:#fff}.buttons button:disabled{opacity:.45}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}.summary article{padding:17px}.summary small{color:var(--text-muted)}.summary strong{display:block;margin:7px 0;font-size:1.25rem}.card{margin-bottom:14px;overflow:hidden}.card>header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--card-border)}.rules ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 28px;margin:15px 20px 18px;padding-left:20px;color:var(--text-secondary);font-size:.8rem}.grids{display:grid;grid-template-columns:1fr 1fr;gap:14px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:.78rem}th,td{padding:10px 12px;border-bottom:1px solid var(--card-border);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}td small{max-width:130px;overflow:hidden;text-overflow:ellipsis}.up,.buy{color:#ef7777}.down,.sell{color:#72a7ff}.empty{padding:25px!important;color:var(--text-muted)!important;text-align:center!important}.terminal{height:280px;overflow:auto;padding:13px 16px;background:#0a0f0d;font:12px/1.65 ui-monospace,Consolas,monospace}.terminal p{margin:0;word-break:break-word}.terminal time{margin-right:9px;color:#78847e}.terminal b{margin-right:5px}.terminal .candidate{color:#e7cf78}.terminal .system{color:#77dda0}.terminal .error-line{color:#f08d8d}@media(max-width:800px){.hero,.controls{align-items:flex-start;flex-direction:column;gap:12px}.buttons{width:100%;flex-direction:column}.summary,.grids{grid-template-columns:1fr}.rules ol{grid-template-columns:1fr}}
+.usd-notice small{color:#90caaa;font-size:.78rem}.usd-notice.blocked{border-color:#8c4141;background:#472424;color:#ffb4b4}.usd-notice.blocked small{color:#e9a1a1}
+.won-order-service{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px;padding:12px;border:1px solid #48564d;border-radius:10px;background:#1c2520}.won-order-service div{display:grid;gap:3px}.won-order-service small,.won-order-service span{color:var(--text-muted);font-size:.72rem}.won-order-service strong{color:#9fe0b4}.won-order-service.applied{border-color:#8c4141;background:#3d2323}.won-order-service.applied strong{color:#ffaaa5}.won-order-service.unknown strong{color:#e2c477}.won-order-service button,.fixed-rule-actions button{padding:7px 9px;border:1px solid var(--card-border-strong);border-radius:8px;background:transparent;color:var(--text-secondary);cursor:pointer;white-space:nowrap}.fixed-rule{align-items:flex-start}.fixed-rule-actions{display:flex;align-items:center;gap:6px}.rule-status{flex:0 0 auto;padding:6px 8px;border-radius:99px;font-size:.7rem;font-weight:700}.rule-status.ready{background:#1c5138;color:#9af0bd}.rule-status.blocked{background:#4b2929;color:#ffb4b4}
 .market-hours>div{padding:14px 17px;color:var(--text-secondary);font-size:.8rem}.market-hours p{margin:5px 0}.market-hours b{color:var(--text-primary)}.market-hours header span{padding:5px 9px;border-radius:99px;font-size:.72rem;font-weight:700}.market-hours header .open{background:#1c5138;color:#9af0bd}.market-hours header .closed{background:#4b2929;color:#ffb4b4}
 .us-settings-modal{max-width:640px}.settings-area{display:flex;flex-direction:column;min-height:0;height:100%}.easy-guide{display:grid;gap:3px;margin-bottom:12px;padding:12px;border-radius:10px;background:#1f2924;color:#dff5e5;font-size:.86rem}.easy-guide span{color:#b6c6ba;font-size:.78rem}.strategy-settings{display:grid;grid-template-columns:1fr 1fr;gap:12px}.setting-card{padding:14px;border:1px solid var(--card-border);border-radius:12px}.screen-card{border-left:3px solid #9e8ee8}.buy-card{border-left:3px solid #d98a51}.sell-card{border-left:3px solid #68a6e8}.safety-card{border-left:3px solid #d4b466}.setting-step{margin:0;font-size:1rem;font-weight:800}.setting-description{margin:4px 0 10px;color:var(--text-muted);font-size:.78rem}.setting-field{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0;border-top:1px solid var(--card-border)}.setting-field label{color:var(--text-primary);font-size:.82rem;font-weight:700}.setting-field label span{display:block;margin-top:3px;color:var(--text-muted);font-size:.72rem;font-weight:400;line-height:1.45}.number-with-unit{display:flex;align-items:center;justify-content:flex-end;gap:5px;min-width:112px;color:#80d69a}.number-with-unit.negative{color:#f29090}.number-with-unit input{box-sizing:border-box;width:72px;padding:8px;border:1px solid var(--card-border);border-radius:8px;background:var(--input-bg,#171b20);color:var(--text-primary);text-align:right}.number-with-unit em{min-width:24px;color:var(--text-muted);font-size:.78rem;font-style:normal}.settings-error{grid-column:1/-1;margin:0;padding:10px;border-radius:8px;background:#472424;color:#ffb4b4;font-size:.8rem}.settings-unsaved{color:var(--text-muted);font-size:.78rem}@media(max-width:800px){.strategy-settings{grid-template-columns:1fr}}@media(max-width:520px){.setting-field{align-items:flex-start;flex-direction:column}.number-with-unit{align-self:flex-end}}
 </style>
