@@ -30,7 +30,7 @@
 
     <section class="controls">
       <div>
-        <strong>{{ status.autoTrading ? '자동매매 실행 중' : '자동매매 중지' }}</strong>
+        <strong>{{ status.autoTrading ? '신규 자동매수 실행 중' : '신규 자동매수 중지' }}</strong>
         <small>{{ status.marketOpen ? '미국 정규장 운영 중' : '미국 정규장 밖' }} · 주문전송 {{ status.orderEnabled ? '허용' : '잠금' }} · 원화설정금 {{ usdOnlyBlocked ? '있음(차단)' : '0원' }}</small>
       </div>
       <div class="buttons">
@@ -39,7 +39,7 @@
           :class="{ danger: status.autoTrading }"
           @click="toggle"
         >
-          {{ status.autoTrading ? '자동매매 중지' : '자동매매 시작' }}
+          {{ status.autoTrading ? '신규매수 중지' : '신규매수 시작' }}
         </button>
         <button
           :disabled="pending || !status.configured"
@@ -80,7 +80,7 @@
 
     <section class="rules card">
       <header>
-        <strong>현재 적용 중인 8가지 매매 규칙</strong><button @click="openSettings">
+        <strong>현재 적용 중인 매매 규칙</strong><button @click="openSettings">
           전략 설정
         </button>
       </header>
@@ -88,8 +88,12 @@
         <li>개장 직후 30분과 마감 전 1시간을 피해 매수합니다.</li>
         <li>S&amp;P 500 또는 NASDAQ-100 편입 종목만 봅니다.</li>
         <li>그중 당일 거래대금 상위 50위 안에 든 종목만 봅니다.</li>
+        <li v-if="settings.fundamentalFilterEnabled">
+          Forward PER {{ settings.maxForwardPe }}배 이하, ROE {{ settings.minRoePercent }}% 이상만 고릅니다.
+        </li>
         <li>오늘 {{ settings.minChangePercent }}~{{ settings.maxChangePercent }}% 오른 종목만 고릅니다.</li>
-        <li>거래량이 전일의 {{ settings.minVolumeRatio }}배 이상인 종목만 고릅니다.</li>
+        <li>같은 시간대 예상 거래량 대비 {{ settings.minVolumeRatio }}배 이상인 종목만 고릅니다.</li>
+        <li>매수·매도 1호가 스프레드가 {{ settings.maxSpreadPercent }}% 이하인 종목만 고릅니다.</li>
         <li>한 번에 최대 약 ${{ money(estimatedOrderUsd) }}만 매수합니다.</li>
         <li>자동매매 종목은 최대 {{ settings.maxPositions }}개, 하루 매수는 최대 {{ settings.dailyMaxBuys }}번입니다.</li>
         <li>-{{ settings.stopLossPercent }}% 손절, +{{ settings.takeProfitPercent }}%부터 나눠 익절하고 {{ settings.maxHoldingDays }}일 안에 정리합니다.</li>
@@ -170,6 +174,39 @@
                       </div>
                     </div>
                     <div class="setting-field">
+                      <label>PER·ROE 기업 필터<span>적자·재무 데이터 누락 종목을 제외하고 기업 품질 기준을 적용합니다.</span></label>
+                      <label class="setting-switch"><input
+                        v-model="settings.fundamentalFilterEnabled"
+                        type="checkbox"
+                      ><span>{{ settings.fundamentalFilterEnabled ? '사용' : '미사용' }}</span></label>
+                    </div>
+                    <div class="setting-field">
+                      <label>최대 Forward PER<span>Forward PER가 없으면 Trailing PER를 사용하며, 음수·누락은 제외합니다.</span></label>
+                      <div class="number-with-unit">
+                        <input
+                          v-model.number="settings.maxForwardPe"
+                          type="number"
+                          min="5"
+                          max="100"
+                          step="1"
+                          :disabled="!settings.fundamentalFilterEnabled"
+                        ><em>배</em>
+                      </div>
+                    </div>
+                    <div class="setting-field">
+                      <label>최소 ROE<span>최근 자기자본이익률이 이 값 이상인 기업만 고릅니다.</span></label>
+                      <div class="number-with-unit">
+                        <input
+                          v-model.number="settings.minRoePercent"
+                          type="number"
+                          min="0"
+                          max="50"
+                          step="0.1"
+                          :disabled="!settings.fundamentalFilterEnabled"
+                        ><em>%</em>
+                      </div>
+                    </div>
+                    <div class="setting-field">
                       <label>오늘 최소 상승률<span>이만큼 이상 오른 종목부터 후보로 봅니다.</span></label>
                       <div class="number-with-unit">
                         <b>+</b><input
@@ -194,15 +231,27 @@
                       </div>
                     </div>
                     <div class="setting-field">
-                      <label>최소 거래량 증가<span>2배는 현재 거래량이 전일 거래량의 두 배 이상이라는 뜻입니다.</span></label>
+                      <label>최소 시간보정 거래량<span>같은 시간대 예상 거래량보다 얼마나 활발한지 계산합니다.</span></label>
                       <div class="number-with-unit">
                         <input
                           v-model.number="settings.minVolumeRatio"
                           type="number"
-                          min="1"
-                          max="20"
+                          min="0.5"
+                          max="5"
                           step="0.1"
                         ><em>배</em>
+                      </div>
+                    </div>
+                    <div class="setting-field">
+                      <label>최대 호가 스프레드<span>매도 1호가와 매수 1호가 차이가 이 비율보다 크면 제외합니다.</span></label>
+                      <div class="number-with-unit">
+                        <input
+                          v-model.number="settings.maxSpreadPercent"
+                          type="number"
+                          min="0.05"
+                          max="1"
+                          step="0.01"
+                        ><em>%</em>
                       </div>
                     </div>
                   </section>
@@ -387,18 +436,18 @@
         <header><strong>최근 후보</strong><span>{{ candidates.length }}개</span></header>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>종목</th><th>현재가</th><th>등락</th><th>거래량비</th></tr></thead><tbody>
+            <thead><tr><th>종목</th><th>매도 1호가</th><th>등락</th><th>RVOL</th><th>PER</th><th>ROE</th><th>스프레드</th><th>점수</th></tr></thead><tbody>
               <tr
                 v-for="item in candidates"
                 :key="item.symbol"
               >
                 <td><b>{{ item.symbol }}</b><small>{{ item.name }} · {{ item.indexMembership }}</small></td><td>${{ money(item.price) }}</td><td class="up">
                   +{{ Number(item.changePercent).toFixed(2) }}%
-                </td><td>{{ Number(item.volumeRatio).toFixed(2) }}배</td>
+                </td><td>{{ Number(item.volumeRatio).toFixed(2) }}배</td><td>{{ item.forwardPe == null ? '-' : Number(item.forwardPe).toFixed(1) }}</td><td>{{ item.roePercent == null ? '-' : `${Number(item.roePercent).toFixed(1)}%` }}</td><td>{{ Number(item.spreadPercent).toFixed(2) }}%</td><td>{{ Number(item.score).toFixed(1) }}</td>
               </tr>
               <tr v-if="!candidates.length">
                 <td
-                  colspan="4"
+                  colspan="8"
                   class="empty"
                 >
                   아직 조건을 모두 통과한 후보가 없습니다.
@@ -470,7 +519,7 @@ import axios from '@/axios'
 const BASE = '/api/kiwoom/us/auto-trade'
 const status = ref({ configured: false, autoTrading: false, orderEnabled: false, marketOpen: false, entryWindow: false, marketSeason: '', regularSessionKst: '', entrySessionKst: '' })
 const summary = ref({ cash: { availableUsd: 0, krwOrderSettingAmount: 0, usdOnlyBuyAllowed: true, blockReason: '' }, stockEvaluationUsd: 0, managedEvaluationUsd: 0, perOrderLimitUsd: 0, positionCount: 0, managedPositionCount: 0, krwOrderServiceStatus: { code: 'UNKNOWN', label: '확인 불가', message: '계좌 상태를 불러오는 중입니다.' } })
-const settings = ref({ minChangePercent: 1, maxChangePercent: 4, minVolumeRatio: 1.5, maxOrderPercent: 10, maxPositions: 2, dailyMaxBuys: 1, symbolCooldownDays: 5, maxHoldingDays: 3, stopLossPercent: 2.5, takeProfitPercent: 4, takeProfitPercent2: 7, dailyLossLimitPercent: 2 })
+const settings = ref({ fundamentalFilterEnabled: true, maxForwardPe: 50, minRoePercent: 10, minChangePercent: 2, maxChangePercent: 8, minVolumeRatio: 1.2, maxSpreadPercent: 0.15, maxOrderPercent: 10, maxPositions: 3, dailyMaxBuys: 2, symbolCooldownDays: 5, maxHoldingDays: 5, stopLossPercent: 3, takeProfitPercent: 5, takeProfitPercent2: 8, dailyLossLimitPercent: 3 })
 const candidates = ref([]), holdings = ref([]), logs = ref([])
 const pending = ref(false), error = ref(''), showSettings = ref(false), logBox = ref(null)
 let source, settingsOriginal = ''
@@ -490,7 +539,10 @@ const validationError = computed(() => {
   const s = settings.value
   if (!validNumber(s.minChangePercent, 0, 20)) return '오늘 최소 상승률은 0부터 20% 사이여야 합니다.'
   if (!validNumber(s.maxChangePercent, s.minChangePercent, 30)) return '오늘 최대 상승률은 최소 상승률 이상, 30% 이하여야 합니다.'
-  if (!validNumber(s.minVolumeRatio, 1, 20)) return '최소 거래량 증가는 1부터 20배 사이여야 합니다.'
+  if (!validNumber(s.maxForwardPe, 5, 100)) return '최대 Forward PER는 5부터 100배 사이여야 합니다.'
+  if (!validNumber(s.minRoePercent, 0, 50)) return '최소 ROE는 0부터 50% 사이여야 합니다.'
+  if (!validNumber(s.minVolumeRatio, 0.5, 5)) return '시간보정 거래량은 0.5부터 5배 사이여야 합니다.'
+  if (!validNumber(s.maxSpreadPercent, 0.05, 1)) return '최대 호가 스프레드는 0.05부터 1% 사이여야 합니다.'
   if (!validNumber(s.maxOrderPercent, 0.1, 100)) return '한 번에 살 수 있는 돈은 0.1부터 100% 사이여야 합니다.'
   if (!validInteger(s.maxPositions, 1, 20)) return '동시에 보유할 종목 수는 1부터 20 사이의 정수여야 합니다.'
   if (!validInteger(s.dailyMaxBuys, 1, 20)) return '하루 매수 횟수는 1부터 20 사이의 정수여야 합니다.'
@@ -504,8 +556,8 @@ const validationError = computed(() => {
 })
 const signed = value => `${Number(value || 0) >= 0 ? '+' : ''}${Number(value || 0).toFixed(2)}`
 const logTime = value => value ? new Date(value).toLocaleString('ko-KR', { hour12: false }) : new Date().toLocaleTimeString('ko-KR', { hour12: false })
-const label = type => ({ CANDIDATE: '후보', SCREENING: '조건집계', DECISION_RESULT: '판단결과', BUY_ORDER: '매수주문', BUY_FILLED: '매수체결', SELL_ORDER: '매도주문', SELL_FILLED: '매도체결', BUY_CANCEL: '매수취소요청', SELL_CANCEL: '매도취소요청', ORDER_CANCELED: '취소완료', ORDER_UNKNOWN: '주문확인필요', USD_CASH_BLOCK: 'USD매수차단', ERROR: '오류', START: '시작', STOP: '중지' }[type] || type || '시스템')
-const tone = type => type?.includes('BUY') ? 'buy' : type?.includes('SELL') ? 'sell' : type === 'CANDIDATE' ? 'candidate' : ['ERROR', 'USD_CASH_BLOCK'].includes(type) ? 'error-line' : 'system'
+const label = type => ({ CANDIDATE: '후보', CANDIDATE_REJECTED: '후보탈락', DATA_MISSING: '데이터누락', SETTINGS_CHANGED: '설정변경', SCREENING: '조건집계', DECISION_RESULT: '판단결과', BUY_ORDER: '매수주문', BUY_FILLED: '매수체결', SELL_ORDER: '매도주문', SELL_FILLED: '매도체결', BUY_CANCEL: '매수취소요청', SELL_CANCEL: '매도취소요청', ORDER_CANCELED: '취소완료', ORDER_UNKNOWN: '주문확인필요', USD_CASH_BLOCK: 'USD매수차단', ERROR: '오류', START: '시작', STOP: '중지' }[type] || type || '시스템')
+const tone = type => type?.includes('BUY') ? 'buy' : type?.includes('SELL') ? 'sell' : type === 'CANDIDATE' ? 'candidate' : ['ERROR', 'USD_CASH_BLOCK', 'DATA_MISSING'].includes(type) ? 'error-line' : 'system'
 function pushLog(item) { logs.value.push({ id: `${Date.now()}-${Math.random()}`, ...item }); if (logs.value.length > 300) logs.value.shift(); nextTick(() => { if (logBox.value) logBox.value.scrollTop = logBox.value.scrollHeight }) }
 async function loadAll(sync = false) {
   const statusRes = await axios.get(`${BASE}/status`); status.value = statusRes.data
@@ -517,7 +569,7 @@ async function loadAll(sync = false) {
   }
 }
 async function action(fn) { pending.value = true; error.value = ''; try { await fn() } catch (e) { error.value = e.response?.data?.message || e.message || '요청에 실패했습니다.' } finally { pending.value = false } }
-async function toggle() { const enabled = !status.value.autoTrading; if (enabled && usdOnlyBlocked.value) { error.value = summary.value.cash?.blockReason || '원화주문설정금이 있어 자동매매를 시작할 수 없습니다.'; return } if (!window.confirm(enabled ? '실계좌 미국주식 자동매매를 시작할까요? 시작 시 원화주문설정금 0원을 다시 확인하고, 실제 매수 직전에도 D+0 USD 예수금을 재검증합니다.' : '신규 자동주문과 자동매도 판단을 중지할까요? 이미 접수된 주문의 체결·취소 동기화는 계속됩니다.')) return; await action(async () => { await axios.post(`${BASE}/control`, { enabled }); await loadAll() }) }
+async function toggle() { const enabled = !status.value.autoTrading; if (enabled && usdOnlyBlocked.value) { error.value = summary.value.cash?.blockReason || '원화주문설정금이 있어 자동매매를 시작할 수 없습니다.'; return } if (!window.confirm(enabled ? '실계좌 미국주식 신규 매수를 시작할까요? 시작 시 원화주문설정금 0원을 다시 확인하고, 실제 매수 직전에도 D+0 USD 예수금을 재검증합니다.' : '신규 자동매수를 중지할까요? 자동매매 보유종목의 손절·익절 감시와 주문 동기화는 계속됩니다.')) return; await action(async () => { await axios.post(`${BASE}/control`, { enabled }); await loadAll() }) }
 async function runDecision() {
   if (status.value.autoTrading && !window.confirm('현재 자동매매가 실행 중입니다. 조건을 통과한 후보가 있으면 실계좌 매수 주문이 전송될 수 있습니다. 계속할까요?')) return
   const allowOrder = status.value.autoTrading
@@ -541,4 +593,5 @@ onBeforeUnmount(() => source?.close())
 .won-order-service{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px;padding:12px;border:1px solid #48564d;border-radius:10px;background:#1c2520}.won-order-service div{display:grid;gap:3px}.won-order-service small,.won-order-service span{color:var(--text-muted);font-size:.72rem}.won-order-service strong{color:#9fe0b4}.won-order-service.applied{border-color:#8c4141;background:#3d2323}.won-order-service.applied strong{color:#ffaaa5}.won-order-service.unknown strong{color:#e2c477}.won-order-service button,.fixed-rule-actions button{padding:7px 9px;border:1px solid var(--card-border-strong);border-radius:8px;background:transparent;color:var(--text-secondary);cursor:pointer;white-space:nowrap}.fixed-rule{align-items:flex-start}.fixed-rule-actions{display:flex;align-items:center;gap:6px}.rule-status{flex:0 0 auto;padding:6px 8px;border-radius:99px;font-size:.7rem;font-weight:700}.rule-status.ready{background:#1c5138;color:#9af0bd}.rule-status.blocked{background:#4b2929;color:#ffb4b4}
 .market-hours>div{padding:14px 17px;color:var(--text-secondary);font-size:.8rem}.market-hours p{margin:5px 0}.market-hours b{color:var(--text-primary)}.market-hours header span{padding:5px 9px;border-radius:99px;font-size:.72rem;font-weight:700}.market-hours header .open{background:#1c5138;color:#9af0bd}.market-hours header .closed{background:#4b2929;color:#ffb4b4}
 .us-settings-modal{max-width:640px}.settings-area{display:flex;flex-direction:column;min-height:0;height:100%}.easy-guide{display:grid;gap:3px;margin-bottom:12px;padding:12px;border-radius:10px;background:#1f2924;color:#dff5e5;font-size:.86rem}.easy-guide span{color:#b6c6ba;font-size:.78rem}.strategy-settings{display:grid;grid-template-columns:1fr 1fr;gap:12px}.setting-card{padding:14px;border:1px solid var(--card-border);border-radius:12px}.screen-card{border-left:3px solid #9e8ee8}.buy-card{border-left:3px solid #d98a51}.sell-card{border-left:3px solid #68a6e8}.safety-card{border-left:3px solid #d4b466}.setting-step{margin:0;font-size:1rem;font-weight:800}.setting-description{margin:4px 0 10px;color:var(--text-muted);font-size:.78rem}.setting-field{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0;border-top:1px solid var(--card-border)}.setting-field label{color:var(--text-primary);font-size:.82rem;font-weight:700}.setting-field label span{display:block;margin-top:3px;color:var(--text-muted);font-size:.72rem;font-weight:400;line-height:1.45}.number-with-unit{display:flex;align-items:center;justify-content:flex-end;gap:5px;min-width:112px;color:#80d69a}.number-with-unit.negative{color:#f29090}.number-with-unit input{box-sizing:border-box;width:72px;padding:8px;border:1px solid var(--card-border);border-radius:8px;background:var(--input-bg,#171b20);color:var(--text-primary);text-align:right}.number-with-unit em{min-width:24px;color:var(--text-muted);font-size:.78rem;font-style:normal}.settings-error{grid-column:1/-1;margin:0;padding:10px;border-radius:8px;background:#472424;color:#ffb4b4;font-size:.8rem}.settings-unsaved{color:var(--text-muted);font-size:.78rem}@media(max-width:800px){.strategy-settings{grid-template-columns:1fr}}@media(max-width:520px){.setting-field{align-items:flex-start;flex-direction:column}.number-with-unit{align-self:flex-end}}
+.number-with-unit input:disabled{opacity:.45}.setting-switch{display:flex!important;align-items:center;gap:7px;white-space:nowrap}.setting-switch input{width:18px;height:18px;accent-color:var(--accent)}.setting-switch span{margin:0!important;font-size:.78rem!important}
 </style>
