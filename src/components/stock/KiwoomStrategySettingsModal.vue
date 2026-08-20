@@ -44,6 +44,10 @@
                   자동으로 살지, 한 번에 얼마까지 살지만 정합니다.
                 </p>
 
+                <p class="amodal-note">
+                  <b>고정 주문 시간:</b> 신규 매수는 09:30~14:00에만 가능하며, 14:00 이후 남은 신규 매수 주문은 취소합니다.
+                </p>
+
                 <div class="amodal-field switch-field">
                   <label for="ks-auto">
                     자동으로 주문 보내기
@@ -190,8 +194,8 @@
 
                 <div class="amodal-field">
                   <label for="ks-min-volume">
-                    후보 최소 거래량 증가
-                    <span class="amodal-field-hint">20일 평균 거래량 대비 배수입니다. 2배는 평소보다 거래량이 두 배 이상인 종목을 뜻합니다.</span>
+                    최소 시간보정 거래량 증가
+                    <span class="amodal-field-hint">장중 경과 시간을 보정한 20일 평균 거래량 대비 배수입니다.</span>
                   </label>
                   <div class="number-with-unit">
                     <input
@@ -206,6 +210,110 @@
                     <span>배</span>
                   </div>
                 </div>
+
+                <div class="amodal-field">
+                  <label for="ks-max-volume">
+                    최대 시간보정 거래량 증가
+                    <span class="amodal-field-hint">이 배수를 초과한 과열 종목은 신규 매수 후보에서 제외합니다.</span>
+                  </label>
+                  <div class="number-with-unit">
+                    <input
+                      id="ks-max-volume"
+                      v-model.number="form.swingMaxVolumeRatio"
+                      type="number"
+                      min="1"
+                      max="20"
+                      step="0.5"
+                      class="amodal-input"
+                    >
+                    <span>배</span>
+                  </div>
+                </div>
+
+                <div class="amodal-field">
+                  <label for="ks-market-cap">최소 시가총액</label>
+                  <div class="number-with-unit">
+                    <input
+                      id="ks-market-cap"
+                      v-model.number="minMarketCapEok"
+                      type="number"
+                      min="0"
+                      step="100"
+                      class="amodal-input"
+                    >
+                    <span>억원</span>
+                  </div>
+                </div>
+
+                <div class="amodal-field">
+                  <label for="ks-trading-value">최소 당일 누적 거래대금</label>
+                  <div class="number-with-unit">
+                    <input
+                      id="ks-trading-value"
+                      v-model.number="minTradingValueEok"
+                      type="number"
+                      min="0"
+                      step="10"
+                      class="amodal-input"
+                    >
+                    <span>억원</span>
+                  </div>
+                </div>
+
+                <div class="amodal-field">
+                  <label for="ks-spread">최대 실시간 호가 스프레드</label>
+                  <div class="number-with-unit">
+                    <input
+                      id="ks-spread"
+                      v-model.number="form.maxSpreadPercent"
+                      type="number"
+                      min="0.01"
+                      max="5"
+                      step="0.05"
+                      class="amodal-input"
+                    >
+                    <span>%</span>
+                  </div>
+                </div>
+
+                <div class="amodal-field">
+                  <label for="ks-ma20-gap">
+                    20일선 대비 최대 상승 폭
+                    <span class="amodal-field-hint">현재가가 20일선보다 이 비율 이상 높으면 과열로 제외합니다.</span>
+                  </label>
+                  <div class="number-with-unit">
+                    <input
+                      id="ks-ma20-gap"
+                      v-model.number="form.maxPriceAboveMa20Percent"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.5"
+                      class="amodal-input"
+                    >
+                    <span>%</span>
+                  </div>
+                </div>
+
+                <div class="amodal-field">
+                  <label for="ks-atr">최대 ATR(14) 비율</label>
+                  <div class="number-with-unit">
+                    <input
+                      id="ks-atr"
+                      v-model.number="form.maxAtrPercent"
+                      type="number"
+                      min="0.1"
+                      max="100"
+                      step="0.5"
+                      class="amodal-input"
+                    >
+                    <span>%</span>
+                  </div>
+                </div>
+
+                <p class="amodal-note">
+                  <b>고정 추세 조건:</b> 현재가 &gt; 20일선, 5일선 &gt; 20일선, 20일선 기울기 상승 또는 보합을 모두 만족해야 합니다. 직접 관련된 긍정 공시·뉴스가 필요하며 희석·경영 위험 이벤트는 제외합니다.
+                </p>
               </section>
 
               <section class="setting-card sell-card">
@@ -311,7 +419,7 @@
                 <div class="amodal-field">
                   <label for="ks-days">
                     최대 보유기간
-                    <span class="amodal-field-hint">매수 체결일 다음 KRX 거래일부터 계산합니다. 토·일요일과 KRX 휴장일은 세지 않으며, 설정 기간을 초과한 첫 거래일에 자동 매도합니다. 예: 5거래일이면 5거래일까지 보유하고 6번째 거래일에 청산합니다.</span>
+                    <span class="amodal-field-hint">매수 체결일을 포함해 KRX 거래일로 계산하며, 마지막 거래일 14:50부터 시장가 청산을 시작합니다.</span>
                   </label>
                   <div class="number-with-unit">
                     <input
@@ -326,6 +434,9 @@
                     <span>거래일</span>
                   </div>
                 </div>
+                <p class="amodal-note">
+                  1차 익절 체결 후 남은 수량의 손절가는 평균 매수가에 예상 매매비용을 더한 가격으로 자동 상향됩니다.
+                </p>
               </section>
 
               <section class="setting-card safety-card">
@@ -366,6 +477,70 @@
                       type="number"
                       min="1"
                       max="200"
+                      step="1"
+                      class="amodal-input"
+                    >
+                    <span>건</span>
+                  </div>
+                </div>
+
+                <div class="amodal-field">
+                  <label for="ks-max-positions">최대 동시 보유 종목</label>
+                  <div class="number-with-unit">
+                    <input
+                      id="ks-max-positions"
+                      v-model.number="form.maxPositions"
+                      type="number"
+                      min="1"
+                      max="20"
+                      step="1"
+                      class="amodal-input"
+                    >
+                    <span>종목</span>
+                  </div>
+                </div>
+
+                <div class="amodal-field">
+                  <label for="ks-sector-positions">동일 업종 최대 보유 종목</label>
+                  <div class="number-with-unit">
+                    <input
+                      id="ks-sector-positions"
+                      v-model.number="form.maxPositionsPerSector"
+                      type="number"
+                      min="1"
+                      max="10"
+                      step="1"
+                      class="amodal-input"
+                    >
+                    <span>종목</span>
+                  </div>
+                </div>
+
+                <div class="amodal-field">
+                  <label for="ks-stop-cooldown">손절 후 재매수 금지</label>
+                  <div class="number-with-unit">
+                    <input
+                      id="ks-stop-cooldown"
+                      v-model.number="form.stopLossCooldownTradingDays"
+                      type="number"
+                      min="0"
+                      max="30"
+                      step="1"
+                      class="amodal-input"
+                    >
+                    <span>거래일</span>
+                  </div>
+                </div>
+
+                <div class="amodal-field">
+                  <label for="ks-daily-stops">당일 손절 후 신규 매수 중단</label>
+                  <div class="number-with-unit">
+                    <input
+                      id="ks-daily-stops"
+                      v-model.number="form.dailyStopLossLimit"
+                      type="number"
+                      min="1"
+                      max="20"
                       step="1"
                       class="amodal-input"
                     >
@@ -424,11 +599,46 @@ const emit = defineEmits(['close', 'saved'])
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
-const form = ref({ autoExecute: false, requireCatalystForAutoBuy: true, autoExecuteMinConfidence: 85, maxBuyDepositPercent: 10, candidateReevaluationMinutes: 60, swingMinChangePercent: 2, swingMaxChangePercent: 8, swingMinVolumeRatio: 2, dailyMaxProposals: 10, swingStopLossPercent: 3, swingTakeProfitPercent: 6, swingTakeProfitPercent2: 0, swingTakeProfitSplitPercent: 50, swingMaxHoldingDays: 5, riskLoopEnabled: false, dailyLossLimitPercent: 0 })
+const form = ref({
+  autoExecute: false,
+  requireCatalystForAutoBuy: true,
+  autoExecuteMinConfidence: 90,
+  maxBuyDepositPercent: 5,
+  candidateReevaluationMinutes: 60,
+  swingMinChangePercent: 2,
+  swingMaxChangePercent: 5,
+  swingMinVolumeRatio: 1.5,
+  swingMaxVolumeRatio: 5,
+  minMarketCapWon: 300000000000,
+  minTradingValueWon: 10000000000,
+  maxSpreadPercent: 0.3,
+  maxPriceAboveMa20Percent: 10,
+  maxAtrPercent: 4,
+  dailyMaxProposals: 2,
+  maxPositions: 3,
+  maxPositionsPerSector: 1,
+  stopLossCooldownTradingDays: 5,
+  dailyStopLossLimit: 2,
+  swingStopLossPercent: 3,
+  swingTakeProfitPercent: 6,
+  swingTakeProfitPercent2: 9,
+  swingTakeProfitSplitPercent: 70,
+  swingMaxHoldingDays: 3,
+  riskLoopEnabled: true,
+  dailyLossLimitPercent: 1.5
+})
 const original = ref('')
 let prompt = ''
 
 const isDirty = computed(() => JSON.stringify(form.value) !== original.value)
+const minMarketCapEok = computed({
+  get: () => form.value.minMarketCapWon / 100000000,
+  set: value => { form.value.minMarketCapWon = Number(value) * 100000000 }
+})
+const minTradingValueEok = computed({
+  get: () => form.value.minTradingValueWon / 100000000,
+  set: value => { form.value.minTradingValueWon = Number(value) * 100000000 }
+})
 const validationError = computed(() => {
   const f = form.value
   if (!Number.isInteger(f.autoExecuteMinConfidence) || f.autoExecuteMinConfidence < 0 || f.autoExecuteMinConfidence > 100) return 'AI 확신 점수는 0부터 100 사이의 정수여야 합니다.'
@@ -436,6 +646,12 @@ const validationError = computed(() => {
   if (typeof f.swingMinChangePercent !== 'number' || Number.isNaN(f.swingMinChangePercent) || f.swingMinChangePercent < 0.5 || f.swingMinChangePercent > 15) return '후보 최소 상승률은 0.5부터 15 사이여야 합니다.'
   if (typeof f.swingMaxChangePercent !== 'number' || Number.isNaN(f.swingMaxChangePercent) || f.swingMaxChangePercent < f.swingMinChangePercent || f.swingMaxChangePercent > 30) return '후보 최대 상승률은 최소 상승률 이상, 30 이하이어야 합니다.'
   if (typeof f.swingMinVolumeRatio !== 'number' || Number.isNaN(f.swingMinVolumeRatio) || f.swingMinVolumeRatio < 1 || f.swingMinVolumeRatio > 20) return '후보 최소 거래량 증가는 1부터 20배 사이여야 합니다.'
+  if (typeof f.swingMaxVolumeRatio !== 'number' || Number.isNaN(f.swingMaxVolumeRatio) || f.swingMaxVolumeRatio < f.swingMinVolumeRatio || f.swingMaxVolumeRatio > 20) return '최대 거래량 증가는 최소 거래량 증가 이상, 20배 이하여야 합니다.'
+  if (!Number.isSafeInteger(f.minMarketCapWon) || f.minMarketCapWon < 0) return '최소 시가총액을 올바르게 입력하세요.'
+  if (!Number.isSafeInteger(f.minTradingValueWon) || f.minTradingValueWon < 0) return '최소 거래대금을 올바르게 입력하세요.'
+  for (const [label, value, min, max] of [['최대 호가 스프레드', f.maxSpreadPercent, 0.01, 5], ['20일선 대비 최대 상승 폭', f.maxPriceAboveMa20Percent, 0, 100], ['최대 ATR 비율', f.maxAtrPercent, 0.1, 100]]) {
+    if (typeof value !== 'number' || Number.isNaN(value) || value < min || value > max) return `${label}은 ${min}부터 ${max} 사이여야 합니다.`
+  }
   for (const [label, value] of [['한 번에 살 수 있는 돈', f.maxBuyDepositPercent], ['손절 기준', f.swingStopLossPercent], ['익절 기준', f.swingTakeProfitPercent], ['2차 익절 기준', f.swingTakeProfitPercent2]]) {
     if (typeof value !== 'number' || Number.isNaN(value) || value < 0 || value > 100) return `${label}은 0부터 100 사이여야 합니다.`
   }
@@ -443,6 +659,10 @@ const validationError = computed(() => {
   if (f.swingTakeProfitPercent2 > 0 && f.swingTakeProfitPercent2 <= f.swingTakeProfitPercent) return '2차 익절 기준은 1차 익절 기준보다 커야 합니다.'
   if (!Number.isInteger(f.swingMaxHoldingDays) || f.swingMaxHoldingDays < 1 || f.swingMaxHoldingDays > 30) return '가장 오래 들고 있을 날짜는 1부터 30 거래일 사이여야 합니다.'
   if (!Number.isInteger(f.dailyMaxProposals) || f.dailyMaxProposals < 1 || f.dailyMaxProposals > 200) return '오늘 신규 매수 체결 건수 제한은 1부터 200 사이의 정수여야 합니다.'
+  if (!Number.isInteger(f.maxPositions) || f.maxPositions < 1 || f.maxPositions > 20) return '최대 동시 보유 종목은 1부터 20 사이의 정수여야 합니다.'
+  if (!Number.isInteger(f.maxPositionsPerSector) || f.maxPositionsPerSector < 1 || f.maxPositionsPerSector > 10) return '동일 업종 최대 종목은 1부터 10 사이의 정수여야 합니다.'
+  if (!Number.isInteger(f.stopLossCooldownTradingDays) || f.stopLossCooldownTradingDays < 0 || f.stopLossCooldownTradingDays > 30) return '손절 후 재매수 금지 기간은 0부터 30 거래일 사이의 정수여야 합니다.'
+  if (!Number.isInteger(f.dailyStopLossLimit) || f.dailyStopLossLimit < 1 || f.dailyStopLossLimit > 20) return '당일 손절 제한은 1부터 20 사이의 정수여야 합니다.'
   if (typeof f.dailyLossLimitPercent !== 'number' || Number.isNaN(f.dailyLossLimitPercent) || f.dailyLossLimitPercent < 0 || f.dailyLossLimitPercent > 30) return '일일 손실 한도는 0부터 30% 사이여야 합니다.'
   return ''
 })
@@ -479,20 +699,30 @@ onMounted(async () => {
     form.value = {
       autoExecute: !!data.autoExecute,
       requireCatalystForAutoBuy: data.requireCatalystForAutoBuy !== false,
-      autoExecuteMinConfidence: data.autoExecuteMinConfidence ?? 85,
-      maxBuyDepositPercent: data.maxBuyDepositPercent ?? 10,
+      autoExecuteMinConfidence: data.autoExecuteMinConfidence ?? 90,
+      maxBuyDepositPercent: data.maxBuyDepositPercent ?? 5,
       candidateReevaluationMinutes: data.candidateReevaluationMinutes ?? 60,
       swingMinChangePercent: data.swingMinChangePercent ?? 2,
-      swingMaxChangePercent: data.swingMaxChangePercent ?? 8,
-      swingMinVolumeRatio: data.swingMinVolumeRatio ?? 2,
-      dailyMaxProposals: data.dailyMaxProposals ?? 10,
+      swingMaxChangePercent: data.swingMaxChangePercent ?? 5,
+      swingMinVolumeRatio: data.swingMinVolumeRatio ?? 1.5,
+      swingMaxVolumeRatio: data.swingMaxVolumeRatio ?? 5,
+      minMarketCapWon: data.minMarketCapWon ?? 300000000000,
+      minTradingValueWon: data.minTradingValueWon ?? 10000000000,
+      maxSpreadPercent: data.maxSpreadPercent ?? 0.3,
+      maxPriceAboveMa20Percent: data.maxPriceAboveMa20Percent ?? 10,
+      maxAtrPercent: data.maxAtrPercent ?? 4,
+      dailyMaxProposals: data.dailyMaxProposals ?? 2,
+      maxPositions: data.maxPositions ?? 3,
+      maxPositionsPerSector: data.maxPositionsPerSector ?? 1,
+      stopLossCooldownTradingDays: data.stopLossCooldownTradingDays ?? 5,
+      dailyStopLossLimit: data.dailyStopLossLimit ?? 2,
       swingStopLossPercent: data.swingStopLossPercent ?? 3,
       swingTakeProfitPercent: data.swingTakeProfitPercent ?? 6,
-      swingTakeProfitPercent2: data.swingTakeProfitPercent2 ?? 0,
-      swingTakeProfitSplitPercent: data.swingTakeProfitSplitPercent ?? 50,
-      swingMaxHoldingDays: data.swingMaxHoldingDays ?? 5,
-      riskLoopEnabled: !!data.riskLoopEnabled,
-      dailyLossLimitPercent: data.dailyLossLimitPercent ?? 0
+      swingTakeProfitPercent2: data.swingTakeProfitPercent2 ?? 9,
+      swingTakeProfitSplitPercent: data.swingTakeProfitSplitPercent ?? 70,
+      swingMaxHoldingDays: data.swingMaxHoldingDays ?? 3,
+      riskLoopEnabled: data.riskLoopEnabled !== false,
+      dailyLossLimitPercent: data.dailyLossLimitPercent ?? 1.5
     }
     original.value = JSON.stringify(form.value)
   } catch (e) {
