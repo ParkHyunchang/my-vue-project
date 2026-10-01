@@ -120,20 +120,12 @@ const MEDIA_FILTER_OPTIONS = [
   { id: "video", label: "동영상" },
 ];
 
-const parseImagesFromEvent = (event) => {
-  if (event.images && typeof event.images === "string") {
-    try { return JSON.parse(event.images); } catch { return event.image ? [event.image] : []; }
-  }
-  if (Array.isArray(event.images)) return event.images;
-  return event.image ? [event.image] : [];
-};
-
 export default {
   name: "HistoryPage",
   components: { DeleteModal, TimelineFilter, TimelineList, Lightbox, EventFormModal },
   setup() {
     const { showToast } = useToast();
-    const { isVideoMedia, getImageUrl: getMediaUrl } = useMediaUtils();
+    const { isVideoMedia, getImageUrl: getMediaUrl, parseImagesArray } = useMediaUtils();
 
     const events = ref([]);
     const searchQuery = ref("");
@@ -211,7 +203,7 @@ export default {
         const response = await axios.get("/api/histories");
         events.value = response.data.map((event) => ({
           ...event,
-          images: parseImagesFromEvent(event),
+          images: parseImagesArray(event),
         }));
       } catch (err) {
         showToast(apiErrorMessage(err, "Failed to load events"), "danger");
