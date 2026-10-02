@@ -154,13 +154,30 @@
         <li v-if="appliedSettings.fundamentalFilterEnabled">
           Forward PER {{ appliedSettings.maxForwardPe }}배 이하, ROE {{ appliedSettings.minRoePercent }}% 이상만 고릅니다.
         </li>
-        <li>오늘 {{ appliedSettings.signalMode === 'TREND' ? 0 : appliedSettings.minChangePercent }}~{{ appliedSettings.maxChangePercent }}% 오른 종목만 고릅니다.</li>
-        <li>같은 시간대 예상 거래량 대비 {{ appliedSettings.minVolumeRatio }}배 이상인 종목만 고릅니다.</li>
+        <li v-if="appliedSettings.signalMode !== 'TREND'">
+          오늘 {{ appliedSettings.minChangePercent }}~{{ appliedSettings.maxChangePercent }}% 오른 종목만 고릅니다.
+        </li>
+        <li v-else>
+          당일 상승률 범위 대신 돌파·ATR 이격을 확인하고, 상대강도·이격·스프레드로 후보 순위를 정합니다.
+        </li>
+        <li>전일 거래량을 오늘 장 경과 비율로 환산한 예상 거래량 대비 {{ appliedSettings.minVolumeRatio }}배 이상인 종목만 고릅니다.</li>
         <li>매수·매도 1호가 스프레드가 {{ appliedSettings.maxSpreadPercent }}% 이하인 종목만 고릅니다.</li>
         <li>1회 매수 금액 상한은 {{ accountMoney(summary.perOrderLimitUsd) }}입니다. 종목 가격·주문가능수량{{ appliedSettings.signalMode === 'TREND' ? '·ATR 위험 예산' : '' }}에 따라 실제 주문금액은 더 작아질 수 있습니다.</li>
         <li>자동관리 보유와 신규 미체결 매수는 합계 최대 {{ appliedSettings.maxPositions }}종목, 하루 매수는 최대 {{ appliedSettings.dailyMaxBuys }}번입니다.</li>
-        <li>{{ appliedSettings.signalMode === 'TREND' ? `ATR 손절폭(최대 ${appliedSettings.stopLossPercent}%)` : `-${appliedSettings.stopLossPercent}% 손절` }}, +{{ appliedSettings.takeProfitPercent }}%부터 자동관리 수량을 나눠 익절하고 최대 {{ appliedSettings.maxHoldingDays }}일(달력일)을 보유합니다.</li>
+        <li v-if="appliedSettings.signalMode === 'TREND'">
+          신규 진입 손절폭은 ATR × {{ appliedSettings.atrStopMultiplier }}(최대 {{ appliedSettings.stopLossPercent }}%). +{{ appliedSettings.trailingActivationR }}R 이후 관측 최고가에서 진입 ATR × {{ appliedSettings.trailingStopAtrMultiplier }}만큼 떨어지면 자동관리 잔량을 청산합니다. 체결 확인일 제외 {{ appliedSettings.maxHoldingTradingDays }}거래일 경과 시에도 청산합니다.
+        </li>
+        <li v-else>
+          -{{ appliedSettings.stopLossPercent }}% 손절, +{{ appliedSettings.takeProfitPercent }}%·+{{ appliedSettings.takeProfitPercent2 }}% 분할 익절, 최대 {{ appliedSettings.maxHoldingDays }}일(달력일) 보유입니다.
+        </li>
+        <li>새 추세 매수는 진입 때 청산 계획을 저장합니다. 기존 보유는 보유 표에 표시된 청산 방식을 유지합니다.</li>
       </ol>
+      <p
+        v-if="settingsLoaded && appliedSettings.signalMode !== 'TREND'"
+        class="account-notice"
+      >
+        현재는 기존 매수 조건을 사용합니다. 보고서 기반 새 진입·수량·청산을 사용하려면 전략 설정에서 추세 전략을 선택하고 저장하세요. 비교 관찰은 모의매매가 아닙니다.
+      </p>
       <teleport to="body">
         <div
           v-if="showSettings"
@@ -223,8 +240,20 @@
                     <p class="setting-step">
                       매수 판단 방식
                     </p>
+                    <p class="setting-description">
+                      보고서의 운영 규칙을 구현한 추세 전략입니다. 섹터 집중도·동시간대 과거 거래량·지수 대비 성과 검증은 아직 미구현입니다.
+                    </p>
+                    <button
+                      type="button"
+                      @click="loadTrendPreset"
+                    >
+                      추세 전략 시작값 불러오기
+                    </button>
+                    <p class="setting-description">
+                      검증 시작값: 위험 0.5%, 종목당 상한 25%, 최대 4종목, ATR 손절·추적 2배, +1R부터 추적, 5거래일. 나머지 공통 필터와 주문 제한은 현재 값을 유지합니다. 최적값이 검증된 설정은 아닙니다. 저장해야 적용됩니다.
+                    </p>
                     <div class="setting-field">
-                      <label for="us-signal-mode">추세 전략 적용<span>처음에는 비교 관찰로 신호를 검증하세요. 지수 초과수익이 검증된 전략은 아닙니다.</span></label>
+                      <label for="us-signal-mode">매매 전략<span>추세 전략은 진입·수량·청산을 함께 적용합니다. 비교 관찰은 기존 조건으로 실제 매수하며 새 진입 신호만 기록합니다.</span></label>
                       <select
                         id="us-signal-mode"
                         v-model="settings.signalMode"
@@ -236,7 +265,7 @@
                           기존 조건 + 새 신호 비교 관찰
                         </option>
                         <option value="TREND">
-                          추세·상대강도·돌파 적용
+                          추세 진입 + 위험 수량 + ATR 추적 청산
                         </option>
                       </select>
                     </div>
@@ -262,12 +291,12 @@
                           type="number"
                           min="0.1"
                           max="1"
-                          step="0.1"
+                          step="0.05"
                         ><em>%</em>
                       </div>
                     </div>
                     <div class="setting-field">
-                      <label>ATR 손절 거리<span>최근 14거래일 평균 진폭의 배수입니다. 최대 손절률보다 넓으면 매수하지 않습니다.</span></label>
+                      <label>ATR 손절 거리<span>최근 14거래일 평균 진폭의 배수입니다. 손절폭 하한은 진입가의 0.5%이며, 최대 손절률보다 넓으면 매수하지 않습니다.</span></label>
                       <div class="number-with-unit">
                         <input
                           v-model.number="settings.atrStopMultiplier"
@@ -352,7 +381,7 @@
                       </div>
                     </div>
                     <div class="setting-field">
-                      <label>오늘 최소 상승률<span>{{ settings.signalMode === 'TREND' ? '추세 모드는 0% 하한을 사용합니다. 이 값은 기존·관찰 모드용으로 보관됩니다.' : '이만큼 이상 오른 종목부터 후보로 봅니다.' }}</span></label>
+                      <label>오늘 최소 상승률<span>기존·관찰 모드 전용입니다. 추세 모드는 당일 등락률 범위를 사용하지 않습니다.</span></label>
                       <div class="number-with-unit">
                         <b>+</b><input
                           v-model.number="settings.minChangePercent"
@@ -365,10 +394,11 @@
                       </div>
                     </div>
                     <div class="setting-field">
-                      <label>오늘 최대 상승률<span>이보다 많이 오른 종목은 급등 추격을 피하기 위해 제외합니다.</span></label>
+                      <label>오늘 최대 상승률<span>기존·관찰 모드 전용입니다. 추세 모드는 ATR 이격으로 추격을 제한합니다.</span></label>
                       <div class="number-with-unit">
                         <b>+</b><input
                           v-model.number="settings.maxChangePercent"
+                          :disabled="settings.signalMode === 'TREND'"
                           type="number"
                           min="0"
                           max="30"
@@ -377,7 +407,7 @@
                       </div>
                     </div>
                     <div class="setting-field">
-                      <label>최소 시간보정 거래량<span>같은 시간대 예상 거래량보다 얼마나 활발한지 계산합니다.</span></label>
+                      <label>최소 시간보정 거래량<span>전일 거래량 × 오늘 장 경과 비율과 비교합니다. 여러 날의 같은 시각 누적 거래량을 사용하는 방식은 아직 적용되지 않았습니다.</span></label>
                       <div class="number-with-unit">
                         <input
                           v-model.number="settings.minVolumeRatio"
@@ -461,13 +491,13 @@
 
                   <section class="setting-card sell-card">
                     <p class="setting-step">
-                      3. 산 주식을 팔 때
+                      3. 손절 상한과 기존 청산
                     </p>
                     <p class="setting-description">
-                      손실을 줄이고 이익을 나눠 지키는 자동 매도 기준입니다.
+                      {{ settings.signalMode === 'TREND' ? '추세 신규 매수에는 최대 손절률만 적용하고 아래 추세 청산 계획을 사용합니다. 기존 방식의 익절·달력일 설정은 보존합니다.' : '새 추세 청산 계획이 없는 보유에 적용하는 손절·분할 익절·달력일 기준입니다.' }}
                     </p>
                     <div class="setting-field">
-                      <label>최대 손절률<span>자동관리 수량만 매도합니다. TREND 진입은 저장한 ATR 손절폭과 현재 최대 손절률 중 작은 값을 사용합니다.</span></label>
+                      <label>최대 손절률<span>추세 신규 진입 시 ATR 손절폭이 이 값을 넘으면 제외합니다. 체결 이후에는 진입 때 저장한 손절 거리를 사용합니다. 기존 방식 보유에는 고정 손절률로 적용합니다.</span></label>
                       <div class="number-with-unit negative">
                         <b>-</b><input
                           v-model.number="settings.stopLossPercent"
@@ -483,6 +513,7 @@
                       <div class="number-with-unit">
                         <b>+</b><input
                           v-model.number="settings.takeProfitPercent"
+                          :disabled="settings.signalMode === 'TREND'"
                           type="number"
                           min="0.1"
                           max="100"
@@ -495,6 +526,7 @@
                       <div class="number-with-unit">
                         <b>+</b><input
                           v-model.number="settings.takeProfitPercent2"
+                          :disabled="settings.signalMode === 'TREND'"
                           type="number"
                           min="0.1"
                           max="100"
@@ -507,6 +539,7 @@
                       <div class="number-with-unit">
                         <input
                           v-model.number="settings.maxHoldingDays"
+                          :disabled="settings.signalMode === 'TREND'"
                           type="number"
                           min="1"
                           max="30"
@@ -516,6 +549,53 @@
                     </div>
                   </section>
 
+                  <section
+                    v-if="settings.signalMode === 'TREND'"
+                    class="setting-card sell-card"
+                  >
+                    <p class="setting-step">
+                      추세 전략 청산 계획
+                    </p>
+                    <p class="setting-description">
+                      1R은 진입 당시 1주당 손절 거리입니다. 고정 분할 익절 대신 ATR 추적으로 잔량을 관리합니다. 진입 ATR과 아래 설정은 매수 때 저장되며, 변경값은 이후 새 매수에 적용됩니다.
+                    </p>
+                    <div class="setting-field">
+                      <label for="us-trail-start">추적 시작 수익<span>자동매매 원가에서 이 R만큼 상승한 관측 최고가가 있어야 추적을 시작합니다.</span></label><div class="number-with-unit">
+                        <input
+                          id="us-trail-start"
+                          v-model.number="settings.trailingActivationR"
+                          type="number"
+                          min="0.5"
+                          max="5"
+                          step="0.1"
+                        ><em>R</em>
+                      </div>
+                    </div>
+                    <div class="setting-field">
+                      <label for="us-trail-atr">추적 손절 거리<span>관측 최고가 − 진입 ATR × 배수. 손절 가격은 올라가기만 합니다. 정규장 감시 주기 사이 급변·야간 갭은 지정 손실을 초과할 수 있습니다.</span></label><div class="number-with-unit">
+                        <input
+                          id="us-trail-atr"
+                          v-model.number="settings.trailingStopAtrMultiplier"
+                          type="number"
+                          min="1"
+                          max="5"
+                          step="0.1"
+                        ><em>배</em>
+                      </div>
+                    </div>
+                    <div class="setting-field">
+                      <label for="us-trend-days">추세 최대 보유기간<span>최초 체결 확인일을 제외하고 미국 거래일만 셉니다. 경과 후 정규장 감시에서 잔량을 정리합니다.</span></label><div class="number-with-unit">
+                        <input
+                          id="us-trend-days"
+                          v-model.number="settings.maxHoldingTradingDays"
+                          type="number"
+                          min="1"
+                          max="30"
+                          step="1"
+                        ><em>거래일</em>
+                      </div>
+                    </div>
+                  </section>
                   <section class="setting-card safety-card">
                     <p class="setting-step">
                       4. 하루 안전장치
@@ -615,7 +695,7 @@
                 v-for="item in holdings"
                 :key="`${item.exchange}-${item.symbol}`"
               >
-                <td><b>{{ item.symbol }}</b><small>{{ item.stockName }}</small></td><td>자동 {{ item.managedQuantity || 0 }}주<small>수동 {{ Math.max(0, item.quantity - (item.managedQuantity || 0)) }}주</small></td><td>{{ item.quantity }}</td><td>${{ money(item.currentPrice) }}</td><td :class="Number(item.profitLossPercent) >= 0 ? 'up' : 'down'">
+                <td><b>{{ item.symbol }}</b><small>{{ item.stockName }}</small><small>{{ item.managedQuantity > 0 ? item.trendExitPlan ? 'ATR 추적 청산' : '기존 분할 익절' : '수동 보유' }}</small><small v-if="item.trendStopPrice != null">손절 감시 ${{ money(item.trendStopPrice) }}</small></td><td>자동 {{ item.managedQuantity || 0 }}주<small>수동 {{ Math.max(0, item.quantity - (item.managedQuantity || 0)) }}주</small></td><td>{{ item.quantity }}</td><td>${{ money(item.currentPrice) }}</td><td :class="Number(item.profitLossPercent) >= 0 ? 'up' : 'down'">
                   {{ signed(item.profitLossPercent) }}%
                 </td>
               </tr>
@@ -668,7 +748,7 @@ import axios from '@/axios'
 const BASE = '/api/kiwoom/us/auto-trade'
 const status = ref({ configured: false, autoTrading: false, orderEnabled: false, marketOpen: false, entryWindow: false, marketSeason: '', regularSessionKst: '', entrySessionKst: '' })
 const summary = ref({ cash: { availableUsd: 0, krwOrderSettingAmount: 0, usdOnlyBuyAllowed: true, blockReason: '' }, stockEvaluationUsd: 0, managedEvaluationUsd: 0, perOrderLimitUsd: 0, positionCount: 0, managedPositionCount: 0, krwOrderServiceStatus: { code: 'UNKNOWN', label: '확인 불가', message: '계좌 상태를 불러오는 중입니다.' } })
-const settings = ref({ signalMode: 'OBSERVE', minRelativeStrengthPercent: 0, riskPerTradePercent: 0.5, atrStopMultiplier: 2, maxEntryExtensionAtr: 1, fundamentalFilterEnabled: true, maxForwardPe: 50, minRoePercent: 10, minChangePercent: 2, maxChangePercent: 8, minVolumeRatio: 1.2, maxSpreadPercent: 0.15, maxOrderPercent: 10, maxPositions: 3, dailyMaxBuys: 2, symbolCooldownDays: 5, maxHoldingDays: 5, stopLossPercent: 3, takeProfitPercent: 5, takeProfitPercent2: 8, dailyLossLimitPercent: 3 })
+const settings = ref({ signalMode: 'OBSERVE', minRelativeStrengthPercent: 0, riskPerTradePercent: 0.5, atrStopMultiplier: 2, maxEntryExtensionAtr: 1, trailingStopAtrMultiplier: 2, trailingActivationR: 1, maxHoldingTradingDays: 5, fundamentalFilterEnabled: true, maxForwardPe: 50, minRoePercent: 10, minChangePercent: 2, maxChangePercent: 8, minVolumeRatio: 1.2, maxSpreadPercent: 0.15, maxOrderPercent: 10, maxPositions: 3, dailyMaxBuys: 2, symbolCooldownDays: 5, maxHoldingDays: 5, stopLossPercent: 3, takeProfitPercent: 5, takeProfitPercent2: 8, dailyLossLimitPercent: 3 })
 const appliedSettings = ref({ ...settings.value })
 const accountLoaded = ref(false), accountFailed = ref(false)
 const accountFresh = computed(() => accountLoaded.value && !accountFailed.value && summary.value.fresh === true)
@@ -713,6 +793,9 @@ const validationError = computed(() => {
   if (!validNumber(s.riskPerTradePercent, 0.1, 1)) return '거래당 위험은 0.1~1% 사이여야 합니다.'
   if (!validNumber(s.atrStopMultiplier, 1, 4)) return 'ATR 손절 거리는 1~4배 사이여야 합니다.'
   if (!validNumber(s.maxEntryExtensionAtr, 0.1, 2)) return '허용 이격은 ATR의 0.1~2배 사이여야 합니다.'
+  if (!validNumber(s.trailingStopAtrMultiplier, 1, 5)) return '추적 손절 거리는 ATR의 1~5배 사이여야 합니다.'
+  if (!validNumber(s.trailingActivationR, 0.5, 5)) return '추적 시작 수익은 0.5~5R 사이여야 합니다.'
+  if (!validInteger(s.maxHoldingTradingDays, 1, 30)) return '추세 보유기간은 1~30거래일 사이의 정수여야 합니다.'
   if (!validNumber(s.minChangePercent, 0, 20)) return '오늘 최소 상승률은 0부터 20% 사이여야 합니다.'
   if (!validNumber(s.maxChangePercent, s.signalMode === 'TREND' ? 0 : s.minChangePercent, 30)) return '오늘 최대 상승률은 적용 하한 이상, 30% 이하여야 합니다.'
   if (!validNumber(s.maxForwardPe, 5, 100)) return '최대 Forward PER는 5부터 100배 사이여야 합니다.'
@@ -787,6 +870,12 @@ async function runDecision() {
 async function refreshAll() { await action(async () => loadAll(true)) }
 async function refreshCashPolicyStatus() { await action(() => loadAll(false, true)) }
 async function refreshIndexUniverse() { await action(async () => { await axios.post(`${BASE}/index-universe/refresh`); status.value = (await axios.get(`${BASE}/status`)).data }) }
+function loadTrendPreset() {
+  settings.value = { ...settings.value, signalMode: 'TREND', minRelativeStrengthPercent: 0,
+    riskPerTradePercent: 0.5, atrStopMultiplier: 2, maxEntryExtensionAtr: 1,
+    trailingStopAtrMultiplier: 2, trailingActivationR: 1, maxHoldingTradingDays: 5,
+    maxOrderPercent: 25, maxPositions: 4 }
+}
 function openSettings() { if (!settingsLoaded.value || pending.value) return; settings.value = { ...appliedSettings.value }; settingsOriginal = JSON.stringify(settings.value); error.value = ''; showSettings.value = true }
 function closeSettings() { if (pending.value) return; if (settingsDirty.value && !window.confirm('저장하지 않은 변경사항이 있습니다. 닫을까요?')) return; settings.value = JSON.parse(settingsOriginal); showSettings.value = false }
 async function saveSettings() { if (validationError.value) return; await action(async () => { settings.value = (await axios.patch(`${BASE}/settings`, settings.value)).data; appliedSettings.value = { ...settings.value }; settingsOriginal = JSON.stringify(settings.value); try { await loadAll(false, true) } catch (e) { refreshError.value = '설정은 저장됐지만 상태 갱신에 실패했습니다.'; accountFailed.value = true } showSettings.value = false; pushLog({ type: 'SYSTEM', message: '미국주식 자동매매 전략 설정을 저장했습니다.', createdAt: new Date().toISOString() }) }) }

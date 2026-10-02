@@ -28,6 +28,7 @@ const KR = '/api/kiwoom/auto-trade'
 const STRATEGY = '/api/kiwoom/strategy'
 const initialSettings = {
   signalMode: 'OBSERVE', minRelativeStrengthPercent: 0, riskPerTradePercent: 0.5, atrStopMultiplier: 2, maxEntryExtensionAtr: 1,
+  trailingStopAtrMultiplier: 2, trailingActivationR: 1, maxHoldingTradingDays: 5,
   fundamentalFilterEnabled: true, maxForwardPe: 50, minRoePercent: 10, minChangePercent: 2, maxChangePercent: 8,
   minVolumeRatio: 1.2, maxSpreadPercent: 0.15, maxOrderPercent: 10, maxPositions: 3, dailyMaxBuys: 2,
   symbolCooldownDays: 5, maxHoldingDays: 5, stopLossPercent: 3, takeProfitPercent: 5, takeProfitPercent2: 8, dailyLossLimitPercent: 3
@@ -77,16 +78,32 @@ beforeEach(() => {
 })
 afterEach(() => { app?.unmount(); document.body.innerHTML = ''; jest.clearAllTimers(); jest.useRealTimers() })
 
-test('US popup puts new controls inside the scroll form and saves TREND with its actual lower bound', async () => {
+test('US popup separates trend lifecycle controls from unused legacy rules', async () => {
   await mount('KiwoomUsAutoTrade.vue'); await click('전략 설정')
   const mode = document.querySelector('#us-signal-mode')
   expect(mode.closest('form').id).toBe('us-strategy-settings')
   await input(mode, 'TREND')
   expect(field('오늘 최소 상승률').disabled).toBe(true)
-  await input(field('오늘 최대 상승률'), '1')
+  expect(field('오늘 최대 상승률').disabled).toBe(true)
+  expect(field('1차 이익 실현').disabled).toBe(true)
+  expect(field('가장 오래 보유할 기간').disabled).toBe(true)
+  await input(document.querySelector('#us-trail-atr'), '3')
   document.querySelector('#us-strategy-settings').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); await flush()
-  expect(http.patch).toHaveBeenCalledWith(`${US}/settings`, expect.objectContaining({ signalMode: 'TREND', maxChangePercent: 1, minChangePercent: 2, riskPerTradePercent: 0.5 }))
+  expect(http.patch).toHaveBeenCalledWith(`${US}/settings`, expect.objectContaining({ signalMode: 'TREND', maxChangePercent: 8, minChangePercent: 2, riskPerTradePercent: 0.5, trailingStopAtrMultiplier: 3 }))
   expect(document.querySelector('#us-signal-mode')).toBeNull()
+})
+
+test('US trend preset is reviewable before saving and never starts trading', async () => {
+  await mount('KiwoomUsAutoTrade.vue'); await click('전략 설정'); await click('추세 전략 시작값 불러오기')
+  expect(document.querySelector('#us-signal-mode').value).toBe('TREND')
+  expect(field('1회 매수 최대 비중').value).toBe('25')
+  expect(document.querySelector('#us-trend-days').value).toBe('5')
+  expect(document.querySelector('.rules > ol').textContent).toContain('기존 조건 + 새 신호 비교 관찰')
+  expect(http.post).not.toHaveBeenCalled(); expect(http.patch).not.toHaveBeenCalled()
+  await input(document.querySelector('#us-trail-atr'), '0')
+  expect(button('저장하기').disabled).toBe(true)
+  await click('취소')
+  expect(document.querySelector('.rules > ol').textContent).toContain('분할 익절')
 })
 
 test('US main budget uses server reservation amount and stays on saved rules while editing', async () => {
