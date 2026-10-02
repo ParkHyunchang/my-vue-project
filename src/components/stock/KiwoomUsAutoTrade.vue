@@ -1,7 +1,7 @@
 <template>
   <section class="us-auto">
     <header class="hero">
-      <div><p>KIWOOM US OPEN API</p><h3>🇺🇸 미국주식 자동매매</h3><small>진입 근거 · 위험 예산 · 보유별 청산 계획을 확인하고 운용합니다.</small><small>저장된 전략: {{ settingsLoaded ? signalModeLabel : '확인 중' }} · 전략 수익률의 지수 초과 여부는 아직 미검증입니다.</small></div>
+      <div><p>KIWOOM US OPEN API</p><h3>🇺🇸 미국주식 자동매매</h3><small class="desktop-detail">진입 근거 · 위험 예산 · 보유별 청산 계획을 확인하고 운용합니다.</small><small>저장된 전략: {{ settingsLoaded ? signalModeLabel : '확인 중' }}</small></div>
       <b>실전 계좌</b>
     </header>
 
@@ -34,7 +34,21 @@
         <strong>{{ executionLabel }}</strong>
         <small>{{ status.marketOpen ? '미국 정규장 운영 중' : '미국 정규장 밖' }} · 주문전송 {{ status.orderEnabled ? '허용' : '잠금' }} · 원화설정금 {{ !accountFresh ? '확인 필요' : usdOnlyBlocked ? '있음(차단)' : '0원' }}</small>
         <small>{{ readinessHint }}</small>
-        <small>마지막 화면 갱신: {{ lastRefreshAt ? logTime(lastRefreshAt) : '대기 중' }} · {{ streamConnected ? '실시간 연결' : '주기적으로 상태 확인 중' }}</small>
+        <small class="desktop-detail">API 호출 보호: 국내·미국 통합 최소 {{ status.apiMinRequestIntervalMs || 350 }}ms 간격</small>
+        <small class="desktop-detail">주문 동기화: {{ operationTime(status.operationalHealth?.lastOrderReconciledAt) }} · 청산 감시: {{ operationTime(status.operationalHealth?.lastExitMonitorAt) }}</small>
+        <small
+          v-if="Number(status.unresolvedUnknownOrders) > 0"
+          class="error"
+        >주문 결과 미확인 {{ status.unresolvedUnknownOrders }}건 · 계좌·체결 동기화에서 단일 일치 주문번호를 복구하며, 확정 전에는 신규 매수를 시작할 수 없습니다.</small>
+        <small
+          v-if="status.operationalHealth?.lastOrderReconcileError"
+          class="error"
+        >최근 주문 동기화 오류 ({{ operationTime(status.operationalHealth.lastOrderReconcileErrorAt) }}): {{ status.operationalHealth.lastOrderReconcileError }}</small>
+        <small
+          v-if="status.operationalHealth?.lastExitMonitorError"
+          class="error"
+        >최근 잔고·청산 감시 오류 ({{ operationTime(status.operationalHealth.lastExitMonitorErrorAt) }}): {{ status.operationalHealth.lastExitMonitorError }}</small>
+        <small class="desktop-detail">마지막 화면 갱신: {{ lastRefreshAt ? logTime(lastRefreshAt) : '대기 중' }} · {{ streamConnected ? '실시간 연결' : '주기적으로 상태 확인 중' }}</small>
         <small
           v-if="status.emergencyStopped"
           class="error"
@@ -50,7 +64,7 @@
       </div>
       <div class="buttons">
         <button
-          :disabled="pending || (!status.autoTrading && (!status.configured || !status.orderEnabled || !status.strategyEnabled || !accountFresh || usdOnlyBlocked))"
+          :disabled="pending || (!status.autoTrading && (!status.configured || !status.orderEnabled || !status.strategyEnabled || !accountFresh || usdOnlyBlocked || Number(status.unresolvedUnknownOrders) > 0))"
           :class="{ danger: status.autoTrading }"
           @click="toggle"
         >
@@ -96,7 +110,9 @@
 
     <section class="summary">
       <article><small>환전 USD 예수금</small><strong>{{ accountMoney(summary.cash?.availableUsd) }}</strong><span>D+0 기준 · 예약금 차감 전</span></article>
-      <article><small>자동매매 기준자산</small><strong>{{ accountMoney(summary.automatedCapitalUsd) }}</strong><span>USD 예수금 + 자동관리 평가액</span><span>수동 보유 평가액 제외</span></article>
+      <article class="mobile-optional">
+        <small>자동매매 기준자산</small><strong>{{ accountMoney(summary.automatedCapitalUsd) }}</strong><span>USD 예수금 + 자동관리 평가액</span><span>수동 보유 평가액 제외</span>
+      </article>
       <article><small>거래당 위험 예산</small><strong>{{ !settingsLoaded ? '—' : appliedSettings.signalMode === 'TREND' ? accountMoney(buyingPower.riskBudgetUsd) : '미적용' }}</strong><span>{{ settingsLoaded && appliedSettings.signalMode === 'TREND' ? `저장된 허용 위험 ${appliedSettings.riskPerTradePercent}% · ATR 수량 계산 기준` : '추세 모드에서 위험 기준 수량 적용' }}</span><span>갭·슬리피지로 실제 손실은 초과 가능</span></article>
       <article data-testid="order-limit">
         <small>1회 매수 금액 상한</small><strong>{{ accountMoney(summary.perOrderLimitUsd) }}</strong><span>저장한 전략·미체결 예약금 반영</span><span>{{ buyingPower.signalMode === 'TREND' ? 'ATR 위험 한도 적용 전 · 실제 주문은 더 작을 수 있음' : '정수 수량·주문가능수량 적용 전' }}</span>
@@ -104,7 +120,9 @@
       <article data-testid="managed-positions">
         <small>자동관리 보유 종목</small><strong>{{ accountLoaded ? summary.managedPositionCount : '—' }} / {{ settingsLoaded ? appliedSettings.maxPositions : '—' }}종목</strong><span>자동관리 수량 평가액 {{ accountMoney(summary.managedEvaluationUsd) }}</span><span>신규 미체결 {{ buyingPower.pendingPositionCount ?? '—' }}종목도 한도에 포함</span>
       </article>
-      <article><small>계좌 전체 주식 평가액</small><strong>{{ accountMoney(summary.stockEvaluationUsd) }}</strong><span>수동 보유 포함 · USD 예수금 제외</span></article>
+      <article class="mobile-optional">
+        <small>계좌 전체 주식 평가액</small><strong>{{ accountMoney(summary.stockEvaluationUsd) }}</strong><span>수동 보유 포함 · USD 예수금 제외</span>
+      </article>
     </section>
     <section
       class="budget card"
@@ -140,6 +158,21 @@
         </button>
       </header>
       <KiwoomUsTermGuide />
+      <div
+        v-if="settingsLoaded"
+        class="mobile-rule-summary"
+      >
+        <p><b>{{ signalModeLabel }}</b> · 종목당 최대 {{ appliedSettings.maxOrderPercent }}% · 최대 {{ appliedSettings.maxPositions }}종목</p>
+        <p v-if="appliedSettings.signalMode === 'TREND'">
+          SPY·QQQ·종목 추세와 20일 돌파를 확인하고, 거래당 {{ appliedSettings.riskPerTradePercent }}% 위험 범위에서 수량을 정합니다.
+        </p>
+        <p v-if="appliedSettings.signalMode === 'TREND'">
+          {{ appliedSettings.atrStopMultiplier }} ATR 초기 손절 · +{{ appliedSettings.trailingActivationR }}R부터 추적 · 최대 {{ appliedSettings.maxHoldingTradingDays }}거래일
+        </p>
+        <p v-else>
+          손절 {{ appliedSettings.stopLossPercent }}% · 분할 익절 {{ appliedSettings.takeProfitPercent }}% / {{ appliedSettings.takeProfitPercent2 }}% · 최대 {{ appliedSettings.maxHoldingDays }}일
+        </p>
+      </div>
       <p
         v-if="!settingsLoaded"
         class="holdings-help"
@@ -720,13 +753,6 @@
                       </div>
                     </div>
                   </section>
-                  <details class="setting-card settings-details">
-                    <summary>보고서 권고 중 아직 적용되지 않은 항목</summary>
-                    <p class="setting-description">
-                      섹터 집중도·섹터 추세, 같은 시각의 과거 누적 거래량, 비용·입출금·배당을 반영한 성과 원장, SPY·QQQ 대비 수익률 검증은 아직 구현되지 않았습니다. 화면 설정만으로 지수 초과성과가 확인되는 것은 아닙니다.
-                    </p>
-                  </details>
-
                   <p
                     v-if="validationError"
                     class="settings-error"
@@ -767,31 +793,22 @@
       </teleport>
     </section>
 
-    <section class="card report-status">
-      <header><strong>분석보고서 적용 현황</strong><span>운영 규칙과 성과 검증</span></header>
-      <dl>
-        <div><dt>추세 진입·위험 수량·ATR 청산</dt><dd>{{ !settingsLoaded ? '저장된 전략 확인 중' : appliedSettings.signalMode === 'TREND' ? '신규 매수에 적용 · 기존 보유는 개별 계획 확인' : '구현됨 · 현재 저장된 모드는 기존 매수 방식' }}</dd></div>
-        <div><dt>체결·소유권·주문 상태</dt><dd>확인된 자동체결 수량만 관리 · 수동 수량 분리 · 미확인 주문 중복 차단</dd></div>
-        <div><dt>추가 연구·개선 항목</dt><dd>섹터 집중도·섹터 상대강도, 사전 후보군 비교, 같은 시각 과거 거래량은 미적용</dd></div>
-        <div><dt>SPY·QQQ 대비 성과</dt><dd>미검증 · 비용·입출금·배당을 반영한 성과 원장과 백테스트가 필요합니다.</dd></div>
-      </dl>
-      <p>아래 계좌 수익률은 종목별 보유 손익입니다. 현금까지 포함한 전략 전체 수익률이나 지수 대비 초과수익을 의미하지 않습니다.</p>
-    </section>
-
     <div class="grids">
-      <section class="card table-card">
+      <section class="card table-card candidate-card">
         <header><strong>최근 후보와 매수 근거</strong><span>{{ candidates.length }}개</span></header>
         <p class="holdings-help">
           최근 후보 산출 때 기록한 값입니다. 설정 변경 후에는 후보를 다시 확인해야 하며 실제 주문 직전 조건·호가·수량을 재검증합니다. 추세 모드에서는 등락률·PER·ROE를 순위 점수로 사용하지 않습니다.
         </p>
         <div class="table-wrap">
-          <table>
+          <table class="candidate-table">
             <thead><tr><th>종목</th><th>매도 1호가</th><th>추세 진입 근거</th><th>등락</th><th>RVOL</th><th>PER</th><th>ROE</th><th>스프레드</th><th>선정 점수</th></tr></thead><tbody>
               <tr
                 v-for="item in candidates"
                 :key="item.symbol"
               >
-                <td><b>{{ item.symbol }}</b><small>{{ item.name }} · {{ item.indexMembership }}</small></td><td>{{ displayPrice(item.price) }}</td>
+                <td><b>{{ item.symbol }}</b><small>{{ item.name }} · {{ item.indexMembership }}</small></td><td data-label="매도 1호가">
+                  {{ displayPrice(item.price) }}
+                </td>
                 <td class="signal-cell">
                   <template v-if="item.technicalSignal">
                     <strong>{{ item.technicalSignal.accepted ? '추세 조건 통과' : item.technicalSignal.available ? '추세 조건 미충족' : '추세 자료 확인 필요' }}</strong>
@@ -818,21 +835,25 @@
           </table>
         </div>
       </section>
-      <section class="card table-card">
+      <section class="card table-card holdings-card">
         <header><strong>계좌 보유와 자동관리 수량</strong><span>{{ holdings.length }}종목</span></header>
         <p class="holdings-help">
           자동매수 체결로 확인된 수량만 청산 관리합니다. 수동 보유는 관리 대상이 아니며 같은 종목에 두 수량이 함께 있을 수 있습니다. 추세 청산은 각 매수 때 저장된 계획을 표시합니다.
         </p>
         <div class="table-wrap">
-          <table>
+          <table class="holdings-table">
             <thead><tr><th>종목</th><th>자동관리 / 수동</th><th>전체 수량</th><th>자동관리 원가</th><th>현재가</th><th>적용 중인 청산 계획</th><th>계좌 수익률</th></tr></thead><tbody>
               <tr
                 v-for="item in holdings"
                 :key="`${item.exchange}-${item.symbol}`"
               >
-                <td><b>{{ item.symbol }}</b><small>{{ item.stockName }}</small></td><td>자동 {{ item.managedQuantity || 0 }}주<small>수동 {{ Math.max(0, item.quantity - (item.managedQuantity || 0)) }}주</small></td><td>{{ item.quantity }}</td>
+                <td><b>{{ item.symbol }}</b><small>{{ item.stockName }}</small></td><td data-label="보유 구분">
+                  자동 {{ item.managedQuantity || 0 }}주<small>수동 {{ Math.max(0, item.quantity - (item.managedQuantity || 0)) }}주</small>
+                </td><td>{{ item.quantity }}</td>
                 <td>{{ item.managedQuantity > 0 ? displayPrice(item.managedAveragePrice) : '—' }}</td>
-                <td>{{ displayPrice(item.currentPrice) }}</td>
+                <td data-label="현재가">
+                  {{ displayPrice(item.currentPrice) }}
+                </td>
                 <td class="signal-cell">
                   <template v-if="item.managedQuantity > 0 && item.trendExitPlan">
                     <strong>ATR 추적 청산</strong>
@@ -849,7 +870,10 @@
                   </template>
                   <span v-else>수동 보유 · 자동 청산 제외</span>
                 </td>
-                <td :class="Number(item.profitLossPercent) >= 0 ? 'up' : 'down'">
+                <td
+                  data-label="계좌 수익률"
+                  :class="Number(item.profitLossPercent) >= 0 ? 'up' : 'down'"
+                >
                   {{ item.profitLossPercent == null ? '—' : `${signed(item.profitLossPercent)}%` }}
                 </td>
               </tr>
@@ -949,6 +973,7 @@ const estimatedOrderUsd = computed(() => {
 })
 const executionLabel = computed(() => !status.value.autoTrading ? '신규 자동매수 중지' : status.value.entryWindow ? '신규 자동매수 활성' : '신규 자동매수 활성 · 진입 시간 대기')
 const readinessHint = computed(() => {
+  if (Number(status.value.unresolvedUnknownOrders) > 0) return '결과를 확정하지 못한 주문이 있습니다. 계좌·체결 동기화 후 주문 상태를 확인해야 신규 매수를 시작할 수 있습니다.'
   if (!accountFresh.value) return '최신 계좌 확인이 필요합니다. 표시 금액만으로 매수 가능 여부를 판단하지 마세요.'
   if (usdOnlyBlocked.value) return summary.value.cash?.blockReason || '원화주문설정금 때문에 신규 매수가 차단됩니다.'
   if (krwOrderStatus.value.code !== 'CANCELED') return '실제 매수 전 원화주문 서비스 해지 확인이 필요합니다.'
@@ -990,9 +1015,24 @@ const validationError = computed(() => {
 })
 const signed = value => `${Number(value || 0) >= 0 ? '+' : ''}${Number(value || 0).toFixed(2)}`
 const logTime = value => value ? new Date(value).toLocaleString('ko-KR', { hour12: false }) : new Date().toLocaleTimeString('ko-KR', { hour12: false })
-const label = type => ({ CANDIDATE: '후보', CANDIDATE_REJECTED: '후보탈락', DATA_MISSING: '데이터누락', SETTINGS_CHANGED: '설정변경', SCREENING: '조건집계', DECISION_RESULT: '판단결과', BUY_ORDER: '매수주문', BUY_FILLED: '매수체결', SELL_ORDER: '매도주문', SELL_FILLED: '매도체결', BUY_CANCEL: '매수취소요청', SELL_CANCEL: '매도취소요청', ORDER_CANCELED: '취소완료', ORDER_UNKNOWN: '주문확인필요', USD_CASH_BLOCK: 'USD매수차단', ERROR: '오류', START: '시작', STOP: '중지' }[type] || type || '시스템')
+const operationTime = value => value ? logTime(value) : '서버 시작 후 확인 전'
+const label = type => ({ CANDIDATE: '후보', CANDIDATE_REJECTED: '후보탈락', DATA_MISSING: '데이터누락', SETTINGS_CHANGED: '설정변경', SCREENING: '조건집계', DECISION_RESULT: '판단결과', BUY_ORDER: '매수주문', BUY_FILLED: '매수체결', SELL_ORDER: '매도주문', SELL_FILLED: '매도체결', BUY_CANCEL: '매수취소요청', SELL_CANCEL: '매도취소요청', ORDER_CANCELED: '취소완료', ORDER_UNKNOWN: '주문확인필요', ORDER_RECOVERED: '주문번호복구', USD_CASH_BLOCK: 'USD매수차단', ERROR: '오류', START: '시작', STOP: '중지' }[type] || type || '시스템')
 const tone = type => type?.includes('BUY') ? 'buy' : type?.includes('SELL') ? 'sell' : type === 'CANDIDATE' ? 'candidate' : ['ERROR', 'USD_CASH_BLOCK', 'DATA_MISSING'].includes(type) ? 'error-line' : 'system'
 function pushLog(item) { logs.value.push({ id: `${Date.now()}-${Math.random()}`, ...item }); if (logs.value.length > 300) logs.value.shift(); nextTick(() => { if (logBox.value) logBox.value.scrollTop = logBox.value.scrollHeight }) }
+function mergeAuditLogs(items) {
+  const auditIds = new Set(logs.value.filter(item => item.auditId != null).map(item => item.auditId))
+  for (const item of [...items].reverse()) {
+    if (auditIds.has(item.id)) continue
+    const type = item.eventType || item.type
+    const transient = logs.value.findIndex(log => log.auditId == null && (log.eventType || log.type) === type && log.message === item.message)
+    const normalized = { ...item, id: `audit-${item.id}`, auditId: item.id }
+    if (transient >= 0) logs.value.splice(transient, 1, normalized)
+    else logs.value.push(normalized)
+    auditIds.add(item.id)
+  }
+  logs.value.sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0))
+  if (logs.value.length > 300) logs.value.splice(0, logs.value.length - 300)
+}
 async function loadAll(sync = false, force = false) {
   if (refreshPromise) {
     try { await refreshPromise } catch (e) { if (!sync && !force) throw e }
@@ -1023,7 +1063,7 @@ async function loadAll(sync = false, force = false) {
     if (!showSettings.value) settings.value = settingsRes.data
     appliedSettings.value = { ...settingsRes.data }
     settingsLoaded.value = true
-    if (!lastRefreshAt.value) logs.value = [...auditRes.data].reverse()
+    mergeAuditLogs(auditRes.data)
     candidates.value = candidateRes.data
     holdings.value = holdingRes.data
     lastRefreshAt.value = new Date().toISOString()
@@ -1081,6 +1121,17 @@ onBeforeUnmount(() => { disposed = true; clearInterval(refreshTimer); clearTimeo
 .usd-notice small{color:#90caaa;font-size:.78rem}.usd-notice.blocked{border-color:#8c4141;background:#472424;color:#ffb4b4}.usd-notice.blocked small{color:#e9a1a1}
 .won-order-service{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px;padding:12px;border:1px solid #48564d;border-radius:10px;background:#1c2520}.won-order-service div{display:grid;gap:3px}.won-order-service small,.won-order-service span{color:var(--text-muted);font-size:.72rem}.won-order-service strong{color:#9fe0b4}.won-order-service.applied{border-color:#8c4141;background:#3d2323}.won-order-service.applied strong{color:#ffaaa5}.won-order-service.unknown strong{color:#e2c477}.won-order-service button,.fixed-rule-actions button{padding:7px 9px;border:1px solid var(--card-border-strong);border-radius:8px;background:transparent;color:var(--text-secondary);cursor:pointer;white-space:nowrap}.fixed-rule{align-items:flex-start}.fixed-rule-actions{display:flex;align-items:center;gap:6px}.rule-status{flex:0 0 auto;padding:6px 8px;border-radius:99px;font-size:.7rem;font-weight:700}.rule-status.ready{background:#1c5138;color:#9af0bd}.rule-status.blocked{background:#4b2929;color:#ffb4b4}
 .market-hours>div{padding:14px 17px;color:var(--text-secondary);font-size:.8rem}.market-hours p{margin:5px 0}.market-hours b{color:var(--text-primary)}.market-hours header span{padding:5px 9px;border-radius:99px;font-size:.72rem;font-weight:700}.market-hours header .open{background:#1c5138;color:#9af0bd}.market-hours header .closed{background:#4b2929;color:#ffb4b4}
+.mobile-rule-summary{display:none}
+@media(max-width:600px){
+  .us-auto{font-size:.92rem}.hero{align-items:center;flex-direction:row;padding:13px 14px}.hero p,.hero .desktop-detail{display:none}.hero h3{margin:0 0 3px;font-size:1.05rem}.hero b{flex:none}.usd-notice{padding:11px 13px}.usd-notice:not(.blocked):not(.unknown) span,.usd-notice:not(.blocked):not(.unknown) small{display:none}
+  .controls{padding:14px}.controls .desktop-detail{display:none}.controls>div:first-child{width:100%}.controls small{margin-top:4px;line-height:1.45}.buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.buttons button{min-height:42px}.buttons button:last-child{grid-column:1/-1}
+  .market-hours>div{padding:10px 14px}.market-hours>div p:nth-child(n+3){display:none}.market-hours header{align-items:center!important;flex-direction:row!important}.market-hours header strong{font-size:.85rem}
+  .us-auto .summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.summary .mobile-optional{display:none}.summary article{padding:13px}.summary strong{font-size:1.05rem}.summary span{font-size:.68rem}.budget{display:none}
+  .rules :deep(.settings-term-guide),.rules .strategy-flow,.rules .common-rules,.rules>.account-notice,.rules>.holdings-help{display:none}.mobile-rule-summary{display:block;padding:11px 14px;color:var(--text-secondary);font-size:.76rem;line-height:1.5}.mobile-rule-summary p{margin:4px 0}.mobile-rule-summary b{color:var(--text-primary)}
+  .candidate-card .holdings-help,.holdings-card .holdings-help{display:none}.table-wrap{overflow:visible}.candidate-table thead,.holdings-table thead{display:none}.candidate-table tbody,.holdings-table tbody{display:block}.candidate-table tr,.holdings-table tr{display:grid;padding:11px 13px;border-bottom:1px solid var(--card-border)}.candidate-table td,.holdings-table td{padding:3px 0;border:0;text-align:left!important;white-space:normal}.candidate-table td small,.holdings-table td small{max-width:none;white-space:normal}
+  .candidate-table tr{grid-template-columns:minmax(0,1fr) auto;gap:4px 12px}.candidate-table td:nth-child(2){text-align:right!important}.candidate-table td:nth-child(2)::before{content:attr(data-label);display:block;color:var(--text-muted);font-size:.65rem}.candidate-table td:nth-child(3){grid-column:1/-1;min-width:0;padding-top:7px}.candidate-table td:nth-child(n+4){display:none}
+  .holdings-table tr{grid-template-columns:minmax(0,1fr) auto;gap:5px 12px}.holdings-table td:nth-child(1){grid-column:1;grid-row:1}.holdings-table td:nth-child(2){grid-column:1;grid-row:2}.holdings-table td:nth-child(3),.holdings-table td:nth-child(4){display:none}.holdings-table td:nth-child(5){grid-column:2;grid-row:2}.holdings-table td:nth-child(7){grid-column:2;grid-row:1}.holdings-table td:nth-child(5),.holdings-table td:nth-child(7){text-align:right!important}.holdings-table td:nth-child(2)::before,.holdings-table td:nth-child(5)::before,.holdings-table td:nth-child(7)::before{content:attr(data-label);display:block;color:var(--text-muted);font-size:.65rem}.holdings-table td:nth-child(6){grid-column:1/-1;grid-row:3;min-width:0;padding-top:7px}.candidate-table .empty,.holdings-table .empty{display:block!important;grid-column:1/-1;grid-row:auto;padding:16px!important}.terminal{height:220px;padding:10px 12px;font-size:11px}
+}
 .us-settings-modal{max-width:640px}.settings-area{display:flex;flex-direction:column;min-height:0;height:100%}.easy-guide{display:grid;gap:3px;margin-bottom:12px;padding:12px;border-radius:10px;background:#1f2924;color:#dff5e5;font-size:.86rem}.easy-guide span{color:#b6c6ba;font-size:.78rem}.strategy-settings{display:grid;grid-template-columns:1fr 1fr;gap:12px}.setting-card{padding:14px;border:1px solid var(--card-border);border-radius:12px}.screen-card{border-left:3px solid #9e8ee8}.buy-card{border-left:3px solid #d98a51}.sell-card{border-left:3px solid #68a6e8}.safety-card{border-left:3px solid #d4b466}.setting-step{margin:0;font-size:1rem;font-weight:800}.setting-description{margin:4px 0 10px;color:var(--text-muted);font-size:.78rem}.setting-field{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0;border-top:1px solid var(--card-border)}.setting-field label{color:var(--text-primary);font-size:.82rem;font-weight:700}.setting-field label span{display:block;margin-top:3px;color:var(--text-muted);font-size:.72rem;font-weight:400;line-height:1.45}.number-with-unit{display:flex;align-items:center;justify-content:flex-end;gap:5px;min-width:112px;color:#80d69a}.number-with-unit.negative{color:#f29090}.number-with-unit input{box-sizing:border-box;width:72px;padding:8px;border:1px solid var(--card-border);border-radius:8px;background:var(--input-bg,#171b20);color:var(--text-primary);text-align:right}.number-with-unit em{min-width:24px;color:var(--text-muted);font-size:.78rem;font-style:normal}.settings-error{grid-column:1/-1;margin:0;padding:10px;border-radius:8px;background:#472424;color:#ffb4b4;font-size:.8rem}.settings-unsaved{color:var(--text-muted);font-size:.78rem}@media(max-width:800px){.strategy-settings{grid-template-columns:1fr}}@media(max-width:520px){.setting-field{align-items:flex-start;flex-direction:column}.number-with-unit{align-self:flex-end}}
 .number-with-unit input:disabled{opacity:.45}.setting-switch{display:flex!important;align-items:center;gap:7px;white-space:nowrap}.setting-switch input{width:18px;height:18px;accent-color:var(--accent)}.setting-switch span{margin:0!important;font-size:.78rem!important}
 </style>
