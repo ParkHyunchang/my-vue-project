@@ -32,6 +32,15 @@
       <div>
         <strong>{{ status.autoTrading ? '신규 자동매수 실행 중' : '신규 자동매수 중지' }}</strong>
         <small>{{ status.marketOpen ? '미국 정규장 운영 중' : '미국 정규장 밖' }} · 주문전송 {{ status.orderEnabled ? '허용' : '잠금' }} · 원화설정금 {{ usdOnlyBlocked ? '있음(차단)' : '0원' }}</small>
+        <small>마지막 화면 갱신: {{ lastRefreshAt ? logTime(lastRefreshAt) : '대기 중' }} · {{ streamConnected ? '실시간 연결' : '주기적으로 상태 확인 중' }}</small>
+        <small
+          v-if="status.emergencyStopped"
+          class="error"
+        >안전정지: {{ status.lastApiFailureMessage }}</small>
+        <small
+          v-if="refreshError"
+          class="error"
+        >{{ refreshError }}</small>
       </div>
       <div class="buttons">
         <button
@@ -73,7 +82,7 @@
 
     <section class="summary">
       <article><small>사용 가능 USD</small><strong>${{ money(summary.cash?.availableUsd) }}</strong><span>D+0 외화예수금</span></article>
-      <article><small>한 번 살 수 있는 금액</small><strong>${{ money(estimatedOrderUsd) }}</strong><span>현재 USD의 최대 {{ Math.min(settings.maxOrderPercent, 99) }}%</span></article>
+      <article><small>한 번 살 수 있는 금액 상한</small><strong>${{ money(estimatedOrderUsd) }}</strong><span>{{ settings.signalMode === 'TREND' ? '자동매매 자산 비중과 ATR 위험 예산 적용' : `현재 USD의 최대 ${Math.min(settings.maxOrderPercent, 99)}%` }}</span></article>
       <article><small>자동매매로 보유 중</small><strong>{{ summary.managedPositionCount || 0 }}종목</strong><span>평가액 ${{ money(summary.managedEvaluationUsd) }}</span></article>
       <article><small>미국주식 평가액</small><strong>${{ money(summary.stockEvaluationUsd) }}</strong><span>전체 {{ summary.positionCount || 0 }}종목 · 자동 {{ summary.managedPositionCount || 0 }}종목</span></article>
     </section>
@@ -85,13 +94,17 @@
         </button>
       </header>
       <ol>
+        <li>매수 판단: {{ signalModeLabel }}. {{ settings.signalMode === 'OBSERVE' ? '새 신호는 비교 기록만 남기며 기존 조건으로 매수합니다.' : '' }}</li>
+        <li v-if="settings.signalMode === 'TREND'">
+          SPY·QQQ와 종목의 상승추세, 20거래일 상대강도, 고가 돌파를 확인합니다. ATR 손절폭과 거래당 {{ settings.riskPerTradePercent }}% 위험 예산으로 수량을 정합니다.
+        </li>
         <li>개장 직후 30분과 마감 전 1시간을 피해 매수합니다.</li>
         <li>S&amp;P 500 또는 NASDAQ-100 편입 종목만 봅니다.</li>
         <li>그중 당일 거래대금 상위 50위 안에 든 종목만 봅니다.</li>
         <li v-if="settings.fundamentalFilterEnabled">
           Forward PER {{ settings.maxForwardPe }}배 이하, ROE {{ settings.minRoePercent }}% 이상만 고릅니다.
         </li>
-        <li>오늘 {{ settings.minChangePercent }}~{{ settings.maxChangePercent }}% 오른 종목만 고릅니다.</li>
+        <li>오늘 {{ settings.signalMode === 'TREND' ? 0 : settings.minChangePercent }}~{{ settings.maxChangePercent }}% 오른 종목만 고릅니다.</li>
         <li>같은 시간대 예상 거래량 대비 {{ settings.minVolumeRatio }}배 이상인 종목만 고릅니다.</li>
         <li>매수·매도 1호가 스프레드가 {{ settings.maxSpreadPercent }}% 이하인 종목만 고릅니다.</li>
         <li>한 번에 최대 약 ${{ money(estimatedOrderUsd) }}만 매수합니다.</li>
@@ -126,6 +139,76 @@
                   <b>숫자만 바꾸면 됩니다.</b>
                   <span>각 숫자가 실제로 무엇을 뜻하는지 아래에 적었습니다. 저장하기를 눌러야 자동매매에 적용됩니다.</span>
                 </div>
+                <section class="setting-card">
+                  <p class="setting-step">
+                    매수 판단 방식
+                  </p>
+                  <div class="setting-field">
+                    <label for="us-signal-mode">추세 전략 적용<span>처음에는 비교 관찰로 신호를 검증하세요. 지수 초과수익이 검증된 전략은 아닙니다.</span></label>
+                    <select
+                      id="us-signal-mode"
+                      v-model="settings.signalMode"
+                    >
+                      <option value="LEGACY">
+                        기존 조건
+                      </option>
+                      <option value="OBSERVE">
+                        기존 조건 + 새 신호 비교 관찰
+                      </option>
+                      <option value="TREND">
+                        추세·상대강도·돌파 적용
+                      </option>
+                    </select>
+                  </div>
+                  <div class="setting-field">
+                    <label>최소 지수 대비 상대강도<span>최근 20거래일 수익률이 SPY와 QQQ 모두보다 이만큼 높아야 합니다.</span></label>
+                    <div class="number-with-unit">
+                      <input
+                        v-model.number="settings.minRelativeStrengthPercent"
+                        type="number"
+                        min="0"
+                        max="30"
+                        step="0.1"
+                      ><em>%p</em>
+                    </div>
+                  </div>
+                  <div class="setting-field">
+                    <label>거래당 허용 위험<span>계획한 손절가까지의 손실 예산입니다. 갭·슬리피지로 실제 손실은 초과할 수 있습니다.</span></label>
+                    <div class="number-with-unit">
+                      <input
+                        v-model.number="settings.riskPerTradePercent"
+                        type="number"
+                        min="0.1"
+                        max="1"
+                        step="0.1"
+                      ><em>%</em>
+                    </div>
+                  </div>
+                  <div class="setting-field">
+                    <label>ATR 손절 거리<span>최근 14거래일 평균 진폭의 배수입니다. 최대 손절률보다 넓으면 매수하지 않습니다.</span></label>
+                    <div class="number-with-unit">
+                      <input
+                        v-model.number="settings.atrStopMultiplier"
+                        type="number"
+                        min="1"
+                        max="4"
+                        step="0.1"
+                      ><em>배</em>
+                    </div>
+                  </div>
+                  <div class="setting-field">
+                    <label>돌파 후 허용 이격<span>20거래일 고가에서 ATR의 이 배수 이상 올라간 가격은 추격하지 않습니다.</span></label>
+                    <div class="number-with-unit">
+                      <input
+                        v-model.number="settings.maxEntryExtensionAtr"
+                        type="number"
+                        min="0.1"
+                        max="2"
+                        step="0.1"
+                      ><em>배</em>
+                    </div>
+                  </div>
+                </section>
                 <div
                   class="won-order-service"
                   :class="krwOrderStatus.code.toLowerCase()"
@@ -264,7 +347,7 @@
                       미리 환전한 달러 중 한 번에 얼마를 쓰고, 몇 종목까지 살지 정합니다.
                     </p>
                     <div class="setting-field">
-                      <label>한 번에 살 수 있는 돈<span>현재 D+0 USD 예수금 중 한 번의 매수에 쓸 최대 비율입니다. 지금 기준 약 ${{ money(estimatedOrderUsd) }}입니다.</span></label>
+                      <label>한 번에 살 수 있는 돈<span>{{ settings.signalMode === 'TREND' ? '자동매매 자산 기준 종목당 최대 비율이며, 가용 USD와 ATR 위험 예산으로 추가 제한합니다.' : '현재 D+0 USD 예수금 중 한 번의 매수에 쓸 최대 비율입니다.' }} 지금 기준 상한 약 ${{ money(estimatedOrderUsd) }}입니다.</span></label>
                       <div class="number-with-unit">
                         <input
                           v-model.number="settings.maxOrderPercent"
@@ -300,7 +383,7 @@
                       </div>
                     </div>
                     <div class="setting-field">
-                      <label>같은 종목을 다시 사기까지 기다릴 기간<span>최근 매수 주문 뒤 이 기간 동안 같은 종목을 다시 매수하지 않습니다.</span></label>
+                      <label>같은 종목을 다시 사기까지 기다릴 기간<span>실제로 체결된 매수에 적용합니다. 전량 미체결 취소는 주문 후 2분 대기만 적용합니다.</span></label>
                       <div class="number-with-unit">
                         <input
                           v-model.number="settings.symbolCooldownDays"
@@ -441,7 +524,7 @@
                 v-for="item in candidates"
                 :key="item.symbol"
               >
-                <td><b>{{ item.symbol }}</b><small>{{ item.name }} · {{ item.indexMembership }}</small></td><td>${{ money(item.price) }}</td><td class="up">
+                <td><b>{{ item.symbol }}</b><small>{{ item.name }} · {{ item.indexMembership }}</small><small v-if="item.technicalSignal">{{ item.technicalSignal.reason }}<template v-if="item.technicalSignal.relativeStrengthPercent != null"> · 상대강도 {{ signed(item.technicalSignal.relativeStrengthPercent) }}%p</template></small></td><td>${{ money(item.price) }}</td><td class="up">
                   +{{ Number(item.changePercent).toFixed(2) }}%
                 </td><td>{{ Number(item.volumeRatio).toFixed(2) }}배</td><td>{{ item.forwardPe == null ? '-' : Number(item.forwardPe).toFixed(1) }}</td><td>{{ item.roePercent == null ? '-' : `${Number(item.roePercent).toFixed(1)}%` }}</td><td>{{ Number(item.spreadPercent).toFixed(2) }}%</td><td>{{ Number(item.score).toFixed(1) }}</td>
               </tr>
@@ -466,7 +549,7 @@
                 v-for="item in holdings"
                 :key="`${item.exchange}-${item.symbol}`"
               >
-                <td><b>{{ item.symbol }}</b><small>{{ item.stockName }}</small></td><td>{{ item.managedByAutoTrade ? '자동관리' : '장기/수동' }}</td><td>{{ item.quantity }}</td><td>${{ money(item.currentPrice) }}</td><td :class="Number(item.profitLossPercent) >= 0 ? 'up' : 'down'">
+                <td><b>{{ item.symbol }}</b><small>{{ item.stockName }}</small></td><td>{{ item.managedByAutoTrade ? `자동관리 ${item.managedQuantity}주` : '장기/수동' }}</td><td>{{ item.quantity }}</td><td>${{ money(item.currentPrice) }}</td><td :class="Number(item.profitLossPercent) >= 0 ? 'up' : 'down'">
                   {{ signed(item.profitLossPercent) }}%
                 </td>
               </tr>
@@ -519,17 +602,23 @@ import axios from '@/axios'
 const BASE = '/api/kiwoom/us/auto-trade'
 const status = ref({ configured: false, autoTrading: false, orderEnabled: false, marketOpen: false, entryWindow: false, marketSeason: '', regularSessionKst: '', entrySessionKst: '' })
 const summary = ref({ cash: { availableUsd: 0, krwOrderSettingAmount: 0, usdOnlyBuyAllowed: true, blockReason: '' }, stockEvaluationUsd: 0, managedEvaluationUsd: 0, perOrderLimitUsd: 0, positionCount: 0, managedPositionCount: 0, krwOrderServiceStatus: { code: 'UNKNOWN', label: '확인 불가', message: '계좌 상태를 불러오는 중입니다.' } })
-const settings = ref({ fundamentalFilterEnabled: true, maxForwardPe: 50, minRoePercent: 10, minChangePercent: 2, maxChangePercent: 8, minVolumeRatio: 1.2, maxSpreadPercent: 0.15, maxOrderPercent: 10, maxPositions: 3, dailyMaxBuys: 2, symbolCooldownDays: 5, maxHoldingDays: 5, stopLossPercent: 3, takeProfitPercent: 5, takeProfitPercent2: 8, dailyLossLimitPercent: 3 })
+const settings = ref({ signalMode: 'OBSERVE', minRelativeStrengthPercent: 0, riskPerTradePercent: 0.5, atrStopMultiplier: 2, maxEntryExtensionAtr: 1, fundamentalFilterEnabled: true, maxForwardPe: 50, minRoePercent: 10, minChangePercent: 2, maxChangePercent: 8, minVolumeRatio: 1.2, maxSpreadPercent: 0.15, maxOrderPercent: 10, maxPositions: 3, dailyMaxBuys: 2, symbolCooldownDays: 5, maxHoldingDays: 5, stopLossPercent: 3, takeProfitPercent: 5, takeProfitPercent2: 8, dailyLossLimitPercent: 3 })
 const candidates = ref([]), holdings = ref([]), logs = ref([])
 const pending = ref(false), error = ref(''), showSettings = ref(false), logBox = ref(null)
-let source, settingsOriginal = ''
+const lastRefreshAt = ref(null), streamConnected = ref(false), refreshError = ref('')
+let source, settingsOriginal = '', refreshPromise, refreshTimer, eventRefreshTimer, disposed = false
 const money = value => Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const won = value => Number(value || 0).toLocaleString('ko-KR', { maximumFractionDigits: 0 })
 const validNumber = (value, min, max) => typeof value === 'number' && !Number.isNaN(value) && value >= min && value <= max
 const validInteger = (value, min, max) => Number.isInteger(value) && value >= min && value <= max
 const usdOnlyBlocked = computed(() => summary.value.cash?.usdOnlyBuyAllowed === false)
 const krwOrderStatus = computed(() => summary.value.krwOrderServiceStatus || { code: 'UNKNOWN', label: '확인 불가', message: '계좌 상태를 확인할 수 없습니다.' })
-const estimatedOrderUsd = computed(() => Number(summary.value.cash?.availableUsd || 0) * Math.min(Number(settings.value.maxOrderPercent || 0), 99) / 100)
+const signalModeLabel = computed(() => ({ LEGACY: '기존 조건', OBSERVE: '새 신호 비교 관찰', TREND: '추세·상대강도·돌파' }[settings.value.signalMode] || '새 신호 비교 관찰'))
+const estimatedOrderUsd = computed(() => {
+  const cash = Number(summary.value.cash?.availableUsd || 0)
+  const base = settings.value.signalMode === 'TREND' ? Number(summary.value.automatedCapitalUsd || 0) : cash
+  return Math.min(cash * 0.99, base * Math.min(Number(settings.value.maxOrderPercent || 0), 99) / 100)
+})
 const decisionButtonLabel = computed(() => status.value.autoTrading ? '후보 확인·매수 판단' : '후보만 확인')
 const decisionButtonHint = computed(() => status.value.autoTrading
   ? '자동매매 실행 중이므로 조건을 통과하면 실계좌 매수 주문이 전송될 수 있습니다.'
@@ -537,6 +626,11 @@ const decisionButtonHint = computed(() => status.value.autoTrading
 const settingsDirty = computed(() => showSettings.value && JSON.stringify(settings.value) !== settingsOriginal)
 const validationError = computed(() => {
   const s = settings.value
+  if (!['LEGACY', 'OBSERVE', 'TREND'].includes(s.signalMode)) return '매수 판단 방식을 선택하세요.'
+  if (!validNumber(s.minRelativeStrengthPercent, 0, 30)) return '최소 상대강도는 0~30%p 사이여야 합니다.'
+  if (!validNumber(s.riskPerTradePercent, 0.1, 1)) return '거래당 위험은 0.1~1% 사이여야 합니다.'
+  if (!validNumber(s.atrStopMultiplier, 1, 4)) return 'ATR 손절 거리는 1~4배 사이여야 합니다.'
+  if (!validNumber(s.maxEntryExtensionAtr, 0.1, 2)) return '허용 이격은 ATR의 0.1~2배 사이여야 합니다.'
   if (!validNumber(s.minChangePercent, 0, 20)) return '오늘 최소 상승률은 0부터 20% 사이여야 합니다.'
   if (!validNumber(s.maxChangePercent, s.minChangePercent, 30)) return '오늘 최대 상승률은 최소 상승률 이상, 30% 이하여야 합니다.'
   if (!validNumber(s.maxForwardPe, 5, 100)) return '최대 Forward PER는 5부터 100배 사이여야 합니다.'
@@ -560,13 +654,34 @@ const label = type => ({ CANDIDATE: '후보', CANDIDATE_REJECTED: '후보탈락'
 const tone = type => type?.includes('BUY') ? 'buy' : type?.includes('SELL') ? 'sell' : type === 'CANDIDATE' ? 'candidate' : ['ERROR', 'USD_CASH_BLOCK', 'DATA_MISSING'].includes(type) ? 'error-line' : 'system'
 function pushLog(item) { logs.value.push({ id: `${Date.now()}-${Math.random()}`, ...item }); if (logs.value.length > 300) logs.value.shift(); nextTick(() => { if (logBox.value) logBox.value.scrollTop = logBox.value.scrollHeight }) }
 async function loadAll(sync = false) {
-  const statusRes = await axios.get(`${BASE}/status`); status.value = statusRes.data
-  const [settingsRes, auditRes, candidateRes, holdingRes] = await Promise.all([axios.get(`${BASE}/settings`), axios.get(`${BASE}/audit`), axios.get(`${BASE}/candidates`), axios.get(`${BASE}/holdings`)])
-  settings.value = settingsRes.data; logs.value = [...auditRes.data].reverse(); candidates.value = candidateRes.data; holdings.value = holdingRes.data
-  if (status.value.configured) {
-    const accountResponse = await (sync ? axios.post(`${BASE}/sync`) : axios.get(`${BASE}/summary`))
-    summary.value = accountResponse.data.snapshot || accountResponse.data
+  if (refreshPromise) {
+    await refreshPromise
+    if (!sync || disposed) return
   }
+  if (disposed) return
+  refreshPromise = (async () => {
+    const { data: currentStatus } = await axios.get(`${BASE}/status`)
+    if (disposed) return
+    status.value = currentStatus
+    if (currentStatus.configured) {
+      const accountResponse = await (sync ? axios.post(`${BASE}/sync`) : axios.get(`${BASE}/summary`))
+      if (disposed) return
+      summary.value = accountResponse.data.snapshot || accountResponse.data
+    }
+    // Read holdings after manual synchronization; preserve an open settings draft.
+    const [settingsRes, auditRes, candidateRes, holdingRes] = await Promise.all([axios.get(`${BASE}/settings`), axios.get(`${BASE}/audit`), axios.get(`${BASE}/candidates`), axios.get(`${BASE}/holdings`)])
+    if (disposed) return
+    if (!showSettings.value) settings.value = settingsRes.data
+    if (!lastRefreshAt.value) logs.value = [...auditRes.data].reverse()
+    candidates.value = candidateRes.data
+    holdings.value = holdingRes.data
+    lastRefreshAt.value = new Date().toISOString()
+    refreshError.value = ''
+  })()
+  try { await refreshPromise } finally { refreshPromise = null }
+}
+async function refreshInBackground() {
+  try { await loadAll() } catch (e) { if (!disposed) refreshError.value = `상태 갱신 실패: ${e.response?.data?.message || e.message}` }
 }
 async function action(fn) { pending.value = true; error.value = ''; try { await fn() } catch (e) { error.value = e.response?.data?.message || e.message || '요청에 실패했습니다.' } finally { pending.value = false } }
 async function toggle() { const enabled = !status.value.autoTrading; if (enabled && usdOnlyBlocked.value) { error.value = summary.value.cash?.blockReason || '원화주문설정금이 있어 자동매매를 시작할 수 없습니다.'; return } if (!window.confirm(enabled ? '실계좌 미국주식 신규 매수를 시작할까요? 시작 시 원화주문설정금 0원을 다시 확인하고, 실제 매수 직전에도 D+0 USD 예수금을 재검증합니다.' : '신규 자동매수를 중지할까요? 자동매매 보유종목의 손절·익절 감시와 주문 동기화는 계속됩니다.')) return; await action(async () => { await axios.post(`${BASE}/control`, { enabled }); await loadAll() }) }
@@ -581,9 +696,23 @@ async function refreshIndexUniverse() { await action(async () => { await axios.p
 function openSettings() { settingsOriginal = JSON.stringify(settings.value); error.value = ''; showSettings.value = true }
 function closeSettings() { if (pending.value) return; if (settingsDirty.value && !window.confirm('저장하지 않은 변경사항이 있습니다. 닫을까요?')) return; settings.value = JSON.parse(settingsOriginal); showSettings.value = false }
 async function saveSettings() { if (validationError.value) return; await action(async () => { settings.value = (await axios.patch(`${BASE}/settings`, settings.value)).data; settingsOriginal = JSON.stringify(settings.value); showSettings.value = false; pushLog({ type: 'SYSTEM', message: '미국주식 자동매매 전략 설정을 저장했습니다.', createdAt: new Date().toISOString() }) }) }
-function connect() { source = new EventSource(`${process.env.VUE_APP_API_URL || ''}${BASE}/events`, { withCredentials: true }); source.addEventListener('kiwoom-us', event => pushLog(JSON.parse(event.data))) }
-onMounted(() => action(async () => { await loadAll(); connect() }))
-onBeforeUnmount(() => source?.close())
+function connect() {
+  source = new EventSource(`${process.env.VUE_APP_API_URL || ''}${BASE}/events`, { withCredentials: true })
+  source.onopen = () => { streamConnected.value = true; refreshInBackground() }
+  source.onerror = () => { streamConnected.value = false }
+  source.addEventListener('kiwoom-us', event => {
+    if (disposed) return
+    try { pushLog(JSON.parse(event.data)) } catch { return }
+    if (!eventRefreshTimer) eventRefreshTimer = setTimeout(() => { eventRefreshTimer = null; refreshInBackground() }, 1500)
+  })
+}
+onMounted(async () => {
+  await action(() => loadAll())
+  if (disposed) return
+  connect()
+  refreshTimer = setInterval(refreshInBackground, 30000)
+})
+onBeforeUnmount(() => { disposed = true; clearInterval(refreshTimer); clearTimeout(eventRefreshTimer); source?.close() })
 </script>
 
 <style scoped>
