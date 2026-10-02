@@ -1,18 +1,19 @@
 <template>
   <section class="us-auto">
     <header class="hero">
-      <div><p>KIWOOM US OPEN API</p><h3>🇺🇸 미국주식 자동매매</h3><small>거래대금 상위 종목을 규칙으로 선별하고 소액만 주문합니다.</small></div>
+      <div><p>KIWOOM US OPEN API</p><h3>🇺🇸 미국주식 자동매매</h3><small>저장한 전략으로 후보를 선별하고, 환전한 USD와 매수 한도 안에서 주문합니다.</small></div>
       <b>실전 계좌</b>
     </header>
 
     <div
       class="usd-notice"
-      :class="{ blocked: usdOnlyBlocked }"
+      :class="{ blocked: usdOnlyBlocked, unknown: !accountFresh }"
     >
-      <strong>{{ usdOnlyBlocked ? '매수 차단: 원화주문설정금이 있습니다' : '매수 자금: 미리 환전한 D+0 USD 외화예수금만' }}</strong>
-      <span v-if="usdOnlyBlocked">현재 원화주문설정금 {{ won(summary.cash?.krwOrderSettingAmount) }}원입니다. 자동매매 시작과 실제 매수 주문을 차단합니다.</span>
-      <span v-else>원화주문설정금 0원입니다. 실제 매수 직전에 원화주문 서비스 해지 상태와 외화 주문가능수량을 다시 확인하고, USD의 1%도 남깁니다.</span>
-      <small>키움의 미국주식 원화주문 서비스가 해지되어 있지 않으면 실제 매수 단계에서 무조건 차단됩니다.</small>
+      <strong>{{ !accountFresh ? '매수 자금: 계좌 확인 필요' : usdOnlyBlocked ? '매수 차단: 원화주문설정금이 있습니다' : '매수 자금: 환전한 USD 예수금' }}</strong>
+      <span v-if="!accountFresh">최신 계좌 정보를 확인하지 못했습니다. 환전 후에는 ‘계좌·체결 동기화’로 금액과 보유 내역을 확인하세요.</span>
+      <span v-else-if="usdOnlyBlocked">현재 원화주문설정금 {{ won(summary.cash?.krwOrderSettingAmount) }}원입니다. 자동매매 시작과 실제 매수 주문을 차단합니다.</span>
+      <span v-else>미체결 자동매수 예약금을 제외한 USD에서 1%를 수수료 여유로 남깁니다. 실제 주문 직전 외화 주문가능수량을 다시 확인합니다.</span>
+      <small>원화주문 서비스: {{ krwOrderStatus.label }} · 실제 매수에는 서비스 해지 확인이 필요합니다.</small>
     </div>
     <p
       v-if="error"
@@ -30,8 +31,9 @@
 
     <section class="controls">
       <div>
-        <strong>{{ status.autoTrading ? '신규 자동매수 실행 중' : '신규 자동매수 중지' }}</strong>
-        <small>{{ status.marketOpen ? '미국 정규장 운영 중' : '미국 정규장 밖' }} · 주문전송 {{ status.orderEnabled ? '허용' : '잠금' }} · 원화설정금 {{ usdOnlyBlocked ? '있음(차단)' : '0원' }}</small>
+        <strong>{{ executionLabel }}</strong>
+        <small>{{ status.marketOpen ? '미국 정규장 운영 중' : '미국 정규장 밖' }} · 주문전송 {{ status.orderEnabled ? '허용' : '잠금' }} · 원화설정금 {{ !accountFresh ? '확인 필요' : usdOnlyBlocked ? '있음(차단)' : '0원' }}</small>
+        <small>{{ readinessHint }}</small>
         <small>마지막 화면 갱신: {{ lastRefreshAt ? logTime(lastRefreshAt) : '대기 중' }} · {{ streamConnected ? '실시간 연결' : '주기적으로 상태 확인 중' }}</small>
         <small
           v-if="status.emergencyStopped"
@@ -48,7 +50,7 @@
       </div>
       <div class="buttons">
         <button
-          :disabled="pending || (!status.autoTrading && (!status.configured || !status.orderEnabled || !status.strategyEnabled || usdOnlyBlocked))"
+          :disabled="pending || (!status.autoTrading && (!status.configured || !status.orderEnabled || !status.strategyEnabled || !accountFresh || usdOnlyBlocked))"
           :class="{ danger: status.autoTrading }"
           @click="toggle"
         >
@@ -93,10 +95,37 @@
     </section>
 
     <section class="summary">
-      <article><small>사용 가능 USD</small><strong>${{ money(summary.cash?.availableUsd) }}</strong><span>D+0 외화예수금</span></article>
-      <article><small>한 번 살 수 있는 금액 상한</small><strong>${{ money(estimatedOrderUsd) }}</strong><span>{{ settings.signalMode === 'TREND' ? '자동매매 자산 비중과 ATR 위험 예산 적용' : `현재 USD의 최대 ${Math.min(settings.maxOrderPercent, 99)}%` }}</span></article>
-      <article><small>자동매매로 보유 중</small><strong>{{ summary.managedPositionCount || 0 }}종목</strong><span>평가액 ${{ money(summary.managedEvaluationUsd) }}</span></article>
-      <article><small>미국주식 평가액</small><strong>${{ money(summary.stockEvaluationUsd) }}</strong><span>전체 {{ summary.positionCount || 0 }}종목 · 자동 {{ summary.managedPositionCount || 0 }}종목</span></article>
+      <article><small>환전 USD 예수금</small><strong>{{ accountMoney(summary.cash?.availableUsd) }}</strong><span>D+0 기준 · 예약금 차감 전</span></article>
+      <article data-testid="order-limit">
+        <small>1회 매수 금액 상한</small><strong>{{ accountMoney(summary.perOrderLimitUsd) }}</strong><span>저장한 전략·미체결 예약금 반영</span><span>{{ buyingPower.signalMode === 'TREND' ? 'ATR 위험 한도 적용 전 · 실제 주문은 더 작을 수 있음' : '정수 수량·주문가능수량 적용 전' }}</span>
+      </article>
+      <article data-testid="managed-positions">
+        <small>자동관리 보유 종목</small><strong>{{ accountLoaded ? summary.managedPositionCount : '—' }} / {{ appliedSettings.maxPositions }}종목</strong><span>자동관리 수량 평가액 {{ accountMoney(summary.managedEvaluationUsd) }}</span><span>신규 미체결 {{ buyingPower.pendingPositionCount ?? '—' }}종목도 한도에 포함</span>
+      </article>
+      <article><small>계좌 전체 주식 평가액</small><strong>{{ accountMoney(summary.stockEvaluationUsd) }}</strong><span>수동 보유 포함 · USD 예수금 제외</span></article>
+    </section>
+    <section
+      class="budget card"
+      aria-label="매수 한도 계산 근거"
+    >
+      <header><strong>매수 한도 계산 근거</strong><span>{{ accountFresh ? '최신 계좌 조회' : accountLoaded ? '이전 조회값 · 재확인 필요' : '계좌 확인 대기' }}</span></header>
+      <dl>
+        <div><dt>미체결 자동매수 예약금</dt><dd>{{ accountMoney(buyingPower.reservedUsd) }}</dd></div>
+        <div><dt>예약금 제외 USD</dt><dd>{{ accountMoney(buyingPower.unreservedUsd) }}</dd></div>
+        <div><dt>{{ buyingPower.signalMode === 'TREND' ? '자동매매 기준자산' : '예약금 제외 USD' }} × {{ buyingPower.maxOrderPercent ?? '—' }}%<small v-if="buyingPower.maxOrderPercent > 99">적용 비율은 최대 99%</small></dt><dd>{{ accountMoney(buyingPower.allocationLimitUsd) }}</dd></div>
+        <div v-if="buyingPower.signalMode === 'TREND'">
+          <dt>거래당 위험 예산 · {{ buyingPower.riskPerTradePercent }}%</dt><dd>{{ accountMoney(buyingPower.riskBudgetUsd) }}</dd>
+        </div>
+      </dl>
+      <p>1회 매수 금액 상한 = 설정 비중 금액과 예약금 제외 USD의 99% 중 작은 금액입니다.</p>
+      <p v-if="buyingPower.signalMode === 'TREND'">
+        자동매매 기준자산 {{ accountMoney(summary.automatedCapitalUsd) }} = USD 예수금 + 자동관리 수량 평가액. 수동 보유 평가액은 제외합니다. 실제 수량은 금액 상한과 ATR 손절폭에 따른 위험 예산 중 더 작은 한도로 정합니다.
+      </p>
+      <p v-else>
+        기존 조건과 비교 관찰 모드는 USD 비중으로 수량을 정합니다. 비교 관찰 모드의 ATR 신호는 기록에만 사용합니다.
+      </p>
+      <p>금액 상한은 매수 가능 여부를 뜻하지 않습니다. 보유 종목 수·하루 매수 횟수·진입 조건도 통과해야 합니다.</p>
+      <small>계좌 조회: {{ summary.capturedAt ? logTime(summary.capturedAt) : '확인 전' }} · 보유 내역 동기화: {{ buyingPower.holdingsSyncedAt ? logTime(buyingPower.holdingsSyncedAt) : '서버 시작 후 확인 전' }}</small>
     </section>
 
     <section class="rules card">
@@ -108,23 +137,29 @@
           전략 설정
         </button>
       </header>
-      <ol>
-        <li>매수 판단: {{ signalModeLabel }}. {{ settings.signalMode === 'OBSERVE' ? '새 신호는 비교 기록만 남기며 기존 조건으로 매수합니다.' : '' }}</li>
-        <li v-if="settings.signalMode === 'TREND'">
-          SPY·QQQ와 종목의 상승추세, 20거래일 상대강도, 고가 돌파를 확인합니다. ATR 손절폭과 거래당 {{ settings.riskPerTradePercent }}% 위험 예산으로 수량을 정합니다.
+      <p
+        v-if="!settingsLoaded"
+        class="holdings-help"
+      >
+        저장된 전략 설정을 확인하고 있습니다.
+      </p>
+      <ol v-else>
+        <li>매수 판단: {{ signalModeLabel }}. {{ appliedSettings.signalMode === 'OBSERVE' ? '새 신호는 비교 기록만 남기며 기존 조건으로 매수합니다.' : '' }}</li>
+        <li v-if="appliedSettings.signalMode === 'TREND'">
+          SPY·QQQ와 종목의 상승추세, 20거래일 상대강도, 고가 돌파를 확인합니다. ATR 손절폭과 거래당 {{ appliedSettings.riskPerTradePercent }}% 위험 예산으로 수량을 정합니다.
         </li>
         <li>개장 직후 30분과 마감 전 1시간을 피해 매수합니다.</li>
         <li>S&amp;P 500 또는 NASDAQ-100 편입 종목만 봅니다.</li>
         <li>그중 당일 거래대금 상위 50위 안에 든 종목만 봅니다.</li>
-        <li v-if="settings.fundamentalFilterEnabled">
-          Forward PER {{ settings.maxForwardPe }}배 이하, ROE {{ settings.minRoePercent }}% 이상만 고릅니다.
+        <li v-if="appliedSettings.fundamentalFilterEnabled">
+          Forward PER {{ appliedSettings.maxForwardPe }}배 이하, ROE {{ appliedSettings.minRoePercent }}% 이상만 고릅니다.
         </li>
-        <li>오늘 {{ settings.signalMode === 'TREND' ? 0 : settings.minChangePercent }}~{{ settings.maxChangePercent }}% 오른 종목만 고릅니다.</li>
-        <li>같은 시간대 예상 거래량 대비 {{ settings.minVolumeRatio }}배 이상인 종목만 고릅니다.</li>
-        <li>매수·매도 1호가 스프레드가 {{ settings.maxSpreadPercent }}% 이하인 종목만 고릅니다.</li>
-        <li>한 번에 최대 약 ${{ money(estimatedOrderUsd) }}만 매수합니다.</li>
-        <li>자동매매 종목은 최대 {{ settings.maxPositions }}개, 하루 매수는 최대 {{ settings.dailyMaxBuys }}번입니다.</li>
-        <li>{{ settings.signalMode === 'TREND' ? `ATR 손절폭(최대 ${settings.stopLossPercent}%)` : `-${settings.stopLossPercent}% 손절` }}, +{{ settings.takeProfitPercent }}%부터 자동관리 수량을 나눠 익절하고 최대 {{ settings.maxHoldingDays }}일(달력일)을 보유합니다.</li>
+        <li>오늘 {{ appliedSettings.signalMode === 'TREND' ? 0 : appliedSettings.minChangePercent }}~{{ appliedSettings.maxChangePercent }}% 오른 종목만 고릅니다.</li>
+        <li>같은 시간대 예상 거래량 대비 {{ appliedSettings.minVolumeRatio }}배 이상인 종목만 고릅니다.</li>
+        <li>매수·매도 1호가 스프레드가 {{ appliedSettings.maxSpreadPercent }}% 이하인 종목만 고릅니다.</li>
+        <li>1회 매수 금액 상한은 {{ accountMoney(summary.perOrderLimitUsd) }}입니다. 종목 가격·주문가능수량{{ appliedSettings.signalMode === 'TREND' ? '·ATR 위험 예산' : '' }}에 따라 실제 주문금액은 더 작아질 수 있습니다.</li>
+        <li>자동관리 보유와 신규 미체결 매수는 합계 최대 {{ appliedSettings.maxPositions }}종목, 하루 매수는 최대 {{ appliedSettings.dailyMaxBuys }}번입니다.</li>
+        <li>{{ appliedSettings.signalMode === 'TREND' ? `ATR 손절폭(최대 ${appliedSettings.stopLossPercent}%)` : `-${appliedSettings.stopLossPercent}% 손절` }}, +{{ appliedSettings.takeProfitPercent }}%부터 자동관리 수량을 나눠 익절하고 최대 {{ appliedSettings.maxHoldingDays }}일(달력일)을 보유합니다.</li>
       </ol>
       <teleport to="body">
         <div
@@ -133,10 +168,17 @@
           data-lenis-prevent
           @click.self="closeSettings"
         >
-          <div class="amodal-box us-settings-modal">
+          <div
+            class="amodal-box us-settings-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="us-settings-title"
+          >
             <div class="amodal-head">
               <div>
-                <h2>미국주식 매매 규칙 설정</h2>
+                <h2 id="us-settings-title">
+                  미국주식 매매 규칙 설정
+                </h2>
                 <span class="amodal-badge amodal-badge-on">D+0 USD만 사용</span>
               </div>
               <button
@@ -151,8 +193,8 @@
             <div class="amodal-body">
               <div class="settings-area">
                 <div class="easy-guide">
-                  <b>숫자만 바꾸면 됩니다.</b>
-                  <span>각 숫자가 실제로 무엇을 뜻하는지 아래에 적었습니다. 저장하기를 눌러야 자동매매에 적용됩니다.</span>
+                  <b>전략 설정 미리보기 · 저장 전에는 적용되지 않습니다.</b>
+                  <span>아래 예상 한도는 편집 중인 설정 기준입니다. 화면의 현재 적용 규칙과 금액 상한은 저장된 설정을 표시합니다.</span>
                 </div>
 
                 <div
@@ -203,6 +245,7 @@
                       <div class="number-with-unit">
                         <input
                           v-model.number="settings.minRelativeStrengthPercent"
+                          :disabled="settings.signalMode === 'LEGACY'"
                           type="number"
                           min="0"
                           max="30"
@@ -211,10 +254,11 @@
                       </div>
                     </div>
                     <div class="setting-field">
-                      <label>거래당 허용 위험<span>TREND에서만 주문 수량에 적용합니다. 관찰 모드는 기존 주문 비중을 사용합니다. 갭·슬리피지로 실제 손실은 초과할 수 있습니다.</span></label>
+                      <label>거래당 허용 위험<span>추세 모드에서 자동매매 기준자산에 적용합니다. 위험 예산 미리보기 {{ accountMoney(summary.automatedCapitalUsd == null ? null : summary.automatedCapitalUsd * settings.riskPerTradePercent / 100) }}. 비교 관찰 모드에서는 수량에 적용하지 않습니다. 갭·슬리피지로 실제 손실은 초과할 수 있습니다.</span></label>
                       <div class="number-with-unit">
                         <input
                           v-model.number="settings.riskPerTradePercent"
+                          :disabled="settings.signalMode !== 'TREND'"
                           type="number"
                           min="0.1"
                           max="1"
@@ -227,6 +271,7 @@
                       <div class="number-with-unit">
                         <input
                           v-model.number="settings.atrStopMultiplier"
+                          :disabled="settings.signalMode === 'LEGACY'"
                           type="number"
                           min="1"
                           max="4"
@@ -239,6 +284,7 @@
                       <div class="number-with-unit">
                         <input
                           v-model.number="settings.maxEntryExtensionAtr"
+                          :disabled="settings.signalMode === 'LEGACY'"
                           type="number"
                           min="0.1"
                           max="2"
@@ -364,7 +410,7 @@
                       미리 환전한 달러 중 한 번에 얼마를 쓰고, 몇 종목까지 살지 정합니다.
                     </p>
                     <div class="setting-field">
-                      <label>한 번에 살 수 있는 돈<span>{{ settings.signalMode === 'TREND' ? '자동매매 자산 기준 종목당 최대 비율이며, 가용 USD와 ATR 위험 예산으로 추가 제한합니다.' : '현재 D+0 USD 예수금 중 한 번의 매수에 쓸 최대 비율입니다.' }} 지금 기준 상한 약 ${{ money(estimatedOrderUsd) }}입니다.</span></label>
+                      <label>1회 매수 최대 비중<span>{{ settings.signalMode === 'TREND' ? '자동매매 기준자산(USD 예수금 + 자동관리 수량 평가액)에 적용합니다. ATR 위험 예산으로 실제 수량을 추가 제한합니다.' : '미체결 자동매수 예약금을 제외한 USD에 적용합니다.' }} 편집값 기준 금액 상한 {{ accountMoney(estimatedOrderUsd) }} · 저장 전 미리보기{{ accountFresh ? '' : ' · 계좌 재확인 필요' }}. 비중은 최대 99%까지만 적용됩니다.</span></label>
                       <div class="number-with-unit">
                         <input
                           v-model.number="settings.maxOrderPercent"
@@ -558,15 +604,18 @@
         </div>
       </section>
       <section class="card table-card">
-        <header><strong>미국주식 보유</strong><span>{{ holdings.length }}개</span></header>
+        <header><strong>계좌 보유와 자동관리 수량</strong><span>{{ holdings.length }}종목</span></header>
+        <p class="holdings-help">
+          자동매수 체결로 확인된 수량만 손절·익절 관리합니다. 수동 보유는 관리 대상이 아니며 같은 종목에 두 수량이 함께 있을 수 있습니다.
+        </p>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>종목</th><th>구분</th><th>수량</th><th>현재가</th><th>수익률</th></tr></thead><tbody>
+            <thead><tr><th>종목</th><th>자동관리 / 수동</th><th>전체 수량</th><th>현재가</th><th>계좌 수익률</th></tr></thead><tbody>
               <tr
                 v-for="item in holdings"
                 :key="`${item.exchange}-${item.symbol}`"
               >
-                <td><b>{{ item.symbol }}</b><small>{{ item.stockName }}</small></td><td>{{ item.managedByAutoTrade ? `자동관리 ${item.managedQuantity}주` : '장기/수동' }}</td><td>{{ item.quantity }}</td><td>${{ money(item.currentPrice) }}</td><td :class="Number(item.profitLossPercent) >= 0 ? 'up' : 'down'">
+                <td><b>{{ item.symbol }}</b><small>{{ item.stockName }}</small></td><td>자동 {{ item.managedQuantity || 0 }}주<small>수동 {{ Math.max(0, item.quantity - (item.managedQuantity || 0)) }}주</small></td><td>{{ item.quantity }}</td><td>${{ money(item.currentPrice) }}</td><td :class="Number(item.profitLossPercent) >= 0 ? 'up' : 'down'">
                   {{ signed(item.profitLossPercent) }}%
                 </td>
               </tr>
@@ -575,7 +624,7 @@
                   colspan="5"
                   class="empty"
                 >
-                  보유 중인 미국주식이 없습니다.
+                  {{ buyingPower.holdingsSyncedAt ? '동기화된 보유 종목이 없습니다.' : '보유 내역 확인 전입니다. 계좌·체결 동기화를 실행하세요.' }}
                 </td>
               </tr>
             </tbody>
@@ -620,6 +669,11 @@ const BASE = '/api/kiwoom/us/auto-trade'
 const status = ref({ configured: false, autoTrading: false, orderEnabled: false, marketOpen: false, entryWindow: false, marketSeason: '', regularSessionKst: '', entrySessionKst: '' })
 const summary = ref({ cash: { availableUsd: 0, krwOrderSettingAmount: 0, usdOnlyBuyAllowed: true, blockReason: '' }, stockEvaluationUsd: 0, managedEvaluationUsd: 0, perOrderLimitUsd: 0, positionCount: 0, managedPositionCount: 0, krwOrderServiceStatus: { code: 'UNKNOWN', label: '확인 불가', message: '계좌 상태를 불러오는 중입니다.' } })
 const settings = ref({ signalMode: 'OBSERVE', minRelativeStrengthPercent: 0, riskPerTradePercent: 0.5, atrStopMultiplier: 2, maxEntryExtensionAtr: 1, fundamentalFilterEnabled: true, maxForwardPe: 50, minRoePercent: 10, minChangePercent: 2, maxChangePercent: 8, minVolumeRatio: 1.2, maxSpreadPercent: 0.15, maxOrderPercent: 10, maxPositions: 3, dailyMaxBuys: 2, symbolCooldownDays: 5, maxHoldingDays: 5, stopLossPercent: 3, takeProfitPercent: 5, takeProfitPercent2: 8, dailyLossLimitPercent: 3 })
+const appliedSettings = ref({ ...settings.value })
+const accountLoaded = ref(false), accountFailed = ref(false)
+const accountFresh = computed(() => accountLoaded.value && !accountFailed.value && summary.value.fresh === true)
+const buyingPower = computed(() => summary.value.buyingPower || {})
+const accountMoney = value => accountLoaded.value && value != null ? `$${money(value)}` : '—'
 const candidates = ref([]), holdings = ref([]), logs = ref([])
 const pending = ref(false), error = ref(''), showSettings = ref(false), logBox = ref(null)
 const settingsLoaded = ref(false), actionNotice = ref('')
@@ -631,11 +685,21 @@ const validNumber = (value, min, max) => typeof value === 'number' && !Number.is
 const validInteger = (value, min, max) => Number.isInteger(value) && value >= min && value <= max
 const usdOnlyBlocked = computed(() => summary.value.cash?.usdOnlyBuyAllowed === false)
 const krwOrderStatus = computed(() => summary.value.krwOrderServiceStatus || { code: 'UNKNOWN', label: '확인 불가', message: '계좌 상태를 확인할 수 없습니다.' })
-const signalModeLabel = computed(() => ({ LEGACY: '기존 조건', OBSERVE: '새 신호 비교 관찰', TREND: '추세·상대강도·돌파' }[settings.value.signalMode] || '새 신호 비교 관찰'))
+const signalModeLabel = computed(() => ({ LEGACY: '기존 조건', OBSERVE: '기존 조건 + 새 신호 비교 관찰', TREND: '추세·상대강도·돌파' }[appliedSettings.value.signalMode] || '확인 전'))
 const estimatedOrderUsd = computed(() => {
-  const cash = Number(summary.value.cash?.availableUsd || 0)
+  if (buyingPower.value.reservedUsd == null) return null
+  const cash = Math.max(0, Number(summary.value.cash?.availableUsd || 0) - Number(buyingPower.value.reservedUsd))
   const base = settings.value.signalMode === 'TREND' ? Number(summary.value.automatedCapitalUsd || 0) : cash
   return Math.min(cash * 0.99, base * Math.min(Number(settings.value.maxOrderPercent || 0), 99) / 100)
+})
+const executionLabel = computed(() => !status.value.autoTrading ? '신규 자동매수 중지' : status.value.entryWindow ? '신규 자동매수 활성' : '신규 자동매수 활성 · 진입 시간 대기')
+const readinessHint = computed(() => {
+  if (!accountFresh.value) return '최신 계좌 확인이 필요합니다. 표시 금액만으로 매수 가능 여부를 판단하지 마세요.'
+  if (usdOnlyBlocked.value) return summary.value.cash?.blockReason || '원화주문설정금 때문에 신규 매수가 차단됩니다.'
+  if (krwOrderStatus.value.code !== 'CANCELED') return '실제 매수 전 원화주문 서비스 해지 확인이 필요합니다.'
+  if (Number(summary.value.perOrderLimitUsd) <= 0) return '설정과 미체결 예약금을 반영한 매수 금액이 없습니다.'
+  if (Number(summary.value.managedPositionCount) + Number(buyingPower.value.pendingPositionCount || 0) >= Number(appliedSettings.value.maxPositions)) return '자동관리 보유·신규 미체결 매수가 최대 종목 수에 도달했습니다.'
+  return status.value.entryWindow ? '진입 조건과 하루 매수 한도를 통과한 종목만 주문합니다.' : `신규 매수 평가 시간: ${status.value.entrySessionKst || '상태 확인 중'} (한국시간). 정규장에는 자동관리 수량의 매도 감시를 유지합니다.`
 })
 const decisionButtonLabel = computed(() => status.value.autoTrading ? '후보 확인·매수 판단' : '후보만 확인')
 const decisionButtonHint = computed(() => status.value.autoTrading
@@ -655,7 +719,7 @@ const validationError = computed(() => {
   if (!validNumber(s.minRoePercent, 0, 50)) return '최소 ROE는 0부터 50% 사이여야 합니다.'
   if (!validNumber(s.minVolumeRatio, 0.5, 5)) return '시간보정 거래량은 0.5부터 5배 사이여야 합니다.'
   if (!validNumber(s.maxSpreadPercent, 0.05, 1)) return '최대 호가 스프레드는 0.05부터 1% 사이여야 합니다.'
-  if (!validNumber(s.maxOrderPercent, 0.1, 100)) return '한 번에 살 수 있는 돈은 0.1부터 100% 사이여야 합니다.'
+  if (!validNumber(s.maxOrderPercent, 0.1, 100)) return '1회 매수 최대 비중은 0.1부터 100% 사이여야 합니다.'
   if (!validInteger(s.maxPositions, 1, 20)) return '동시에 보유할 종목 수는 1부터 20 사이의 정수여야 합니다.'
   if (!validInteger(s.dailyMaxBuys, 1, 20)) return '하루 매수 횟수는 1부터 20 사이의 정수여야 합니다.'
   if (!validInteger(s.symbolCooldownDays, 1, 30)) return '같은 종목을 다시 사기까지 기다릴 기간은 1부터 30일 사이여야 합니다.'
@@ -687,16 +751,19 @@ async function loadAll(sync = false, force = false) {
         const accountResponse = await (sync ? axios.post(`${BASE}/sync`) : axios.get(`${BASE}/summary`))
         if (disposed) return
         summary.value = accountResponse.data.snapshot || accountResponse.data
+        accountLoaded.value = !!summary.value.capturedAt
+        accountFailed.value = false
         if (sync) {
           actionNotice.value = accountResponse.data.warnings?.length ? accountResponse.data.warnings.join(' · ') : '계좌·체결 동기화를 완료했습니다.'
           status.value = (await axios.get(`${BASE}/status`)).data
         }
       }
-    } catch (e) { accountError = e }
+    } catch (e) { accountError = e; accountFailed.value = true }
     // Read holdings after manual synchronization; preserve an open settings draft.
     const [settingsRes, auditRes, candidateRes, holdingRes] = await Promise.all([axios.get(`${BASE}/settings`), axios.get(`${BASE}/audit`), axios.get(`${BASE}/candidates`), axios.get(`${BASE}/holdings`)])
     if (disposed) return
     if (!showSettings.value) settings.value = settingsRes.data
+    appliedSettings.value = { ...settingsRes.data }
     settingsLoaded.value = true
     if (!lastRefreshAt.value) logs.value = [...auditRes.data].reverse()
     candidates.value = candidateRes.data
@@ -705,7 +772,7 @@ async function loadAll(sync = false, force = false) {
     refreshError.value = ''
     if (accountError) throw accountError
   })()
-  try { await refreshPromise } finally { refreshPromise = null }
+  try { await refreshPromise } catch (e) { accountFailed.value = true; throw e } finally { refreshPromise = null }
 }
 async function refreshInBackground() {
   try { await loadAll() } catch (e) { if (!disposed) refreshError.value = `상태 갱신 실패: ${e.response?.data?.message || e.message}` }
@@ -718,11 +785,11 @@ async function runDecision() {
   await action(async () => { const { data } = await axios.post(`${BASE}/decide`, null, { params: { allowOrder } }); pushLog({ type: 'SYSTEM', message: data.message, createdAt: new Date().toISOString() }); await loadAll(false, true) })
 }
 async function refreshAll() { await action(async () => loadAll(true)) }
-async function refreshCashPolicyStatus() { await action(async () => { summary.value = (await axios.get(`${BASE}/summary`)).data }) }
+async function refreshCashPolicyStatus() { await action(() => loadAll(false, true)) }
 async function refreshIndexUniverse() { await action(async () => { await axios.post(`${BASE}/index-universe/refresh`); status.value = (await axios.get(`${BASE}/status`)).data }) }
-function openSettings() { if (!settingsLoaded.value || pending.value) return; settingsOriginal = JSON.stringify(settings.value); error.value = ''; showSettings.value = true }
+function openSettings() { if (!settingsLoaded.value || pending.value) return; settings.value = { ...appliedSettings.value }; settingsOriginal = JSON.stringify(settings.value); error.value = ''; showSettings.value = true }
 function closeSettings() { if (pending.value) return; if (settingsDirty.value && !window.confirm('저장하지 않은 변경사항이 있습니다. 닫을까요?')) return; settings.value = JSON.parse(settingsOriginal); showSettings.value = false }
-async function saveSettings() { if (validationError.value) return; await action(async () => { settings.value = (await axios.patch(`${BASE}/settings`, settings.value)).data; settingsOriginal = JSON.stringify(settings.value); try { await loadAll(false, true) } catch (e) { refreshError.value = '설정은 저장됐지만 상태 갱신에 실패했습니다.' } showSettings.value = false; pushLog({ type: 'SYSTEM', message: '미국주식 자동매매 전략 설정을 저장했습니다.', createdAt: new Date().toISOString() }) }) }
+async function saveSettings() { if (validationError.value) return; await action(async () => { settings.value = (await axios.patch(`${BASE}/settings`, settings.value)).data; appliedSettings.value = { ...settings.value }; settingsOriginal = JSON.stringify(settings.value); try { await loadAll(false, true) } catch (e) { refreshError.value = '설정은 저장됐지만 상태 갱신에 실패했습니다.'; accountFailed.value = true } showSettings.value = false; pushLog({ type: 'SYSTEM', message: '미국주식 자동매매 전략 설정을 저장했습니다.', createdAt: new Date().toISOString() }) }) }
 function connect() {
   source = new EventSource(`${process.env.VUE_APP_API_URL || ''}${BASE}/events`, { withCredentials: true })
   source.onopen = () => { streamConnected.value = true; refreshInBackground() }
@@ -743,6 +810,8 @@ onBeforeUnmount(() => { disposed = true; clearInterval(refreshTimer); clearTimeo
 </script>
 
 <style scoped>
+.us-settings-modal .strategy-settings{display:grid;grid-template-columns:minmax(0,1fr);overflow-x:hidden}.us-settings-modal .setting-card,.us-settings-modal .setting-field label{min-width:0}.us-settings-modal .setting-field label{flex:1}.us-settings-modal select{max-width:48%;padding:8px;border:1px solid var(--card-border);border-radius:8px;background:var(--input-bg,#171b20);color:var(--text-primary);font-size:.8rem}.us-settings-modal .number-with-unit{flex-shrink:0}@media(max-width:520px){.us-settings-modal select{max-width:100%;width:100%}}
+.budget dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px}.budget dl>div{padding:12px;border-radius:10px;background:var(--input-bg,#171b20)}.budget dt{font-size:.8rem;color:var(--text-muted)}.budget dd{margin:7px 0 0;font-size:1.1rem;font-weight:700;font-variant-numeric:tabular-nums}.budget p,.holdings-help{margin:10px 16px;color:var(--text-secondary);font-size:.8rem;line-height:1.6}.budget>small{display:block;margin:12px 16px 16px;color:var(--text-muted);font-size:.72rem}.budget header span{font-size:.75rem;color:var(--text-muted)}.usd-notice.unknown{border-color:#806d35;background:#3a321d;color:#f2d786}.summary strong{font-variant-numeric:tabular-nums}.summary span{font-size:.75rem;line-height:1.5;margin-top:4px}@media(max-width:520px){.budget dl{grid-template-columns:1fr}.buttons{flex-wrap:wrap}.budget header{align-items:flex-start;gap:8px;flex-direction:column}}
 .account-notice{display:flex;flex-direction:column;gap:4px;padding:12px;border:1px solid #806d35;border-radius:10px;background:#3a321d;color:#f2d786}.account-notice small{color:#c8b46f}
 .us-auto{color:var(--text-primary)}.hero,.controls,.card,.summary article{border:1px solid var(--card-border);border-radius:16px;background:var(--card-bg)}.hero,.controls{display:flex;align-items:center;justify-content:space-between;padding:20px;margin-bottom:14px}.hero p{margin:0;color:#68a4ff;font-size:.7rem;font-weight:800;letter-spacing:.14em}.hero h3{margin:6px 0}.hero small,.controls small,.summary span,td small{display:block;color:var(--text-muted)}.hero b{padding:6px 10px;border-radius:99px;background:#43201e;color:#ffb0a5;font-size:.75rem}.usd-notice{display:flex;flex-direction:column;gap:4px;margin-bottom:14px;padding:14px 16px;border:1px solid #32694f;border-radius:12px;background:#19382b;color:#b9f5d8}.usd-notice span{font-size:.78rem}.error{padding:12px;border-radius:10px;background:#472424;color:#ffb4b4}.buttons{display:flex;gap:8px}.buttons button,.card button,.strategy-settings button{padding:8px 11px;border:1px solid var(--card-border-strong);border-radius:9px;background:transparent;color:var(--text-secondary);cursor:pointer}.buttons button:first-child{background:var(--accent);color:#18140b;font-weight:700}.buttons button.danger{background:#762f35;color:#fff}.buttons button:disabled{opacity:.45}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}.summary article{padding:17px}.summary small{color:var(--text-muted)}.summary strong{display:block;margin:7px 0;font-size:1.25rem}.card{margin-bottom:14px;overflow:hidden}.card>header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--card-border)}.rules ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 28px;margin:15px 20px 18px;padding-left:20px;color:var(--text-secondary);font-size:.8rem}.grids{display:grid;grid-template-columns:1fr 1fr;gap:14px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:.78rem}th,td{padding:10px 12px;border-bottom:1px solid var(--card-border);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}td small{max-width:130px;overflow:hidden;text-overflow:ellipsis}.up,.buy{color:#ef7777}.down,.sell{color:#72a7ff}.empty{padding:25px!important;color:var(--text-muted)!important;text-align:center!important}.terminal{height:280px;overflow:auto;padding:13px 16px;background:#0a0f0d;font:12px/1.65 ui-monospace,Consolas,monospace}.terminal p{margin:0;word-break:break-word}.terminal time{margin-right:9px;color:#78847e}.terminal b{margin-right:5px}.terminal .candidate{color:#e7cf78}.terminal .system{color:#77dda0}.terminal .error-line{color:#f08d8d}@media(max-width:800px){.hero,.controls{align-items:flex-start;flex-direction:column;gap:12px}.buttons{width:100%;flex-direction:column}.summary,.grids{grid-template-columns:1fr}.rules ol{grid-template-columns:1fr}}
 .usd-notice small{color:#90caaa;font-size:.78rem}.usd-notice.blocked{border-color:#8c4141;background:#472424;color:#ffb4b4}.usd-notice.blocked small{color:#e9a1a1}

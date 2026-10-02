@@ -50,7 +50,11 @@ beforeAll(() => { component('KiwoomUsAutoTrade.vue'); component('KiwoomAutoTrade
 beforeEach(() => {
   jest.useFakeTimers(); jest.clearAllMocks()
   settings = { ...initialSettings }; status = { configured: true, autoTrading: false, orderEnabled: true, strategyEnabled: true }
-  summary = { cash: { availableUsd: 1000, usdOnlyBuyAllowed: true }, automatedCapitalUsd: 1000 }
+  summary = { cash: { availableUsd: 1000, usdOnlyBuyAllowed: true }, automatedCapitalUsd: 1000,
+    perOrderLimitUsd: 80, managedPositionCount: 0, managedEvaluationUsd: 0, stockEvaluationUsd: 0,
+    fresh: true, capturedAt: '2026-10-02T16:00:00', krwOrderServiceStatus: { code: 'CANCELED', label: '해지됨' },
+    buyingPower: { signalMode: 'OBSERVE', maxOrderPercent: 10, maxPositions: 3, riskPerTradePercent: 0.5,
+      reservedUsd: 200, unreservedUsd: 800, allocationLimitUsd: 80, pendingPositionCount: 1, holdingsSyncedAt: '2026-10-02T16:00:00' } }
   handlers = {}; calls = []; failSummary = false; failSettings = false; syncResponse = { success: true, updated: 0, message: '동기화 대상 주문이 없습니다.' }; controlResponse = {}
   window.confirm = jest.fn(() => true)
   global.EventSource = jest.fn(function () { this.addEventListener = (name, fn) => { handlers[name] = fn }; this.close = jest.fn() })
@@ -85,6 +89,61 @@ test('US popup puts new controls inside the scroll form and saves TREND with its
   expect(document.querySelector('#us-signal-mode')).toBeNull()
 })
 
+test('US main budget uses server reservation amount and stays on saved rules while editing', async () => {
+  await mount('KiwoomUsAutoTrade.vue')
+  const cap = document.querySelector('[data-testid=order-limit]')
+  expect(cap.textContent).toContain('$80.00')
+  expect(document.querySelector('.budget').textContent).toContain('$200.00')
+  await click('전략 설정')
+  await input(field('1회 매수 최대 비중'), '20')
+  expect(cap.textContent).toContain('$80.00')
+  expect(field('1회 매수 최대 비중').closest('.setting-field').textContent).toContain('$160.00')
+  await input(document.querySelector('#us-signal-mode'), 'TREND')
+  expect(document.querySelector('.rules > ol').textContent).toContain('기존 조건 + 새 신호 비교 관찰')
+  expect(field('1회 매수 최대 비중').closest('.setting-field').textContent).toContain('$200.00')
+  await click('취소')
+  expect(cap.textContent).toContain('$80.00')
+})
+
+test('US saved TREND budget and ownership quantities are explained separately', async () => {
+  settings.signalMode = 'TREND'; summary.managedPositionCount = 1; summary.managedEvaluationUsd = 500
+  summary.automatedCapitalUsd = 1500; summary.perOrderLimitUsd = 150
+  summary.buyingPower = { ...summary.buyingPower, signalMode: 'TREND', allocationLimitUsd: 150, riskBudgetUsd: 7.5 }
+  const original = http.get.getMockImplementation()
+  http.get.mockImplementation(url => url === `${US}/holdings`
+    ? Promise.resolve({ data: [{ symbol: 'TEST', exchange: 'ND', quantity: 10, managedQuantity: 5 }] }) : original(url))
+  await mount('KiwoomUsAutoTrade.vue')
+  expect(document.querySelector('[data-testid=managed-positions]').textContent).toContain('1 / 3종목')
+  expect(document.querySelector('.budget').textContent).toContain('$7.50')
+  expect(document.querySelector('[data-testid=order-limit]').textContent).toContain('ATR 위험 한도 적용 전')
+  expect(document.body.textContent).toContain('자동 5주수동 5주')
+})
+
+test('US failed or stale account never presents fallback zeroes as current buying power', async () => {
+  failSummary = true; await mount('KiwoomUsAutoTrade.vue')
+  expect(document.querySelector('[data-testid=order-limit] strong').textContent).toBe('—')
+  expect(button('신규매수 시작').disabled).toBe(true)
+  expect(document.querySelector('.usd-notice').textContent).toContain('계좌 확인 필요')
+  failSummary = false; await click('계좌·체결 동기화')
+  expect(document.querySelector('[data-testid=order-limit]').textContent).toContain('$80.00')
+  expect(button('신규매수 시작').disabled).toBe(false)
+  summary = { ...summary, fresh: false }
+  jest.advanceTimersByTime(30000); await flush()
+  expect(document.querySelector('.budget').textContent).toContain('이전 조회값')
+  expect(button('신규매수 시작').disabled).toBe(true)
+})
+
+test('US exchange refresh after funding updates the server budget and failed refresh marks old data', async () => {
+  await mount('KiwoomUsAutoTrade.vue')
+  summary = { ...summary, cash: { ...summary.cash, availableUsd: 2000 }, perOrderLimitUsd: 180,
+    buyingPower: { ...summary.buyingPower, unreservedUsd: 1800, allocationLimitUsd: 180 } }
+  await click('계좌·체결 동기화')
+  expect(document.querySelector('[data-testid=order-limit]').textContent).toContain('$180.00')
+  failSummary = true; jest.advanceTimersByTime(30000); await flush()
+  expect(document.querySelector('.budget').textContent).toContain('이전 조회값')
+  expect(document.querySelector('[data-testid=order-limit]').textContent).toContain('$180.00')
+})
+
 test('US cancel discards a draft and polling preserves it while open', async () => {
   await mount('KiwoomUsAutoTrade.vue'); await click('전략 설정'); await input(document.querySelector('#us-signal-mode'), 'TREND')
   jest.advanceTimersByTime(30000); await flush()
@@ -92,6 +151,24 @@ test('US cancel discards a draft and polling preserves it while open', async () 
   await click('취소'); await click('전략 설정')
   expect(document.querySelector('#us-signal-mode').value).toBe('OBSERVE')
   expect(http.patch).not.toHaveBeenCalled()
+})
+
+test('US reopening the popup uses current saved settings after another session updates them', async () => {
+  await mount('KiwoomUsAutoTrade.vue'); await click('전략 설정')
+  await input(field('1회 매수 최대 비중'), '20')
+  settings = { ...settings, maxOrderPercent: 30 }
+  jest.advanceTimersByTime(30000); await flush()
+  expect(field('1회 매수 최대 비중').value).toBe('20')
+  await click('취소'); await click('전략 설정')
+  expect(field('1회 매수 최대 비중').value).toBe('30')
+})
+
+test('US status polling failure marks the existing budget as old without blocking stop', async () => {
+  status.autoTrading = true; await mount('KiwoomUsAutoTrade.vue')
+  http.get.mockRejectedValueOnce(new Error('status unavailable'))
+  jest.advanceTimersByTime(30000); await flush()
+  expect(document.querySelector('.budget').textContent).toContain('이전 조회값')
+  expect(button('신규매수 중지').disabled).toBe(false)
 })
 
 test('US stop is available with funding blocked and only posts control false', async () => {
