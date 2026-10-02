@@ -83,10 +83,11 @@ test('US popup separates trend lifecycle controls from unused legacy rules', asy
   const mode = document.querySelector('#us-signal-mode')
   expect(mode.closest('form').id).toBe('us-strategy-settings')
   await input(mode, 'TREND')
-  expect(field('오늘 최소 상승률').disabled).toBe(true)
-  expect(field('오늘 최대 상승률').disabled).toBe(true)
-  expect(field('1차 이익 실현').disabled).toBe(true)
-  expect(field('가장 오래 보유할 기간').disabled).toBe(true)
+  const labels = [...document.querySelectorAll('.setting-field > label')].map(el => el.textContent)
+  for (const name of ['오늘 최소 상승률', '오늘 최대 상승률', '1차 이익 실현', '가장 오래 보유할 기간']) {
+    expect(labels.some(text => text.startsWith(name))).toBe(false)
+  }
+  expect(document.querySelector('.legacy-reference').open).toBe(false)
   await input(document.querySelector('#us-trail-atr'), '3')
   document.querySelector('#us-strategy-settings').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); await flush()
   expect(http.patch).toHaveBeenCalledWith(`${US}/settings`, expect.objectContaining({ signalMode: 'TREND', maxChangePercent: 8, minChangePercent: 2, riskPerTradePercent: 0.5, trailingStopAtrMultiplier: 3 }))
@@ -94,10 +95,18 @@ test('US popup separates trend lifecycle controls from unused legacy rules', asy
 })
 
 test('US trend preset is reviewable before saving and never starts trading', async () => {
+  settings = { ...settings, minVolumeRatio: 3, maxSpreadPercent: 0.5, dailyMaxBuys: 8,
+    fundamentalFilterEnabled: false, stopLossPercent: 10, takeProfitPercent2: 12 }
   await mount('KiwoomUsAutoTrade.vue'); await click('전략 설정'); await click('추세 전략 시작값 불러오기')
   expect(document.querySelector('#us-signal-mode').value).toBe('TREND')
   expect(field('1회 매수 최대 비중').value).toBe('25')
   expect(document.querySelector('#us-trend-days').value).toBe('5')
+  expect(field('최소 시간보정 거래량').value).toBe('1.2')
+  expect(field('최대 호가 스프레드').value).toBe('0.15')
+  expect(field('하루에 새로 살 수 있는 횟수').value).toBe('2')
+  expect(field('최대 손절률').value).toBe('3')
+  expect(field('PER·ROE 기업 필터').checked).toBe(true)
+  expect(document.querySelector('.legacy-reference').textContent).toContain('2차 익절 +12%')
   expect(document.querySelector('.rules > ol').textContent).toContain('기존 조건 + 새 신호 비교 관찰')
   expect(http.post).not.toHaveBeenCalled(); expect(http.patch).not.toHaveBeenCalled()
   await input(document.querySelector('#us-trail-atr'), '0')
