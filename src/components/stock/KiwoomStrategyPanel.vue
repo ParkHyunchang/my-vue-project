@@ -9,7 +9,7 @@
         </div>
       </div>
       <p class="notice">
-        {{ config.autoExecute ? `완전 자동매매 활성: 예약 판단에서 신뢰도 ${config.autoExecuteMinConfidence}% 이상인 제안을 안전 검사 후 자동 전송합니다.` : '자동 주문 전송이 꺼져 있습니다. 전략 설정에서 켜야 완전 자동매매가 시작됩니다.' }}
+        {{ !autoTrading ? '자동주문이 완전히 중지되어 있습니다. 저장된 전략 설정은 유지되며, 상단 시작 버튼으로 재개합니다.' : config.autoExecute ? `완전 자동매매 활성: 예약 판단에서 신뢰도 ${config.autoExecuteMinConfidence}% 이상인 제안을 안전 검사 후 자동 전송합니다.` : '전략의 자동 주문 전송이 꺼져 있습니다. 전략 설정에서 자동 전송 여부를 확인하세요.' }}
       </p>
       <div class="panel-card-actions">
         <button
@@ -36,6 +36,13 @@
           전략 설정
         </button>
       </div>
+      <p
+        v-if="syncMessage"
+        class="settings-applied"
+        role="status"
+      >
+        {{ syncMessage }}
+      </p>
       <p
         v-if="settingsMessage"
         class="settings-applied"
@@ -313,7 +320,7 @@
 
 <script setup>
 /* global defineProps */
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import {
   fetchAccountHoldings,
   fetchStrategyConfig,
@@ -330,12 +337,14 @@ import { useStockFormatters } from '@/composables/useStockFormatters'
 const props = defineProps({
   configured: Boolean,
   autoTrading: Boolean,
+  refreshVersion: { type: Number, default: 0 },
   priceTicks: { type: Object, default: () => ({}) },
 })
 const { formatChangePct, changeClass } = useStockFormatters()
 const candidates = ref([]), runs = ref([]), brokerHoldings = ref([])
 const config = ref({ orderEnabled: false, autoExecute: false, autoExecuteMinConfidence: 85 }), operations = ref({}), pending = ref(false), loading = ref(false), error = ref(''), settingsMessage = ref(''), showSettings = ref(false)
 const liquidationMessage = ref(''), liquidationFailed = ref(false)
+const syncMessage = ref('')
 const displayedBrokerHoldings = computed(() => brokerHoldings.value.map((holding) => {
   const livePrice = Number(props.priceTicks[holding.stockCode]?.price)
   const currentPrice = Number.isFinite(livePrice) && livePrice > 0 ? livePrice : Number(holding.currentPrice || 0)
@@ -466,15 +475,16 @@ function runSummaryText (run) {
   }
   return parts.join(' · ')
 }
-async function load () { loading.value = true; try { const [universe, history, strategyConfig, holdings] = await Promise.all([fetchStrategyUniverse(), fetchStrategyRuns(50), fetchStrategyConfig(), fetchAccountHoldings()]); candidates.value = universe.data; runs.value = history.data; config.value = strategyConfig.data; brokerHoldings.value = holdings.data; autoExpandLatestRun() } catch (e) { error.value = e.response?.data?.message || '전략 데이터를 불러오지 못했습니다.' } finally { loading.value = false } }
-async function loadOperations () { try { operations.value = (await fetchStrategyHealth()).data } catch { /* 운영 상태 조회 실패는 기존 전략 기능을 막지 않는다. */ } }
+let loadRevision = 0, operationsRevision = 0
+async function load () { const revision = ++loadRevision; loading.value = true; try { const [universe, history, strategyConfig, holdings] = await Promise.all([fetchStrategyUniverse(), fetchStrategyRuns(50), fetchStrategyConfig(), fetchAccountHoldings()]); if (revision !== loadRevision) return; candidates.value = universe.data; runs.value = history.data; config.value = strategyConfig.data; brokerHoldings.value = holdings.data; autoExpandLatestRun() } catch (e) { if (revision === loadRevision) error.value = e.response?.data?.message || '전략 데이터를 불러오지 못했습니다.' } finally { if (revision === loadRevision) loading.value = false } }
+async function loadOperations () { const revision = ++operationsRevision; try { const { data } = await fetchStrategyHealth(); if (revision === operationsRevision) operations.value = data } catch { /* 운영 상태 조회 실패는 기존 전략 기능을 막지 않는다. */ } }
 // 버튼 title 툴팁에도 그대로 재사용해 확인 문구와 설명이 어긋나지 않게 한다.
 const DECIDE_NOW_HINT = '현재 시세와 보유 종목으로 즉시 재판단할까요? 자동매매가 활성화되어 있으면 안전 검사를 통과한 주문은 자동 전송됩니다.'
-const SYNC_ORDERS_HINT = '키움 서버에 전송한 주문의 체결·취소 상태를 다시 조회해 반영합니다.'
+const SYNC_ORDERS_HINT = '체결·취소 상태를 조회하고 오래된 미체결 매수는 취소 요청합니다. 자동주문 실행 중이면 체결 반영 후 청산 주문도 다시 관리합니다.'
 const STRATEGY_SETTINGS_HINT = '자동매매 조건(신뢰도 기준, 주문 한도, 손절·익절 등)을 설정합니다.'
 const RISK_LOOP_HINT = '가격이 익절·손절 조건에 도달하면 자동으로 매도 주문을 요청합니다.'
 async function decideNow () { if (!window.confirm(DECIDE_NOW_HINT)) return; pending.value = true; error.value = ''; try { await runStrategyDecision(); await Promise.all([load(), loadOperations()]) } catch (e) { error.value = e.response?.data?.message || '즉시 재판단에 실패했습니다.' } finally { pending.value = false } }
-async function syncOrders () { pending.value = true; error.value = ''; try { const { data } = await syncStrategyOrders(); if (data.updated > 0) await load(); else error.value = data.message } catch (e) { error.value = e.response?.data?.message || '주문 상태 동기화에 실패했습니다.' } finally { pending.value = false } }
+async function syncOrders () { if (pending.value) return; pending.value = true; error.value = ''; syncMessage.value = ''; try { const { data } = await syncStrategyOrders(); if (data.success === false || data.message?.includes("동기화 실패")) error.value = data.message; else syncMessage.value = data.message || `주문 상태 동기화 완료: ${data.updated || 0}건 갱신`; await Promise.all([load(), loadOperations()]) } catch (e) { error.value = e.response?.data?.message || '주문 상태 동기화에 실패했습니다.' } finally { pending.value = false } }
 // 실계좌 시장가 매도라 되돌릴 수 없다. 확인 문구에 대상 종목과 수량을 그대로 적어 오조작을 막는다.
 async function runLiquidation (stockCodes, question) {
   if (!window.confirm(question)) return
@@ -506,6 +516,7 @@ async function onSettingsSaved (result = {}) {
   await loadOperations()
 }
 onMounted(async () => { await load(); await loadOperations() })
+watch(() => props.refreshVersion, async () => { await load(); await loadOperations() })
 </script>
 
 <!-- .change-badge 색상 클래스는 전역 stock.css에 정의됨 (Top10Panel.vue와 동일 패턴) -->

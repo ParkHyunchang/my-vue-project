@@ -68,7 +68,7 @@ export function runStrategyDecision() {
 
 /**
  * 브로커 주문 상태 동기화.
- * 응답: { updated, message }
+ * 응답: { records, updated, message, success } — 갱신 0건도 정상일 수 있음.
  */
 export function syncStrategyOrders() {
   return http.post(`${STRATEGY_PATH}/orders/sync`)

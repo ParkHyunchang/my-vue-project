@@ -39,6 +39,19 @@
       </div>
     </div>
     <p
+      v-if="refreshError"
+      class="notice error"
+    >
+      {{ refreshError }}
+    </p>
+    <p
+      v-if="controlNotice"
+      class="notice"
+      role="status"
+    >
+      {{ controlNotice }}
+    </p>
+    <p
       v-if="!status.marketOpen"
       class="market-notice"
     >
@@ -78,6 +91,7 @@
       :configured="status.configured"
       :auto-trading="status.autoTrading"
       :price-ticks="priceTicks"
+      :refresh-version="refreshVersion"
     />
     <section class="log-card">
       <header>
@@ -115,22 +129,55 @@ const status = ref({ configured: false, connected: false, tokenValid: false, aut
 const account = ref({ totalAsset: null, totalAssetSource: '', totalAssetChange: null, totalAssetChangePercent: null, deposit: 0, d1Deposit: 0, d2Deposit: 0, orderAvailable: null, profitLoss: 0, stockProfitRate: 0, totalEvaluation: 0 })
 const logs = ref([]), pending = ref(false), errorMessage = ref(''), logElement = ref(null)
 const priceTicks = ref({})
-let eventSource
+const refreshVersion = ref(0), refreshError = ref(''), controlNotice = ref('')
+let eventSource, refreshTimer, eventTimer, refreshing, disposed = false
 const totalAsset = computed(() => account.value.totalAsset ?? (Number(account.value.deposit || 0) + Number(account.value.totalEvaluation || 0)))
 const formatWon = (value) => `${Number(value || 0).toLocaleString('ko-KR')}원`
 const formatSignedWon = (value) => `${Number(value) > 0 ? '+' : ''}${formatWon(value)}`
 const formatPercent = (value) => `${Number(value) >= 0 ? '+' : ''}${Number(value || 0).toFixed(2)}%`
 const changeTone = (value) => Number(value) > 0 ? 'profit' : Number(value) < 0 ? 'loss' : ''
 // 시작/중지 확인 문구와 버튼 아래 설명을 하나로 유지해 문구가 서로 어긋나지 않도록 한다.
-const TOGGLE_ON_HINT = '자동주문을 시작할까요? 현재 보유종목의 익절·손절·최대 보유기간을 다시 계산하고 장중이면 즉시 적용합니다.'
+const TOGGLE_ON_HINT = '자동주문을 시작할까요? 전략 설정의 자동 전송과 손절·익절 루프도 함께 켜고, 현재 보유종목의 청산 기준을 다시 계산합니다.'
 const TOGGLE_OFF_HINT = '자동주문을 완전히 중지할까요? 신규 주문을 멈추고 시스템이 전송한 미체결 매수·매도 주문도 취소합니다.'
 const toggleHint = computed(() => status.value.autoTrading ? TOGGLE_OFF_HINT : TOGGLE_ON_HINT)
 function pushLog(type, message) { logs.value.push({ id: `${Date.now()}-${Math.random()}`, type, message, time: new Date().toLocaleTimeString('ko-KR', { hour12: false }) }); if (logs.value.length > 300) logs.value.shift(); nextTick(() => { if (logElement.value) logElement.value.scrollTop = logElement.value.scrollHeight }) }
-async function loadStatus() { status.value = (await axios.get('/api/kiwoom/auto-trade/status')).data }
-async function loadSummary() { if (!status.value.configured) return; try { account.value = (await axios.get('/api/kiwoom/auto-trade/summary')).data } catch { /* 토큰이 없을 땐 상태 UI만 표시 */ } }
-async function toggleAutoTrade() { const enabling = !status.value.autoTrading; const question = enabling ? TOGGLE_ON_HINT : TOGGLE_OFF_HINT; if (!window.confirm(question)) return; pending.value = true; errorMessage.value = ''; try { const { data } = await axios.post('/api/kiwoom/auto-trade/control', { enabled: enabling }); status.value.autoTrading = data.autoTrading; if (data.autoTrading) pushLog('system', '자동주문을 시작하고 보유종목 청산 기준을 다시 계산했습니다.'); else { const failed = data.orderCancellationFailed || 0; pushLog(failed ? 'error' : 'system', `자동주문을 완전히 중지했습니다. 미체결 자동주문 취소 요청 ${data.orderCancellationRequested || 0}건${failed ? `, 취소 실패 ${failed}건은 키움 주문을 확인하세요.` : ''}`) } } catch (e) { errorMessage.value = e.response?.data?.message || '자동주문 상태 변경에 실패했습니다.' } finally { pending.value = false; await loadStatus() } }
-async function refreshToken() { pending.value = true; errorMessage.value = ''; try { await axios.post('/api/kiwoom/auto-trade/token/refresh'); pushLog('system', '키움 Access Token을 갱신했습니다.'); await loadSummary() } catch (e) { errorMessage.value = e.response?.data?.message || '토큰 갱신에 실패했습니다.' } finally { pending.value = false; await loadStatus() } }
-function connectEvents() { eventSource = new EventSource(`${process.env.VUE_APP_API_URL || ''}/api/kiwoom/auto-trade/events`, { withCredentials: true }); eventSource.addEventListener('kiwoom', e => handleRealtimeEvent(JSON.parse(e.data))); eventSource.onerror = () => pushLog('error', '실시간 로그 연결이 재시도 중입니다.') }
+async function refreshView(force = false) {
+  if (refreshing) { await refreshing; if (!force || disposed) return }
+  if (disposed) return
+  refreshing = (async () => {
+    try {
+      const { data } = await axios.get('/api/kiwoom/auto-trade/status')
+      if (disposed) return
+      status.value = data
+      refreshVersion.value++
+      if (data.configured) {
+        const response = await axios.get('/api/kiwoom/auto-trade/summary')
+        if (disposed) return
+        account.value = response.data
+      }
+      refreshError.value = ''
+    } catch (e) { if (!disposed) refreshError.value = e.response?.data?.message || '자동매매 상태·계좌 갱신에 실패했습니다.' }
+  })()
+  try { await refreshing } finally { refreshing = null }
+}
+async function toggleAutoTrade() {
+  if (pending.value) return
+  const enabling = !status.value.autoTrading
+  if (!window.confirm(enabling ? TOGGLE_ON_HINT : TOGGLE_OFF_HINT)) return
+  pending.value = true; errorMessage.value = ''; controlNotice.value = ''
+  try {
+    const { data } = await axios.post('/api/kiwoom/auto-trade/control', { enabled: enabling })
+    status.value.autoTrading = data.autoTrading
+    if (data.autoTrading) controlNotice.value = data.exitManagementReady === false
+      ? '자동주문은 켜졌지만 보유종목 청산 관리 준비가 완료되지 않았습니다. 운영 상태와 로그를 확인하세요.'
+      : '자동주문을 시작하고 보유종목 청산 기준을 다시 계산했습니다.'
+    else controlNotice.value = `자동주문을 중지했습니다. 미체결 자동주문 취소 요청 ${data.orderCancellationRequested || 0}건${data.orderCancellationFailed ? `, 취소 실패 ${data.orderCancellationFailed}건은 키움 주문을 확인하세요.` : '. 취소 완료는 주문 상태 동기화로 확인하세요.'}`
+    pushLog(data.orderCancellationFailed || data.exitManagementReady === false ? 'error' : 'system', controlNotice.value)
+  } catch (e) { errorMessage.value = e.response?.data?.message || '자동주문 상태 변경에 실패했습니다.' }
+  finally { await refreshView(true); pending.value = false }
+}
+async function refreshToken() { if (pending.value) return; pending.value = true; errorMessage.value = ''; try { await axios.post('/api/kiwoom/auto-trade/token/refresh'); pushLog('system', '키움 Access Token을 갱신했습니다.') } catch (e) { errorMessage.value = e.response?.data?.message || '토큰 갱신에 실패했습니다.' } finally { await refreshView(true); pending.value = false } }
+function connectEvents() { eventSource = new EventSource(`${process.env.VUE_APP_API_URL || ''}/api/kiwoom/auto-trade/events`, { withCredentials: true }); eventSource.addEventListener('kiwoom', e => { if (disposed) return; try { handleRealtimeEvent(JSON.parse(e.data)) } catch { /* ignore malformed event */ } }); eventSource.onopen = () => refreshView(); eventSource.onerror = () => { if (!disposed) pushLog('error', '실시간 로그 연결이 재시도 중입니다.') } }
 function handleRealtimeEvent(data) {
   const price = Number(data?.price)
   if (data?.type === 'price' && data.stockCode && Number.isFinite(price) && price > 0) {
@@ -138,9 +185,10 @@ function handleRealtimeEvent(data) {
     return
   }
   pushLog(data?.type || 'market', data?.message || JSON.stringify(data))
+  if (!eventTimer) eventTimer = setTimeout(() => { eventTimer = null; refreshView() }, 1500)
 }
-onMounted(async () => { try { await loadStatus(); await loadSummary(); connectEvents() } catch { errorMessage.value = '자동매매 API 상태를 불러오지 못했습니다.' } })
-onBeforeUnmount(() => eventSource?.close())
+onMounted(async () => { await refreshView(); if (disposed) return; connectEvents(); refreshTimer = setInterval(() => refreshView(), 30000) })
+onBeforeUnmount(() => { disposed = true; clearTimeout(eventTimer); clearInterval(refreshTimer); eventSource?.close() })
 </script>
 
 <style scoped>

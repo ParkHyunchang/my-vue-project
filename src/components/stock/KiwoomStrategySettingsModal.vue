@@ -10,7 +10,7 @@
           <div>
             <h2>매매 규칙 설정</h2>
             <span :class="['amodal-badge', form.autoExecute ? 'amodal-badge-on' : 'amodal-badge-off']">
-              자동 주문 {{ form.autoExecute ? '켜짐' : '꺼짐' }}
+              전략 자동 전송 {{ form.autoExecute ? '켜짐' : '꺼짐' }}
             </span>
           </div>
           <button
@@ -32,7 +32,8 @@
           <template v-else>
             <div class="easy-guide">
               <b>숫자만 바꾸면 됩니다.</b>
-              <span>저장하기를 눌러야 실제 매매 규칙에 적용됩니다.</span>
+              <span>저장하기를 눌러야 적용됩니다. 상단 ‘자동주문 시작’은 자동 전송과 손절·익절 루프를 함께 켭니다.</span>
+              <span v-if="!orderEnabled">서버 주문 전송이 잠겨 있어 현재 실주문은 전송되지 않습니다.</span>
             </div>
 
             <div class="amodal-form thin-scrollbar">
@@ -327,7 +328,7 @@
                 <div class="amodal-field switch-field">
                   <label for="ks-loop">
                     손절·익절 자동 확인
-                    <span class="amodal-field-hint">장중 5분마다 보유 종목을 확인해 아래 조건에 맞으면 매도 제안을 만듭니다.</span>
+                    <span class="amodal-field-hint">자동주문 실행 중 정규장에서 실시간 시세와 주기 조회로 손절을 감시하고 익절 주문을 관리합니다. 전체 자동주문 중지 시 이 기능도 멈춥니다.</span>
                   </label>
                   <input
                     id="ks-loop"
@@ -577,7 +578,7 @@
             </button>
             <button
               class="amodal-btn amodal-btn-primary"
-              :disabled="saving || loading || !isDirty || !!validationError"
+              :disabled="saving || loading || !loaded || !isDirty || !!validationError"
               @click="save"
             >
               {{ saving ? '저장 중...' : '저장하기' }}
@@ -590,13 +591,15 @@
 </template>
 
 <script setup>
-/* global defineEmits */
+/* global defineEmits, defineProps */
 import { computed, onMounted, ref } from 'vue'
 import { fetchStrategySettings, updateStrategySettings } from '@/api/kiwoomApi'
 
 const emit = defineEmits(['close', 'saved'])
+defineProps({ orderEnabled: Boolean })
 
 const loading = ref(true)
+const loaded = ref(false)
 const saving = ref(false)
 const error = ref('')
 const form = ref({
@@ -679,6 +682,7 @@ function extractErrorMessage (e, fallback) {
 }
 
 async function save () {
+  if (saving.value || !loaded.value || validationError.value) return
   if (!original.value.includes('"autoExecute":true') && form.value.autoExecute && !window.confirm('자동 주문을 켜면 조건에 맞는 주문이 사람 확인 없이 키움에 전송될 수 있습니다. 계속할까요?')) return
   saving.value = true
   error.value = ''
@@ -695,6 +699,7 @@ async function save () {
 onMounted(async () => {
   try {
     const { data } = await fetchStrategySettings()
+    loaded.value = true
     prompt = data.prompt || ''
     form.value = {
       autoExecute: !!data.autoExecute,

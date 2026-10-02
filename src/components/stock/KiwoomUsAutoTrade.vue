@@ -38,13 +38,17 @@
           class="error"
         >안전정지: {{ status.lastApiFailureMessage }}</small>
         <small
+          v-if="status.dailyLossTriggered"
+          class="error"
+        >오늘 손실 한도에 도달해 신규 매수가 차단되었습니다. 시작 버튼으로 해제되지 않으며 매도 감시는 유지됩니다.</small>
+        <small
           v-if="refreshError"
           class="error"
         >{{ refreshError }}</small>
       </div>
       <div class="buttons">
         <button
-          :disabled="pending || (!status.autoTrading && usdOnlyBlocked)"
+          :disabled="pending || (!status.autoTrading && (!status.configured || !status.orderEnabled || !status.strategyEnabled || usdOnlyBlocked))"
           :class="{ danger: status.autoTrading }"
           @click="toggle"
         >
@@ -60,11 +64,19 @@
         <button
           :disabled="pending || !status.configured"
           @click="refreshAll"
+          title="잔고와 체결·취소 상태를 다시 확인합니다. 오래된 미체결 자동주문은 취소 요청할 수 있습니다."
         >
           계좌·체결 동기화
         </button>
       </div>
     </section>
+    <p
+      v-if="actionNotice"
+      class="account-notice"
+      role="status"
+    >
+      {{ actionNotice }}
+    </p>
 
     <section class="market-hours card">
       <header>
@@ -89,7 +101,10 @@
 
     <section class="rules card">
       <header>
-        <strong>현재 적용 중인 매매 규칙</strong><button @click="openSettings">
+        <strong>현재 적용 중인 매매 규칙</strong><button
+          :disabled="pending || !settingsLoaded"
+          @click="openSettings"
+        >
           전략 설정
         </button>
       </header>
@@ -109,7 +124,7 @@
         <li>매수·매도 1호가 스프레드가 {{ settings.maxSpreadPercent }}% 이하인 종목만 고릅니다.</li>
         <li>한 번에 최대 약 ${{ money(estimatedOrderUsd) }}만 매수합니다.</li>
         <li>자동매매 종목은 최대 {{ settings.maxPositions }}개, 하루 매수는 최대 {{ settings.dailyMaxBuys }}번입니다.</li>
-        <li>-{{ settings.stopLossPercent }}% 손절, +{{ settings.takeProfitPercent }}%부터 나눠 익절하고 {{ settings.maxHoldingDays }}일 안에 정리합니다.</li>
+        <li>{{ settings.signalMode === 'TREND' ? `ATR 손절폭(최대 ${settings.stopLossPercent}%)` : `-${settings.stopLossPercent}% 손절` }}, +{{ settings.takeProfitPercent }}%부터 자동관리 수량을 나눠 익절하고 최대 {{ settings.maxHoldingDays }}일(달력일)을 보유합니다.</li>
       </ol>
       <teleport to="body">
         <div
@@ -139,76 +154,7 @@
                   <b>숫자만 바꾸면 됩니다.</b>
                   <span>각 숫자가 실제로 무엇을 뜻하는지 아래에 적었습니다. 저장하기를 눌러야 자동매매에 적용됩니다.</span>
                 </div>
-                <section class="setting-card">
-                  <p class="setting-step">
-                    매수 판단 방식
-                  </p>
-                  <div class="setting-field">
-                    <label for="us-signal-mode">추세 전략 적용<span>처음에는 비교 관찰로 신호를 검증하세요. 지수 초과수익이 검증된 전략은 아닙니다.</span></label>
-                    <select
-                      id="us-signal-mode"
-                      v-model="settings.signalMode"
-                    >
-                      <option value="LEGACY">
-                        기존 조건
-                      </option>
-                      <option value="OBSERVE">
-                        기존 조건 + 새 신호 비교 관찰
-                      </option>
-                      <option value="TREND">
-                        추세·상대강도·돌파 적용
-                      </option>
-                    </select>
-                  </div>
-                  <div class="setting-field">
-                    <label>최소 지수 대비 상대강도<span>최근 20거래일 수익률이 SPY와 QQQ 모두보다 이만큼 높아야 합니다.</span></label>
-                    <div class="number-with-unit">
-                      <input
-                        v-model.number="settings.minRelativeStrengthPercent"
-                        type="number"
-                        min="0"
-                        max="30"
-                        step="0.1"
-                      ><em>%p</em>
-                    </div>
-                  </div>
-                  <div class="setting-field">
-                    <label>거래당 허용 위험<span>계획한 손절가까지의 손실 예산입니다. 갭·슬리피지로 실제 손실은 초과할 수 있습니다.</span></label>
-                    <div class="number-with-unit">
-                      <input
-                        v-model.number="settings.riskPerTradePercent"
-                        type="number"
-                        min="0.1"
-                        max="1"
-                        step="0.1"
-                      ><em>%</em>
-                    </div>
-                  </div>
-                  <div class="setting-field">
-                    <label>ATR 손절 거리<span>최근 14거래일 평균 진폭의 배수입니다. 최대 손절률보다 넓으면 매수하지 않습니다.</span></label>
-                    <div class="number-with-unit">
-                      <input
-                        v-model.number="settings.atrStopMultiplier"
-                        type="number"
-                        min="1"
-                        max="4"
-                        step="0.1"
-                      ><em>배</em>
-                    </div>
-                  </div>
-                  <div class="setting-field">
-                    <label>돌파 후 허용 이격<span>20거래일 고가에서 ATR의 이 배수 이상 올라간 가격은 추격하지 않습니다.</span></label>
-                    <div class="number-with-unit">
-                      <input
-                        v-model.number="settings.maxEntryExtensionAtr"
-                        type="number"
-                        min="0.1"
-                        max="2"
-                        step="0.1"
-                      ><em>배</em>
-                    </div>
-                  </div>
-                </section>
+
                 <div
                   class="won-order-service"
                   :class="krwOrderStatus.code.toLowerCase()"
@@ -231,6 +177,76 @@
                   class="strategy-settings amodal-form thin-scrollbar"
                   @submit.prevent="saveSettings"
                 >
+                  <section class="setting-card">
+                    <p class="setting-step">
+                      매수 판단 방식
+                    </p>
+                    <div class="setting-field">
+                      <label for="us-signal-mode">추세 전략 적용<span>처음에는 비교 관찰로 신호를 검증하세요. 지수 초과수익이 검증된 전략은 아닙니다.</span></label>
+                      <select
+                        id="us-signal-mode"
+                        v-model="settings.signalMode"
+                      >
+                        <option value="LEGACY">
+                          기존 조건
+                        </option>
+                        <option value="OBSERVE">
+                          기존 조건 + 새 신호 비교 관찰
+                        </option>
+                        <option value="TREND">
+                          추세·상대강도·돌파 적용
+                        </option>
+                      </select>
+                    </div>
+                    <div class="setting-field">
+                      <label>최소 지수 대비 상대강도<span>최근 20거래일 수익률이 SPY와 QQQ 모두보다 이만큼 높아야 합니다.</span></label>
+                      <div class="number-with-unit">
+                        <input
+                          v-model.number="settings.minRelativeStrengthPercent"
+                          type="number"
+                          min="0"
+                          max="30"
+                          step="0.1"
+                        ><em>%p</em>
+                      </div>
+                    </div>
+                    <div class="setting-field">
+                      <label>거래당 허용 위험<span>TREND에서만 주문 수량에 적용합니다. 관찰 모드는 기존 주문 비중을 사용합니다. 갭·슬리피지로 실제 손실은 초과할 수 있습니다.</span></label>
+                      <div class="number-with-unit">
+                        <input
+                          v-model.number="settings.riskPerTradePercent"
+                          type="number"
+                          min="0.1"
+                          max="1"
+                          step="0.1"
+                        ><em>%</em>
+                      </div>
+                    </div>
+                    <div class="setting-field">
+                      <label>ATR 손절 거리<span>최근 14거래일 평균 진폭의 배수입니다. 최대 손절률보다 넓으면 매수하지 않습니다.</span></label>
+                      <div class="number-with-unit">
+                        <input
+                          v-model.number="settings.atrStopMultiplier"
+                          type="number"
+                          min="1"
+                          max="4"
+                          step="0.1"
+                        ><em>배</em>
+                      </div>
+                    </div>
+                    <div class="setting-field">
+                      <label>돌파 후 허용 이격<span>20거래일 고가에서 ATR의 이 배수 이상 올라간 가격은 추격하지 않습니다.</span></label>
+                      <div class="number-with-unit">
+                        <input
+                          v-model.number="settings.maxEntryExtensionAtr"
+                          type="number"
+                          min="0.1"
+                          max="2"
+                          step="0.1"
+                        ><em>배</em>
+                      </div>
+                    </div>
+                  </section>
                   <section class="setting-card screen-card">
                     <p class="setting-step">
                       1. 매수 후보 찾기
@@ -290,10 +306,11 @@
                       </div>
                     </div>
                     <div class="setting-field">
-                      <label>오늘 최소 상승률<span>이만큼 이상 오른 종목부터 후보로 봅니다.</span></label>
+                      <label>오늘 최소 상승률<span>{{ settings.signalMode === 'TREND' ? '추세 모드는 0% 하한을 사용합니다. 이 값은 기존·관찰 모드용으로 보관됩니다.' : '이만큼 이상 오른 종목부터 후보로 봅니다.' }}</span></label>
                       <div class="number-with-unit">
                         <b>+</b><input
                           v-model.number="settings.minChangePercent"
+                          :disabled="settings.signalMode === 'TREND'"
                           type="number"
                           min="0"
                           max="20"
@@ -359,7 +376,7 @@
                       </div>
                     </div>
                     <div class="setting-field">
-                      <label>동시에 보유할 자동매매 종목<span>장기투자나 직접 산 미국주식은 세지 않고, 자동매매로 산 종목만 셉니다.</span></label>
+                      <label>동시에 보유할 자동매매 종목<span>자동관리 보유와 미체결 매수 종목을 함께 셉니다. 수동 보유는 제외합니다.</span></label>
                       <div class="number-with-unit">
                         <input
                           v-model.number="settings.maxPositions"
@@ -371,7 +388,7 @@
                       </div>
                     </div>
                     <div class="setting-field">
-                      <label>하루에 새로 살 수 있는 횟수<span>실제 주문을 보낸 횟수를 제한합니다. 매도와 후보 확인은 계속합니다.</span></label>
+                      <label>하루에 새로 살 수 있는 횟수<span>체결·미완료·결과 미확인 매수 주문을 셉니다. 전량 미체결 취소와 실패는 제외합니다.</span></label>
                       <div class="number-with-unit">
                         <input
                           v-model.number="settings.dailyMaxBuys"
@@ -404,7 +421,7 @@
                       손실을 줄이고 이익을 나눠 지키는 자동 매도 기준입니다.
                     </p>
                     <div class="setting-field">
-                      <label>손실이 이만큼 나면 팔기<span>평균 매수가보다 이 비율 이상 내려가면 보유수량을 모두 손절합니다.</span></label>
+                      <label>최대 손절률<span>자동관리 수량만 매도합니다. TREND 진입은 저장한 ATR 손절폭과 현재 최대 손절률 중 작은 값을 사용합니다.</span></label>
                       <div class="number-with-unit negative">
                         <b>-</b><input
                           v-model.number="settings.stopLossPercent"
@@ -416,7 +433,7 @@
                       </div>
                     </div>
                     <div class="setting-field">
-                      <label>1차 이익 실현<span>이만큼 오르면 보유수량의 절반을 먼저 팝니다. 1주만 있으면 전량 매도합니다.</span></label>
+                      <label>1차 이익 실현<span>자동매매 원가 대비 이만큼 오르면 자동관리 수량의 절반(정수 내림, 최소 1주)을 팝니다. 부분 체결 후에는 목표 잔량만 처리합니다.</span></label>
                       <div class="number-with-unit">
                         <b>+</b><input
                           v-model.number="settings.takeProfitPercent"
@@ -440,7 +457,7 @@
                       </div>
                     </div>
                     <div class="setting-field">
-                      <label>가장 오래 보유할 기간<span>매수 후 이 기간이 지나면 수익률과 관계없이 정리합니다.</span></label>
+                      <label>가장 오래 보유할 기간<span>달력일 기준입니다. 기간이 지난 뒤 정규장 매도 감시에서 자동관리 수량을 정리합니다.</span></label>
                       <div class="number-with-unit">
                         <input
                           v-model.number="settings.maxHoldingDays"
@@ -605,6 +622,7 @@ const summary = ref({ cash: { availableUsd: 0, krwOrderSettingAmount: 0, usdOnly
 const settings = ref({ signalMode: 'OBSERVE', minRelativeStrengthPercent: 0, riskPerTradePercent: 0.5, atrStopMultiplier: 2, maxEntryExtensionAtr: 1, fundamentalFilterEnabled: true, maxForwardPe: 50, minRoePercent: 10, minChangePercent: 2, maxChangePercent: 8, minVolumeRatio: 1.2, maxSpreadPercent: 0.15, maxOrderPercent: 10, maxPositions: 3, dailyMaxBuys: 2, symbolCooldownDays: 5, maxHoldingDays: 5, stopLossPercent: 3, takeProfitPercent: 5, takeProfitPercent2: 8, dailyLossLimitPercent: 3 })
 const candidates = ref([]), holdings = ref([]), logs = ref([])
 const pending = ref(false), error = ref(''), showSettings = ref(false), logBox = ref(null)
+const settingsLoaded = ref(false), actionNotice = ref('')
 const lastRefreshAt = ref(null), streamConnected = ref(false), refreshError = ref('')
 let source, settingsOriginal = '', refreshPromise, refreshTimer, eventRefreshTimer, disposed = false
 const money = value => Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -632,7 +650,7 @@ const validationError = computed(() => {
   if (!validNumber(s.atrStopMultiplier, 1, 4)) return 'ATR 손절 거리는 1~4배 사이여야 합니다.'
   if (!validNumber(s.maxEntryExtensionAtr, 0.1, 2)) return '허용 이격은 ATR의 0.1~2배 사이여야 합니다.'
   if (!validNumber(s.minChangePercent, 0, 20)) return '오늘 최소 상승률은 0부터 20% 사이여야 합니다.'
-  if (!validNumber(s.maxChangePercent, s.minChangePercent, 30)) return '오늘 최대 상승률은 최소 상승률 이상, 30% 이하여야 합니다.'
+  if (!validNumber(s.maxChangePercent, s.signalMode === 'TREND' ? 0 : s.minChangePercent, 30)) return '오늘 최대 상승률은 적용 하한 이상, 30% 이하여야 합니다.'
   if (!validNumber(s.maxForwardPe, 5, 100)) return '최대 Forward PER는 5부터 100배 사이여야 합니다.'
   if (!validNumber(s.minRoePercent, 0, 50)) return '최소 ROE는 0부터 50% 사이여야 합니다.'
   if (!validNumber(s.minVolumeRatio, 0.5, 5)) return '시간보정 거래량은 0.5부터 5배 사이여야 합니다.'
@@ -653,30 +671,39 @@ const logTime = value => value ? new Date(value).toLocaleString('ko-KR', { hour1
 const label = type => ({ CANDIDATE: '후보', CANDIDATE_REJECTED: '후보탈락', DATA_MISSING: '데이터누락', SETTINGS_CHANGED: '설정변경', SCREENING: '조건집계', DECISION_RESULT: '판단결과', BUY_ORDER: '매수주문', BUY_FILLED: '매수체결', SELL_ORDER: '매도주문', SELL_FILLED: '매도체결', BUY_CANCEL: '매수취소요청', SELL_CANCEL: '매도취소요청', ORDER_CANCELED: '취소완료', ORDER_UNKNOWN: '주문확인필요', USD_CASH_BLOCK: 'USD매수차단', ERROR: '오류', START: '시작', STOP: '중지' }[type] || type || '시스템')
 const tone = type => type?.includes('BUY') ? 'buy' : type?.includes('SELL') ? 'sell' : type === 'CANDIDATE' ? 'candidate' : ['ERROR', 'USD_CASH_BLOCK', 'DATA_MISSING'].includes(type) ? 'error-line' : 'system'
 function pushLog(item) { logs.value.push({ id: `${Date.now()}-${Math.random()}`, ...item }); if (logs.value.length > 300) logs.value.shift(); nextTick(() => { if (logBox.value) logBox.value.scrollTop = logBox.value.scrollHeight }) }
-async function loadAll(sync = false) {
+async function loadAll(sync = false, force = false) {
   if (refreshPromise) {
-    await refreshPromise
-    if (!sync || disposed) return
+    try { await refreshPromise } catch (e) { if (!sync && !force) throw e }
+    if ((!sync && !force) || disposed) return
   }
   if (disposed) return
   refreshPromise = (async () => {
     const { data: currentStatus } = await axios.get(`${BASE}/status`)
     if (disposed) return
     status.value = currentStatus
-    if (currentStatus.configured) {
-      const accountResponse = await (sync ? axios.post(`${BASE}/sync`) : axios.get(`${BASE}/summary`))
-      if (disposed) return
-      summary.value = accountResponse.data.snapshot || accountResponse.data
-    }
+    let accountError
+    try {
+      if (currentStatus.configured) {
+        const accountResponse = await (sync ? axios.post(`${BASE}/sync`) : axios.get(`${BASE}/summary`))
+        if (disposed) return
+        summary.value = accountResponse.data.snapshot || accountResponse.data
+        if (sync) {
+          actionNotice.value = accountResponse.data.warnings?.length ? accountResponse.data.warnings.join(' · ') : '계좌·체결 동기화를 완료했습니다.'
+          status.value = (await axios.get(`${BASE}/status`)).data
+        }
+      }
+    } catch (e) { accountError = e }
     // Read holdings after manual synchronization; preserve an open settings draft.
     const [settingsRes, auditRes, candidateRes, holdingRes] = await Promise.all([axios.get(`${BASE}/settings`), axios.get(`${BASE}/audit`), axios.get(`${BASE}/candidates`), axios.get(`${BASE}/holdings`)])
     if (disposed) return
     if (!showSettings.value) settings.value = settingsRes.data
+    settingsLoaded.value = true
     if (!lastRefreshAt.value) logs.value = [...auditRes.data].reverse()
     candidates.value = candidateRes.data
     holdings.value = holdingRes.data
     lastRefreshAt.value = new Date().toISOString()
     refreshError.value = ''
+    if (accountError) throw accountError
   })()
   try { await refreshPromise } finally { refreshPromise = null }
 }
@@ -684,18 +711,18 @@ async function refreshInBackground() {
   try { await loadAll() } catch (e) { if (!disposed) refreshError.value = `상태 갱신 실패: ${e.response?.data?.message || e.message}` }
 }
 async function action(fn) { pending.value = true; error.value = ''; try { await fn() } catch (e) { error.value = e.response?.data?.message || e.message || '요청에 실패했습니다.' } finally { pending.value = false } }
-async function toggle() { const enabled = !status.value.autoTrading; if (enabled && usdOnlyBlocked.value) { error.value = summary.value.cash?.blockReason || '원화주문설정금이 있어 자동매매를 시작할 수 없습니다.'; return } if (!window.confirm(enabled ? '실계좌 미국주식 신규 매수를 시작할까요? 시작 시 원화주문설정금 0원을 다시 확인하고, 실제 매수 직전에도 D+0 USD 예수금을 재검증합니다.' : '신규 자동매수를 중지할까요? 자동매매 보유종목의 손절·익절 감시와 주문 동기화는 계속됩니다.')) return; await action(async () => { await axios.post(`${BASE}/control`, { enabled }); await loadAll() }) }
+async function toggle() { const enabled = !status.value.autoTrading; if (enabled && usdOnlyBlocked.value) { error.value = summary.value.cash?.blockReason || '원화주문설정금이 있어 자동매매를 시작할 수 없습니다.'; return } if (!window.confirm(enabled ? '실계좌 미국주식 신규 매수를 시작할까요? 시작 시 원화주문설정금 0원을 다시 확인하고, 실제 매수 직전에도 D+0 USD 예수금을 재검증합니다.' : '신규 자동매수를 중지할까요? 자동매매 보유종목의 손절·익절 감시와 주문 동기화는 계속됩니다.')) return; await action(async () => { const { data } = await axios.post(`${BASE}/control`, { enabled }); status.value.autoTrading = data.autoTrading; await loadAll(false, true) }) }
 async function runDecision() {
   if (status.value.autoTrading && !window.confirm('현재 자동매매가 실행 중입니다. 조건을 통과한 후보가 있으면 실계좌 매수 주문이 전송될 수 있습니다. 계속할까요?')) return
   const allowOrder = status.value.autoTrading
-  await action(async () => { const { data } = await axios.post(`${BASE}/decide`, null, { params: { allowOrder } }); pushLog({ type: 'SYSTEM', message: data.message, createdAt: new Date().toISOString() }); await loadAll() })
+  await action(async () => { const { data } = await axios.post(`${BASE}/decide`, null, { params: { allowOrder } }); pushLog({ type: 'SYSTEM', message: data.message, createdAt: new Date().toISOString() }); await loadAll(false, true) })
 }
 async function refreshAll() { await action(async () => loadAll(true)) }
 async function refreshCashPolicyStatus() { await action(async () => { summary.value = (await axios.get(`${BASE}/summary`)).data }) }
 async function refreshIndexUniverse() { await action(async () => { await axios.post(`${BASE}/index-universe/refresh`); status.value = (await axios.get(`${BASE}/status`)).data }) }
-function openSettings() { settingsOriginal = JSON.stringify(settings.value); error.value = ''; showSettings.value = true }
+function openSettings() { if (!settingsLoaded.value || pending.value) return; settingsOriginal = JSON.stringify(settings.value); error.value = ''; showSettings.value = true }
 function closeSettings() { if (pending.value) return; if (settingsDirty.value && !window.confirm('저장하지 않은 변경사항이 있습니다. 닫을까요?')) return; settings.value = JSON.parse(settingsOriginal); showSettings.value = false }
-async function saveSettings() { if (validationError.value) return; await action(async () => { settings.value = (await axios.patch(`${BASE}/settings`, settings.value)).data; settingsOriginal = JSON.stringify(settings.value); showSettings.value = false; pushLog({ type: 'SYSTEM', message: '미국주식 자동매매 전략 설정을 저장했습니다.', createdAt: new Date().toISOString() }) }) }
+async function saveSettings() { if (validationError.value) return; await action(async () => { settings.value = (await axios.patch(`${BASE}/settings`, settings.value)).data; settingsOriginal = JSON.stringify(settings.value); try { await loadAll(false, true) } catch (e) { refreshError.value = '설정은 저장됐지만 상태 갱신에 실패했습니다.' } showSettings.value = false; pushLog({ type: 'SYSTEM', message: '미국주식 자동매매 전략 설정을 저장했습니다.', createdAt: new Date().toISOString() }) }) }
 function connect() {
   source = new EventSource(`${process.env.VUE_APP_API_URL || ''}${BASE}/events`, { withCredentials: true })
   source.onopen = () => { streamConnected.value = true; refreshInBackground() }
