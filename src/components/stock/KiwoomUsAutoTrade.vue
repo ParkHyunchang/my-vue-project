@@ -32,7 +32,7 @@
     <section class="controls">
       <div>
         <strong>{{ executionLabel }}</strong>
-        <small>{{ status.marketOpen ? '미국 정규장 운영 중' : '미국 정규장 밖' }} · 주문전송 {{ status.orderEnabled ? '허용' : '잠금' }} · 원화설정금 {{ !accountFresh ? '확인 필요' : usdOnlyBlocked ? '있음(차단)' : '0원' }}</small>
+        <small>{{ status.marketOpen ? `${status.marketSession || '미국장'} 운영 중` : '미국장 거래시간 밖' }} · 주문전송 {{ status.orderEnabled ? '허용' : '잠금' }} · 원화설정금 {{ !accountFresh ? '확인 필요' : usdOnlyBlocked ? '있음(차단)' : '0원' }}</small>
         <small>{{ readinessHint }}</small>
         <small class="desktop-detail">API 호출 보호: 국내·미국 통합 최소 {{ status.apiMinRequestIntervalMs || 350 }}ms 간격</small>
         <small class="desktop-detail">주문 동기화: {{ operationTime(status.operationalHealth?.lastOrderReconciledAt) }} · 청산 감시: {{ operationTime(status.operationalHealth?.lastExitMonitorAt) }}</small>
@@ -97,13 +97,13 @@
     <section class="market-hours card">
       <header>
         <strong>미국장 자동매매 운영시간</strong><span :class="status.marketOpen ? 'open' : 'closed'">
-          {{ status.marketOpen ? '정규장 운영 중' : '장 운영시간 아님' }}
+          {{ status.marketOpen ? `${status.marketSession || '미국장'} 운영 중` : '장 운영시간 아님' }}
         </span>
       </header>
       <div>
-        <p><b>현재 적용:</b> {{ status.marketSeason }} · 정규장 {{ status.regularSessionKst }} (한국시간)</p>
-        <p><b>신규매수:</b> {{ status.entrySessionKst }} · 개장 직후 30분과 마감 전 1시간은 진입하지 않습니다.</p>
-        <p><b>매도·체결:</b> 정규장 전체에서만 감시·동기화하며 프리마켓과 애프터마켓에는 주문하지 않습니다.</p>
+        <p><b>현재 적용:</b> {{ status.marketSeason }} · 현재 {{ status.marketSession || '상태 확인 중' }}</p>
+        <p><b>후보·신규매수:</b> {{ status.entrySessionKst }} (한국시간)</p>
+        <p><b>매도·체결:</b> 모든 지원 세션에서 감시·동기화합니다. 주간·프리·애프터마켓은 최우선 호가 지정가만 사용합니다.</p>
         <p><b>달력:</b> 2026~2028년 NYSE 휴장일과 조기폐장을 반영하고, 이후 연도는 일정 등록 전까지 주문을 차단합니다.</p>
       </div>
     </section>
@@ -215,8 +215,8 @@
           <template v-if="appliedSettings.signalMode === 'TREND'">
             <p>자동관리 체결 원가에서 진입 때 저장한 손절 거리를 뺀 가격으로 초기 손절을 시작합니다.</p>
             <p>+{{ appliedSettings.trailingActivationR }}R부터 관측 최고가 − 진입 ATR × {{ appliedSettings.trailingStopAtrMultiplier }}로 추적합니다. 손절가는 낮추지 않습니다.</p>
-            <p>최초 체결 확인일 제외 {{ appliedSettings.maxHoldingTradingDays }}거래일 경과 또는 손절가 도달 시 매도 가능한 자동관리 잔량을 시장가 청산합니다.</p>
-            <p>정규장 감시 주기 기준이며 고정 분할 익절은 사용하지 않습니다.</p>
+            <p>최초 체결 확인일 제외 {{ appliedSettings.maxHoldingTradingDays }}거래일 경과 또는 손절가 도달 시 자동관리 잔량을 청산합니다.</p>
+            <p>정규장에서는 시장가, 주간·프리·애프터마켓에서는 매수 1호가 지정가를 사용하며 고정 분할 익절은 사용하지 않습니다.</p>
           </template>
           <p v-else>
             -{{ appliedSettings.stopLossPercent }}% 손절, +{{ appliedSettings.takeProfitPercent }}%·+{{ appliedSettings.takeProfitPercent2 }}% 분할 익절, 최대 {{ appliedSettings.maxHoldingDays }}일(달력일) 보유입니다.
@@ -228,7 +228,7 @@
           <p>자동관리 보유 + 신규 미체결 매수 합계 최대 {{ appliedSettings.maxPositions }}종목 · 하루 최대 {{ appliedSettings.dailyMaxBuys }}회.</p>
           <p>실제 체결 매수 후 재매수 대기 {{ appliedSettings.symbolCooldownDays }}달력일. 전량 미체결 취소는 주문 후 2분 대기합니다.</p>
           <p>{{ appliedSettings.dailyLossLimitPercent > 0 ? `자동매매 자산의 당일 손실 ${appliedSettings.dailyLossLimitPercent}% 도달 시 신규 매수 중지` : '당일 손실에 따른 신규 매수 제한 미사용' }}.</p>
-          <p>진입 시간 {{ status.entrySessionKst || '확인 중' }} (한국시간). 신규 매수 중지 후에도 정규장 보유 청산 감시는 유지합니다.</p>
+          <p>진입 시간 {{ status.entrySessionKst || '확인 중' }} (한국시간). 신규 매수 중지 후에도 지원 거래 세션의 보유 청산 감시는 유지합니다.</p>
         </li>
       </ol>
       <div
@@ -236,8 +236,8 @@
         class="common-rules"
       >
         <strong>공통 후보 필터 · 현재 저장값</strong>
-        <p>S&amp;P 500·NASDAQ-100 편입 종목 ∩ 당일 거래대금 상위 50개. 시간보정 RVOL {{ appliedSettings.minVolumeRatio }}배 이상 · 스프레드 {{ appliedSettings.maxSpreadPercent }}% 이하.</p>
-        <p>RVOL은 전일 거래량 × 오늘 장 경과 비율과 비교합니다. 여러 날의 같은 시각 누적 거래량 방식은 아직 적용하지 않았습니다.</p>
+        <p>S&amp;P 500·NASDAQ-100 편입 종목 ∩ 당일 거래대금 상위 50개. 정규장 시간보정 RVOL {{ appliedSettings.minVolumeRatio }}배 이상 · 스프레드 {{ appliedSettings.maxSpreadPercent }}% 이하.</p>
+        <p>RVOL은 정규장에서만 전일 거래량 × 오늘 장 경과 비율과 비교합니다. 주간·프리·애프터마켓은 세션 거래량 특성이 달라 거래대금 순위와 스프레드 기준을 사용합니다.</p>
         <p>{{ appliedSettings.fundamentalFilterEnabled ? `기업 필터 사용: PER ${appliedSettings.maxForwardPe}배 이하 · ROE ${appliedSettings.minRoePercent}% 이상. Forward PER가 없으면 Trailing PER를 사용합니다.` : 'PER·ROE 기업 필터 미사용.' }}</p>
       </div>
       <p
@@ -979,7 +979,7 @@ const readinessHint = computed(() => {
   if (krwOrderStatus.value.code !== 'CANCELED') return '실제 매수 전 원화주문 서비스 해지 확인이 필요합니다.'
   if (Number(summary.value.perOrderLimitUsd) <= 0) return '설정과 미체결 예약금을 반영한 매수 금액이 없습니다.'
   if (Number(summary.value.managedPositionCount) + Number(buyingPower.value.pendingPositionCount || 0) >= Number(appliedSettings.value.maxPositions)) return '자동관리 보유·신규 미체결 매수가 최대 종목 수에 도달했습니다.'
-  return status.value.entryWindow ? '진입 조건과 하루 매수 한도를 통과한 종목만 주문합니다.' : `신규 매수 평가 시간: ${status.value.entrySessionKst || '상태 확인 중'} (한국시간). 정규장에는 자동관리 수량의 매도 감시를 유지합니다.`
+  return status.value.entryWindow ? '현재 지원 거래 세션에서 진입 조건과 하루 매수 한도를 통과한 종목만 주문합니다.' : `신규 매수 평가 시간: ${status.value.entrySessionKst || '상태 확인 중'} (한국시간).`
 })
 const decisionButtonLabel = computed(() => status.value.autoTrading ? '후보 확인·매수 판단' : '후보만 확인')
 const decisionButtonHint = computed(() => status.value.autoTrading
