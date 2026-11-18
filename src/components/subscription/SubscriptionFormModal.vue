@@ -2,204 +2,209 @@
   <teleport to="#modal">
     <Modal
       v-if="show"
-      @close="$emit('close')"
+      @close="!saving && $emit('close')"
     >
       <template #header>
         <h3>{{ isEditing ? '구독 수정' : '새 구독 추가' }}</h3>
       </template>
       <template #body>
         <form
-          @submit.prevent="$emit('save')"
+          @submit.prevent="!saving && $emit('save')"
           class="subscription-form"
         >
-          <div class="form-group">
-            <label>서비스명</label>
-            <input
-              :value="modelValue.name"
-              @input="updateField('name', $event.target.value)"
-              type="text"
-              class="form-control"
-              placeholder="예: Netflix, Claude Pro, 쿠팡 와우"
-              required
-            >
-          </div>
-
-          <div class="form-row">
+          <fieldset
+            :disabled="saving"
+            style="border: 0; padding: 0; margin: 0; min-width: 0;"
+          >
             <div class="form-group">
-              <label>금액</label>
+              <label>서비스명</label>
               <input
-                :value="formattedAmount"
-                @input="onAmountInput"
+                :value="modelValue.name"
+                @input="updateField('name', $event.target.value)"
                 type="text"
-                inputmode="numeric"
                 class="form-control"
+                placeholder="예: Netflix, Claude Pro, 쿠팡 와우"
                 required
               >
-              <div
-                v-if="modelValue.currency === 'KRW'"
-                class="quick-add-btns"
-              >
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>금액</label>
+                <input
+                  :value="formattedAmount"
+                  @input="onAmountInput"
+                  type="text"
+                  inputmode="numeric"
+                  class="form-control"
+                  required
+                >
+                <div
+                  v-if="modelValue.currency === 'KRW'"
+                  class="quick-add-btns"
+                >
+                  <button
+                    type="button"
+                    class="quick-btn"
+                    @click="addAmount(1000)"
+                  >
+                    +1천
+                  </button>
+                  <button
+                    type="button"
+                    class="quick-btn"
+                    @click="addAmount(5000)"
+                  >
+                    +5천
+                  </button>
+                  <button
+                    type="button"
+                    class="quick-btn"
+                    @click="addAmount(10000)"
+                  >
+                    +1만
+                  </button>
+                  <button
+                    type="button"
+                    class="quick-btn"
+                    @click="addAmount(100000)"
+                  >
+                    +10만
+                  </button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>통화</label>
+                <select
+                  :value="modelValue.currency"
+                  @change="updateField('currency', $event.target.value)"
+                  class="form-control"
+                >
+                  <option value="KRW">
+                    KRW (원)
+                  </option>
+                  <option value="USD">
+                    USD ($)
+                  </option>
+                  <option value="JPY">
+                    JPY (¥)
+                  </option>
+                  <option value="EUR">
+                    EUR (€)
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>결제 주기</label>
+              <div class="segment-group">
                 <button
                   type="button"
-                  class="quick-btn"
-                  @click="addAmount(1000)"
+                  v-for="cycle in CYCLE_OPTIONS"
+                  :key="cycle.value"
+                  :class="['segment-btn', { active: modelValue.billingCycle === cycle.value }]"
+                  @click="updateField('billingCycle', cycle.value)"
                 >
-                  +1천
-                </button>
-                <button
-                  type="button"
-                  class="quick-btn"
-                  @click="addAmount(5000)"
-                >
-                  +5천
-                </button>
-                <button
-                  type="button"
-                  class="quick-btn"
-                  @click="addAmount(10000)"
-                >
-                  +1만
-                </button>
-                <button
-                  type="button"
-                  class="quick-btn"
-                  @click="addAmount(100000)"
-                >
-                  +10만
+                  {{ cycle.label }}
                 </button>
               </div>
             </div>
-            <div class="form-group">
-              <label>통화</label>
-              <select
-                :value="modelValue.currency"
-                @change="updateField('currency', $event.target.value)"
-                class="form-control"
-              >
-                <option value="KRW">
-                  KRW (원)
-                </option>
-                <option value="USD">
-                  USD ($)
-                </option>
-                <option value="JPY">
-                  JPY (¥)
-                </option>
-                <option value="EUR">
-                  EUR (€)
-                </option>
-              </select>
-            </div>
-          </div>
 
-          <div class="form-group">
-            <label>결제 주기</label>
-            <div class="segment-group">
-              <button
-                type="button"
-                v-for="cycle in CYCLE_OPTIONS"
-                :key="cycle.value"
-                :class="['segment-btn', { active: modelValue.billingCycle === cycle.value }]"
-                @click="updateField('billingCycle', cycle.value)"
-              >
-                {{ cycle.label }}
-              </button>
+            <div class="form-row">
+              <div class="form-group">
+                <label>다음 결제일</label>
+                <input
+                  :value="modelValue.nextBillingDate"
+                  @input="updateField('nextBillingDate', $event.target.value)"
+                  type="date"
+                  class="form-control"
+                  required
+                >
+              </div>
+              <div class="form-group">
+                <label>시작일 (선택)</label>
+                <input
+                  :value="modelValue.startedAt"
+                  @input="updateField('startedAt', $event.target.value)"
+                  type="date"
+                  class="form-control"
+                >
+              </div>
             </div>
-          </div>
 
-          <div class="form-row">
             <div class="form-group">
-              <label>다음 결제일</label>
-              <input
-                :value="modelValue.nextBillingDate"
-                @input="updateField('nextBillingDate', $event.target.value)"
-                type="date"
-                class="form-control"
-                required
-              >
+              <label>카테고리</label>
+              <div class="category-grid">
+                <button
+                  type="button"
+                  v-for="cat in CATEGORY_OPTIONS"
+                  :key="cat"
+                  :class="['category-option', { active: modelValue.category === cat }]"
+                  @click="updateField('category', cat)"
+                >
+                  {{ cat }}
+                </button>
+              </div>
             </div>
-            <div class="form-group">
-              <label>시작일 (선택)</label>
-              <input
-                :value="modelValue.startedAt"
-                @input="updateField('startedAt', $event.target.value)"
-                type="date"
-                class="form-control"
-              >
-            </div>
-          </div>
 
-          <div class="form-group">
-            <label>카테고리</label>
-            <div class="category-grid">
-              <button
-                type="button"
-                v-for="cat in CATEGORY_OPTIONS"
-                :key="cat"
-                :class="['category-option', { active: modelValue.category === cat }]"
-                @click="updateField('category', cat)"
-              >
-                {{ cat }}
-              </button>
+            <div class="form-row">
+              <div class="form-group">
+                <label>결제 수단 (선택)</label>
+                <input
+                  :value="modelValue.paymentMethod"
+                  @input="updateField('paymentMethod', $event.target.value)"
+                  type="text"
+                  class="form-control"
+                  placeholder="예: 신한카드, 페이팔"
+                >
+              </div>
+              <div class="form-group">
+                <label>상태</label>
+                <select
+                  :value="modelValue.status"
+                  @change="updateField('status', $event.target.value)"
+                  class="form-control"
+                >
+                  <option value="ACTIVE">
+                    활성
+                  </option>
+                  <option value="PAUSED">
+                    일시정지
+                  </option>
+                  <option value="CANCELED">
+                    해지됨
+                  </option>
+                </select>
+              </div>
             </div>
-          </div>
 
-          <div class="form-row">
             <div class="form-group">
-              <label>결제 수단 (선택)</label>
-              <input
-                :value="modelValue.paymentMethod"
-                @input="updateField('paymentMethod', $event.target.value)"
-                type="text"
-                class="form-control"
-                placeholder="예: 신한카드, 페이팔"
-              >
+              <label>색상</label>
+              <div class="color-grid">
+                <button
+                  type="button"
+                  v-for="c in COLOR_OPTIONS"
+                  :key="c"
+                  :class="['color-dot', { active: modelValue.color === c }]"
+                  :style="{ background: c }"
+                  :aria-label="c"
+                  @click="updateField('color', c)"
+                />
+              </div>
             </div>
-            <div class="form-group">
-              <label>상태</label>
-              <select
-                :value="modelValue.status"
-                @change="updateField('status', $event.target.value)"
-                class="form-control"
-              >
-                <option value="ACTIVE">
-                  활성
-                </option>
-                <option value="PAUSED">
-                  일시정지
-                </option>
-                <option value="CANCELED">
-                  해지됨
-                </option>
-              </select>
-            </div>
-          </div>
 
-          <div class="form-group">
-            <label>색상</label>
-            <div class="color-grid">
-              <button
-                type="button"
-                v-for="c in COLOR_OPTIONS"
-                :key="c"
-                :class="['color-dot', { active: modelValue.color === c }]"
-                :style="{ background: c }"
-                :aria-label="c"
-                @click="updateField('color', c)"
+            <div class="form-group">
+              <label>메모 (선택)</label>
+              <textarea
+                :value="modelValue.memo"
+                @input="updateField('memo', $event.target.value)"
+                class="form-control"
+                rows="2"
+                placeholder="기억해둘 내용이 있다면..."
               />
             </div>
-          </div>
-
-          <div class="form-group">
-            <label>메모 (선택)</label>
-            <textarea
-              :value="modelValue.memo"
-              @input="updateField('memo', $event.target.value)"
-              class="form-control"
-              rows="2"
-              placeholder="기억해둘 내용이 있다면..."
-            />
-          </div>
+          </fieldset>
         </form>
       </template>
       <template #footer>
@@ -207,14 +212,16 @@
           <button
             type="button"
             class="btn btn-primary"
-            @click="$emit('save')"
+            :disabled="saving"
+            @click="!saving && $emit('save')"
           >
-            {{ isEditing ? '수정' : '저장' }}
+            {{ saving ? '저장 중...' : isEditing ? '수정' : '저장' }}
           </button>
           <button
             v-if="isEditing"
             type="button"
             class="btn btn-danger"
+            :disabled="saving"
             @click="$emit('delete', modelValue)"
           >
             삭제
@@ -222,7 +229,8 @@
           <button
             type="button"
             class="btn btn-primary"
-            @click="$emit('close')"
+            :disabled="saving"
+            @click="!saving && $emit('close')"
           >
             취소
           </button>
@@ -263,11 +271,13 @@ export default {
   props: {
     show: { type: Boolean, required: true },
     isEditing: { type: Boolean, default: false },
+    saving: { type: Boolean, default: false },
     modelValue: { type: Object, required: true },
   },
   emits: ['close', 'save', 'delete', 'update:modelValue'],
   setup(props, { emit }) {
     const updateField = (key, value) => {
+      if (props.saving) return;
       emit('update:modelValue', { ...props.modelValue, [key]: value });
     };
     const formattedAmount = computed(() => {

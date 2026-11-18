@@ -37,149 +37,91 @@ export function usePortfolioStats({ holdings, prices, marketFilter, exchangeRate
     return holdings.value;
   });
 
+  function priceOf(h) {
+    if (h.assetType === 'CASH') return 1;
+    const price = prices.value[h.symbol]?.price;
+    return typeof price === 'number' && Number.isFinite(price) && price > 0 ? price : null;
+  }
+  function toKRW(value, h) {
+    if (value == null) return null;
+    return h.market === 'US' ? (exchangeRate.value > 0 ? value * exchangeRate.value : null) : value;
+  }
+  function sumKnown(list, valueFor) {
+    const values = list.map(valueFor);
+    return values.some(value => value == null) ? null : values.reduce((sum, value) => sum + value, 0);
+  }
+  function valueOf(h) {
+    const price = priceOf(h);
+    return price == null ? null : price * h.quantity;
+  }
   function holdPnl(h) {
-    if (!h.avgPrice) return null;
-    const p = prices.value[h.symbol]?.price;
-    return p != null ? (p - h.avgPrice) * h.quantity : null;
+    if (!h.avgPrice || priceOf(h) == null) return null;
+    return (priceOf(h) - h.avgPrice) * h.quantity;
   }
   function holdPnlPct(h) {
-    if (!h.avgPrice) return null;
-    const p = prices.value[h.symbol]?.price;
-    return p != null && h.avgPrice !== 0
-      ? ((p - h.avgPrice) / h.avgPrice) * 100
-      : null;
+    const pnl = holdPnl(h);
+    return pnl == null ? null : ((priceOf(h) - h.avgPrice) / h.avgPrice) * 100;
   }
-  function holdValKRW(h) {
-    if (h.market !== 'US' || !exchangeRate.value) return 0;
-    const p = prices.value[h.symbol]?.price;
-    return p ? p * h.quantity * exchangeRate.value : 0;
-  }
-
+  function holdValKRW(h) { return toKRW(valueOf(h), h); }
+  const valuationComplete = computed(() => filteredHoldings.value.every(h => holdValKRW(h) != null));
+  const mixedMarkets = computed(() => new Set(filteredHoldings.value.map(h => h.market)).size > 1);
+  const sortNotice = computed(() => {
+    if (!['value', 'curPrice'].includes(sortKey.value) || !mixedMarkets.value) return '';
+    return exchangeRate.value > 0
+      ? '금액 정렬은 원화 환산 기준입니다.'
+      : '환율 미확인 · 미국 종목의 환산 금액 정렬 대기 (목록 뒤에 표시)';
+  });
   const sortedHoldings = computed(() => {
     const arr = [...filteredHoldings.value];
     if (!sortKey.value) return arr;
+    const amount = (h, value) => mixedMarkets.value ? toKRW(value, h) : value;
+    function sortValue(h) {
+      if (sortKey.value === 'value') return amount(h, valueOf(h));
+      if (sortKey.value === 'curPrice') return amount(h, priceOf(h));
+      if (sortKey.value === 'pnlPct') return holdPnlPct(h);
+      if (sortKey.value === 'changePct') return prices.value[h.symbol]?.changePercent ?? null;
+      return null;
+    }
     return arr.sort((a, b) => {
-      if (sortKey.value === 'name') {
-        return sortDir.value === 'asc'
-          ? a.name.localeCompare(b.name)
-          : b.name.localeCompare(a.name);
-      }
-      let va; let vb;
-      if (sortKey.value === 'value') {
-        va = (prices.value[a.symbol]?.price || 0) * a.quantity;
-        vb = (prices.value[b.symbol]?.price || 0) * b.quantity;
-      } else if (sortKey.value === 'curPrice') {
-        va = prices.value[a.symbol]?.price || 0;
-        vb = prices.value[b.symbol]?.price || 0;
-      } else if (sortKey.value === 'pnlPct') {
-        va = holdPnlPct(a) ?? -Infinity;
-        vb = holdPnlPct(b) ?? -Infinity;
-      } else if (sortKey.value === 'changePct') {
-        va = prices.value[a.symbol]?.changePercent ?? -Infinity;
-        vb = prices.value[b.symbol]?.changePercent ?? -Infinity;
-      } else {
-        return 0;
-      }
+      if (sortKey.value === 'name') return (sortDir.value === 'asc' ? 1 : -1) * a.name.localeCompare(b.name);
+      const va = sortValue(a); const vb = sortValue(b);
+      // Unknown amounts always stay last, regardless of ascending/descending order.
+      if (va == null || vb == null) return va == null ? (vb == null ? 0 : 1) : -1;
       return sortDir.value === 'asc' ? va - vb : vb - va;
     });
   });
-
-  const krHoldingsCount = computed(() => holdings.value.filter((h) => h.market === 'KR').length);
-  const usHoldingsCount = computed(() => holdings.value.filter((h) => h.market === 'US').length);
-
-  const krTotal = computed(() =>
-    filteredHoldings.value
-      .filter((h) => h.market === 'KR')
-      .reduce((s, h) => s + (prices.value[h.symbol]?.price || 0) * h.quantity, 0),
-  );
-  const usTotal = computed(() =>
-    filteredHoldings.value
-      .filter((h) => h.market === 'US')
-      .reduce((s, h) => s + (prices.value[h.symbol]?.price || 0) * h.quantity, 0),
-  );
-  const usTotalKRW = computed(() =>
-    exchangeRate.value > 0 ? usTotal.value * exchangeRate.value : 0,
-  );
-  const hasAvgPrice = computed(() => filteredHoldings.value.some((h) => h.avgPrice));
-
-  const totalPnl = computed(() =>
-    filteredHoldings.value.reduce((s, h) => {
-      if (!h.avgPrice) return s;
-      const p = prices.value[h.symbol]?.price;
-      return p ? s + (p - h.avgPrice) * h.quantity : s;
-    }, 0),
-  );
-  const totalCost = computed(() =>
-    filteredHoldings.value.reduce(
-      (s, h) => (h.avgPrice ? s + h.avgPrice * h.quantity : s),
-      0,
-    ),
-  );
-  const totalPnlPct = computed(() =>
-    totalCost.value === 0 ? 0 : (totalPnl.value / totalCost.value) * 100,
-  );
-
-  const krPnl = computed(() =>
-    holdings.value.filter((h) => h.market === 'KR').reduce((s, h) => {
-      if (!h.avgPrice) return s;
-      const p = prices.value[h.symbol]?.price;
-      return p ? s + (p - h.avgPrice) * h.quantity : s;
-    }, 0),
-  );
-  const krCost = computed(() =>
-    holdings.value
-      .filter((h) => h.market === 'KR')
-      .reduce((s, h) => (h.avgPrice ? s + h.avgPrice * h.quantity : s), 0),
-  );
-  const krPnlPct = computed(() => (krCost.value === 0 ? 0 : (krPnl.value / krCost.value) * 100));
-  const krHasAvgPrice = computed(() =>
-    holdings.value.filter((h) => h.market === 'KR').some((h) => h.avgPrice),
-  );
-
-  const usPnl = computed(() =>
-    holdings.value.filter((h) => h.market === 'US').reduce((s, h) => {
-      if (!h.avgPrice) return s;
-      const p = prices.value[h.symbol]?.price;
-      return p ? s + (p - h.avgPrice) * h.quantity : s;
-    }, 0),
-  );
-  const usCost = computed(() =>
-    holdings.value
-      .filter((h) => h.market === 'US')
-      .reduce((s, h) => (h.avgPrice ? s + h.avgPrice * h.quantity : s), 0),
-  );
-  const usPnlPct = computed(() => (usCost.value === 0 ? 0 : (usPnl.value / usCost.value) * 100));
-  const usHasAvgPrice = computed(() =>
-    holdings.value.filter((h) => h.market === 'US').some((h) => h.avgPrice),
-  );
-
-  const totalValKRW = computed(() => krTotal.value + usTotalKRW.value);
-  const totalPnlKRW = computed(() =>
-    krPnl.value + (exchangeRate.value > 0 ? usPnl.value * exchangeRate.value : 0),
-  );
-  const totalCostKRW = computed(() =>
-    krCost.value + (exchangeRate.value > 0 ? usCost.value * exchangeRate.value : 0),
-  );
-  const totalPnlKRWPct = computed(() =>
-    totalCostKRW.value === 0 ? 0 : (totalPnlKRW.value / totalCostKRW.value) * 100,
-  );
+  const krHoldingsCount = computed(() => holdings.value.filter(h => h.market === 'KR').length);
+  const usHoldingsCount = computed(() => holdings.value.filter(h => h.market === 'US').length);
+  const marketList = market => filteredHoldings.value.filter(h => h.market === market);
+  const costOf = h => h.avgPrice ? h.avgPrice * h.quantity : 0;
+  const pnlOf = h => h.avgPrice ? holdPnl(h) : 0;
+  const pct = (pnl, cost) => pnl == null || cost == null ? null : (cost === 0 ? 0 : pnl / cost * 100);
+  const krTotal = computed(() => sumKnown(marketList('KR'), valueOf));
+  const usTotal = computed(() => sumKnown(marketList('US'), valueOf));
+  const usTotalKRW = computed(() => marketList('US').length ? toKRW(usTotal.value, { market: 'US' }) : 0);
+  const hasAvgPrice = computed(() => filteredHoldings.value.some(h => h.avgPrice));
+  const krCost = computed(() => sumKnown(marketList('KR'), costOf));
+  const usCost = computed(() => sumKnown(marketList('US'), costOf));
+  const krPnl = computed(() => sumKnown(marketList('KR'), pnlOf));
+  const usPnl = computed(() => sumKnown(marketList('US'), pnlOf));
+  const krPnlPct = computed(() => pct(krPnl.value, krCost.value));
+  const usPnlPct = computed(() => pct(usPnl.value, usCost.value));
+  const krHasAvgPrice = computed(() => marketList('KR').some(h => h.avgPrice));
+  const usHasAvgPrice = computed(() => marketList('US').some(h => h.avgPrice));
+  const totalValKRW = computed(() => sumKnown(filteredHoldings.value, holdValKRW));
+  const totalCostKRW = computed(() => sumKnown(filteredHoldings.value, h => toKRW(costOf(h), h)));
+  const totalPnlKRW = computed(() => sumKnown(filteredHoldings.value, h => toKRW(pnlOf(h), h)));
+  const totalPnlKRWPct = computed(() => pct(totalPnlKRW.value, totalCostKRW.value));
+  const totalCost = computed(() => mixedMarkets.value ? totalCostKRW.value : sumKnown(filteredHoldings.value, costOf));
+  const totalPnl = computed(() => mixedMarkets.value ? totalPnlKRW.value : sumKnown(filteredHoldings.value, pnlOf));
+  const totalPnlPct = computed(() => pct(totalPnl.value, totalCost.value));
 
   const chartSegments = computed(() => {
-    const toKRW = (h, price) => {
-      const raw = price * h.quantity;
-      if (h.market === 'KR') return raw;
-      if (exchangeRate.value > 0) return raw * exchangeRate.value;
-      const hasKR = filteredHoldings.value.some((x) => x.market === 'KR');
-      return hasKR ? 0 : raw;
-    };
-
+    // Incomplete prices/rates must not create a misleading partial 100% allocation.
+    if (!valuationComplete.value) return [];
     const items = filteredHoldings.value
-      .map((h) => {
-        const p = prices.value[h.symbol]?.price || 0;
-        const valKRW = toKRW(h, p);
-        return { h, val: p * h.quantity, valKRW, currency: h.market === 'KR' ? 'KRW' : 'USD' };
-      })
-      .filter((item) => item.valKRW > 0)
+      .map(h => ({ h, val: valueOf(h), valKRW: holdValKRW(h), currency: h.market === 'KR' ? 'KRW' : 'USD' }))
+      .filter(item => item.valKRW > 0)
       .sort((a, b) => b.valKRW - a.valKRW);
 
     const totalKRW = items.reduce((s, item) => s + item.valKRW, 0);
@@ -214,7 +156,7 @@ export function usePortfolioStats({ holdings, prices, marketFilter, exchangeRate
   });
 
   return {
-    filteredHoldings, sortedHoldings,
+    filteredHoldings, sortedHoldings, valuationComplete, sortNotice,
     krHoldingsCount, usHoldingsCount,
     krTotal, usTotal, usTotalKRW, hasAvgPrice,
     totalPnl, totalCost, totalPnlPct,

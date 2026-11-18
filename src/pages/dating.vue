@@ -80,6 +80,7 @@
       :show="showMemoryModal"
       :memory="currentMemory"
       :is-editing="isEditing"
+      :saving="saving"
       :is-view-mode="isViewMode"
       :categories="categories"
       :category-options="categoryOptions"
@@ -112,6 +113,7 @@
 import { ref, computed, watch } from "vue";
 import { useStore } from "vuex";
 import axios from "@/axios";
+import { useTimelineSave } from "@/composables/useTimelineSave";
 import DeleteModal from "@/components/DeleteModal.vue";
 import TimelineFilter from "@/components/TimelineFilter.vue";
 import TimelineList from "@/components/TimelineList.vue";
@@ -147,6 +149,7 @@ export default {
   },
   setup() {
     const { showToast } = useToast();
+    const { saving, save: persistRecord } = useTimelineSave("dating");
     const store = useStore();
     const { isVideoMedia, getImageUrl, parseImagesArray } = useMediaUtils();
 
@@ -218,17 +221,16 @@ export default {
 
     const enterEditMode = () => { isViewMode.value = false; };
 
-    const saveMemory = async (memoryData) => {
+    const saveMemory = async (memoryData, removedMedia = []) => {
       try {
-        if (isEditing.value) {
-          await axios.put(`/api/dating/${memoryData.id}`, memoryData);
-          showToast("추억이 수정되었습니다.");
-        } else {
-          await axios.post("/api/dating", memoryData);
-          showToast("추억이 생성되었습니다.");
+        const result = await persistRecord(memoryData, isEditing.value, removedMedia);
+        if (!result) return;
+        showToast(isEditing.value ? "추억이 수정되었습니다." : "추억이 생성되었습니다.");
+        if (result.cleanupFailed) {
+          showToast("기록은 저장됐지만 일부 미디어 파일 정리에 실패했습니다.", "warning");
         }
-        await fetchMemories();
         closeMemoryModal();
+        await fetchMemories();
       } catch (err) {
         showToast(
           apiErrorMessage(
@@ -352,6 +354,7 @@ export default {
     fetchMemories();
 
     return {
+      saving,
       memories,
       searchInput,
       categories, mediaFilterOptions,

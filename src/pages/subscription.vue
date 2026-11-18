@@ -75,6 +75,7 @@
     <SubscriptionFormModal
       :show="showFormModal"
       :is-editing="isEditing"
+      :saving="saving"
       v-model="currentSubscription"
       @close="closeFormModal"
       @save="saveSubscription"
@@ -157,6 +158,7 @@ export default {
 
     const showFormModal = ref(false);
     const isEditing = ref(false);
+    const saving = ref(false);
     const currentSubscription = ref(emptySubscription());
 
     const showDeleteModal = ref(false);
@@ -189,12 +191,14 @@ export default {
     };
 
     const openCreateModal = () => {
+      if (saving.value) return;
       isEditing.value = false;
       currentSubscription.value = emptySubscription();
       showFormModal.value = true;
     };
 
     const openEditModal = (sub) => {
+      if (saving.value) return;
       isEditing.value = true;
       currentSubscription.value = {
         id: sub.id,
@@ -214,10 +218,12 @@ export default {
     };
 
     const closeFormModal = () => {
+      if (saving.value) return;
       showFormModal.value = false;
     };
 
     const saveSubscription = async () => {
+      if (saving.value) return;
       const s = currentSubscription.value;
       if (!s.name || !s.name.trim()) { showToast('서비스명을 입력해주세요.', 'danger'); return; }
       if (s.amount === null || s.amount === '' || Number.isNaN(Number(s.amount)) || Number(s.amount) < 0) {
@@ -234,6 +240,7 @@ export default {
         paymentMethod: s.paymentMethod || null,
       };
 
+      saving.value = true;
       try {
         if (isEditing.value && payload.id) {
           await axios.put(`/api/subscriptions/${payload.id}`, payload);
@@ -242,15 +249,16 @@ export default {
           await axios.post('/api/subscriptions', payload);
           showToast('구독이 추가되었습니다.', 'success');
         }
-        closeFormModal();
+        showFormModal.value = false;
         await fetchSubscriptions();
       } catch (err) {
         logger.error('Error saving subscription:', err);
         showToast(apiErrorMessage(err, '구독 저장에 실패했습니다.'), 'danger');
-      }
+      } finally { saving.value = false; }
     };
 
     const openDeleteModal = (sub) => {
+      if (saving.value) return;
       subscriptionToDelete.value = sub;
       showDeleteModal.value = true;
       showFormModal.value = false;
@@ -282,7 +290,7 @@ export default {
     return {
       subscriptions, loading, error,
       statusFilter, visibleSubscriptions, countByStatus,
-      showFormModal, isEditing, currentSubscription,
+      showFormModal, isEditing, currentSubscription, saving,
       showDeleteModal, subscriptionToDelete,
       openCreateModal, openEditModal, closeFormModal, saveSubscription,
       openDeleteModal, closeDeleteModal, deleteSubscription,

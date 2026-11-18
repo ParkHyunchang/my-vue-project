@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { fetchQuote, fetchUsdKrwQuote } from "@/api/stockApi";
 import { isCashHolding } from "@/config/stockAccounts";
 import { useStockFormatters } from "@/composables/useStockFormatters";
@@ -30,6 +30,27 @@ export function useHoldingsPricing({
   const exRateAt = ref("");
   const lastUpdatedAt = ref(null);
   const relativeUpdated = ref("");
+  const exchangeStatus = ref('missing');
+  const quoteStates = ref({});
+  const pricingStatus = computed(() => {
+    const list = (holdings.value || []).filter(h => !isCashHolding(h));
+    const states = list.map(h => quoteStates.value[h.symbol] || 'missing');
+    if (list.some(h => h.market === 'US')) states.push(exchangeStatus.value);
+    if (states.every(state => state === 'fresh')) return 'fresh';
+    if (states.some(state => state === 'fresh')) return 'partial';
+    return states.some(state => state === 'stale') ? 'stale' : 'missing';
+  });
+  const pricingMessage = computed(() => {
+    if (priceLoading.value) return '시세 확인 중…';
+    const messages = {
+      fresh: '시세 확인 완료',
+      partial: '일부 시세 또는 환율 조회 실패 · 이전 값 유지, 미확인 값은 — 표시',
+      stale: '시세 갱신 실패 · 마지막 정상 시세 기준 (최신 아님)',
+      missing: '시세를 확인하지 못했습니다 · 평가금액·손익 계산 대기',
+    };
+    const fx = exchangeStatus.value === 'stale' ? ' · 환율도 이전 값 사용' : '';
+    return messages[pricingStatus.value] + fx;
+  });
 
   let refreshTimer = null;
   let relativeTimer = null;
@@ -37,23 +58,29 @@ export function useHoldingsPricing({
   async function fetchExchangeRate() {
     try {
       const res = await fetchUsdKrwQuote();
-      if (res.data?.price) {
-        exchangeRate.value = res.data.price;
+      if (Number.isFinite(Number(res.data?.price)) && Number(res.data.price) > 0) {
+        exchangeRate.value = Number(res.data.price);
+        exchangeStatus.value = 'fresh';
         exRateAt.value = new Date().toLocaleTimeString("ko-KR", {
           hour: "2-digit",
           minute: "2-digit",
         });
+        return true;
       }
-    } catch { /* noop */ }
+    } catch { /* retain last valid rate */ }
+    exchangeStatus.value = exchangeRate.value > 0 ? 'stale' : 'missing';
+    return false;
   }
 
   async function fetchPrices() {
+    if (priceLoading.value) return;
     const list = holdings.value || [];
     if (list.length === 0) return;
 
     priceLoading.value = true;
     try {
       const results = {};
+      const states = {};
       list.forEach((holding) => {
         if (isCashHolding(holding)) results[holding.symbol] = { price: 1, changePercent: null };
       });
@@ -66,8 +93,15 @@ export function useHoldingsPricing({
       const tasks = [...uniqueSymbols.entries()].map(async ([symbol, market]) => {
         try {
           const res = await fetchQuote(symbol, market.toLowerCase());
-          results[symbol] = res.data;
-        } catch { /* noop */ }
+          const price = Number(res.data?.price);
+          if (!Number.isFinite(price) || price <= 0) throw new Error('Missing quote');
+          results[symbol] = { ...res.data, price, stale: false, fetchedAt: new Date().toISOString() };
+          states[symbol] = 'fresh';
+        } catch {
+          const previous = prices.value[symbol];
+          if (previous?.price > 0) results[symbol] = { ...previous, stale: true };
+          states[symbol] = previous?.price > 0 ? 'stale' : 'missing';
+        }
       });
 
       const hasUs = list.some((holding) => !isCashHolding(holding) && holding.market === "US");
@@ -75,7 +109,8 @@ export function useHoldingsPricing({
 
       await Promise.all(tasks);
       prices.value = results;
-      lastUpdatedAt.value = new Date();
+      quoteStates.value = states;
+      if (pricingStatus.value === 'fresh') lastUpdatedAt.value = new Date();
       updateRelativeTime(lastUpdatedAt, relativeUpdated, { freshThresholdSec, relativeSuffix });
     } finally {
       priceLoading.value = false;
@@ -106,6 +141,10 @@ export function useHoldingsPricing({
     exRateAt,
     lastUpdatedAt,
     relativeUpdated,
+    pricingStatus,
+    pricingMessage,
+    exchangeStatus,
+    quoteStates,
     fetchPrices,
     fetchExchangeRate,
     startTimers,
@@ -149,7 +188,7 @@ export function useHoldingDisplay({
   function fmtCurPrice(holding) {
     if (isCashHolding(holding)) return "현금";
     const price = prices.value[holding.symbol];
-    return price ? fmtMoney(price.price, holding.market) : "—";
+    return price ? fmtMoney(price.price, holding.market) + (price.stale ? ' (이전 시세)' : '') : "—";
   }
 
   function fmtHoldVal(holding) {
@@ -263,6 +302,8 @@ export function buildAnalysisContext({
       quantity: holding.quantity,
       avgPrice: holding.avgPrice ?? null,
       currentPrice,
+      quoteStatus: quote.stale ? 'stale' : (currentPrice == null ? 'missing' : 'fresh'),
+      quoteFetchedAt: quote.fetchedAt || null,
       marketValue,
       marketValueKRW,
       weightPct,
@@ -276,9 +317,9 @@ export function buildAnalysisContext({
     accountType,
     accountLabel,
     accountNote,
-    asOf: lastUpdatedAt.value ? lastUpdatedAt.value.toISOString() : new Date().toISOString(),
+    asOf: lastUpdatedAt.value ? lastUpdatedAt.value.toISOString() : null,
     exchangeRate: exchangeRate.value || null,
-    totalValueKRW: totalKRW || totalValKRW.value || null,
+    totalValueKRW: totalValKRW.value,
     holdings: enrichedHoldings,
     marketFilter: marketFilter.value !== "all" ? marketFilter.value.toUpperCase() : null,
     instruction,

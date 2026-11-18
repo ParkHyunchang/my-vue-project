@@ -2,6 +2,8 @@
 
 Vue 3 기반 프론트엔드 프로젝트입니다.
 
+AI 팀 작업은 [운영 안내](docs/ai-team/README.md), [현황](docs/ai-team/STATUS.md), [업무 목록](docs/ai-team/BACKLOG.md)을 참고합니다.
+
 ---
 
 ## 기술 스택
@@ -16,6 +18,10 @@ Vue 3 기반 프론트엔드 프로젝트입니다.
 
 ## 로컬 개발
 
+### 운영 연결 없는 테스트
+
+`npm run test:isolated`로 개발 서버 없이 전체 Jest 테스트를 실행합니다. 실제 네트워크 호출은 차단하고 명시적인 대역을 사용합니다. 격리 범위와 실패 처리 방법은 [TESTING.md](TESTING.md)를 참고합니다.
+
 ### 의존성 설치
 
 ```bash
@@ -26,7 +32,7 @@ npm install
 
 ```bash
 npm run serve
-# http://localhost:8080
+# http://localhost:3100
 ```
 
 ### 프로덕션 빌드

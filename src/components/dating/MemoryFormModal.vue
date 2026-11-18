@@ -4,8 +4,6 @@
     menu-path="/dating"
     api-path="/api/dating"
     item-label="추억"
-    delete-media-path="/api/dating/image"
-    delete-media-param="imagePath"
   />
 </template>
 

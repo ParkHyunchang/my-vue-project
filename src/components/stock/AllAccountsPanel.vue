@@ -25,6 +25,7 @@
     <template v-else>
       <!-- 요약 바 -->
       <PortfolioSummary
+        :valuation-complete="valuationComplete"
         readonly
         :market-filter="marketFilter"
         :display-currency="displayCurrency"
@@ -135,12 +136,21 @@
         </button>
       </div>
 
+      <p
+        role="status"
+        aria-live="polite"
+      >
+        {{ pricingMessage }}
+      </p>
+      <p v-if="sortNotice">
+        {{ sortNotice }}
+      </p>
       <!-- 새로고침 바 -->
       <div class="price-refresh-bar">
         <span
           v-if="lastUpdatedAt"
           class="prf-updated"
-        >↻ {{ relativeUpdated }}</span>
+        >마지막 전체 시세 확인: {{ relativeUpdated }}</span>
         <button
           class="prf-btn"
           :disabled="priceLoading"
@@ -217,6 +227,7 @@
       <!-- 차트 뷰 -->
       <PortfolioChart
         v-else
+        :valuation-complete="valuationComplete"
         :chart-segments="chartSegments"
         v-model:hovered-seg-id="hoveredSegId"
         :hovered-segment="hoveredSegment"
@@ -305,6 +316,7 @@ export default {
       exRateAt,
       lastUpdatedAt,
       relativeUpdated,
+      pricingStatus, pricingMessage,
       fetchPrices,
       startTimers,
       stopTimers,
@@ -317,7 +329,7 @@ export default {
       holdings: mergedHoldings, prices, marketFilter, exchangeRate, sortKey, sortDir,
     });
     const {
-      filteredHoldings, sortedHoldings,
+      filteredHoldings, sortedHoldings, valuationComplete, sortNotice,
       krHoldingsCount, usHoldingsCount,
       krTotal, usTotal, usTotalKRW, hasAvgPrice,
       totalPnl, totalCost, totalPnlPct,
@@ -428,7 +440,7 @@ export default {
 
     return {
       mergedHoldings,
-      filteredHoldings, sortedHoldings,
+      filteredHoldings, sortedHoldings, valuationComplete, sortNotice,
       krHoldingsCount, usHoldingsCount,
       krTotal, usTotal, usTotalKRW, hasAvgPrice,
       totalPnl, totalCost, totalPnlPct,
@@ -440,7 +452,7 @@ export default {
       priceLoading, portfolioView, marketFilter,
       exchangeRate, exRateAt, displayCurrency, setDisplayCurrency,
       showAnalysisModal, analysisTarget, showPortfolioAnalysis,
-      lastUpdatedAt, relativeUpdated, sortKey, sortDir,
+      lastUpdatedAt, relativeUpdated, pricingStatus, pricingMessage, sortKey, sortDir,
       fetchPrices, openAnalysis, closeAnalysis,
       openPortfolioAnalysis, closePortfolioAnalysis,
       fmtKRW, fmtUSD, pnlCls, fmtMoney, fmtAbsPnl,

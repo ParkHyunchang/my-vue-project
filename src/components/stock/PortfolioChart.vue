@@ -1,6 +1,15 @@
 <template>
   <div class="chart-view">
-    <div class="chart-inner">
+    <p
+      v-if="!valuationComplete"
+      role="status"
+    >
+      시세 또는 환율이 확인되면 전체 비중을 표시합니다.
+    </p>
+    <div
+      v-else
+      class="chart-inner"
+    >
       <div class="donut-box">
         <svg
           viewBox="-100 -100 200 200"
@@ -108,6 +117,7 @@
 export default {
   name: 'PortfolioChart',
   props: {
+    valuationComplete: { type: Boolean, default: true },
     chartSegments: { type: Array, required: true },
     hoveredSegId: { type: [Number, String], default: null },
     hoveredSegment: { type: Object, default: null },

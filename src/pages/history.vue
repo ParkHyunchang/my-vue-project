@@ -69,6 +69,7 @@
       :show="showEventModal"
       :event="currentEvent"
       :is-editing="isEditing"
+      :saving="saving"
       :category-options="categoryOptions"
       @close="closeEventModal"
       @save="saveEvent"
@@ -96,6 +97,7 @@
 <script>
 import { ref, computed, watch } from "vue";
 import axios from "@/axios";
+import { useTimelineSave } from "@/composables/useTimelineSave";
 import DeleteModal from "@/components/DeleteModal.vue";
 import TimelineFilter from "@/components/TimelineFilter.vue";
 import TimelineList from "@/components/TimelineList.vue";
@@ -125,6 +127,7 @@ export default {
   components: { DeleteModal, TimelineFilter, TimelineList, Lightbox, EventFormModal },
   setup() {
     const { showToast } = useToast();
+    const { saving, save: persistRecord } = useTimelineSave("history");
     const { isVideoMedia, getImageUrl: getMediaUrl, parseImagesArray } = useMediaUtils();
 
     const events = ref([]);
@@ -227,17 +230,16 @@ export default {
       currentEvent.value = null;
     };
 
-    const saveEvent = async (eventData) => {
+    const saveEvent = async (eventData, removedMedia = []) => {
       try {
-        if (isEditing.value) {
-          await axios.put(`/api/histories/${eventData.id}`, eventData);
-          showToast("이벤트가 수정되었습니다.");
-        } else {
-          await axios.post("/api/histories", eventData);
-          showToast("이벤트가 생성되었습니다.");
+        const result = await persistRecord(eventData, isEditing.value, removedMedia);
+        if (!result) return;
+        showToast(isEditing.value ? "이벤트가 수정되었습니다." : "이벤트가 생성되었습니다.");
+        if (result.cleanupFailed) {
+          showToast("기록은 저장됐지만 일부 미디어 파일 정리에 실패했습니다.", "warning");
         }
-        await fetchEvents();
         closeEventModal();
+        await fetchEvents();
       } catch (err) {
         showToast(
           apiErrorMessage(
@@ -310,6 +312,7 @@ export default {
     fetchEvents();
 
     return {
+      saving,
       events,
       searchInput,
       categories, mediaFilterOptions, categoryOptions,

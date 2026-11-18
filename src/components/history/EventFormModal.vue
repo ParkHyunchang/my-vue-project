@@ -5,8 +5,6 @@
     menu-path="/history"
     api-path="/api/histories"
     item-label="이벤트"
-    delete-media-path="/api/histories/media"
-    delete-media-param="mediaPath"
   />
 </template>
 

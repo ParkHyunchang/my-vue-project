@@ -10,6 +10,7 @@
       <button
         type="button"
         class="btn btn-secondary"
+        :disabled="busy"
         @click="onClose"
       >
         취소
@@ -17,9 +18,10 @@
       <button
         type="button"
         class="btn btn-danger"
+        :disabled="busy"
         @click="onDelete"
       >
-        삭제
+        {{ busy ? '삭제 중...' : '삭제' }}
       </button>
     </template>
   </Modal>
@@ -34,6 +36,7 @@ export default {
     Modal,
   },
   props: {
+    busy: { type: Boolean, default: false },
     title: {
       type: String,
       default: "",
@@ -43,13 +46,15 @@ export default {
       default: "",
     },
   },
-  setup() {
+  setup(props) {
     const { emit } = getCurrentInstance();
     const onClose = () => {
+      if (props.busy) return;
       emit("close");
     };
 
     const onDelete = () => {
+      if (props.busy) return;
       emit("delete");
     };
 

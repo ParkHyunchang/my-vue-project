@@ -7,9 +7,10 @@
           v-if="statusFilter === 'done' && numberOfTodos > 0"
           class="btn btn-danger todos-bulk-del"
           @click="openBulkDeleteModal"
-          title="현재 보이는 완료 항목을 모두 삭제합니다"
+          :disabled="bulkPreviewing || bulkDeleting"
+          title="현재 필터에 해당하는 완료 항목을 모든 페이지에서 삭제합니다"
         >
-          🗑 완료 전체 삭제
+          {{ bulkPreviewing ? '삭제 범위 확인 중...' : '🗑 필터된 완료 항목 삭제' }}
         </button>
         <button
           class="btn btn-primary"
@@ -216,9 +217,10 @@
     <teleport to="#modal">
       <DeleteModal
         v-if="showBulkDeleteModal"
-        :title="'완료 항목 전체 삭제'"
-        :message="`완료된 할 일 ${numberOfTodos}건을 모두 삭제합니다. 되돌릴 수 없습니다.`"
-        @close="showBulkDeleteModal = false"
+        :title="'필터된 완료 항목 삭제'"
+        :message="`확인한 필터(${bulkFilterLabel})에 해당하는 완료 항목 ${bulkDeleteIds.length}건을 모든 페이지에서 삭제합니다. 확인 이후 추가된 항목과 미완료로 변경된 항목은 제외됩니다. 되돌릴 수 없습니다.`"
+        :busy="bulkDeleting"
+        @close="closeBulkDeleteModal"
         @delete="confirmBulkDelete"
       />
     </teleport>
@@ -229,6 +231,7 @@
 <script>
 import { ref, computed, watch, onMounted } from 'vue';
 import TodoList from '@/components/TodoList.vue';
+import { previewCompletedTodos, deleteCompletedTodos } from '@/api/todoApi';
 import DeleteModal from '@/components/DeleteModal.vue';
 import axios from '@/axios';
 import { useToast } from '@/composables/toast';
@@ -257,6 +260,9 @@ export default {
         const loading = ref(false);
         const showBulkDeleteModal = ref(false);
         const bulkDeleting = ref(false);
+        const bulkPreviewing = ref(false);
+        const bulkDeleteIds = ref([]);
+        const bulkFilterLabel = ref('');
 
         const numberOfPages = computed(() => {
             const n = Math.ceil(Number(numberOfTodos.value) / limit);
@@ -348,18 +354,43 @@ export default {
             router.push('/todos/create');
         };
 
-        const openBulkDeleteModal = () => {
-            showBulkDeleteModal.value = true;
+        const openBulkDeleteModal = async () => {
+            if (bulkPreviewing.value || bulkDeleting.value) return;
+            bulkPreviewing.value = true;
+            const filters = { q: searchText.value, priority: priorityFilter.value, category: categoryFilter.value };
+            const label = [filters.q && `검색: ${filters.q}`, filters.priority && `우선순위: ${filters.priority}`, filters.category && `카테고리: ${filters.category}`].filter(Boolean).join(', ') || '전체';
+            try {
+                const { data } = await previewCompletedTodos(filters);
+                if (!Array.isArray(data.ids) || !data.ids.length) {
+                    showToast('삭제할 완료 항목이 없습니다.', 'info');
+                    return;
+                }
+                if (data.ids.length > 10000) {
+                    showToast('한 번에 10,000건까지 삭제할 수 있습니다. 필터를 좁혀주세요.', 'danger');
+                    return;
+                }
+                bulkDeleteIds.value = [...data.ids];
+                bulkFilterLabel.value = label;
+                showBulkDeleteModal.value = true;
+            } catch (err) {
+                showToast(apiErrorMessage(err, '삭제 범위를 확인하지 못했습니다.'), 'danger');
+            } finally { bulkPreviewing.value = false; }
+        };
+        const closeBulkDeleteModal = () => {
+            if (bulkDeleting.value) return;
+            showBulkDeleteModal.value = false;
+            bulkDeleteIds.value = [];
         };
 
         const confirmBulkDelete = async () => {
-            if (bulkDeleting.value) return;
+            if (bulkDeleting.value || !bulkDeleteIds.value.length) return;
             bulkDeleting.value = true;
             try {
-                const res = await axios.delete('/api/todos/completed');
+                const res = await deleteCompletedTodos([...bulkDeleteIds.value]);
                 const deleted = res.data?.deleted ?? 0;
                 showToast(`완료 항목 ${deleted}건을 삭제했습니다.`, 'success');
                 showBulkDeleteModal.value = false;
+                bulkDeleteIds.value = [];
                 await loadCategories();
                 await fetchTodos(1);
             } catch (err) {
@@ -393,6 +424,7 @@ export default {
             hasActiveFilter,
             loading,
             showBulkDeleteModal,
+            bulkPreviewing, bulkDeleting, bulkDeleteIds, bulkFilterLabel, closeBulkDeleteModal,
             fetchTodos,
             onFilterChanged,
             setStatus,

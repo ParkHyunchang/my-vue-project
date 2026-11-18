@@ -1,5 +1,6 @@
 module.exports = {
   testEnvironment: 'node',
+  setupFiles: ['<rootDir>/tests/setup/network-isolation.cjs'],
   transform: {
     '^.+\\.js$': 'babel-jest',
   },

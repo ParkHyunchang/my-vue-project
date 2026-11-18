@@ -42,7 +42,7 @@ src/
 │   ├── audit.js         # 감사 이벤트 전송
 │   └── logger.js        # 로그 유틸
 ├── axios.js             # axios 인스턴스 설정, 401 토큰 갱신 인터셉터
-├── router.js            # Vue Router 경로 정의
+├── router/index.js      # Vue Router 경로 정의 (메뉴 정의: config/routes.js)
 └── main.js              # 앱 진입점
 ```
 
@@ -200,7 +200,7 @@ src/
 [ ] 3. src/pages/xxx.vue
        — 컴포넌트 조립, 페이지 수준 데이터 로딩
 
-[ ] 4. src/router.js
+[ ] 4. src/router/index.js 및 src/config/routes.js
        — 신규 경로 추가
 
 [ ] 5. src/composables/useXxxStats.js (계산 로직이 복잡한 경우)

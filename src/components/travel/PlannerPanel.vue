@@ -103,6 +103,9 @@
       v-if="plan"
       class="pl-result"
     >
+      <p class="pl-meta">
+        생성 기준: {{ planInput.destination }} · {{ planInput.days }}일. 입력을 바꾸면 다시 생성해주세요.
+      </p>
       <div class="pl-result-head">
         <div>
           <h3 class="pl-title">
@@ -172,8 +175,8 @@
       <ItineraryChat
         class="pl-chat"
         :plan="plan"
-        :destination="form.destination"
-        :days="form.days"
+        :destination="planInput.destination"
+        :days="planInput.days"
         @revised="onRevised"
       />
 
@@ -238,6 +241,7 @@ export default {
     const saving = ref(false);
     const savingItinerary = ref(false);
     const plan = ref(null);
+    const planInput = ref(null);
     const blocked = ref(false);
     const retryText = ref("");
     const providerName = ref("");
@@ -254,20 +258,22 @@ export default {
 
     async function generate() {
       if (!canGenerate.value || loading.value) return;
+      const input = { ...form, destination: form.destination.trim(), style: [...form.style] };
       loading.value = true;
       plan.value = null;
+      planInput.value = null;
       blocked.value = false;
       retryText.value = "";
       errorMsg.value = "";
       try {
         const res = await axios.post("/api/travel/plan", {
-          destination: form.destination.trim(),
-          days: form.days,
-          companions: form.companions.trim() || null,
-          style: form.style.join(", ") || null,
-          budget: form.budget.trim() || null,
-          includeFlight: form.includeFlight,
-          includeStay: form.includeStay,
+          destination: input.destination.trim(),
+          days: input.days,
+          companions: input.companions.trim() || null,
+          style: input.style.join(", ") || null,
+          budget: input.budget.trim() || null,
+          includeFlight: input.includeFlight,
+          includeStay: input.includeStay,
         });
         const data = res.data || {};
         if (data.blocked) {
@@ -277,6 +283,7 @@ export default {
           }
           return;
         }
+        planInput.value = input;
         plan.value = data.plan || null;
         providerName.value = data.providerName || "";
         model.value = data.model || "";
@@ -293,14 +300,14 @@ export default {
     }
 
     async function saveToItinerary() {
-      if (!plan.value || savingItinerary.value) return;
+      if (!plan.value || !planInput.value || savingItinerary.value) return;
       savingItinerary.value = true;
       errorMsg.value = "";
       try {
         await axios.post("/api/travel/itinerary", {
-          title: plan.value.title || `${form.destination.trim()} ${form.days}일`,
-          destination: form.destination.trim() || null,
-          days: form.days,
+          title: plan.value.title || `${planInput.value.destination} ${planInput.value.days}일`,
+          destination: planInput.value.destination || null,
+          days: planInput.value.days,
           itinerary: plan.value.days || [],
           memo: plan.value.summary || null,
         });
@@ -313,13 +320,13 @@ export default {
     }
 
     async function saveToWishlist() {
-      if (!plan.value || saving.value) return;
+      if (!plan.value || !planInput.value || saving.value) return;
       saving.value = true;
       try {
         await axios.post("/api/travel/wishlist", {
-          title: form.destination.trim(),
+          title: planInput.value.destination,
           priority: 1,
-          memo: plan.value.title + (form.style.length ? `\n스타일: ${form.style.join(", ")}` : ""),
+          memo: plan.value.title + (planInput.value.style.length ? `\n스타일: ${planInput.value.style.join(", ")}` : ""),
         });
         emit("add-to-wishlist");
       } catch {
@@ -330,7 +337,7 @@ export default {
     }
 
     return {
-      styleOptions, form, loading, saving, savingItinerary, plan, blocked, retryText,
+      styleOptions, form, loading, saving, savingItinerary, plan, planInput, blocked, retryText,
       providerName, model, errorMsg, canGenerate,
       toggleStyle, generate, saveToWishlist, saveToItinerary, onRevised, typeIcon,
     };

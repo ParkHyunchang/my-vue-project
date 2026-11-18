@@ -7,6 +7,8 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "test": "jest",
+    "test:isolated": "node scripts/test-isolated.cjs",
+    "serve:isolated": "node scripts/serve-isolated.cjs",
     "gen:api": "openapi-typescript http://localhost:3200/v3/api-docs -o src/generated/api.d.ts"
   },
   "dependencies": {

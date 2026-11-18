@@ -314,6 +314,7 @@
               v-if="canDelete"
               type="button"
               class="btn btn-danger"
+              :disabled="modalLock"
               @click="$emit('request-delete', localMemory)"
             >
               삭제
@@ -347,6 +348,7 @@
               v-if="isEditing && canDelete"
               type="button"
               class="btn btn-danger"
+              :disabled="modalLock"
               @click="$emit('request-delete', localMemory)"
             >
               삭제
@@ -364,9 +366,10 @@
               v-if="isEditing ? canUpdate : canCreate"
               type="button"
               class="btn btn-primary"
+              :disabled="modalLock"
               @click="onSave"
             >
-              {{ isEditing ? "수정" : "저장" }}
+              {{ saving ? "저장 중…" : (isEditing ? "수정" : "저장") }}
             </button>
           </div>
         </div>
@@ -379,7 +382,7 @@
     <DeleteModal
       v-if="showImageDeleteModal"
       title="미디어 삭제"
-      message="이 미디어를 정말 삭제하시겠습니까?"
+      message="목록에서 제거할까요? 기록을 저장해야 실제 파일이 삭제됩니다."
       @close="closeImageDeleteModal"
       @delete="removeImage"
     />
@@ -412,8 +415,7 @@ export default {
     menuPath: { type: String, required: true },
     apiPath: { type: String, required: true },
     itemLabel: { type: String, default: "추억" },
-    deleteMediaPath: { type: String, required: true },
-    deleteMediaParam: { type: String, required: true },
+    saving: { type: Boolean, default: false },
     show: { type: Boolean, default: false },
     memory: { type: Object, default: null },
     isEditing: { type: Boolean, default: false },
@@ -445,6 +447,7 @@ export default {
     const previewVideos = ref([]);
     const showImageDeleteModal = ref(false);
     const imageToDelete = ref(null);
+    const removedMedia = ref([]);
 
     onBeforeUpdate(() => { previewVideos.value = []; });
 
@@ -454,7 +457,7 @@ export default {
     const hasUploadPermission = computed(() =>
       props.isEditing ? canUpdate.value : canCreate.value,
     );
-    const modalLock = computed(() => uploading.value || isSelectingFiles.value);
+    const modalLock = computed(() => props.saving || uploading.value || isSelectingFiles.value);
 
     const updateIsMobileLike = () => {
       if (typeof window === "undefined" || !window.matchMedia) {
@@ -486,6 +489,7 @@ export default {
       () => props.show,
       (show) => {
         if (show) {
+          removedMedia.value = [];
           if (props.memory) {
             localMemory.value = {
               ...props.memory,
@@ -641,7 +645,9 @@ export default {
           localMemory.value.images && localMemory.value.images.length > 0
             ? localMemory.value.images[0]
             : null,
-      });
+      }, removedMedia.value.filter((path) =>
+        !localMemory.value.images.some((image) => extractPath(image) === path),
+      ));
     };
 
     // ── 미디어 업로드 ────────────────────────────────────
@@ -756,6 +762,7 @@ export default {
     };
 
     const confirmRemoveImage = (index) => {
+      if (modalLock.value) return;
       if (!canDelete.value) {
         showToast("미디어 삭제 권한이 없습니다.", "danger");
         return;
@@ -769,23 +776,18 @@ export default {
       imageToDelete.value = null;
     };
 
-    const removeImage = async () => {
+    const removeImage = () => {
+      if (modalLock.value || !canDelete.value) return;
       if (imageToDelete.value !== null && localMemory.value.images) {
-        const target = localMemory.value.images[imageToDelete.value];
-        const imagePath = extractPath(target);
+        const imagePath = extractPath(localMemory.value.images[imageToDelete.value]);
         if (!imagePath) {
           showToast("미디어 경로를 찾을 수 없습니다.", "danger");
           closeImageDeleteModal();
           return;
         }
-        try {
-          await axios.delete(props.deleteMediaPath, { params: { [props.deleteMediaParam]: imagePath } });
-          localMemory.value.images.splice(imageToDelete.value, 1);
-          showToast("미디어가 삭제되었습니다.");
-          await waitForModalMediaSettled(800);
-        } catch (error) {
-          showToast(apiErrorMessage(error, "미디어 삭제에 실패했습니다."), "danger");
-        }
+        removedMedia.value.push(imagePath);
+        localMemory.value.images.splice(imageToDelete.value, 1);
+        showToast("목록에서 제거했습니다. 기록을 저장하면 삭제됩니다.");
       }
       closeImageDeleteModal();
     };
