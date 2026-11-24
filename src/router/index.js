@@ -6,6 +6,7 @@ import Projects from '../pages/projects.vue';
 import Auth from '../pages/auth.vue';
 import { ROUTE_COMPONENTS } from '../config/routes';
 import { categoryFromPath, logAudit } from '../utils/audit';
+import { createChunkLoadRecovery } from '../utils/routeChunkRecovery';
 
 const router = createRouter({
     history: createWebHashHistory(),
@@ -138,10 +139,38 @@ export function syncDynamicRoutes(menuPaths) {
     });
 }
 
+// An open tab can still reference chunks removed by a newer deployment.
+const chunkRecovery = createChunkLoadRecovery({
+    storage: () => window.sessionStorage,
+    isOnline: () => navigator.onLine !== false,
+    resolveHref: (fullPath) => {
+        const destination = new URL(router.resolve(fullPath).href, window.location.href);
+        return destination.origin === window.location.origin ? destination.href : null;
+    },
+    reload: (href) => {
+        // Hash history: replace preserves the requested path/query without adding
+        // history, and reload explicitly fetches a fresh HTML/runtime document.
+        window.location.replace(href);
+        window.location.reload();
+    },
+    notify: (message) => store.dispatch('toast/showToast', { message, type: 'error' }),
+});
+router.onError((error, to) => {
+    if (!chunkRecovery.handleError(error, to?.fullPath)) {
+        store.dispatch('toast/showToast', {
+            message: '화면을 열지 못했습니다. 다시 시도해 주세요.', type: 'error',
+        });
+    }
+});
+router.afterEach((to, from, failure) => {
+    if (!failure) chunkRecovery.navigationSucceeded(to.fullPath);
+});
+
 // 라우트 가드
 // 인증 복원(/api/auth/me)은 main.js의 initializeApp 에서 앱 마운트 전에 1회 await 으로 끝낸다.
 // 가드에서 await 하면 모바일 네트워크 지연 시 next() 가 호출 안 돼 router-view 가 빈 채로 남는 문제가 있어 제거.
 router.beforeEach((to, from, next) => {
+    chunkRecovery.navigationStarted(to.fullPath);
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
     const guestOnly = to.matched.some(record => record.meta.guestOnly);
 
