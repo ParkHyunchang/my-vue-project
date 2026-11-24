@@ -1,0 +1,7 @@
+# CI builds Vue before Docker. Only the generated site and nginx config are used.
+**
+!dist/
+!dist/**
+!nginx.conf
+!Dockerfile
+!.dockerignore

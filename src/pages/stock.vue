@@ -141,8 +141,14 @@
     </div>
 
     <div
-      v-if="isAdmin"
-      v-show="activeTab === 'auto-trade'"
+      v-if="isAdmin && paperTradingEnabled && activeTab === 'paper-trade'"
+      class="tab-content"
+    >
+      <UsPaperTradingPanel />
+    </div>
+
+    <div
+      v-if="isAdmin && activeTab === 'auto-trade'"
       class="tab-content"
     >
       <div
@@ -181,16 +187,19 @@ import Top10Panel from "@/components/stock/Top10Panel.vue";
 import NewsPanel from "@/components/stock/NewsPanel.vue";
 import KiwoomAutoTrade from "@/components/stock/KiwoomAutoTrade.vue";
 import KiwoomUsAutoTrade from "@/components/stock/KiwoomUsAutoTrade.vue";
+import UsPaperTradingPanel from "@/components/stock/UsPaperTradingPanel.vue";
 import { ACCOUNT_CONFIGS, ACCOUNT_TAB_ORDER } from "@/config/stockAccounts";
 
 export default {
   name: "StockPage",
-  components: { PortfolioPanel, AllAccountsPanel, HeatmapPanel, Top10Panel, NewsPanel, KiwoomAutoTrade, KiwoomUsAutoTrade },
+  components: { PortfolioPanel, AllAccountsPanel, HeatmapPanel, Top10Panel, NewsPanel, KiwoomAutoTrade, KiwoomUsAutoTrade, UsPaperTradingPanel },
   setup() {
     const route = useRoute();
     const router = useRouter();
     const store = useStore();
     const isAdmin = computed(() => store.getters["auth/isAdmin"]);
+    // Enable only for a deployment with the dedicated paper API configured.
+    const paperTradingEnabled = process.env.VUE_APP_US_PAPER_ENABLED === "true";
 
     const activeTab = ref("all");
     const autoTradeMarket = ref("KR");
@@ -224,7 +233,10 @@ export default {
       { id: "top10", icon: "🏆", label: "시총 top10" },
       { id: "news", icon: "📰", label: "뉴스" },
       // 자동매매(키움 실계좌)는 백엔드에서도 ADMIN 전용이라 탭 자체를 숨김
-      ...(isAdmin.value ? [{ id: "auto-trade", icon: "🤖", label: "자동매매" }] : []),
+      ...(isAdmin.value ? [
+        ...(paperTradingEnabled ? [{ id: "paper-trade", icon: "🧪", label: "미국 모의매매" }] : []),
+        { id: "auto-trade", icon: "🤖", label: "자동매매" },
+      ] : []),
     ]);
     const VALID_TABS = computed(() => tabs.value.map((tab) => tab.id));
 
@@ -303,6 +315,7 @@ export default {
       holdingsByAccount,
       accountsLoading,
       isAdmin,
+      paperTradingEnabled,
       tabs,
       switchTab,
       onHoldingsChanged,

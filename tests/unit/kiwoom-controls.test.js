@@ -33,7 +33,7 @@ const initialSettings = {
   minVolumeRatio: 1.2, maxSpreadPercent: 0.15, maxOrderPercent: 10, maxPositions: 3, dailyMaxBuys: 2,
   symbolCooldownDays: 5, maxHoldingDays: 5, stopLossPercent: 3, takeProfitPercent: 5, takeProfitPercent2: 8, dailyLossLimitPercent: 3
 }
-let app, status, settings, summary, handlers, calls, failSummary, failSettings, syncResponse, controlResponse
+let app, status, settings, summary, risk, handlers, calls, failSummary, failSettings, syncResponse, controlResponse
 async function flush() { for (let i = 0; i < 25; i++) { await Promise.resolve(); await nextTick() } }
 async function mount(name, props = {}) {
   const host = document.createElement('div'); document.body.appendChild(host)
@@ -56,11 +56,13 @@ beforeEach(() => {
     fresh: true, capturedAt: '2026-10-02T16:00:00', krwOrderServiceStatus: { code: 'CANCELED', label: '해지됨' },
     buyingPower: { signalMode: 'OBSERVE', maxOrderPercent: 10, maxPositions: 3, riskPerTradePercent: 0.5,
       reservedUsd: 200, unreservedUsd: 800, allocationLimitUsd: 80, pendingPositionCount: 1, holdingsSyncedAt: '2026-10-02T16:00:00' } }
+  risk = { enabled: true, capitalFlowConfirmed: true, triggered: false, liquidationPending: false, equityUsd: 1000, peakEquityUsd: 1000, drawdownPercent: 0, limitPercent: 10, observedAt: new Date().toISOString() }
   handlers = {}; calls = []; failSummary = false; failSettings = false; syncResponse = { success: true, updated: 0, message: '동기화 대상 주문이 없습니다.' }; controlResponse = {}
   window.confirm = jest.fn(() => true)
   global.EventSource = jest.fn(function () { this.addEventListener = (name, fn) => { handlers[name] = fn }; this.close = jest.fn() })
   http.get.mockImplementation(async url => {
     calls.push(url)
+    if (url === `${US}/risk`) return { data: { ...risk } }
     if (url.endsWith('/status')) return { data: { ...status } }
     if (url.endsWith('/summary')) { if (failSummary) throw new Error('account unavailable'); return { data: summary } }
     if (url.endsWith('/settings')) { if (failSettings) throw new Error('settings unavailable'); return { data: url.startsWith(US) ? { ...settings } : { autoExecute: false, prompt: 'preserved prompt' } } }
@@ -77,6 +79,26 @@ beforeEach(() => {
   http.patch.mockImplementation(async (url, body) => { settings = { ...body }; return { data: { ...settings } } })
 })
 afterEach(() => { app?.unmount(); document.body.innerHTML = ''; jest.clearAllTimers(); jest.useRealTimers() })
+
+test('US research-managed account displays approved research strategy instead of legacy as active', async () => {
+  const previous = http.get.getMockImplementation()
+  http.get.mockImplementation(url => url === '/api/kiwoom/us/strategy-deployments/status'
+    ? Promise.resolve({ data: { bridgeEnabled: true, revision: 1, managed: true, accountScope: 'mock-scope', active: { candidateId: 'balanced_trend:recovery_vol', version: 'v1', reportId: 'r1' }, candidate: null, blockers: [] } }) : previous(url))
+  await mount('KiwoomUsAutoTrade.vue')
+  expect(document.querySelector('.hero').textContent).toContain('연구 전략: balanced_trend:recovery_vol')
+  expect(document.querySelector('.hero').textContent).not.toContain('저장된 기본 전략')
+  expect(document.body.textContent).toContain('기존 매매 설정 · 연구 전략 진입에는 미적용')
+})
+
+test('US revoked managed account cannot start buys or imply automatic legacy fallback', async () => {
+  const previous = http.get.getMockImplementation()
+  http.get.mockImplementation(url => url === '/api/kiwoom/us/strategy-deployments/status'
+    ? Promise.resolve({ data: { bridgeEnabled: false, revision: 2, managed: true, accountScope: 'mock-scope', active: null, candidate: null, blockers: [] } }) : previous(url))
+  await mount('KiwoomUsAutoTrade.vue')
+  expect(document.querySelector('.hero').textContent).toContain('승인 철회·중지 상태')
+  expect(button('신규매수 시작').disabled).toBe(true)
+  expect(document.body.textContent).toContain('기존 전략으로 자동 복귀하지 않습니다')
+})
 
 test('US popup separates trend lifecycle controls from unused legacy rules', async () => {
   await mount('KiwoomUsAutoTrade.vue'); await click('전략 설정')
@@ -132,7 +154,7 @@ test('US main budget uses server reservation amount and stays on saved rules whi
 })
 
 test('US saved TREND budget and ownership quantities are explained separately', async () => {
-  settings.signalMode = 'TREND'; summary.managedPositionCount = 1; summary.managedEvaluationUsd = 500
+  settings.signalMode = 'TREND'; summary.positionCount = 1; summary.managedPositionCount = 1; summary.managedEvaluationUsd = 500
   summary.automatedCapitalUsd = 1500; summary.perOrderLimitUsd = 150
   summary.buyingPower = { ...summary.buyingPower, signalMode: 'TREND', allocationLimitUsd: 150, riskBudgetUsd: 7.5 }
   const original = http.get.getMockImplementation()
@@ -146,6 +168,7 @@ test('US saved TREND budget and ownership quantities are explained separately', 
 })
 
 test('US failed or stale account never presents fallback zeroes as current buying power', async () => {
+  settings.signalMode = 'TREND'
   failSummary = true; await mount('KiwoomUsAutoTrade.vue')
   expect(document.querySelector('[data-testid=order-limit] strong').textContent).toBe('—')
   expect(button('신규매수 시작').disabled).toBe(true)
@@ -206,6 +229,7 @@ test('US stop is available with funding blocked and only posts control false', a
 })
 
 test('US control forces a fresh read after an older in-flight poll completes', async () => {
+  settings.signalMode = 'TREND'
   await mount('KiwoomUsAutoTrade.vue')
   const originalGet = http.get.getMockImplementation()
   let release
@@ -219,6 +243,7 @@ test('US control forces a fresh read after an older in-flight poll completes', a
 })
 
 test('US rejected start shows the error without switching the button', async () => {
+  settings.signalMode = 'TREND'
   await mount('KiwoomUsAutoTrade.vue')
   http.post.mockRejectedValueOnce({ response: { data: { message: 'UNKNOWN 주문 확인 필요' } } })
   await click('신규매수 시작')
@@ -241,6 +266,7 @@ test('US saving settings cannot be overwritten by an older background response',
 })
 
 test('US preview never enables orders; running decision requires confirmation', async () => {
+  settings.signalMode = 'TREND'
   await mount('KiwoomUsAutoTrade.vue'); await click('후보만 확인')
   expect(http.post).toHaveBeenCalledWith(`${US}/decide`, null, { params: { allowOrder: false } })
   await click('신규매수 시작'); http.post.mockClear(); window.confirm.mockReturnValue(false)
@@ -337,4 +363,106 @@ test('KR popup saves its own strategy endpoint and preserves the AI prompt', asy
   expect(inputEl).not.toBeNull(); await input(inputEl, '4'); await click('저장하기')
   expect(http.patch).toHaveBeenCalledWith(`${STRATEGY}/settings`, expect.objectContaining({ maxPositions: 4, prompt: 'preserved prompt' }))
   expect(http.patch.mock.calls[0][0]).not.toContain('/us/')
+})
+
+
+test.each([
+  { enabled: false }, { capitalFlowConfirmed: false }, { triggered: true }, { liquidationPending: true },
+])('US whole-account risk state blocks starting while keeping stop available: %j', async patch => {
+  settings.signalMode = 'TREND'; risk = { ...risk, ...patch }
+  await mount('KiwoomUsAutoTrade.vue')
+  expect(button('신규매수 시작').disabled).toBe(true)
+  expect(http.post).not.toHaveBeenCalled()
+  status.autoTrading = true; jest.advanceTimersByTime(30000); await flush()
+  expect(button('신규매수 중지').disabled).toBe(false)
+})
+
+test('US risk read failure keeps previous values marked stale and prevents starting', async () => {
+  settings.signalMode = 'TREND'; await mount('KiwoomUsAutoTrade.vue')
+  const original = http.get.getMockImplementation()
+  http.get.mockImplementation(url => url === `${US}/risk` ? Promise.reject(new Error('risk unavailable')) : original(url))
+  jest.advanceTimersByTime(30000); await flush()
+  expect(button('신규매수 시작').disabled).toBe(true)
+  expect(document.querySelector('.risk-panel').textContent).toContain('risk unavailable')
+  expect(document.querySelector('.risk-panel').textContent).toContain('이전 수치는 참고용')
+})
+
+test('US successful risk reads cannot extend valuation freshness past 90 seconds', async () => {
+  settings.signalMode = 'TREND'
+  await mount('KiwoomUsAutoTrade.vue')
+  expect(button('신규매수 시작').disabled).toBe(false)
+  jest.advanceTimersByTime(90000); await flush()
+  expect(button('신규매수 시작').disabled).toBe(true)
+  expect(document.querySelector('.risk-panel').textContent).toContain('90초 이상')
+  expect(http.post).not.toHaveBeenCalled()
+})
+
+test('US missing risk observation time cannot enable buys', async () => {
+  settings.signalMode = 'TREND'; risk.observedAt = null
+  await mount('KiwoomUsAutoTrade.vue')
+  expect(button('신규매수 시작').disabled).toBe(true)
+})
+
+test('US whole-account policy counts existing holdings and describes bid limit liquidation', async () => {
+  settings.signalMode = 'TREND'; settings.maxPositions = 3
+  summary.positionCount = 2; summary.managedPositionCount = 0
+  await mount('KiwoomUsAutoTrade.vue')
+  expect(document.querySelector('.summary').textContent).toContain('계좌 전체 보유 종목')
+  expect(document.body.textContent).toContain('계좌 전체 보유·신규 미체결 매수가 최대 종목 수에 도달했습니다.')
+  expect(document.querySelector('.rules').textContent).toContain('모든 매도에 매수 1호가 지정가')
+  expect(document.querySelector('.rules').textContent).not.toContain('정규장에서는 시장가')
+  await click('전략 설정')
+  expect(document.body.textContent).toContain('계좌 전체 보유와 신규 미체결 매수 종목')
+})
+
+test('US mixed holding displays whole-position exit rules instead of the automatic lot ATR plan', async () => {
+  settings.signalMode = 'TREND'
+  const original = http.get.getMockImplementation()
+  http.get.mockImplementation(url => url === `${US}/holdings`
+    ? Promise.resolve({ data: [{ symbol: 'MIX', exchange: 'ND', quantity: 10, managedQuantity: 5,
+      trendExitPlan: { trendEntryAtr: 2, trendMaxHoldingTradingDays: 5 }, profitLossPercent: -2 }] }) : original(url))
+  await mount('KiwoomUsAutoTrade.vue')
+  const plan = document.querySelector('.holdings-table .signal-cell')
+  expect(plan.textContent).toContain('혼합 보유 · 전체 수익률 기준')
+  expect(plan.textContent).toContain('자동매수 ATR 계획 미적용')
+  expect(plan.textContent).not.toContain('ATR 추적 청산')
+})
+
+test('US settings dialog focuses close, traps Tab and returns focus after Escape', async () => {
+  await mount('KiwoomUsAutoTrade.vue')
+  const trigger = button('전략 설정'); trigger.focus(); await click('전략 설정')
+  const dialog = document.querySelector('[role=dialog]'), close = dialog.querySelector('.amodal-close')
+  expect(dialog.getAttribute('aria-modal')).toBe('true')
+  expect(document.activeElement).toBe(close)
+  close.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true }))
+  expect(document.activeElement).toBe(button('취소'))
+  document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }))
+  expect(document.activeElement).toBe(close)
+  close.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })); await flush()
+  expect(document.querySelector('[role=dialog]')).toBeNull()
+  expect(document.activeElement).toBe(trigger)
+})
+
+test('US settings Escape cannot dismiss while saving and successful save restores trigger focus', async () => {
+  settings.signalMode = 'TREND'
+  await mount('KiwoomUsAutoTrade.vue'); await click('전략 설정')
+  await input(document.querySelector('#us-trail-atr'), '3')
+  let resolveSave
+  http.patch.mockImplementation((url, body) => new Promise(resolve => { resolveSave = () => resolve({ data: body }) }))
+  await click('저장하기')
+  const dialog = document.querySelector('[role=dialog]')
+  dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })); await flush()
+  expect(document.querySelector('[role=dialog]')).toBe(dialog)
+  resolveSave(); await flush()
+  expect(document.querySelector('[role=dialog]')).toBeNull()
+  expect(document.activeElement).toBe(button('전략 설정'))
+})
+
+test('US observation remains clearly non-paper and cannot start under whole-account policy', async () => {
+  await mount('KiwoomUsAutoTrade.vue')
+  expect(button('신규매수 시작').disabled).toBe(true)
+  expect(document.querySelector('.validation-note').textContent).toContain('모의매매가 아니며')
+  expect(document.querySelector('.validation-note').textContent).toContain('검증 전')
+  await click('후보만 확인')
+  expect(http.post).toHaveBeenCalledWith(`${US}/decide`, null, { params: { allowOrder: false } })
 })
