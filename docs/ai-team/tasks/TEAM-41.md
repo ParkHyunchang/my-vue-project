@@ -37,3 +37,5 @@
 ## 운영 배포 요청 — 2026-11-24
 
 사용자가 수정 내용 커밋·배포를 명시 요청했다. 검증 완료 소스 그대로 BE `41decc7`를 먼저 배포한 다음 FE를 배포한다. 새 API 추가이며 기존 API/DB 스키마/전략 설정 변경은 없다. 롤백은 FE 기존 `41d8527`, BE `ca3aa51` 소스로 revert하여 재배포할 수 있다. 삼성·신한 연결 조건과 실제 계좌 응답 미검증 범위는 배포 후에도 유지된다.
+
+배포 완료: BE `41decc7` [Actions 성공](https://github.com/ParkHyunchang/my-vue-project_backend/actions/runs/45356196308), FE `865f7c0` [Actions 성공](https://github.com/ParkHyunchang/my-vue-project/actions/runs/45356627987). 운영 HTTPS 루트와 app/vendor JS 200, 운영 app 매핑의 stock `421.99d0b202.js`에 신규 overview API 포함, archive `453.9f16f6b5.js`/`841.ed834719.js`에 연도 필터 포함 및 모두 200 확인. 로컬·CI 환경 차이로 청크 해시는 다르므로 운영 app 매핑 기준으로 검증했다. 로그인 이후 실계좌 응답은 미검증이며 사용자 확인 예정. 이 배포 결과 문서는 `[skip ci]` 커밋으로 기록하여 동일 소스의 불필요한 재배포를 방지한다.
