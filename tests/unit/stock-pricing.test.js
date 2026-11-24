@@ -147,3 +147,65 @@ test('cash needs no quote or exchange rate and successful recovery clears stale 
   expect(c.pricingStatus.value).toBe('fresh');
   expect(c.prices.value.KR.stale).toBe(false);
 });
+
+
+test('account arrivals during pricing coalesce into a refresh of the latest holdings', async () => {
+  let resolveFirst;
+  fetchQuote.mockImplementationOnce(() => new Promise(resolve => { resolveFirst = resolve; }));
+  const c = context([kr]);
+  const initialRefresh = c.fetchPrices();
+  expect(fetchQuote).toHaveBeenCalledTimes(1);
+
+  c.holdings.value = [kr, us];
+  await c.fetchPrices();
+  const laterKr = { ...kr, id: 3, symbol: 'LATER-KR' };
+  c.holdings.value = [kr, us, laterKr];
+  await c.fetchPrices();
+  await c.fetchPrices();
+  // No overlapping request batch and no missed later-account symbols.
+  expect(fetchQuote).toHaveBeenCalledTimes(1);
+  resolveFirst({ data: { price: 10000 } });
+  await initialRefresh;
+
+  expect(fetchQuote).toHaveBeenCalledTimes(4);
+  expect(fetchQuote).toHaveBeenCalledWith('LATER-KR', 'kr');
+  expect(fetchUsdKrwQuote).toHaveBeenCalledTimes(1);
+  expect(Object.keys(c.prices.value).sort()).toEqual(['KR', 'LATER-KR', 'US']);
+  expect(c.pricingStatus.value).toBe('fresh');
+  expect(c.priceLoading.value).toBe(false);
+  expect(c.valuationComplete.value).toBe(true);
+});
+
+test('stopping pricing cancels a queued refresh after the in-flight request', async () => {
+  let resolveFirst;
+  fetchQuote.mockImplementationOnce(() => new Promise(resolve => { resolveFirst = resolve; }));
+  const c = context([kr]);
+  const initialRefresh = c.fetchPrices();
+  c.holdings.value = [kr, us];
+  await c.fetchPrices();
+  c.stopTimers();
+  resolveFirst({ data: { price: 10000 } });
+  await initialRefresh;
+  expect(fetchQuote).toHaveBeenCalledTimes(1);
+  expect(fetchUsdKrwQuote).not.toHaveBeenCalled();
+});
+
+
+test('leaving the active account cancels a queued follow-up batch', async () => {
+  let resolveFirst;
+  fetchQuote.mockImplementationOnce(() => new Promise(resolve => { resolveFirst = resolve; }));
+  const active = ref(true);
+  const holdings = ref([kr]);
+  const c = useHoldingsPricing({ holdings, active });
+  const initialRefresh = c.fetchPrices();
+  holdings.value = [kr, us];
+  await c.fetchPrices();
+  active.value = false;
+  resolveFirst({ data: { price: 10000 } });
+  await initialRefresh;
+  expect(fetchQuote).toHaveBeenCalledTimes(1);
+  expect(fetchUsdKrwQuote).not.toHaveBeenCalled();
+  active.value = true;
+  await c.fetchPrices();
+  expect(c.pricingStatus.value).toBe('fresh');
+});

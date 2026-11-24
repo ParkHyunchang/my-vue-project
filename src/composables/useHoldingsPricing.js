@@ -52,6 +52,7 @@ export function useHoldingsPricing({
     return messages[pricingStatus.value] + fx;
   });
 
+  let refreshPending = false;
   let refreshTimer = null;
   let relativeTimer = null;
 
@@ -73,8 +74,13 @@ export function useHoldingsPricing({
   }
 
   async function fetchPrices() {
-    if (priceLoading.value) return;
-    const list = holdings.value || [];
+    if (priceLoading.value) {
+      // Account holdings arrive independently. Do not drop a refresh requested
+      // while the previous account snapshot is still being priced.
+      refreshPending = true;
+      return;
+    }
+    const list = [...(holdings.value || [])];
     if (list.length === 0) return;
 
     priceLoading.value = true;
@@ -114,6 +120,10 @@ export function useHoldingsPricing({
       updateRelativeTime(lastUpdatedAt, relativeUpdated, { freshThresholdSec, relativeSuffix });
     } finally {
       priceLoading.value = false;
+      if (refreshPending) {
+        refreshPending = false;
+        if (activeNow(active)) await fetchPrices();
+      }
     }
   }
 
@@ -128,6 +138,7 @@ export function useHoldingsPricing({
   }
 
   function stopTimers() {
+    refreshPending = false;
     clearInterval(refreshTimer);
     clearInterval(relativeTimer);
     refreshTimer = null;
