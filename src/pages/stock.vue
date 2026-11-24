@@ -15,7 +15,8 @@
       <span class="krx-alert-icon">{{ krxApiStatus === 'expired' ? '🚨' : '⚠️' }}</span>
       <span class="krx-alert-msg">
         <template v-if="krxApiStatus === 'expired'">KRX Open API 인증키가 <strong>만료</strong>되었습니다. 국내 주식 데이터가 정상적으로 표시되지 않을 수 있습니다.</template>
-        <template v-else>KRX Open API 인증키가 <strong>D-{{ krxDaysRemaining }}</strong> 후 만료됩니다. 미리 갱신하세요.</template>
+        <template v-else-if="krxApiStatus === 'unknown'">KRX 연결 정보를 확인하지 못했습니다. 아래 연결 정보를 다시 확인해 주세요.</template>
+        <template v-else>KRX Open API 인증키가 <strong>{{ krxDaysRemaining === null ? '미확인' : 'D-' + krxDaysRemaining }}</strong> 후 만료됩니다. 미리 갱신하세요.</template>
       </span>
       <a
         href="https://openapi.krx.co.kr/contents/OPP/MYPG/mypage/OPPMYPG002.cmd"
@@ -36,7 +37,7 @@
         <div class="krx-api-middle">
           유효기간: <strong>{{ krxPeriodText }}</strong>
           <span class="krx-api-sep">·</span>
-          <span :class="['krx-days', 'api-status-' + krxApiStatus]">D-{{ krxDaysRemaining }}</span>
+          <span :class="['krx-days', 'api-status-' + krxApiStatus]">{{ krxDaysRemaining === null ? '미확인' : 'D-' + krxDaysRemaining }}</span>
         </div>
         <div class="krx-api-right">
           <a
@@ -95,6 +96,38 @@
         수기 포트폴리오의 보유 목록을 불러오고 있습니다.
       </p>
     </nav>
+    <section
+      v-if="activeGroup.id === 'portfolio'"
+      class="manual-account-tools"
+    >
+      <button
+        type="button"
+        @click="showAccountManager = true"
+        :disabled="catalogLoading || !!catalogError"
+      >
+        수기 계좌 관리
+      </button>
+      <p
+        v-if="catalogLoading"
+        role="status"
+      >
+        수기 계좌 목록을 확인하고 있습니다.
+      </p>
+      <p
+        v-if="catalogError"
+        role="alert"
+      >
+        {{ catalogError }} <button @click="loadAccounts">
+          다시 확인
+        </button>
+      </p>
+    </section>
+    <PortfolioAccountManager
+      :show="showAccountManager"
+      :accounts="manualAccounts"
+      @close="showAccountManager = false"
+      @saved="loadAccounts"
+    />
     <BrokerAccountsPanel v-if="isAdmin && activeTab === 'broker-accounts'" />
 
     <div
@@ -105,50 +138,27 @@
         :active="activeTab === 'all'"
         :holdings-by-account="holdingsByAccount"
         :loading="accountsLoading"
+        :account-states="accountStates"
+        :account-descriptors="accountDescriptors"
+        :catalog-ready="!catalogLoading && !catalogError"
+        @retry-account="retryAccount"
       />
     </div>
 
     <div
-      v-show="activeTab === 'stock'"
+      v-for="account in accountDescriptors"
+      :key="account.id"
+      v-show="activeTab === account.id"
       class="tab-content"
     >
       <PortfolioPanel
-        account-type="stock"
-        :active="activeTab === 'stock'"
-        @holdings-changed="onHoldingsChanged('stock', $event)"
-      />
-    </div>
-
-    <div
-      v-show="activeTab === 'isa'"
-      class="tab-content"
-    >
-      <PortfolioPanel
-        account-type="isa"
-        :active="activeTab === 'isa'"
-        @holdings-changed="onHoldingsChanged('isa', $event)"
-      />
-    </div>
-
-    <div
-      v-show="activeTab === 'general'"
-      class="tab-content"
-    >
-      <PortfolioPanel
-        account-type="general"
-        :active="activeTab === 'general'"
-        @holdings-changed="onHoldingsChanged('general', $event)"
-      />
-    </div>
-
-    <div
-      v-show="activeTab === 'irp'"
-      class="tab-content"
-    >
-      <PortfolioPanel
-        account-type="irp"
-        :active="activeTab === 'irp'"
-        @holdings-changed="onHoldingsChanged('irp', $event)"
+        :key="account.id + account.label + account.purpose"
+        :account-type="account.legacyType || 'stock'"
+        :account-config="account.config"
+        :reload-version="reloadVersions[account.id] || 0"
+        :active="activeTab === account.id"
+        @load-state="onAccountState(account.id, $event)"
+        @holdings-changed="onHoldingsChanged(account.id, $event)"
       />
     </div>
 
@@ -219,6 +229,8 @@ import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import axios from "@/axios";
 import BrokerAccountsPanel from "@/components/stock/BrokerAccountsPanel.vue";
+import { fetchPortfolioAccounts } from "@/api/portfolioAccountsApi";
+import PortfolioAccountManager from "@/components/stock/PortfolioAccountManager.vue";
 import PortfolioPanel from "@/components/stock/PortfolioPanel.vue";
 import AllAccountsPanel from "@/components/stock/AllAccountsPanel.vue";
 import HeatmapPanel from "@/components/stock/HeatmapPanel.vue";
@@ -231,7 +243,7 @@ import { ACCOUNT_CONFIGS, ACCOUNT_TAB_ORDER } from "@/config/stockAccounts";
 
 export default {
   name: "StockPage",
-  components: { BrokerAccountsPanel, PortfolioPanel, AllAccountsPanel, HeatmapPanel, Top10Panel, NewsPanel, KiwoomAutoTrade, KiwoomUsAutoTrade, UsPaperTradingPanel },
+  components: { PortfolioAccountManager, BrokerAccountsPanel, PortfolioPanel, AllAccountsPanel, HeatmapPanel, Top10Panel, NewsPanel, KiwoomAutoTrade, KiwoomUsAutoTrade, UsPaperTradingPanel },
   setup() {
     const route = useRoute();
     const router = useRouter();
@@ -250,24 +262,47 @@ export default {
     });
     // 각 계좌 패널의 최초 로드(holdings-changed) 완료 여부 — 종합 탭이
     // 로딩 중을 "보유 없음"으로 잘못 표시하지 않도록 AllAccountsPanel에 전달
-    const accountsLoaded = ref({
-      general: false,
-      isa: false,
-      irp: false,
-      stock: false,
-    });
-    const accountsLoading = computed(() =>
-      Object.values(accountsLoaded.value).some((loaded) => !loaded),
-    );
+    const accountStates = ref(Object.fromEntries(ACCOUNT_TAB_ORDER.map(id => [id, { status: 'loading' }])));
+    const reloadVersions = ref(Object.fromEntries(ACCOUNT_TAB_ORDER.map(id => [id, 0])));
+    const accountsLoading = computed(() => Object.values(accountStates.value).some(state => state.status === 'loading'));
+    function onAccountState(id, state) { accountStates.value = { ...accountStates.value, [id]: state }; }
+    function retryAccount(id) { reloadVersions.value[id] = (reloadVersions.value[id] || 0) + 1; }
 
-    const accountTabs = ACCOUNT_TAB_ORDER.map((accountType) => ({
-      id: accountType,
-      icon: ACCOUNT_CONFIGS[accountType].tabIcon,
-      label: ACCOUNT_CONFIGS[accountType].tabLabel,
+    const manualAccounts = ref([]);
+    const catalogLoading = ref(true), catalogError = ref(''), showAccountManager = ref(false);
+    const brokerNames = { UNASSIGNED: '미지정', SAMSUNG: '삼성', SHINHAN: '신한', KIWOOM: '키움 수기', OTHER: '기타' };
+    const accountDescriptors = computed(() => [...manualAccounts.value].sort((a, b) => {
+      const rank = account => account.legacyType ? ACCOUNT_TAB_ORDER.indexOf(account.legacyType) : 99;
+      return rank(a) - rank(b);
+    }).map(account => {
+      const id = account.legacyType || account.id;
+      const base = ACCOUNT_CONFIGS[account.legacyType] || ACCOUNT_CONFIGS.stock;
+      const label = `${brokerNames[account.broker] || '미지정'} · ${account.name}`;
+      return { id, label, legacyType: account.legacyType, purpose: account.purpose, config: { ...base, label, tabLabel: label,
+        apiPath: account.holdingsPath, storageKey: account.legacyType ? base.storageKey : null,
+        displayCurrencyKey: `manual-account-${account.id}-currency`, sortKey: `manual-account-${account.id}-sort`, sortDirKey: `manual-account-${account.id}-direction`,
+        allowCash: account.legacyType ? base.allowCash : true, isCustomAccount: !account.legacyType,
+        emptyTitle: `${label} 보유 종목이 없습니다`, emptyDescription: '이 계좌에 보유한 종목과 수량을 직접 등록하세요.' } };
     }));
+    const accountTabs = computed(() => accountDescriptors.value.map(account => ({ id: account.id, icon: '▤', label: account.label })));
+    async function loadAccounts() {
+      if (catalogLoading.value && manualAccounts.value.length) return;
+      catalogLoading.value = true; catalogError.value = '';
+      try {
+        const { data } = await fetchPortfolioAccounts();
+        if (!Array.isArray(data) || data.length === 0) throw new Error('Invalid manual account list');
+        manualAccounts.value = data;
+        const ids = new Set(accountDescriptors.value.map(account => account.id));
+        accountStates.value = Object.fromEntries([...ids].map(id => [id, accountStates.value[id] || { status: 'loading' }]));
+        holdingsByAccount.value = Object.fromEntries([...ids].map(id => [id, holdingsByAccount.value[id] || []]));
+        const requested = normalizeTab(route.query.tab);
+        if (VALID_TABS.value.includes(requested)) activeTab.value = requested;
+      } catch { catalogError.value = '수기 계좌 목록을 확인하지 못했습니다. 전체 합계는 확인 후 표시합니다.'; }
+      finally { catalogLoading.value = false; }
+    }
     const tabs = computed(() => [
       { id: "all", icon: "🧮", label: "수기 합계" },
-      ...accountTabs,
+      ...accountTabs.value,
       { id: "heatmap", icon: "🗺️", label: "히트맵" },
       { id: "top10", icon: "🏆", label: "시총 top10" },
       { id: "news", icon: "📰", label: "뉴스" },
@@ -281,7 +316,7 @@ export default {
     const VALID_TABS = computed(() => tabs.value.map((tab) => tab.id));
     const tabStrip = ref(null);
     const groups = computed(() => [
-      { id: 'portfolio', label: '내 포트폴리오', tabs: ['all', ...ACCOUNT_TAB_ORDER], description: '직접 등록한 장기·단기·ISA·IRP 보유 기록입니다. 연결 계좌 잔고는 이 합계에 포함하지 않습니다.' },
+      { id: 'portfolio', label: '내 포트폴리오', tabs: ['all', ...accountDescriptors.value.map(account => account.id)], description: '증권사·계좌별로 직접 등록한 보유 기록입니다. 연결 계좌 잔고는 이 합계에 포함하지 않습니다.' },
       { id: 'market', label: '시장 정보', tabs: ['heatmap', 'top10', 'news'], description: '시장 흐름과 보유 종목 관련 뉴스를 확인하세요.' },
       ...(isAdmin.value ? [
         { id: 'accounts', label: '계좌 조회', tabs: ['broker-accounts'], description: '증권사별 조회 상태와 조회된 보유 내역을 확인합니다. 수기 기록과 별도로 표시합니다.' },
@@ -331,33 +366,34 @@ export default {
         ...holdingsByAccount.value,
         [accountType]: list,
       };
-      accountsLoaded.value = {
-        ...accountsLoaded.value,
-        [accountType]: true,
-      };
+
     }
 
     // ── KRX Open API 상태 ─────────────────────────────────────
-    const krxExpiryDate = ref(new Date("2027-04-21T23:59:59"));
+    const krxExpiryDate = ref(null);
 
     const krxDaysRemaining = computed(() => {
+      if (!krxExpiryDate.value) return null;
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       return Math.ceil((krxExpiryDate.value - today) / (1000 * 60 * 60 * 24));
     });
     const krxApiStatus = computed(() => {
       const d = krxDaysRemaining.value;
+      if (d === null) return "unknown";
       if (d < 0) return "expired";
       if (d <= 30) return "warning";
       return "valid";
     });
     const krxApiStatusText = computed(() => {
       const d = krxDaysRemaining.value;
+      if (d === null) return "확인 필요";
       if (d < 0) return "만료됨";
       if (d <= 30) return "만료 임박";
       return "정상";
     });
     const krxPeriodText = computed(() => {
+      if (!krxExpiryDate.value) return "확인되지 않음";
       const fmt = (d) => `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}`;
       const end = new Date(krxExpiryDate.value);
       const start = new Date(end);
@@ -367,6 +403,7 @@ export default {
     });
 
     onMounted(async () => {
+      loadAccounts();
       const tabFromUrl = normalizeTab(route.query.tab);
       if (tabFromUrl && VALID_TABS.value.includes(tabFromUrl)) {
         activeTab.value = tabFromUrl;
@@ -374,17 +411,19 @@ export default {
       try {
         const res = await axios.get("/api/stock/krx-config");
         if (res.data?.expiryDate) {
-          krxExpiryDate.value = new Date(res.data.expiryDate + "T23:59:59");
+          const parsed = new Date(res.data.expiryDate + "T23:59:59");
+          krxExpiryDate.value = Number.isNaN(parsed.getTime()) ? null : parsed;
         }
       } catch { /* 기본값 사용 */ }
     });
 
     return {
+      manualAccounts, accountDescriptors, catalogLoading, catalogError, showAccountManager, loadAccounts,
       activeTab, groups, activeGroup, visibleTabs, tabStrip, moveTabFocus,
       autoTradeMarket,
       allHoldings,
       holdingsByAccount,
-      accountsLoading,
+      accountsLoading, accountStates, reloadVersions, onAccountState, retryAccount,
       isAdmin,
       paperTradingEnabled,
       tabs,
@@ -407,4 +446,10 @@ export default {
 .auto-market-tabs{display:flex;gap:8px;margin:0 0 14px;padding:5px;width:max-content;border:1px solid var(--card-border);border-radius:12px;background:var(--card-bg)}
 .auto-market-tabs button{min-height:var(--control-height);padding:8px 18px;border:0;border-radius:8px;background:transparent;color:var(--text-muted);font-weight:700;cursor:pointer}
 .auto-market-tabs button.active{background:var(--accent);color:var(--text-on-accent)}
+</style>
+
+<style scoped>
+.manual-account-tools { margin: 12px 0 20px; }
+.manual-account-tools button { min-height: 44px; padding: 10px 16px; border-radius: var(--radius-control); background: var(--card-bg); color: var(--accent); border: 1px solid var(--card-border); }
+.manual-account-tools p { font-size: 13px; line-height: 1.7; color: var(--text-secondary); }
 </style>

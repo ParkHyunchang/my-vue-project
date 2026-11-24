@@ -99,6 +99,11 @@ export function usePortfolioStats({ holdings, prices, marketFilter, exchangeRate
   const krTotal = computed(() => sumKnown(marketList('KR'), valueOf));
   const usTotal = computed(() => sumKnown(marketList('US'), valueOf));
   const usTotalKRW = computed(() => marketList('US').length ? toKRW(usTotal.value, { market: 'US' }) : 0);
+  const costCoverage = computed(() => {
+    const stocks = filteredHoldings.value.filter(h => h.assetType !== 'CASH');
+    const known = stocks.filter(h => Number(h.avgPrice) > 0).length;
+    return { total: stocks.length, known, missing: stocks.length - known };
+  });
   const hasAvgPrice = computed(() => filteredHoldings.value.some(h => h.avgPrice));
   const krCost = computed(() => sumKnown(marketList('KR'), costOf));
   const usCost = computed(() => sumKnown(marketList('US'), costOf));
@@ -156,7 +161,7 @@ export function usePortfolioStats({ holdings, prices, marketFilter, exchangeRate
   });
 
   return {
-    filteredHoldings, sortedHoldings, valuationComplete, sortNotice,
+    filteredHoldings, sortedHoldings, valuationComplete, sortNotice, costCoverage,
     krHoldingsCount, usHoldingsCount,
     krTotal, usTotal, usTotalKRW, hasAvgPrice,
     totalPnl, totalCost, totalPnlPct,

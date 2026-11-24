@@ -167,5 +167,5 @@ test.each([
   await flush()
   expect(vm.tabs.some(tab => tab.id === 'paper-trade')).toBe(available)
   expect(vm.activeTab).toBe(available ? 'paper-trade' : 'all')
-  expect(http.get.mock.calls.every(([url]) => url === '/api/stock/krx-config')).toBe(true)
+  expect(http.get.mock.calls.every(([url]) => ['/api/stock/krx-config', '/api/portfolio/accounts'].includes(url))).toBe(true)
 })

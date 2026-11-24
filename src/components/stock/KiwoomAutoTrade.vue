@@ -10,7 +10,7 @@
       {{ errorMessage }}
     </p>
     <p
-      v-else-if="!status.configured"
+      v-else-if="statusLoaded && !status.configured"
       class="notice"
     >
       서버 환경 변수에 <code>KIWOOM_APP_KEY</code>, <code>KIWOOM_SECRET_KEY</code>를 설정하면 연결할 수 있습니다.
@@ -19,16 +19,16 @@
       class="operation-overview"
       aria-label="자동매매 운영 상태"
     >
-      <div><dt>자동주문</dt><dd>{{ !status.configured ? '연결 확인 필요' : status.autoTrading ? '운용 중' : '중지 상태' }}</dd></div>
-      <div><dt>주문 전송</dt><dd>{{ !status.configured ? '확인 필요' : status.orderEnabled ? '허용' : '잠금' }}</dd></div>
-      <div><dt>거래 시간</dt><dd>{{ !status.configured ? '확인 필요' : status.marketOpen ? '정규장' : '정규장 외' }}</dd></div>
+      <div><dt>자동주문</dt><dd>{{ !statusKnown || !status.configured ? '연결 확인 필요' : status.autoTrading ? '운용 중' : '중지 상태' }}</dd></div>
+      <div><dt>주문 전송</dt><dd>{{ !statusKnown || !status.configured ? '확인 필요' : status.orderEnabled ? '허용' : '잠금' }}</dd></div>
+      <div><dt>거래 시간</dt><dd>{{ !statusKnown || !status.configured ? '확인 필요' : status.marketOpen ? '정규장' : '정규장 외' }}</dd></div>
     </dl>
     <h4 class="operation-heading">
       운영 제어
     </h4>
     <div class="control-card">
       <div class="connection">
-        <i :class="status.connected ? 'online' : ''" /><span><strong>{{ status.connected ? '키움 API 연결됨' : '키움 API 연결 대기' }}</strong><small>{{ status.tokenValid ? 'Access Token 정상' : 'Access Token 미발급 또는 만료' }}</small></span>
+        <i :class="statusKnown && status.connected ? 'online' : ''" /><span><strong>{{ !statusKnown ? '연결 상태 확인 필요' : status.connected ? '키움 API 연결됨' : '키움 API 연결 대기' }}</strong><small>{{ !statusKnown ? '최근 상태를 다시 조회해 주세요' : status.tokenValid ? 'Access Token 정상' : 'Access Token 미발급 또는 만료' }}</small></span>
       </div><div class="actions">
         <div class="toggle-wrap">
           <button
@@ -50,6 +50,19 @@
       </div>
     </div>
     <p
+      class="operation-freshness"
+      role="status"
+    >
+      운영 상태 마지막 확인: {{ timeLabel(statusCheckedAt) }} · {{ streamConnected ? '실시간 연결' : '실시간 연결 대기 · 30초마다 재조회' }}
+      <button
+        type="button"
+        class="read-refresh"
+        @click="refreshView(true)"
+      >
+        상태 다시 조회
+      </button>
+    </p>
+    <p
       v-if="refreshError"
       class="notice error"
     >
@@ -63,10 +76,17 @@
       {{ controlNotice }}
     </p>
     <p
-      v-if="!status.marketOpen"
+      v-if="statusKnown && !status.marketOpen"
       class="market-notice"
     >
       <strong>정규장 외 시세 표시 중</strong>{{ status.marketMessage }}
+    </p>
+    <p
+      class="operation-freshness"
+      role="status"
+    >
+      계좌 {{ accountError ? '조회 실패 · 이전 조회값은 참고용' : accountLoaded ? '조회 응답 확인' : '확인 전' }} · 마지막 확인: {{ timeLabel(accountCheckedAt) }}
+      <span>— 표시는 미확인 금액이며 0원과 다릅니다.</span>
     </p>
     <section
       class="asset-summary"
@@ -85,8 +105,8 @@
       </article>
       <div class="summary-details">
         <article>
-          <small>주문가능금액</small><strong>{{ formatWon(account.orderAvailable ?? account.deposit) }}</strong>
-          <span class="summary-value-detail">지금 바로 주문 가능</span>
+          <small>주문가능금액</small><strong>{{ formatWon(account.orderAvailable) }}</strong>
+          <span class="summary-value-detail">증권사 제공 주문가능금액 · 미제공 시 확인 필요</span>
         </article>
         <article>
           <small>예수금</small><strong>{{ formatWon(account.deposit) }}</strong>
@@ -98,8 +118,24 @@
         </article>
       </div>
     </section>
+    <section
+      class="recent-operations"
+      aria-label="최근 운영 이벤트"
+    >
+      <h4>최근 운영 이벤트</h4>
+      <p
+        v-for="log in logs.slice(-3).reverse()"
+        :key="log.id"
+      >
+        <time>{{ log.time }}</time> {{ log.message }}
+      </p>
+      <p v-if="!logs.length">
+        확인된 운영 이벤트가 없습니다. 마지막 상태 확인 시각을 함께 확인하세요.
+      </p>
+    </section>
     <KiwoomStrategyPanel
       :configured="status.configured"
+      :status-known="statusKnown"
       :auto-trading="status.autoTrading"
       :price-ticks="priceTicks"
       :refresh-version="refreshVersion"
@@ -136,19 +172,26 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import axios from '@/axios'
+import { apiErrorMessage } from '@/utils/apiError'
 import KiwoomStrategyPanel from '@/components/stock/KiwoomStrategyPanel.vue'
 
 // 토큰·계좌번호는 프론트에 저장하지 않습니다. 서버가 httpOnly 인증과 키움 토큰을 모두 관리합니다.
 const status = ref({ configured: false, connected: false, tokenValid: false, autoTrading: false, orderEnabled: false, marketOpen: false, marketMessage: '', consecutiveApiFailures: 0 })
-const account = ref({ totalAsset: null, totalAssetSource: '', totalAssetChange: null, totalAssetChangePercent: null, deposit: 0, d1Deposit: 0, d2Deposit: 0, orderAvailable: null, profitLoss: 0, stockProfitRate: 0, totalEvaluation: 0 })
+const account = ref({ totalAsset: null, totalAssetSource: '', totalAssetChange: null, totalAssetChangePercent: null, deposit: null, d1Deposit: null, d2Deposit: null, orderAvailable: null, profitLoss: null, stockProfitRate: null, totalEvaluation: null })
 const logs = ref([]), pending = ref(false), errorMessage = ref(''), logElement = ref(null)
 const priceTicks = ref({})
-const refreshVersion = ref(0), refreshError = ref(''), controlNotice = ref('')
+const refreshVersion = ref(0), controlNotice = ref('')
+const statusLoaded = ref(false), statusError = ref(''), statusCheckedAt = ref(null)
+const accountLoaded = ref(false), accountError = ref(''), accountCheckedAt = ref(null), streamConnected = ref(false)
+const statusKnown = computed(() => statusLoaded.value && !statusError.value)
+const refreshError = computed(() => [statusError.value, accountError.value].filter(Boolean).join(' · '))
+const timeLabel = value => value ? new Date(value).toLocaleTimeString('ko-KR', { hour12: false }) : '확인 전'
+const knownNumber = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value))
 let eventSource, refreshTimer, eventTimer, refreshing, disposed = false
-const totalAsset = computed(() => account.value.totalAsset ?? (Number(account.value.deposit || 0) + Number(account.value.totalEvaluation || 0)))
-const formatWon = (value) => `${Number(value || 0).toLocaleString('ko-KR')}원`
-const formatSignedWon = (value) => `${Number(value) > 0 ? '+' : ''}${formatWon(value)}`
-const formatPercent = (value) => `${Number(value) >= 0 ? '+' : ''}${Number(value || 0).toFixed(2)}%`
+const totalAsset = computed(() => account.value.totalAsset)
+const formatWon = value => knownNumber(value) ? `${Number(value).toLocaleString('ko-KR')}원` : '—'
+const formatSignedWon = value => knownNumber(value) ? `${Number(value) > 0 ? '+' : ''}${formatWon(value)}` : '—'
+const formatPercent = value => knownNumber(value) ? `${Number(value) >= 0 ? '+' : ''}${Number(value).toFixed(2)}%` : '—'
 const changeTone = (value) => Number(value) > 0 ? 'profit' : Number(value) < 0 ? 'loss' : ''
 // 시작/중지 확인 문구와 버튼 아래 설명을 하나로 유지해 문구가 서로 어긋나지 않도록 한다.
 const TOGGLE_ON_HINT = '자동주문을 시작할까요? 전략 설정의 자동 전송과 손절·익절 루프도 함께 켜고, 현재 보유종목의 청산 기준을 다시 계산합니다.'
@@ -163,14 +206,17 @@ async function refreshView(force = false) {
       const { data } = await axios.get('/api/kiwoom/auto-trade/status')
       if (disposed) return
       status.value = data
+      statusLoaded.value = true; statusError.value = ''; statusCheckedAt.value = Date.now()
       refreshVersion.value++
       if (data.configured) {
-        const response = await axios.get('/api/kiwoom/auto-trade/summary')
-        if (disposed) return
-        account.value = response.data
-      }
-      refreshError.value = ''
-    } catch (e) { if (!disposed) refreshError.value = e.response?.data?.message || '자동매매 상태·계좌 갱신에 실패했습니다.' }
+        try {
+          const response = await axios.get('/api/kiwoom/auto-trade/summary')
+          if (disposed) return
+          account.value = response.data
+          accountLoaded.value = true; accountError.value = ''; accountCheckedAt.value = response.data.capturedAt || Date.now()
+        } catch (e) { if (!disposed) accountError.value = apiErrorMessage(e, '계좌 조회에 실패했습니다.') }
+      } else { accountError.value = '계좌 연결을 확인해 주세요.' }
+    } catch (e) { if (!disposed) statusError.value = apiErrorMessage(e, '운영 상태 조회에 실패했습니다.') }
   })()
   try { await refreshing } finally { refreshing = null }
 }
@@ -191,7 +237,7 @@ async function toggleAutoTrade() {
   finally { await refreshView(true); pending.value = false }
 }
 async function refreshToken() { if (pending.value) return; pending.value = true; errorMessage.value = ''; try { await axios.post('/api/kiwoom/auto-trade/token/refresh'); pushLog('system', '키움 Access Token을 갱신했습니다.') } catch (e) { errorMessage.value = e.response?.data?.message || '토큰 갱신에 실패했습니다.' } finally { await refreshView(true); pending.value = false } }
-function connectEvents() { eventSource = new EventSource(`${process.env.VUE_APP_API_URL || ''}/api/kiwoom/auto-trade/events`, { withCredentials: true }); eventSource.addEventListener('kiwoom', e => { if (disposed) return; try { handleRealtimeEvent(JSON.parse(e.data)) } catch { /* ignore malformed event */ } }); eventSource.onopen = () => refreshView(); eventSource.onerror = () => { if (!disposed) pushLog('error', '실시간 로그 연결이 재시도 중입니다.') } }
+function connectEvents() { eventSource = new EventSource(`${process.env.VUE_APP_API_URL || ''}/api/kiwoom/auto-trade/events`, { withCredentials: true }); eventSource.addEventListener('kiwoom', e => { if (disposed) return; try { handleRealtimeEvent(JSON.parse(e.data)) } catch { /* ignore malformed event */ } }); eventSource.onopen = () => { streamConnected.value = true; refreshView() }; eventSource.onerror = () => { streamConnected.value = false; if (!disposed) pushLog('error', '실시간 로그 연결이 재시도 중입니다.') } }
 function handleRealtimeEvent(data) {
   const price = Number(data?.price)
   if (data?.type === 'price' && data.stockCode && Number.isFinite(price) && price > 0) {
@@ -230,4 +276,13 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select { m
 .operation-details > summary { padding: 14px 0; min-height: 44px; color: var(--text-secondary); cursor: pointer; }
 .operation-details > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media(max-width: 600px) { .operation-overview { gap: 6px; } .operation-overview > div { padding: 12px 8px; } .operation-overview dd { font-size: 13px; } .actions { width: 100%; flex-wrap: wrap; } .actions button { min-height: 44px; } }
+</style>
+
+<style scoped>
+.operation-freshness, .sync-effects, .recent-operations p { color: var(--text-secondary); font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.operation-freshness span { display: block; }
+.read-refresh { min-height: 44px; margin-left: 8px; padding: 8px 12px; color: var(--text-primary); background: var(--surface); border: 1px solid var(--card-border); border-radius: var(--radius-control); }
+.recent-operations { padding: 16px; margin: 16px 0; border: 1px solid var(--card-border); border-radius: var(--radius-card); background: var(--surface); }
+.recent-operations h4 { color: var(--text-primary); font-size: 15px; }
+.recent-operations time { color: var(--text-muted); margin-right: 8px; }
 </style>

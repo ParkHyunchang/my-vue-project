@@ -160,19 +160,23 @@ export default {
 
     let newsTimer = null;
 
+    let requestGeneration = 0;
     async function loadNews(market = "KR", force = false) {
+      const generation = ++requestGeneration;
       newsLoading.value = true;
       newsError.value = "";
       try {
         const params = { market };
         if (force) params.force = true;
         const res = await axios.get("/api/stock/news", { params });
+        if (generation !== requestGeneration) return;
         newsData.value = res.data;
         newsLastFetched.value = new Date();
       } catch {
+        if (generation !== requestGeneration) return;
         newsError.value = "뉴스를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.";
       } finally {
-        newsLoading.value = false;
+        if (generation === requestGeneration) newsLoading.value = false;
       }
     }
 
@@ -248,7 +252,7 @@ export default {
       if (!newsLastFetched.value) return "";
       return newsLastFetched.value.toLocaleTimeString("ko-KR", {
         hour: "2-digit", minute: "2-digit",
-      }) + " 기준";
+      }) + " 조회";
     });
 
     function markVisited(link) {
@@ -295,6 +299,7 @@ export default {
     });
 
     onBeforeUnmount(() => {
+      ++requestGeneration;
       stopAutoRefresh();
     });
 

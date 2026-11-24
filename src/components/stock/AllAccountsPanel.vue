@@ -1,5 +1,23 @@
 <template>
   <div>
+    <section
+      v-if="!catalogReady || incompleteAccounts.length"
+      role="status"
+      class="portfolio-account-status"
+    >
+      <p>전체 계좌 확인이 끝나지 않아 합계·손익·비중 계산을 보류합니다.</p>
+      <div
+        v-for="account in incompleteAccounts"
+        :key="account.id"
+      >
+        <span>{{ account.label }} · {{ account.state.status === 'error' ? '조회 실패' : '확인 중' }}</span><button
+          v-if="account.state.status === 'error'"
+          @click="$emit('retry-account', account.id)"
+        >
+          다시 확인
+        </button>
+      </div>
+    </section>
     <!-- 초기 로딩: 계좌 패널들이 DB에서 보유 종목을 불러오는 동안 "없음"으로 오표시하지 않는다 -->
     <div
       v-if="loading && mergedHoldings.length === 0"
@@ -12,20 +30,21 @@
 
     <!-- 빈 상태 (모든 계좌 로드 완료 후에도 종목이 없을 때만) -->
     <div
-      v-else-if="mergedHoldings.length === 0"
+      v-else-if="mergedHoldings.length === 0 && catalogReady && !incompleteAccounts.length"
       class="portfolio-empty"
     >
       <div class="portfolio-empty-icon">
         📊
       </div>
       <h3>합산할 보유 종목이 없습니다</h3>
-      <p>단기/ISA/IRP/장기 계좌 탭에서 종목을 추가하면 이곳에서 전체 현황을 합쳐 볼 수 있습니다.</p>
+      <p>수기 계좌 탭에서 종목을 추가하면 이곳에서 전체 현황을 합쳐 볼 수 있습니다.</p>
     </div>
 
-    <template v-else>
+    <template v-else-if="catalogReady && !incompleteAccounts.length">
       <!-- 요약 바 -->
       <PortfolioSummary
         :valuation-complete="valuationComplete"
+        :cost-coverage="costCoverage"
         readonly
         :market-filter="marketFilter"
         :display-currency="displayCurrency"
@@ -60,11 +79,12 @@
       <div class="portfolio-ai-bar">
         <button
           class="portfolio-ai-btn"
+          :disabled="hasCustomAccounts"
           @click="openPortfolioAnalysis"
         >
           🧠 전체 포트폴리오 AI 진단
         </button>
-        <span class="portfolio-ai-hint">장기·단기·ISA·IRP 4개 계좌를 합친 통합 자산배분 진단</span>
+        <span class="portfolio-ai-hint">{{ hasCustomAccounts ? '새 수기 계좌가 포함된 전체 진단은 준비 중입니다. 종목별 분석을 이용하세요.' : '기존 장기·단기·ISA·IRP 보유 종목의 통합 진단' }}</span>
       </div>
 
       <!-- 마켓 필터 바 -->
@@ -282,15 +302,23 @@ export default {
     holdingsByAccount: { type: Object, default: () => ({}) },
     /** 계좌 패널들의 최초 보유 종목 로드가 아직 진행 중인지 (stock.vue에서 전달) */
     loading: { type: Boolean, default: false },
+    catalogReady: { type: Boolean, default: true },
+    accountDescriptors: { type: Array, default: () => ACCOUNT_ORDER.map(id => ({ id, label: ACCOUNT_LABELS[id], legacyType: id })) },
+    accountStates: { type: Object, default: () => ({}) },
   },
+  emits: ["retry-account"],
   setup(props) {
+    const incompleteAccounts = computed(() => props.accountDescriptors.filter(account => props.accountStates[account.id]?.status !== 'ready').map(account => ({ ...account, state: props.accountStates[account.id] || { status: 'loading' } })));
+    const hasCustomAccounts = computed(() => props.accountDescriptors.some(account => !account.legacyType));
+
     const { fmtKRW, fmtUSD, pnlCls } = useStockFormatters();
 
     const mergedHoldings = computed(() => {
       const list = [];
-      for (const acc of ACCOUNT_ORDER) {
+      for (const account of props.accountDescriptors) {
+        const acc = account.id;
         for (const h of props.holdingsByAccount?.[acc] || []) {
-          list.push({ ...h, id: `${acc}_${h.id}`, accountType: acc, accountLabel: ACCOUNT_LABELS[acc] });
+          list.push({ ...h, id: `${acc}_${h.id}`, accountType: acc, accountLabel: account.label });
         }
       }
       return list;
@@ -370,6 +398,7 @@ export default {
     }
 
     function openPortfolioAnalysis() {
+      if (hasCustomAccounts.value || !props.catalogReady || incompleteAccounts.value.length) return;
       showPortfolioAnalysis.value = true;
       logAudit("STOCK/ALL/AI-PORTFOLIO", "OPEN");
     }
@@ -439,6 +468,7 @@ export default {
     });
 
     return {
+      hasCustomAccounts, incompleteAccounts, costCoverage: stats.costCoverage,
       mergedHoldings,
       filteredHoldings, sortedHoldings, valuationComplete, sortNotice,
       krHoldingsCount, usHoldingsCount,
@@ -465,3 +495,9 @@ export default {
 </script>
 
 <style src="@/assets/css/stock.css" scoped></style>
+
+<style scoped>
+.portfolio-account-status { padding: 18px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-card); color: var(--text-primary); }
+.portfolio-account-status div { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.portfolio-account-status button { min-height: 44px; color: var(--accent); background: transparent; }
+</style>

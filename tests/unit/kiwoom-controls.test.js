@@ -80,6 +80,69 @@ beforeEach(() => {
 })
 afterEach(() => { app?.unmount(); document.body.innerHTML = ''; jest.clearAllTimers(); jest.useRealTimers() })
 
+test('KR unknown account fields remain unknown and never substitute deposit for order capacity', async () => {
+  summary = { deposit: 120000, orderAvailable: null, totalAsset: null, totalEvaluation: null }
+  await mount('KiwoomAutoTrade.vue')
+  const card = [...document.querySelectorAll('.summary-details article')].find(el => el.textContent.includes('주문가능금액'))
+  expect(card.querySelector('strong').textContent).toBe('—')
+  expect(document.querySelector('.total-asset-card strong').textContent).toBe('—')
+  expect(document.body.textContent).toContain('120,000원')
+});
+
+test('KR failed account read does not display fake zero; actual zero remains a valid amount', async () => {
+  failSummary = true
+  await mount('KiwoomAutoTrade.vue')
+  expect(document.querySelector('.asset-summary').textContent).not.toContain('0원')
+  expect(document.body.textContent).toContain('계좌 조회에 실패')
+  failSummary = false; summary = { totalAsset: 0, deposit: 0, orderAvailable: 0, totalEvaluation: 0 }
+  await click('상태 다시 조회')
+  expect(document.querySelector('.total-asset-card strong').textContent).toBe('0원')
+});
+
+test('KR failed risk refresh keeps the prior data but clearly marks it as unconfirmed', async () => {
+  await mount('KiwoomAutoTrade.vue')
+  const previous = http.get.getMockImplementation()
+  http.get.mockImplementation(url => url.endsWith('/health') ? Promise.reject(new Error('health unavailable')) : previous(url))
+  await click('위험 상태 다시 조회')
+  expect(document.body.textContent).toContain('위험 상태 조회에 실패')
+  expect(document.body.textContent).toContain('이전 위험 상태는 현재 상태가 아닐 수 있습니다')
+  expect(document.body.textContent).toContain('위험 상태 마지막 정상 확인')
+});
+
+test.each([['KiwoomAutoTrade.vue', '주문 상태 동기화'], ['KiwoomUsAutoTrade.vue', '계좌·체결 동기화']])('sync in %s explains cancellation and requires confirmation', async (name, label) => {
+  await mount(name)
+  expect(document.querySelector('.sync-effects').textContent).toContain('취소')
+  window.confirm.mockReturnValue(false)
+  await click(label)
+  expect(http.post).not.toHaveBeenCalled()
+  expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('취소'))
+});
+
+test('US operating controls precede folded research and settings while freshness stays outside desktop-only detail', async () => {
+  await mount('KiwoomUsAutoTrade.vue')
+  const controls = document.querySelector('.controls')
+  const research = document.querySelector('.deployment-panel')
+  expect(controls.compareDocumentPosition(research) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(research.closest('details').open).toBe(false)
+  expect(document.querySelector('.rules').closest('details').open).toBe(false)
+  const freshness = [...controls.querySelectorAll('small')].find(el => el.textContent.includes('마지막 화면 갱신'))
+  expect(freshness.classList.contains('desktop-detail')).toBe(false)
+  expect(controls.textContent).toContain('취소')
+});
+
+test('US missing first snapshot shows unknown cash and counts even when placeholder counts are zero', async () => {
+  summary = { cash: { availableUsd: null, krwOrderSettingAmount: null, usdOnlyBuyAllowed: false },
+    fresh: false, capturedAt: null, positionCount: 0, managedPositionCount: 0,
+    buyingPower: { pendingPositionCount: 0 } }
+  await mount('KiwoomUsAutoTrade.vue')
+  const cards = [...document.querySelectorAll('.summary article')]
+  expect(cards[0].querySelector('strong').textContent).toBe('—')
+  const count = cards.find(el => el.textContent.includes('보유 종목'))
+  expect(count.querySelector('strong').textContent).toContain('— /')
+  expect(count.textContent).toContain('신규 미체결 —종목')
+  expect(button('신규매수 시작').disabled).toBe(true)
+});
+
 test('US research-managed account displays approved research strategy instead of legacy as active', async () => {
   const previous = http.get.getMockImplementation()
   http.get.mockImplementation(url => url === '/api/kiwoom/us/strategy-deployments/status'
@@ -334,7 +397,7 @@ test('KR stop response survives a failed status refresh and releases the control
   http.get.mockRejectedValueOnce(new Error('status unavailable'))
   await click('● 자동주문 완전 중지')
   expect(button('○ 자동주문 시작').disabled).toBe(false)
-  expect(document.body.textContent).toContain('갱신에 실패')
+  expect(document.body.textContent).toContain('운영 상태 조회에 실패')
 })
 
 test('KR failed sync displays error even when HTTP response is successful', async () => {

@@ -21,6 +21,7 @@ export function useAiAnalysis({
   const now = ref(Date.now());
   const lastFetchAt = ref(0);
 
+  let generation = 0;
   let loadingTimer = null;
   let tickerTimer = null;
 
@@ -28,6 +29,9 @@ export function useAiAnalysis({
   const loadingText = computed(() => messages.value[loadingMsgIdx.value] || '');
 
   function reset() {
+    ++generation;
+    clearInterval(loadingTimer);
+    loadingTimer = null;
     loading.value = false;
     error.value = '';
     blocked.value = false;
@@ -51,11 +55,13 @@ export function useAiAnalysis({
 
   async function runAnalysis(requestFn, onData = () => {}) {
     reset();
+    const requestGeneration = generation;
     loading.value = true;
     startLoadingRotation();
 
     try {
       const data = await requestFn();
+      if (requestGeneration !== generation) return;
       if (data?.blocked) {
         blocked.value = true;
         retryAt.value = data.retryAt ? new Date(data.retryAt) : null;
@@ -68,13 +74,16 @@ export function useAiAnalysis({
         providersStatus.value = data?.providersStatus || [];
       }
     } catch (err) {
+      if (requestGeneration !== generation) return;
       if (onError) onError(err);
       error.value = apiErrorMessage(err, errorFallback);
     } finally {
+      if (requestGeneration === generation) {
       loading.value = false;
       clearInterval(loadingTimer);
       loadingTimer = null;
       lastFetchAt.value = Date.now();
+      }
     }
   }
 
@@ -83,6 +92,7 @@ export function useAiAnalysis({
     showSource,
     (showVal) => {
       clearInterval(tickerTimer);
+      if (!showVal) reset();
       if (showVal) {
         now.value = Date.now();
         tickerTimer = setInterval(() => { now.value = Date.now(); }, 1000);
@@ -144,6 +154,7 @@ export function useAiAnalysis({
   }
 
   onBeforeUnmount(() => {
+    ++generation;
     clearInterval(loadingTimer);
     clearInterval(tickerTimer);
   });

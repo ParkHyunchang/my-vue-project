@@ -209,3 +209,12 @@ test('leaving the active account cancels a queued follow-up batch', async () => 
   await c.fetchPrices();
   expect(c.pricingStatus.value).toBe('fresh');
 });
+
+
+test('missing average costs expose the exact partial profit scope', async () => {
+  const c = context([{ ...kr, avgPrice: 9000 }, { ...kr, id: 3, symbol: 'NO-COST', avgPrice: null }]);
+  await c.fetchPrices();
+  expect(c.costCoverage.value).toEqual({ total: 2, known: 1, missing: 1 });
+  expect(c.totalCost.value).toBe(18000);
+  expect(c.totalPnl.value).toBe(2000);
+});

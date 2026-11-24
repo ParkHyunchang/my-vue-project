@@ -11,7 +11,14 @@
       >
         시세 또는 환율 미확인 · 합계·손익 계산 대기
       </p>
-      <template v-else>
+      <p
+        v-if="costCoverage.missing > 0"
+        class="cost-coverage"
+        role="status"
+      >
+        매입가 {{ costCoverage.known }}/{{ costCoverage.total }}종목 입력 · 투자원금과 손익은 매입가 입력 종목만의 부분 합계입니다. 미입력 {{ costCoverage.missing }}종목은 제외됩니다.
+      </p>
+      <template v-if="valuationComplete">
         <template v-if="marketFilter === 'all' && krHoldingsCount > 0 && usHoldingsCount > 0">
           <div class="ps-breakdown">
             <div class="ps-bd-row">
@@ -114,6 +121,7 @@ import { computed } from 'vue';
 export default {
   name: 'PortfolioSummary',
   props: {
+    costCoverage: { type: Object, default: () => ({ total: 0, known: 0, missing: 0 }) },
     valuationComplete: { type: Boolean, default: true },
     marketFilter: { type: String, required: true },
     displayCurrency: { type: String, default: 'native' },

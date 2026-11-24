@@ -3,9 +3,10 @@
     <div
       v-if="show"
       class="modal-overlay"
-      @click.self="$emit('close')"
+      @click.self="!busy && $emit('close')"
     >
-      <div
+      <fieldset
+        :disabled="busy"
         class="modal-box"
         data-lenis-prevent
       >
@@ -13,7 +14,7 @@
           <h3>종목 추가</h3>
           <button
             class="modal-close"
-            @click="$emit('close')"
+            @click="!busy && $emit('close')"
           >
             ✕
           </button>
@@ -153,11 +154,12 @@
         </div>
 
         <div class="mform-row">
-          <label>{{ isCashAsset ? '금액' : '보유수량' }}</label>
+          <label>{{ isCashAsset ? '금액 (원)' : allowFractional ? '보유수량 (소수 8자리까지)' : '보유수량 (기존 계좌는 정수)' }}</label>
           <input
             :value="newHolding.quantity"
             @input="updateNewField('quantity', $event.target.value === '' ? null : Number($event.target.value))"
             type="number"
+            :step="allowFractional && !isCashAsset ? '0.00000001' : '1'"
             min="1"
             :placeholder="isCashAsset ? '0원' : '0'"
           >
@@ -280,19 +282,19 @@
         <div class="modal-actions">
           <button
             class="mbtn-cancel"
-            @click="$emit('close')"
+            @click="!busy && $emit('close')"
           >
             취소
           </button>
           <button
             class="mbtn-submit"
-            :disabled="!canAdd"
-            @click="$emit('add')"
+            :disabled="busy || !canAdd"
+            @click="!busy && $emit('add')"
           >
-            추가
+            {{ busy ? '저장 중…' : '추가' }}
           </button>
         </div>
-      </div>
+      </fieldset>
     </div>
   </teleport>
 </template>
@@ -305,6 +307,8 @@ export default {
   name: 'AddHoldingModal',
   props: {
     show: { type: Boolean, required: true },
+    allowFractional: { type: Boolean, default: false },
+    busy: { type: Boolean, default: false },
     allowCash: { type: Boolean, default: false },
     searchQ: { type: String, default: '' },
     showDropdown: { type: Boolean, default: false },
@@ -425,3 +429,7 @@ export default {
 </script>
 
 <style src="@/assets/css/stock.css" scoped></style>
+
+<style scoped>
+.modal-box { min-inline-size: 0; }
+</style>

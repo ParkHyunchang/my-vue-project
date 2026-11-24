@@ -4,12 +4,12 @@
       <div class="panel-card-head">
         <h3>AI 전략 제안</h3>
         <div class="status-chips">
-          <span :class="['status-chip', { stopped: !autoTrading }]">{{ autoTrading ? '자동주문 실행 중' : '자동주문 완전 중지' }}</span>
-          <span :class="['status-chip', { on: config.orderEnabled }]">{{ config.orderEnabled ? 'ORDER ENABLED' : 'ORDER DISABLED' }}</span>
+          <span :class="['status-chip', { stopped: !autoTrading }]">{{ !statusKnown ? '자동주문 상태 확인 필요' : autoTrading ? '자동주문 실행 중' : '자동주문 완전 중지' }}</span>
+          <span :class="['status-chip', { on: config.orderEnabled }]">{{ !dataLoaded ? '주문 설정 확인 전' : config.orderEnabled ? '주문 전송 허용' : '주문 전송 잠금' }}</span>
         </div>
       </div>
       <p class="notice">
-        {{ !autoTrading ? '자동주문이 완전히 중지되어 있습니다. 저장된 전략 설정은 유지되며, 상단 시작 버튼으로 재개합니다.' : config.autoExecute ? `완전 자동매매 활성: 예약 판단에서 신뢰도 ${config.autoExecuteMinConfidence}% 이상인 제안을 안전 검사 후 자동 전송합니다.` : '전략의 자동 주문 전송이 꺼져 있습니다. 전략 설정에서 자동 전송 여부를 확인하세요.' }}
+        {{ !statusKnown ? '현재 자동주문 상태를 확인하지 못했습니다. 상태를 다시 조회하세요.' : !autoTrading ? '자동주문이 완전히 중지되어 있습니다. 저장된 전략 설정은 유지되며, 상단 시작 버튼으로 재개합니다.' : config.autoExecute ? `완전 자동매매 활성: 예약 판단에서 신뢰도 ${config.autoExecuteMinConfidence}% 이상인 제안을 안전 검사 후 자동 전송합니다.` : '전략의 자동 주문 전송이 꺼져 있습니다. 전략 설정에서 자동 전송 여부를 확인하세요.' }}
       </p>
       <div class="panel-card-actions">
         <button
@@ -36,6 +36,9 @@
           전략 설정
         </button>
       </div>
+      <p class="sync-effects">
+        {{ SYNC_ORDERS_HINT }}
+      </p>
       <p
         v-if="syncMessage"
         class="settings-applied"
@@ -53,6 +56,26 @@
         오늘 AI 호출 {{ todayUsage.calls }}회 · 추정 입력 {{ todayUsage.input.toLocaleString() }} / 출력 {{ todayUsage.output.toLocaleString() }} 토큰
       </p>
     </section>
+    <p
+      class="health-freshness"
+      role="status"
+    >
+      위험 상태 마지막 정상 확인: {{ healthCheckedAt ? date(healthCheckedAt) : '확인 전' }}
+      <button
+        type="button"
+        :disabled="healthLoading"
+        @click="loadOperations"
+      >
+        위험 상태 다시 조회
+      </button>
+    </p>
+    <p
+      v-if="healthError"
+      class="error"
+      role="alert"
+    >
+      {{ healthError }} {{ healthCheckedAt ? '이전 위험 상태는 현재 상태가 아닐 수 있습니다.' : '확인된 위험 상태가 없습니다.' }}
+    </p>
     <section
       v-if="operations.risk"
       class="panel-card"
@@ -60,15 +83,15 @@
       <div class="panel-card-head">
         <h3>리스크 관리</h3>
         <span
-          :class="['status-chip', 'risk-loop', { on: operations.risk.riskLoopEnabled }]"
+          :class="['status-chip', 'risk-loop', { on: !healthError && operations.risk.riskLoopEnabled }]"
           :title="RISK_LOOP_HINT"
-        >손절·익절 루프 {{ operations.risk.riskLoopEnabled ? 'ON' : 'OFF' }}</span>
+        >{{ healthError ? '이전 확인값 · ' : '' }}손절·익절 루프 {{ operations.risk.riskLoopEnabled ? 'ON' : 'OFF' }}</span>
       </div>
       <div class="risk-strip">
         <span
           v-if="operations.risk.triggered"
           class="risk-triggered"
-        >일일 손실 한도 발동 · 손실 {{ won(operations.risk.drawdown) }} ({{ percent(operations.risk.drawdownPercent) }}) / 한도 {{ percent(operations.risk.dailyLossLimitPercent) }} · 신규 매수 차단</span><span v-else-if="operations.risk.dailyLossLimitPercent > 0">일일 손실 {{ won(operations.risk.drawdown) }} ({{ percent(operations.risk.drawdownPercent) }}) / 한도 {{ percent(operations.risk.dailyLossLimitPercent) }}</span><span v-else>일일 손실 한도 미설정</span><button
+        >일일 손실 한도 발동 · 손실 {{ won(operations.risk.drawdown) }} ({{ percent(operations.risk.drawdownPercent) }}) / 한도 {{ percent(operations.risk.dailyLossLimitPercent) }} · 신규 매수 차단</span><span v-else-if="operations.risk.dailyLossLimitPercent > 0">일일 손실 {{ won(operations.risk.drawdown) }} ({{ percent(operations.risk.drawdownPercent) }}) / 한도 {{ percent(operations.risk.dailyLossLimitPercent) }}</span><span v-else-if="operations.risk.dailyLossLimitPercent == null">일일 손실 한도 확인 필요</span><span v-else>일일 손실 한도 미설정</span><button
           v-if="operations.risk.triggered"
           class="daily-loss-reset"
           :disabled="pending"
@@ -83,14 +106,14 @@
       </div>
     </section>
     <p
-      v-if="error"
+      v-if="error || readError"
       class="error"
     >
-      {{ error }}
+      {{ error || readError }}
     </p>
     <section class="broker-holdings">
       <div class="broker-holdings-title">
-        <b>키움 실계좌 보유현황</b><small>자동매매 기준 · {{ brokerHoldings.length ? `마지막 동기화 ${date(brokerHoldings[0].syncedAt)}` : '아직 동기화된 보유종목 없음' }}</small><button
+        <b>키움 실계좌 보유현황</b><small>자동매매 기준 · {{ !dataLoaded ? '보유 종목 확인 전' : brokerHoldings.length ? `마지막 동기화 ${date(brokerHoldings[0].syncedAt)}` : '조회된 보유종목 없음' }}</small><button
           v-if="brokerHoldings.length"
           class="liquidate-all"
           :disabled="pending"
@@ -229,86 +252,95 @@
         {{ liquidationMessage }}
       </p>
     </section>
-    <div class="candidate-list">
-      <span
-        v-for="c in candidates"
-        :key="c.code"
-        class="candidate-chip"
-      >{{ c.name }} · {{ c.code }} <span :class="['change-badge', changeClass(c.changePercent)]">{{ formatChangePct(c.changePercent) }}</span> <small>거래량 {{ c.volumeRatio }}배</small></span><small v-if="!candidates.length">현재 KRX 자동 스캔 매매 후보가 없습니다.</small>
-    </div>
-    <div class="runs">
-      <template
-        v-for="group in groupedRuns"
-        :key="group.key"
-      >
-        <div class="run-date-divider">
-          <span>{{ group.label }}</span>
-        </div>
+    <p
+      v-if="runs.length"
+      class="recent-decision"
+    >
+      최근 판단: {{ runSummaryText(runs[0]) }}
+    </p>
+    <details class="strategy-history">
+      <summary>후보 · 전략 판단 상세 내역</summary>
+      <div class="candidate-list">
+        <span
+          v-for="c in candidates"
+          :key="c.code"
+          class="candidate-chip"
+        >{{ c.name }} · {{ c.code }} <span :class="['change-badge', changeClass(c.changePercent)]">{{ formatChangePct(c.changePercent) }}</span> <small>거래량 {{ c.volumeRatio }}배</small></span><small v-if="!candidates.length">현재 KRX 자동 스캔 매매 후보가 없습니다.</small>
+      </div>
+      <div class="runs">
         <template
-          v-for="item in group.items"
-          :key="item.key"
+          v-for="group in groupedRuns"
+          :key="group.key"
         >
-          <p
-            v-if="item.type === 'skipped-group'"
-            class="run-skipped-group"
+          <div class="run-date-divider">
+            <span>{{ group.label }}</span>
+          </div>
+          <template
+            v-for="item in group.items"
+            :key="item.key"
           >
-            변경 없음으로 건너뜀 {{ item.count }}건 · {{ date(item.from) }} ~ {{ date(item.to) }}
-          </p>
-          <article
-            v-else
-            class="run-card"
-            :class="{ expanded: isRunExpanded(item.run.id) }"
-          >
-            <button
-              type="button"
-              class="run-summary"
-              :aria-expanded="isRunExpanded(item.run.id)"
-              @click="toggleRun(item.run.id)"
+            <p
+              v-if="item.type === 'skipped-group'"
+              class="run-skipped-group"
             >
-              <span class="run-chevron">▸</span>
-              <span>{{ runSummaryText(item.run) }}</span>
-            </button>
-            <div
-              v-show="isRunExpanded(item.run.id)"
-              class="run-detail"
+              변경 없음으로 건너뜀 {{ item.count }}건 · {{ date(item.from) }} ~ {{ date(item.to) }}
+            </p>
+            <article
+              v-else
+              class="run-card"
+              :class="{ expanded: isRunExpanded(item.run.id) }"
             >
-              <p>{{ item.run.marketView || item.run.errorMessage || '생성된 제안이 없습니다.' }}</p>
-              <div class="proposals-grid">
-                <div
-                  v-for="proposal in item.run.proposals"
-                  :key="proposal.id"
-                  class="proposal-card"
-                >
-                  <div class="proposal-primary">
-                    <span :class="['action-badge', proposal.action]">{{ actionDisplayLabel(proposal) }}</span>
-                    <span class="proposal-name">{{ proposal.stockName }} <small>({{ proposal.stockCode }})</small></span>
-                    <span v-if="proposal.quantity">{{ proposal.quantity.toLocaleString() }}주</span>
-                    <span v-if="proposal.limitPrice">{{ proposal.limitPrice.toLocaleString() }}원</span>
-                    <span :class="['status-badge', statusTone(proposal.status)]">{{ proposalStatusLabel(proposal.status) }}</span>
+              <button
+                type="button"
+                class="run-summary"
+                :aria-expanded="isRunExpanded(item.run.id)"
+                @click="toggleRun(item.run.id)"
+              >
+                <span class="run-chevron">▸</span>
+                <span>{{ runSummaryText(item.run) }}</span>
+              </button>
+              <div
+                v-show="isRunExpanded(item.run.id)"
+                class="run-detail"
+              >
+                <p>{{ item.run.marketView || item.run.errorMessage || '생성된 제안이 없습니다.' }}</p>
+                <div class="proposals-grid">
+                  <div
+                    v-for="proposal in item.run.proposals"
+                    :key="proposal.id"
+                    class="proposal-card"
+                  >
+                    <div class="proposal-primary">
+                      <span :class="['action-badge', proposal.action]">{{ actionDisplayLabel(proposal) }}</span>
+                      <span class="proposal-name">{{ proposal.stockName }} <small>({{ proposal.stockCode }})</small></span>
+                      <span v-if="proposal.quantity">{{ proposal.quantity.toLocaleString() }}주</span>
+                      <span v-if="proposal.limitPrice">{{ proposal.limitPrice.toLocaleString() }}원</span>
+                      <span :class="['status-badge', statusTone(proposal.status)]">{{ proposalStatusLabel(proposal.status) }}</span>
+                    </div>
+                    <p class="proposal-secondary">
+                      신뢰도 {{ proposal.confidence }}% · {{ proposal.reason }}
+                    </p>
+                    <small
+                      v-if="proposal.guardFlags"
+                      class="guards"
+                    >안전 경고: {{ guardText(proposal.guardFlags) }}</small>
+                    <small
+                      v-if="statusDetail(proposal)"
+                      class="status-detail"
+                    >{{ statusDetail(proposal) }}</small>
                   </div>
-                  <p class="proposal-secondary">
-                    신뢰도 {{ proposal.confidence }}% · {{ proposal.reason }}
-                  </p>
-                  <small
-                    v-if="proposal.guardFlags"
-                    class="guards"
-                  >안전 경고: {{ guardText(proposal.guardFlags) }}</small>
-                  <small
-                    v-if="statusDetail(proposal)"
-                    class="status-detail"
-                  >{{ statusDetail(proposal) }}</small>
                 </div>
               </div>
-            </div>
-          </article>
-        </template>
-      </template><p
-        v-if="!loading && !runs.length"
-        class="empty"
-      >
-        아직 전략 판단 이력이 없습니다.
-      </p>
-    </div>
+            </article>
+          </template>
+        </template><p
+          v-if="!loading && !runs.length"
+          class="empty"
+        >
+          아직 전략 판단 이력이 없습니다.
+        </p>
+      </div>
+    </details>
     <KiwoomStrategySettingsModal
       v-if="showSettings"
       :order-enabled="config.orderEnabled"
@@ -333,9 +365,11 @@ import {
   syncStrategyOrders
 } from '@/api/kiwoomApi'
 import KiwoomStrategySettingsModal from '@/components/stock/KiwoomStrategySettingsModal.vue'
+import { apiErrorMessage } from '@/utils/apiError'
 import { useStockFormatters } from '@/composables/useStockFormatters'
 const props = defineProps({
   configured: Boolean,
+  statusKnown: Boolean,
   autoTrading: Boolean,
   refreshVersion: { type: Number, default: 0 },
   priceTicks: { type: Object, default: () => ({}) },
@@ -345,6 +379,8 @@ const candidates = ref([]), runs = ref([]), brokerHoldings = ref([])
 const config = ref({ orderEnabled: false, autoExecute: false, autoExecuteMinConfidence: 85 }), operations = ref({}), pending = ref(false), loading = ref(false), error = ref(''), settingsMessage = ref(''), showSettings = ref(false)
 const liquidationMessage = ref(''), liquidationFailed = ref(false)
 const syncMessage = ref('')
+const readError = ref('')
+const dataLoaded = ref(false), healthLoading = ref(false), healthError = ref(''), healthCheckedAt = ref(null)
 const displayedBrokerHoldings = computed(() => brokerHoldings.value.map((holding) => {
   const livePrice = Number(props.priceTicks[holding.stockCode]?.price)
   const currentPrice = Number.isFinite(livePrice) && livePrice > 0 ? livePrice : Number(holding.currentPrice || 0)
@@ -370,9 +406,10 @@ function autoExpandLatestRun () {
   }
 }
 const date = (value) => value ? new Date(value).toLocaleString('ko-KR', { hour12: false }) : ''
-const won = (value) => `${Number(value || 0).toLocaleString()}원`
-const signedWon = (value) => `${Number(value || 0) > 0 ? '+' : ''}${won(value)}`
-const percent = (value) => `${Number(value || 0).toFixed(2)}%`
+const numeric = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value))
+const won = value => numeric(value) ? `${Number(value).toLocaleString()}원` : '—'
+const signedWon = value => numeric(value) ? `${Number(value) > 0 ? '+' : ''}${won(value)}` : '—'
+const percent = value => numeric(value) ? `${Number(value).toFixed(2)}%` : '—'
 // "지금 판단"을 눌러도 예전 기록과 섞여 전부 방금 일어난 것처럼 보이는 걸 막기 위해 날짜별로 묶어
 // 구분선을 둔다. 서버가 최근 3일치만 남기므로(KiwoomStrategyHistoryCleanupService) 그룹 수는 최대 3~4개.
 const dayMs = 24 * 60 * 60 * 1000
@@ -476,15 +513,23 @@ function runSummaryText (run) {
   return parts.join(' · ')
 }
 let loadRevision = 0, operationsRevision = 0
-async function load () { const revision = ++loadRevision; loading.value = true; try { const [universe, history, strategyConfig, holdings] = await Promise.all([fetchStrategyUniverse(), fetchStrategyRuns(50), fetchStrategyConfig(), fetchAccountHoldings()]); if (revision !== loadRevision) return; candidates.value = universe.data; runs.value = history.data; config.value = strategyConfig.data; brokerHoldings.value = holdings.data; autoExpandLatestRun() } catch (e) { if (revision === loadRevision) error.value = e.response?.data?.message || '전략 데이터를 불러오지 못했습니다.' } finally { if (revision === loadRevision) loading.value = false } }
-async function loadOperations () { const revision = ++operationsRevision; try { const { data } = await fetchStrategyHealth(); if (revision === operationsRevision) operations.value = data } catch { /* 운영 상태 조회 실패는 기존 전략 기능을 막지 않는다. */ } }
+async function load () { const revision = ++loadRevision; loading.value = true; try { const [universe, history, strategyConfig, holdings] = await Promise.all([fetchStrategyUniverse(), fetchStrategyRuns(50), fetchStrategyConfig(), fetchAccountHoldings()]); if (revision !== loadRevision) return; candidates.value = universe.data; runs.value = history.data; config.value = strategyConfig.data; brokerHoldings.value = holdings.data; dataLoaded.value = true; readError.value = ''; autoExpandLatestRun() } catch (e) { if (revision === loadRevision) readError.value = apiErrorMessage(e, '전략 데이터를 불러오지 못했습니다.') } finally { if (revision === loadRevision) loading.value = false } }
+async function loadOperations () {
+  const revision = ++operationsRevision; healthLoading.value = true
+  try {
+    const { data } = await fetchStrategyHealth()
+    if (revision === operationsRevision) { operations.value = data; healthError.value = ''; healthCheckedAt.value = new Date().toISOString() }
+  } catch (e) {
+    if (revision === operationsRevision) healthError.value = apiErrorMessage(e, '위험 상태 조회에 실패했습니다.')
+  } finally { if (revision === operationsRevision) healthLoading.value = false }
+}
 // 버튼 title 툴팁에도 그대로 재사용해 확인 문구와 설명이 어긋나지 않게 한다.
 const DECIDE_NOW_HINT = '현재 시세와 보유 종목으로 즉시 재판단할까요? 자동매매가 활성화되어 있으면 안전 검사를 통과한 주문은 자동 전송됩니다.'
 const SYNC_ORDERS_HINT = '체결·취소 상태를 조회하고 오래된 미체결 매수는 취소 요청합니다. 자동주문 실행 중이면 체결 반영 후 청산 주문도 다시 관리합니다.'
 const STRATEGY_SETTINGS_HINT = '자동매매 조건(신뢰도 기준, 주문 한도, 손절·익절 등)을 설정합니다.'
 const RISK_LOOP_HINT = '가격이 익절·손절 조건에 도달하면 자동으로 매도 주문을 요청합니다.'
 async function decideNow () { if (!window.confirm(DECIDE_NOW_HINT)) return; pending.value = true; error.value = ''; try { await runStrategyDecision(); await Promise.all([load(), loadOperations()]) } catch (e) { error.value = e.response?.data?.message || '즉시 재판단에 실패했습니다.' } finally { pending.value = false } }
-async function syncOrders () { if (pending.value) return; pending.value = true; error.value = ''; syncMessage.value = ''; try { const { data } = await syncStrategyOrders(); if (data.success === false || data.message?.includes("동기화 실패")) error.value = data.message; else syncMessage.value = data.message || `주문 상태 동기화 완료: ${data.updated || 0}건 갱신`; await Promise.all([load(), loadOperations()]) } catch (e) { error.value = e.response?.data?.message || '주문 상태 동기화에 실패했습니다.' } finally { pending.value = false } }
+async function syncOrders () { if (pending.value || !window.confirm(SYNC_ORDERS_HINT + ' 계속할까요?')) return; pending.value = true; error.value = ''; syncMessage.value = ''; try { const { data } = await syncStrategyOrders(); if (data.success === false || data.message?.includes("동기화 실패")) error.value = data.message; else syncMessage.value = data.message || `주문 상태 동기화 완료: ${data.updated || 0}건 갱신`; await Promise.all([load(), loadOperations()]) } catch (e) { error.value = e.response?.data?.message || '주문 상태 동기화에 실패했습니다.' } finally { pending.value = false } }
 // 실계좌 시장가 매도라 되돌릴 수 없다. 확인 문구에 대상 종목과 수량을 그대로 적어 오조작을 막는다.
 async function runLiquidation (stockCodes, question) {
   if (!window.confirm(question)) return
@@ -533,4 +578,12 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select { m
 button, summary { min-height: var(--control-height); }
 button { border-radius: var(--radius-control); }
 input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select { min-height: var(--control-height); border-radius: var(--radius-control); }
+</style>
+
+<style scoped>
+.health-freshness, .sync-effects, .recent-decision { color: var(--text-secondary); font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.health-freshness button { min-height: 44px; margin: 4px 8px; border: 1px solid var(--card-border); border-radius: var(--radius-control); background: var(--surface); color: var(--text-primary); padding: 8px 12px; }
+.strategy-history { padding: 12px 16px; margin: 16px 0; border: 1px solid var(--card-border); border-radius: var(--radius-card); background: var(--surface); }
+.strategy-history > summary { min-height: 44px; padding: 10px 0; cursor: pointer; color: var(--text-primary); font-weight: 600; }
+.strategy-history > summary:focus-visible, .health-freshness button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 </style>

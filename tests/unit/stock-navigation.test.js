@@ -27,7 +27,7 @@ function component() {
 let app;
 async function flush() { for (let i = 0; i < 8; i++) { await Promise.resolve(); await nextTick(); } }
 async function mount() { const host = document.createElement('div'); document.body.append(host); app = createApp(component()); app.mount(host); await flush(); return host; }
-beforeEach(() => { jest.clearAllMocks(); mockAdmin = true; mockRoute = reactive({ query: {} }); http.get.mockResolvedValue({ data: {} }); window.scrollTo = jest.fn(); });
+beforeEach(() => { jest.clearAllMocks(); mockAdmin = true; mockRoute = reactive({ query: {} }); http.get.mockImplementation(async url => ({ data: url === '/api/portfolio/accounts' ? ['stock', 'general', 'isa', 'irp'].map(type => ({ id: 'legacy-' + type, legacyType: type, name: type, broker: 'UNASSIGNED', purpose: 'OTHER', holdingsPath: '/api/portfolio/' + type + '/holdings' })) : {} })); window.scrollTo = jest.fn(); });
 afterEach(() => { app?.unmount(); document.body.innerHTML = ''; });
 
 test('legacy direct account URL selects its group and keyboard focus follows visible subtabs', async () => {
@@ -51,4 +51,29 @@ test('route changes select market group while non-admin broker URLs fall back wi
   expect(host.querySelector('.stock-groups [aria-pressed="true"]').textContent).toContain('시장 정보');
   expect(host.querySelector('[aria-current="page"]').dataset.tab).toBe('news');
   expect(host.querySelector('[data-tab="broker-accounts"]')).toBeNull();
+});
+
+
+test('account catalog failure prevents a misleading legacy-only complete portfolio and keeps KRX unknown', async () => {
+  http.get.mockRejectedValue(new Error('offline'));
+  const host = await mount();
+  expect(host.textContent).toContain('수기 계좌 목록을 확인하지 못했습니다');
+  expect(host.textContent).toContain('KRX 연결 정보를 확인하지 못했습니다');
+  expect(host.textContent).not.toContain('KRX 정상');
+});
+
+test('custom manual account becomes its own tab and keeps legacy direct links', async () => {
+  http.get.mockResolvedValue({ data: [{ id: 'custom-one', name: '삼성 일반', broker: 'SAMSUNG', purpose: 'LONG_TERM', legacyType: null, holdingsPath: '/api/portfolio/accounts/custom-one/holdings' }] });
+  mockRoute.query = { tab: 'custom-one' };
+  const host = await mount();
+  expect(host.querySelector('[aria-current="page"]').dataset.tab).toBe('custom-one');
+  expect(host.textContent).toContain('삼성 · 삼성 일반');
+});
+
+
+test('new account retry increments a previously unseen account version', async () => {
+  const host = document.createElement('div'); document.body.append(host);
+  app = createApp(component()); const vm = app.mount(host); await flush();
+  vm.retryAccount('new-account'); expect(vm.reloadVersions['new-account']).toBe(1);
+  vm.retryAccount('new-account'); expect(vm.reloadVersions['new-account']).toBe(2);
 });

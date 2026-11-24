@@ -506,9 +506,9 @@ export default {
     }
 
     watch(
-      () => [props.show, props.holding?.symbol],
-      ([showVal, symbol], [prevShow]) => {
-        if (showVal && symbol && (!prevShow || prevShow !== showVal)) {
+      () => [props.show, props.holding?.symbol, props.holding?.market],
+      ([showVal, symbol, market], [prevShow, prevSymbol, prevMarket]) => {
+        if (showVal && symbol && (!prevShow || prevSymbol !== symbol || prevMarket !== market)) {
           fetchAnalysis();
         }
       },

@@ -1,5 +1,52 @@
 <template>
   <div>
+    <details
+      v-if="legacyRows.length"
+      class="legacy-import"
+    >
+      <summary>이 브라우저에 이전 보유 기록 {{ legacyRows.length }}건이 있습니다 · 가져오기 검토</summary>
+      <p>작성자 정보가 없는 이전 브라우저 기록입니다. 현재 사용자 {{ importUserLabel }}의 {{ accountUi.label }}에 해당하는지 확인하세요. 자동 저장하거나 원본을 삭제하지 않습니다.</p>
+      <ul>
+        <li
+          v-for="row in legacyRows"
+          :key="row.key"
+        >
+          {{ row.holding.name }} · {{ row.holding.symbol }} · {{ row.holding.quantity }}주 — {{ row.status }}<span v-if="row.error"> · {{ row.error }}</span>
+        </li>
+      </ul>
+      <label><input
+        v-model="importConfirmed"
+        type="checkbox"
+        :disabled="importing"
+      > 현재 사용자와 대상 계좌의 자료임을 확인했습니다.</label>
+      <button
+        type="button"
+        :disabled="!importConfirmed || !importUserKey || importing || initialLoading || !!loadError"
+        @click="importLegacy"
+      >
+        {{ importing ? '가져오는 중…' : '확인한 기록 가져오기' }}
+      </button>
+      <p
+        v-if="importNotice"
+        role="status"
+      >
+        {{ importNotice }}
+      </p>
+    </details>
+    <div
+      v-if="loadError"
+      class="portfolio-load-error"
+      role="alert"
+    >
+      <p>{{ loadError }}</p><button
+        :disabled="initialLoading"
+        @click="initPortfolio"
+      >
+        다시 불러오기
+      </button><p v-if="holdings.length">
+        이전에 확인한 목록을 보관 중입니다. 최신 전체 합계로 사용하지 않습니다.
+      </p>
+    </div>
     <!-- 초기 로딩 -->
     <div
       v-if="initialLoading"
@@ -12,7 +59,7 @@
 
     <!-- 빈 상태 -->
     <div
-      v-else-if="holdings.length === 0"
+      v-else-if="!loadError && holdings.length === 0"
       class="portfolio-empty"
     >
       <div class="portfolio-empty-icon">
@@ -28,10 +75,11 @@
       </button>
     </div>
 
-    <template v-else>
+    <template v-else-if="!loadError">
       <!-- 요약 바 -->
       <PortfolioSummary
         :valuation-complete="valuationComplete"
+        :cost-coverage="costCoverage"
         :market-filter="marketFilter"
         :display-currency="displayCurrency"
         :filtered-holdings="filteredHoldings"
@@ -66,11 +114,12 @@
       <div class="portfolio-ai-bar">
         <button
           class="portfolio-ai-btn"
+          :disabled="baseAccountConfig.isCustomAccount"
           @click="openPortfolioAnalysis"
         >
           {{ accountUi.aiButtonLabel }}
         </button>
-        <span class="portfolio-ai-hint">{{ accountUi.aiHint }}</span>
+        <span class="portfolio-ai-hint">{{ baseAccountConfig.isCustomAccount ? '새 수기 계좌 전체 진단은 준비 중입니다. 종목별 분석을 이용하세요.' : accountUi.aiHint }}</span>
       </div>
 
       <!-- 마켓 필터 바 -->
@@ -252,6 +301,8 @@
 
     <!-- 종목 추가 모달 -->
     <AddHoldingModal
+      :busy="mutating"
+      :allow-fractional="baseAccountConfig.isCustomAccount"
       :show="showAddModal"
       :allow-cash="accountUi.allowCash"
       v-model:search-q="searchQ"
@@ -303,6 +354,8 @@ import PortfolioChart from "@/components/stock/PortfolioChart.vue";
 import AddHoldingModal from "@/components/stock/AddHoldingModal.vue";
 import StockAnalysisModal from "@/components/stock/StockAnalysisModal.vue";
 import PortfolioAnalysisModal from "@/components/stock/PortfolioAnalysisModal.vue";
+import { fetchManualHoldings, createManualHolding } from "@/api/portfolioAccountsApi";
+import { useStore } from "vuex";
 import { ACCOUNT_CONFIGS, isCashHolding, normalizeAccountType } from "@/config/stockAccounts";
 
 function makeLocalHoldingId(accountType) {
@@ -322,14 +375,16 @@ export default {
   },
   props: {
     active: { type: Boolean, default: false },
+    accountConfig: { type: Object, default: null },
     accountType: { type: String, default: "stock" },
     accountLabel: { type: String, default: "" },
+    reloadVersion: { type: Number, default: 0 },
   },
-  emits: ["holdings-changed"],
+  emits: ["holdings-changed", "load-state"],
   setup(props, { emit }) {
     const { fmtKRW, fmtUSD, fmtByMkt, pnlCls } = useStockFormatters();
     const normalizedAccountType = normalizeAccountType(props.accountType);
-    const baseAccountConfig = ACCOUNT_CONFIGS[normalizedAccountType];
+    const baseAccountConfig = { ...ACCOUNT_CONFIGS[normalizedAccountType], ...props.accountConfig };
     const accountUi = computed(() => ({
       ...baseAccountConfig,
       label: props.accountLabel || baseAccountConfig.label,
@@ -339,6 +394,18 @@ export default {
 
     const holdings = ref([]);
     const initialLoading = ref(true);
+    const loadError = ref('');
+    const mutating = ref(false);
+    const importing = ref(false);
+    const importConfirmed = ref(false);
+    const importNotice = ref('');
+    const legacyRows = ref([]);
+    const store = useStore();
+    const importUserKey = computed(() => store.state.auth?.user?.id ?? store.state.auth?.user?.username ?? '');
+    const importUserLabel = computed(() => store.state.auth?.user?.username || '로그인 사용자');
+    const importLedgerKey = () => `${baseAccountConfig.storageKey}:imported:${String(importUserKey.value)}`;
+    let loadGeneration = 0;
+
     const portfolioView = ref("grid");
     const marketFilter = ref("all");
     const displayCurrency = ref(
@@ -410,6 +477,7 @@ export default {
 
     function readLocalHoldings() {
       try {
+        if (!baseAccountConfig.storageKey) return [];
         const parsed = JSON.parse(localStorage.getItem(baseAccountConfig.storageKey)) || [];
         return parsed.map(normalizeHoldingForAccount);
       } catch {
@@ -422,54 +490,87 @@ export default {
     }
 
     function accountRequestConfig() {
+      if (baseAccountConfig.isCustomAccount) return {};
       return { params: { accountType: normalizedAccountType } };
     }
 
     function belongsToAccount(holding) {
+      if (baseAccountConfig.isCustomAccount) return true;
       if (normalizedAccountType === "stock") {
         return !holding.accountType || holding.accountType === "stock" || holding.accountType === "general";
       }
       return !holding.accountType || holding.accountType === normalizedAccountType;
     }
 
-    async function initPortfolio() {
-      holdings.value = readLocalHoldings();
-      const localData = [...holdings.value];
-      if (!usesRemotePortfolio) {
-        emitHoldingsChanged();
-        return;
-      }
+    function readImportLedger(key) {
       try {
-        const res = await axios.get(portfolioApiPath, accountRequestConfig());
-        const serverData = (res.data || [])
-          .filter(belongsToAccount)
-          .map(normalizeHoldingForAccount);
-        if (serverData.length > 0) {
-          holdings.value = serverData;
-          localStorage.removeItem(baseAccountConfig.storageKey);
-        } else if (localData.length > 0) {
-          for (const h of localData) {
-            await axios.post(portfolioApiPath, {
-              assetType: h.assetType || "STOCK",
-              accountType: normalizedAccountType,
-              market: h.assetType === "CASH" ? "KR" : h.market,
-              name: h.name,
-              symbol: h.symbol || `CASH-${normalizedAccountType.toUpperCase()}-${Date.now()}`,
-              quantity: h.quantity,
-              avgPrice: h.assetType === "CASH" ? 1 : h.avgPrice,
-            }, accountRequestConfig());
-          }
-          const refreshed = await axios.get(portfolioApiPath, accountRequestConfig());
-          holdings.value = (refreshed.data || [])
-            .filter(belongsToAccount)
-            .map(normalizeHoldingForAccount);
-          localStorage.removeItem(baseAccountConfig.storageKey);
-        }
-      } catch {
-        holdings.value = normalizedAccountType === "stock" ? localData : [];
-      }
-      emitHoldingsChanged();
+        const value = JSON.parse(localStorage.getItem(key) || '{}');
+        return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+      } catch { return {}; }
     }
+    function refreshLegacyPreview() {
+      const ledger = readImportLedger(importLedgerKey());
+      legacyRows.value = readLocalHoldings().map(holding => {
+        const key = JSON.stringify([holding.assetType, holding.market, holding.symbol, holding.name, holding.quantity, holding.avgPrice]);
+        return { key, holding, status: ledger[key] === true ? '이 사용자에게 가져오기 완료' : '확인 대기', done: ledger[key] === true, error: '' };
+      });
+    }
+    async function initPortfolio() {
+      const generation = ++loadGeneration;
+      initialLoading.value = true;
+      loadError.value = '';
+      emit('load-state', { status: 'loading' });
+      try {
+        const res = await fetchManualHoldings(portfolioApiPath, accountRequestConfig());
+        if (generation !== loadGeneration) return false;
+        holdings.value = (res.data || []).filter(belongsToAccount).map(normalizeHoldingForAccount);
+        emitHoldingsChanged();
+        emit('load-state', { status: 'ready' });
+        if (props.active) fetchPrices();
+        return true;
+      } catch (err) {
+        if (generation !== loadGeneration) return false;
+        loadError.value = apiErrorMessage(err, '보유 목록을 확인하지 못했습니다.');
+        emit('load-state', { status: 'error', message: loadError.value });
+        return false;
+      } finally {
+        if (generation === loadGeneration) initialLoading.value = false;
+      }
+    }
+    async function importLegacy() {
+      if (importing.value || mutating.value || !importConfirmed.value || !importUserKey.value) return;
+      importing.value = true;
+      mutating.value = true;
+      importNotice.value = '';
+      const owner = importUserKey.value;
+      const ledgerKey = importLedgerKey();
+      const ledger = readImportLedger(ledgerKey);
+      try {
+        // Recheck the server before retrying an interrupted import.
+        if (!await initPortfolio()) return;
+        for (const row of legacyRows.value) {
+          if (owner !== importUserKey.value) break;
+          if (row.done) continue;
+          const h = row.holding;
+          if (holdings.value.some(existing => existing.symbol?.toUpperCase() === h.symbol?.toUpperCase())) {
+            row.status = '서버에 같은 종목 있음 · 덮어쓰지 않음';
+            continue;
+          }
+          row.status = '가져오는 중'; row.error = '';
+          try {
+            const { data } = await createManualHolding(portfolioApiPath, { assetType: h.assetType || 'STOCK', accountType: normalizedAccountType,
+              market: h.market, name: h.name, symbol: h.symbol, quantity: h.quantity, avgPrice: h.avgPrice }, accountRequestConfig());
+            holdings.value.push(normalizeHoldingForAccount(data));
+            row.done = true; row.status = '가져오기 완료'; ledger[row.key] = true;
+            try { localStorage.setItem(ledgerKey, JSON.stringify(ledger)); } catch { row.error = '진행 기록 저장 실패 · 서버 목록에서 중복을 확인합니다.'; }
+            emitHoldingsChanged();
+          } catch (err) { row.status = '실패 · 재시도 가능'; row.error = apiErrorMessage(err, '가져오기 실패'); }
+        }
+        importNotice.value = '성공한 항목은 유지하고 실패한 항목은 원본에 남겼습니다. 같은 종목은 자동으로 합치지 않습니다.';
+        fetchPrices();
+      } finally { importing.value = false; mutating.value = false; }
+    }
+    watch(() => props.reloadVersion, () => { initPortfolio(); });
 
     function openAddModal() { showAddModal.value = true; }
 
@@ -484,6 +585,7 @@ export default {
     }
 
     function openPortfolioAnalysis() {
+      if (baseAccountConfig.isCustomAccount) return;
       showPortfolioAnalysis.value = true;
       logAudit(accountUi.value.auditPortfolio, "OPEN");
     }
@@ -492,6 +594,7 @@ export default {
     }
 
     function closeAddModal() {
+      if (mutating.value) return;
       showAddModal.value = false;
       searchQ.value = "";
       showDropdown.value = false;
@@ -537,6 +640,9 @@ export default {
     }
 
     async function addHolding() {
+      if (mutating.value || initialLoading.value || loadError.value) return;
+      mutating.value = true;
+      try {
       const h = newHolding.value;
       const assetType = h.assetType === "CASH" ? "CASH" : "STOCK";
       const sym = assetType === "CASH"
@@ -563,7 +669,7 @@ export default {
         holdings.value.push(normalizeHoldingForAccount(payload));
         writeLocalHoldings();
         emitHoldingsChanged();
-        closeAddModal();
+        showAddModal.value = false;
         fetchPrices();
         return;
       }
@@ -571,14 +677,18 @@ export default {
         const res = await axios.post(portfolioApiPath, payload, accountRequestConfig());
         holdings.value.push(normalizeHoldingForAccount(res.data));
         emitHoldingsChanged();
-        closeAddModal();
+        showAddModal.value = false;
         fetchPrices();
       } catch (err) {
         alert(apiErrorMessage(err, "종목 추가에 실패했습니다."));
       }
+      } finally { mutating.value = false; }
     }
 
     async function toggleCore(h) {
+      if (mutating.value || initialLoading.value || loadError.value) return;
+      mutating.value = true;
+      try {
       const next = !h.core;
       if (!usesRemotePortfolio) {
         const idx = holdings.value.findIndex((x) => x.id === h.id);
@@ -600,9 +710,13 @@ export default {
       } catch (err) {
         alert(apiErrorMessage(err, "코어 설정 변경에 실패했습니다."));
       }
+      } finally { mutating.value = false; }
     }
 
     async function removeHolding(id) {
+      if (mutating.value || initialLoading.value || loadError.value) return;
+      mutating.value = true;
+      try {
       const target = holdings.value.find((h) => h.id === id);
       const name = target ? target.name : "이 종목";
       if (!confirm(`'${name}'을(를) 삭제하시겠습니까?`)) return;
@@ -619,13 +733,18 @@ export default {
       } catch (err) {
         alert(apiErrorMessage(err, "종목 삭제에 실패했습니다."));
       }
+      } finally { mutating.value = false; }
     }
 
     function startEdit(h) {
+      if (mutating.value) return;
       editingId.value = h.id;
       editForm.value = { quantity: h.quantity, avgPrice: h.avgPrice };
     }
     async function saveEdit(h) {
+      if (mutating.value || initialLoading.value || loadError.value) return;
+      mutating.value = true;
+      try {
       const payload = {
         accountType: normalizedAccountType,
         quantity: editForm.value.quantity,
@@ -655,10 +774,12 @@ export default {
       } catch (err) {
         alert(apiErrorMessage(err, "종목 수정에 실패했습니다."));
       }
+      } finally { mutating.value = false; }
     }
 
     const canAdd = computed(
       () => {
+        if (mutating.value || !Number.isFinite(Number(newHolding.value.quantity)) || (!baseAccountConfig.isCustomAccount && !Number.isInteger(Number(newHolding.value.quantity)))) return false;
         if (newHolding.value.assetType === "CASH") {
           return newHolding.value.name.trim() && Number(newHolding.value.quantity) > 0;
         }
@@ -757,6 +878,7 @@ export default {
 
     onMounted(async () => {
       try {
+        refreshLegacyPreview();
         await initPortfolio();
       } finally {
         initialLoading.value = false;
@@ -770,13 +892,15 @@ export default {
     });
 
     onBeforeUnmount(() => {
+      ++loadGeneration;
       stopTimers();
       clearTimeout(searchTimer);
       document.removeEventListener("keydown", onKeydown);
     });
 
     return {
-      accountUi,
+      baseAccountConfig, accountUi, loadError, initPortfolio, mutating, legacyRows, importConfirmed, importing, importNotice, importUserKey, importUserLabel, importLegacy,
+      costCoverage: stats.costCoverage,
       holdings, prices, priceLoading, initialLoading, portfolioView, marketFilter,
       displayCurrency, setDisplayCurrency, showCurrencyToggle,
       exchangeRate, exRateAt, lastUpdatedAt, relativeUpdated, pricingStatus, pricingMessage,
@@ -806,3 +930,11 @@ export default {
 </script>
 
 <style src="@/assets/css/stock.css" scoped></style>
+
+<style scoped>
+.legacy-import, .portfolio-load-error { margin: 16px 0; padding: 18px; border: 1px solid var(--card-border); border-radius: var(--radius-card); background: var(--card-bg); color: var(--text-primary); }
+.legacy-import summary { cursor: pointer; min-height: 44px; }
+.legacy-import p, .legacy-import li, .portfolio-load-error p { font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.legacy-import button, .portfolio-load-error button { min-height: 44px; margin: 8px; padding: 8px 14px; background: var(--accent); color: var(--text-on-accent); border-radius: var(--radius-control); }
+.legacy-import button:disabled { opacity: .5; }
+</style>

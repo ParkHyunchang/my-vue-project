@@ -22,7 +22,7 @@
       <span
         v-if="top10UpdateTime"
         class="last-updated"
-      >기준: {{ top10UpdateTime }}</span>
+      >조회: {{ top10UpdateTime }}</span>
       <span class="auto-refresh-info">🕐 실시간 (2분 자동 갱신)</span>
     </div>
 
@@ -215,7 +215,9 @@ export default {
 
     let refreshTimer = null;
 
+    let requestGeneration = 0;
     async function loadTop10() {
+      const generation = ++requestGeneration;
       top10Loading.value = true;
       top10Error.value = "";
       try {
@@ -226,16 +228,19 @@ export default {
             ? "/api/stock/top10/kosdaq"
             : "/api/stock/top10/us";
         const res = await axios.get(endpoint);
+        if (generation !== requestGeneration) return;
         top10Data.value = res.data;
         top10UpdateTime.value = new Date().toLocaleTimeString("ko-KR");
       } catch {
+        if (generation !== requestGeneration) return;
         top10Error.value = "시세 데이터를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.";
       } finally {
-        top10Loading.value = false;
+        if (generation === requestGeneration) top10Loading.value = false;
       }
     }
 
     function switchTop10(market) {
+      if (top10Market.value !== market) { top10Data.value = []; top10UpdateTime.value = ''; }
       top10Market.value = market;
       loadTop10();
     }
@@ -261,6 +266,7 @@ export default {
     });
 
     onBeforeUnmount(() => {
+      ++requestGeneration;
       clearInterval(refreshTimer);
     });
 

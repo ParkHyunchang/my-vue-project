@@ -9,63 +9,20 @@
       class="operation-overview"
       aria-label="미국 자동매매 운영 상태"
     >
-      <div><dt>신규 매수</dt><dd>{{ status.configured ? executionLabel : '연결 확인 필요' }}</dd></div>
-      <div><dt>주문 전송</dt><dd>{{ !status.configured ? '확인 필요' : status.orderEnabled ? '허용' : '잠금' }}</dd></div>
+      <div><dt>신규 매수</dt><dd>{{ statusKnown && status.configured ? executionLabel : '연결 확인 필요' }}</dd></div>
+      <div><dt>주문 전송</dt><dd>{{ !statusKnown || !status.configured ? '확인 필요' : status.orderEnabled ? '허용' : '잠금' }}</dd></div>
       <div><dt>계좌 확인</dt><dd>{{ accountFresh ? '최신 확인' : '확인 필요' }}</dd></div>
     </dl>
-    <div
-      class="usd-notice"
-      :class="{ blocked: usdOnlyBlocked, unknown: !accountFresh }"
-    >
-      <strong>{{ !accountFresh ? '매수 자금: 계좌 확인 필요' : usdOnlyBlocked ? '매수 차단: 원화주문설정금이 있습니다' : '매수 자금: 환전한 USD 예수금' }}</strong>
-      <span v-if="!accountFresh">최신 계좌 정보를 확인하지 못했습니다. 환전 후에는 ‘계좌·체결 동기화’로 금액과 보유 내역을 확인하세요.</span>
-      <span v-else-if="usdOnlyBlocked">현재 원화주문설정금 {{ won(summary.cash?.krwOrderSettingAmount) }}원입니다. 자동매매 시작과 실제 매수 주문을 차단합니다.</span>
-      <span v-else>미체결 자동매수 예약금을 제외한 USD에서 1%를 수수료 여유로 남깁니다. 실제 주문 직전 외화 주문가능수량을 다시 확인합니다.</span>
-      <small>원화주문 서비스: {{ krwOrderStatus.label }} · 실제 매수에는 서비스 해지 확인이 필요합니다.</small>
-    </div>
-    <p
-      v-if="error"
-      class="error"
-    >
-      {{ error }}
-    </p>
-    <p
-      v-if="summary.notice"
-      class="account-notice"
-    >
-      {{ summary.notice }}
-      <small v-if="summary.capturedAt">마지막 정상 조회: {{ logTime(summary.capturedAt) }}</small>
-    </p>
-
-    <KiwoomUsRiskPanel
-      :risk="risk"
-      :loaded="riskLoaded"
-      :fresh="riskFresh && accountFresh"
-      :busy="pending"
-      :error="riskError || (risk.enabled && !riskCurrent ? '위험 평가가 없거나 90초 이상 지났습니다. 계좌·체결 동기화로 다시 확인하세요.' : '')"
-      @activate="activateRisk"
-      @review="requireFlowReview"
-      @capital-flow="confirmFlow"
-    />
-
-    <UsStrategyDeploymentPanel @status="researchDeployment = $event" />
-    <p
-      v-if="researchDeployment?.managed"
-      class="account-notice"
-    >
-      연구 전략이 이 계좌를 관리합니다. 아래 기존 전략 설정은 연구 전략의 진입 규칙이 아닙니다. 연결 비활성 또는 승인 철회 상태에서도 기존 전략으로 자동 복귀하지 않습니다.
-    </p>
-
     <h4 class="operation-heading">
       운영 제어 · 신규 매수와 계좌 동기화
     </h4>
     <section class="controls">
       <div>
         <strong>{{ executionLabel }}</strong>
-        <small>{{ status.marketOpen ? `${status.marketSession || '미국장'} 운영 중` : '미국장 거래시간 밖' }} · 주문전송 {{ status.orderEnabled ? '허용' : '잠금' }} · 원화설정금 {{ !accountFresh ? '확인 필요' : usdOnlyBlocked ? '있음(차단)' : '0원' }}</small>
+        <small>{{ !statusKnown ? '거래 시간 확인 필요' : status.marketOpen ? `${status.marketSession || '미국장'} 운영 중` : '미국장 거래시간 밖' }} · 주문전송 {{ status.orderEnabled ? '허용' : '잠금' }} · 원화설정금 {{ !accountFresh ? '확인 필요' : usdOnlyBlocked ? '있음(차단)' : '0원' }}</small>
         <small>{{ readinessHint }}</small>
         <small class="desktop-detail">API 호출 보호: 국내·미국 통합 최소 {{ status.apiMinRequestIntervalMs || 350 }}ms 간격</small>
-        <small class="desktop-detail">주문 동기화: {{ operationTime(status.operationalHealth?.lastOrderReconciledAt) }} · 청산 감시: {{ operationTime(status.operationalHealth?.lastExitMonitorAt) }}</small>
+        <small class="operation-freshness">주문 동기화: {{ operationTime(status.operationalHealth?.lastOrderReconciledAt) }} · 청산 감시: {{ operationTime(status.operationalHealth?.lastExitMonitorAt) }}</small>
         <small
           v-if="Number(status.unresolvedUnknownOrders) > 0"
           class="error"
@@ -78,7 +35,7 @@
           v-if="status.operationalHealth?.lastExitMonitorError"
           class="error"
         >최근 잔고·청산 감시 오류 ({{ operationTime(status.operationalHealth.lastExitMonitorErrorAt) }}): {{ status.operationalHealth.lastExitMonitorError }}</small>
-        <small class="desktop-detail">마지막 화면 갱신: {{ lastRefreshAt ? logTime(lastRefreshAt) : '대기 중' }} · {{ streamConnected ? '실시간 연결' : '주기적으로 상태 확인 중' }}</small>
+        <small class="operation-freshness">마지막 화면 갱신: {{ lastRefreshAt ? logTime(lastRefreshAt) : '대기 중' }} · {{ streamConnected ? '실시간 연결' : '주기적으로 상태 확인 중' }}</small>
         <small
           v-if="status.emergencyStopped"
           class="error"
@@ -92,6 +49,9 @@
           class="error"
         >{{ refreshError }}</small>
       </div>
+      <p class="sync-effects">
+        신규매수 중지 후에도 기존 보유의 손절·익절 감시와 주문 동기화는 계속됩니다. {{ SYNC_HINT }}
+      </p>
       <div class="buttons">
         <button
           :disabled="pending || (!status.autoTrading && (!status.configured || !status.orderEnabled || !status.strategyEnabled || !riskReady || !accountFresh || usdOnlyBlocked || Number(status.unresolvedUnknownOrders) > 0 || researchStartBlocked))"
@@ -116,6 +76,52 @@
         </button>
       </div>
     </section>
+    <div
+      class="usd-notice"
+      :class="{ blocked: usdOnlyBlocked, unknown: !accountFresh }"
+    >
+      <strong>{{ !accountFresh ? '매수 자금: 계좌 확인 필요' : usdOnlyBlocked ? '매수 차단: 원화주문설정금이 있습니다' : '매수 자금: 환전한 USD 예수금' }}</strong>
+      <span v-if="!accountFresh">최신 계좌 정보를 확인하지 못했습니다. 환전 후에는 ‘계좌·체결 동기화’로 금액과 보유 내역을 확인하세요.</span>
+      <span v-else-if="usdOnlyBlocked">현재 원화주문설정금 {{ won(summary.cash?.krwOrderSettingAmount) }}원입니다. 자동매매 시작과 실제 매수 주문을 차단합니다.</span>
+      <span v-else>미체결 자동매수 예약금을 제외한 USD에서 1%를 수수료 여유로 남깁니다. 실제 주문 직전 외화 주문가능수량을 다시 확인합니다.</span>
+      <small>원화주문 서비스: {{ krwOrderStatus.label }} · 실제 매수에는 서비스 해지 확인이 필요합니다.</small>
+    </div>
+    <p
+      v-if="error"
+      class="error"
+    >
+      {{ error }}
+    </p>
+    <p
+      v-if="summary.notice"
+      class="account-notice"
+    >
+      {{ summary.notice }}
+      <small v-if="summary.capturedAt">마지막 정상 조회: {{ logTime(summary.capturedAt) }}</small>
+    </p>
+
+    <p
+      v-if="risk.triggered || riskError || (risk.enabled && !riskCurrent)"
+      class="error"
+      role="alert"
+    >
+      {{ risk.triggered ? '손실 중단 잠금 · 신규 매수 차단. 청산·미체결 상태를 확인하세요.' : riskError || '위험 평가가 오래되어 신규 매수가 차단됩니다.' }}
+    </p>
+    <details class="advanced-operation">
+      <summary>계좌 위험 정책 · 입출금 확인 — {{ !riskLoaded ? '확인 전' : risk.triggered ? '손실 중단 잠금' : risk.capitalFlowConfirmed ? '입출금 확인됨' : '입출금 확인 필요' }}</summary>
+      <KiwoomUsRiskPanel
+        :risk="risk"
+        :loaded="riskLoaded"
+        :fresh="riskFresh && accountFresh"
+        :busy="pending"
+        :error="riskError || (risk.enabled && !riskCurrent ? '위험 평가가 없거나 90초 이상 지났습니다. 계좌·체결 동기화로 다시 확인하세요.' : '')"
+        @activate="activateRisk"
+        @review="requireFlowReview"
+        @capital-flow="confirmFlow"
+      />
+    </details>
+
+
     <p
       v-if="actionNotice"
       class="account-notice"
@@ -124,19 +130,22 @@
       {{ actionNotice }}
     </p>
 
-    <section class="market-hours card">
-      <header>
-        <strong>미국장 자동매매 운영시간</strong><span :class="status.marketOpen ? 'open' : 'closed'">
-          {{ status.marketOpen ? `${status.marketSession || '미국장'} 운영 중` : '장 운영시간 아님' }}
-        </span>
-      </header>
-      <div>
-        <p><b>현재 적용:</b> {{ status.marketSeason }} · 현재 {{ status.marketSession || '상태 확인 중' }}</p>
-        <p><b>후보·신규매수:</b> {{ status.entrySessionKst }} (한국시간)</p>
-        <p><b>매도·체결:</b> 모든 지원 세션에서 감시·동기화합니다. 주간·프리·애프터마켓은 최우선 호가 지정가만 사용합니다.</p>
-        <p><b>달력:</b> 2026~2028년 NYSE 휴장일과 조기폐장을 반영하고, 이후 연도는 일정 등록 전까지 주문을 차단합니다.</p>
-      </div>
-    </section>
+    <details class="advanced-operation">
+      <summary>거래 시간 상세</summary>
+      <section class="market-hours card">
+        <header>
+          <strong>미국장 자동매매 운영시간</strong><span :class="status.marketOpen ? 'open' : 'closed'">
+            {{ status.marketOpen ? `${status.marketSession || '미국장'} 운영 중` : '장 운영시간 아님' }}
+          </span>
+        </header>
+        <div>
+          <p><b>현재 적용:</b> {{ status.marketSeason }} · 현재 {{ status.marketSession || '상태 확인 중' }}</p>
+          <p><b>후보·신규매수:</b> {{ status.entrySessionKst }} (한국시간)</p>
+          <p><b>매도·체결:</b> 모든 지원 세션에서 감시·동기화합니다. 주간·프리·애프터마켓은 최우선 호가 지정가만 사용합니다.</p>
+          <p><b>달력:</b> 2026~2028년 NYSE 휴장일과 조기폐장을 반영하고, 이후 연도는 일정 등록 전까지 주문을 차단합니다.</p>
+        </div>
+      </section>
+    </details>
 
     <section class="summary">
       <article><small>환전 USD 예수금</small><strong>{{ accountMoney(summary.cash?.availableUsd) }}</strong><span>D+0 기준 · 예약금 차감 전</span></article>
@@ -148,689 +157,55 @@
         <small>1회 매수 금액 상한</small><strong>{{ accountMoney(summary.perOrderLimitUsd) }}</strong><span>저장한 전략·미체결 예약금 반영</span><span>{{ buyingPower.signalMode === 'TREND' ? 'ATR 위험 한도 적용 전 · 실제 주문은 더 작을 수 있음' : '정수 수량·주문가능수량 적용 전' }}</span>
       </article>
       <article data-testid="managed-positions">
-        <small>{{ risk.enabled ? '계좌 전체 보유 종목' : '자동관리 보유 종목' }}</small><strong>{{ accountLoaded ? positionCountForLimit : '—' }} / {{ settingsLoaded ? appliedSettings.maxPositions : '—' }}종목</strong><span>자동관리 수량 평가액 {{ accountMoney(summary.managedEvaluationUsd) }}</span><span>신규 미체결 {{ buyingPower.pendingPositionCount ?? '—' }}종목도 한도에 포함</span>
+        <small>{{ risk.enabled ? '계좌 전체 보유 종목' : '자동관리 보유 종목' }}</small><strong>{{ accountCount(positionCountForLimit) }} / {{ settingsLoaded ? appliedSettings.maxPositions : '—' }}종목</strong><span>자동관리 수량 평가액 {{ accountMoney(summary.managedEvaluationUsd) }}</span><span>신규 미체결 {{ accountCount(buyingPower.pendingPositionCount) }}종목도 한도에 포함</span>
       </article>
       <article class="mobile-optional">
         <small>계좌 전체 주식 평가액</small><strong>{{ accountMoney(summary.stockEvaluationUsd) }}</strong><span>수동 보유 포함 · USD 예수금 제외</span>
       </article>
     </section>
-    <section
-      class="budget card"
-      aria-label="매수 한도 계산 근거"
-    >
-      <header><strong>매수 한도 계산 근거</strong><span>{{ accountFresh ? '최신 계좌 조회' : accountLoaded ? '이전 조회값 · 재확인 필요' : '계좌 확인 대기' }}</span></header>
-      <dl>
-        <div><dt>미체결 자동매수 예약금</dt><dd>{{ accountMoney(buyingPower.reservedUsd) }}</dd></div>
-        <div><dt>예약금 제외 USD</dt><dd>{{ accountMoney(buyingPower.unreservedUsd) }}</dd></div>
-        <div><dt>{{ buyingPower.signalMode === 'TREND' ? '주문 비중 산정자산' : '예약금 제외 USD' }} × {{ buyingPower.maxOrderPercent ?? '—' }}%<small v-if="buyingPower.maxOrderPercent > 99">적용 비율은 최대 99%</small></dt><dd>{{ accountMoney(buyingPower.allocationLimitUsd) }}</dd></div>
-        <div v-if="buyingPower.signalMode === 'TREND'">
-          <dt>거래당 위험 예산 · {{ buyingPower.riskPerTradePercent }}%</dt><dd>{{ accountMoney(buyingPower.riskBudgetUsd) }}</dd>
-        </div>
-      </dl>
-      <p>1회 매수 금액 상한 = 설정 비중 금액과 예약금 제외 USD의 99% 중 작은 금액입니다.</p>
-      <p v-if="buyingPower.signalMode === 'TREND'">
-        주문 비중 산정자산 {{ accountMoney(summary.automatedCapitalUsd) }} = 서버 정책이 적용된 주문 비중 계산 기준입니다. 실제 투입원금과 다르며 계좌 전체 위험 평가는 위 위험 패널에서 확인합니다. 실제 수량은 금액 상한과 ATR 손절폭에 따른 위험 예산 중 더 작은 한도로 정합니다.
-      </p>
-      <p v-else>
-        기존 조건과 비교 관찰 모드는 USD 비중으로 수량을 정합니다. 비교 관찰 모드의 ATR 신호는 기록에만 사용합니다.
-      </p>
-      <p>금액 상한은 매수 가능 여부를 뜻하지 않습니다. 보유 종목 수·하루 매수 횟수·진입 조건도 통과해야 합니다.</p>
-      <small>계좌 조회: {{ summary.capturedAt ? logTime(summary.capturedAt) : '확인 전' }} · 보유 내역 동기화: {{ buyingPower.holdingsSyncedAt ? logTime(buyingPower.holdingsSyncedAt) : '서버 시작 후 확인 전' }}</small>
-    </section>
-
-    <section class="rules card">
-      <header>
-        <strong>{{ researchDeployment?.managed ? '기존 매매 설정 · 연구 전략 진입에는 미적용' : '현재 적용 중인 매매 규칙' }}</strong><button
-          ref="settingsTrigger"
-          :disabled="pending || !settingsLoaded"
-          @click="openSettings"
-        >
-          전략 설정
-        </button>
-      </header>
-      <KiwoomUsTermGuide />
-      <div
-        v-if="settingsLoaded"
-        class="mobile-rule-summary"
+    <details class="advanced-operation">
+      <summary>매수 한도 계산 상세</summary>
+      <section
+        class="budget card"
+        aria-label="매수 한도 계산 근거"
       >
-        <p><b>{{ signalModeLabel }}</b> · 종목당 최대 {{ appliedSettings.maxOrderPercent }}% · 최대 {{ appliedSettings.maxPositions }}종목</p>
-        <p v-if="appliedSettings.signalMode === 'TREND'">
-          SPY·QQQ·종목 추세와 20일 돌파를 확인하고, 거래당 {{ appliedSettings.riskPerTradePercent }}% 위험 범위에서 수량을 정합니다.
-        </p>
-        <p v-if="appliedSettings.signalMode === 'TREND'">
-          {{ appliedSettings.atrStopMultiplier }} ATR 초기 손절 · +{{ appliedSettings.trailingActivationR }}R부터 추적 · 최대 {{ appliedSettings.maxHoldingTradingDays }}거래일
+        <header><strong>매수 한도 계산 근거</strong><span>{{ accountFresh ? '최신 계좌 조회' : accountLoaded ? '이전 조회값 · 재확인 필요' : '계좌 확인 대기' }}</span></header>
+        <dl>
+          <div><dt>미체결 자동매수 예약금</dt><dd>{{ accountMoney(buyingPower.reservedUsd) }}</dd></div>
+          <div><dt>예약금 제외 USD</dt><dd>{{ accountMoney(buyingPower.unreservedUsd) }}</dd></div>
+          <div><dt>{{ buyingPower.signalMode === 'TREND' ? '주문 비중 산정자산' : '예약금 제외 USD' }} × {{ buyingPower.maxOrderPercent ?? '—' }}%<small v-if="buyingPower.maxOrderPercent > 99">적용 비율은 최대 99%</small></dt><dd>{{ accountMoney(buyingPower.allocationLimitUsd) }}</dd></div>
+          <div v-if="buyingPower.signalMode === 'TREND'">
+            <dt>거래당 위험 예산 · {{ buyingPower.riskPerTradePercent }}%</dt><dd>{{ accountMoney(buyingPower.riskBudgetUsd) }}</dd>
+          </div>
+        </dl>
+        <p>1회 매수 금액 상한 = 설정 비중 금액과 예약금 제외 USD의 99% 중 작은 금액입니다.</p>
+        <p v-if="buyingPower.signalMode === 'TREND'">
+          주문 비중 산정자산 {{ accountMoney(summary.automatedCapitalUsd) }} = 서버 정책이 적용된 주문 비중 계산 기준입니다. 실제 투입원금과 다르며 계좌 전체 위험 평가는 위 위험 패널에서 확인합니다. 실제 수량은 금액 상한과 ATR 손절폭에 따른 위험 예산 중 더 작은 한도로 정합니다.
         </p>
         <p v-else>
-          손절 {{ appliedSettings.stopLossPercent }}% · 분할 익절 {{ appliedSettings.takeProfitPercent }}% / {{ appliedSettings.takeProfitPercent2 }}% · 최대 {{ appliedSettings.maxHoldingDays }}일
+          기존 조건과 비교 관찰 모드는 USD 비중으로 수량을 정합니다. 비교 관찰 모드의 ATR 신호는 기록에만 사용합니다.
         </p>
-      </div>
-      <p
-        v-if="!settingsLoaded"
-        class="holdings-help"
-      >
-        저장된 전략 설정을 확인하고 있습니다.
-      </p>
-      <ol
-        v-else
-        class="strategy-flow"
-      >
-        <li>
-          <h4>1. 진입 · {{ signalModeLabel }}</h4>
-          <template v-if="appliedSettings.signalMode === 'TREND'">
-            <p>SPY·QQQ·종목 모두 완료 일봉 종가 &gt; 20일선 &gt; 50일선.</p>
-            <p>20거래일 상대강도 {{ appliedSettings.minRelativeStrengthPercent }}%p 이상: SPY·QQQ 중 더 강한 수익률과 비교합니다.</p>
-            <p>매수 1호가가 20거래일 고가를 돌파하고, 매도 1호가 이격은 {{ appliedSettings.maxEntryExtensionAtr }} ATR 이내여야 합니다.</p>
-            <p>후보 순위는 상대강도·돌파 이격·스프레드로 정하고 주문 직전 다시 확인합니다.</p>
-          </template>
-          <template v-else>
-            <p>당일 상승률 {{ appliedSettings.minChangePercent }}~{{ appliedSettings.maxChangePercent }}%와 공통 후보 필터로 매수합니다.</p>
-            <p v-if="appliedSettings.signalMode === 'OBSERVE'">
-              새 신호는 비교 기록만 남깁니다. 기존 조건으로 실제 매수하며 모의매매가 아닙니다.
-            </p>
-          </template>
-        </li>
-        <li>
-          <h4>2. 수량 · 자금과 위험 한도</h4>
-          <template v-if="appliedSettings.signalMode === 'TREND'">
-            <p>기준자산의 {{ appliedSettings.riskPerTradePercent }}%인 위험 예산을 1주당 손절 거리로 나눠 정수 수량을 계산합니다.</p>
-            <p>초기 손절폭은 {{ appliedSettings.atrStopMultiplier }} ATR, 최소 0.5%. {{ appliedSettings.stopLossPercent }}%를 넘으면 진입하지 않습니다.</p>
-          </template>
-          <p v-else>
-            예약금 제외 USD의 {{ appliedSettings.maxOrderPercent }}%로 정수 수량을 계산합니다. ATR 위험 예산은 적용하지 않습니다.
-          </p>
-          <p>금액 비중 {{ appliedSettings.maxOrderPercent }}% · 1회 금액 상한 {{ accountMoney(summary.perOrderLimitUsd) }}. 예약금 제외 현금·주문가능수량으로 추가 제한합니다.</p>
-          <p>{{ risk.enabled ? '전체 계좌 정책 활성 후에는 기존 보유 평가액도 주문 비중 산정자산에 포함합니다.' : '전체 계좌 정책을 활성화하기 전에는 기존 보유 평가액이 주문 비중 산정자산에서 제외됩니다.' }}</p>
-        </li>
-        <li>
-          <h4>3. 청산 · 신규 매수에 적용할 계획</h4>
-          <template v-if="appliedSettings.signalMode === 'TREND'">
-            <p>자동관리 체결 원가에서 진입 때 저장한 손절 거리를 뺀 가격으로 초기 손절을 시작합니다.</p>
-            <p>+{{ appliedSettings.trailingActivationR }}R부터 관측 최고가 − 진입 ATR × {{ appliedSettings.trailingStopAtrMultiplier }}로 추적합니다. 손절가는 낮추지 않습니다.</p>
-            <p>최초 체결 확인일 제외 {{ appliedSettings.maxHoldingTradingDays }}거래일 경과 또는 손절가 도달 시 자동관리 잔량을 청산합니다.</p>
-            <p>{{ risk.enabled ? '전체 계좌 정책에서는 모든 매도에 매수 1호가 지정가를 사용합니다. 미체결될 수 있으므로 주문 동기화 결과를 확인하세요.' : '정규장에서는 시장가, 주간·프리·애프터마켓에서는 매수 1호가 지정가를 사용합니다.' }} 추세 청산에는 고정 분할 익절을 사용하지 않습니다.</p>
-          </template>
-          <p v-else>
-            -{{ appliedSettings.stopLossPercent }}% 손절, +{{ appliedSettings.takeProfitPercent }}%·+{{ appliedSettings.takeProfitPercent2 }}% 분할 익절, 최대 {{ appliedSettings.maxHoldingDays }}일(달력일) 보유입니다.
-          </p>
-          <p>보유별 실제 적용 계획은 아래 보유 표에서 확인하세요. 저장된 추세 청산 계획은 이후 설정 변경으로 바뀌지 않습니다.</p>
-          <p v-if="risk.enabled">
-            수동 보유와 자동매수 보유가 섞인 종목은 증권사 전체 보유 수익률로 일반 손절·익절을 판단합니다. 자동매수분의 ATR 청산 계획을 전체 수량에 적용하지 않습니다.
-          </p>
-        </li>
-        <li>
-          <h4>4. 신규 매수 제한</h4>
-          <p>{{ risk.enabled ? '계좌 전체 보유' : '자동관리 보유' }} + 신규 미체결 매수 합계 최대 {{ appliedSettings.maxPositions }}종목 · 하루 최대 {{ appliedSettings.dailyMaxBuys }}회.</p>
-          <p>실제 체결 매수 후 재매수 대기 {{ appliedSettings.symbolCooldownDays }}달력일. 전량 미체결 취소는 주문 후 2분 대기합니다.</p>
-          <p>{{ appliedSettings.dailyLossLimitPercent > 0 ? `자동매매 자산의 당일 손실 ${appliedSettings.dailyLossLimitPercent}% 도달 시 신규 매수 중지` : '당일 손실에 따른 신규 매수 제한 미사용' }}.</p>
-          <p>진입 시간 {{ status.entrySessionKst || '확인 중' }} (한국시간). 신규 매수 중지 후에도 지원 거래 세션의 보유 청산 감시는 유지합니다.</p>
-        </li>
-      </ol>
-      <div
-        v-if="settingsLoaded"
-        class="common-rules"
-      >
-        <strong>공통 후보 필터 · 현재 저장값</strong>
-        <p>S&amp;P 500·NASDAQ-100 편입 종목 ∩ 당일 거래대금 상위 50개. 정규장 시간보정 RVOL {{ appliedSettings.minVolumeRatio }}배 이상 · 스프레드 {{ appliedSettings.maxSpreadPercent }}% 이하.</p>
-        <p>RVOL은 정규장에서만 전일 거래량 × 오늘 장 경과 비율과 비교합니다. 주간·프리·애프터마켓은 세션 거래량 특성이 달라 거래대금 순위와 스프레드 기준을 사용합니다.</p>
-        <p>{{ appliedSettings.fundamentalFilterEnabled ? `기업 필터 사용: PER ${appliedSettings.maxForwardPe}배 이하 · ROE ${appliedSettings.minRoePercent}% 이상. Forward PER가 없으면 Trailing PER를 사용합니다.` : 'PER·ROE 기업 필터 미사용.' }}</p>
-      </div>
-      <p
-        v-if="settingsLoaded && appliedSettings.signalMode !== 'TREND'"
-        class="account-notice"
-      >
-        현재는 기존 매수 조건을 사용합니다. 보고서 기반 새 진입·수량·청산을 사용하려면 전략 설정에서 추세 전략을 선택하고 저장하세요. 비교 관찰은 모의매매가 아닙니다.
-      </p>
-      <teleport to="body">
-        <div
-          v-if="showSettings"
-          class="amodal-overlay"
-          data-lenis-prevent
-          @click.self="closeSettings"
-        >
-          <div
-            ref="settingsDialog"
-            class="amodal-box us-settings-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="us-settings-title"
-            tabindex="-1"
-            @keydown="onSettingsKeydown"
-          >
-            <div class="amodal-head">
-              <div>
-                <h2 id="us-settings-title">
-                  미국주식 매매 규칙 설정
-                </h2>
-                <span class="amodal-badge amodal-badge-on">D+0 USD만 사용</span>
-              </div>
-              <button
-                ref="settingsClose"
-                class="amodal-close"
-                aria-label="닫기"
-                :disabled="pending"
-                @click="closeSettings"
-              >
-                ×
-              </button>
-            </div>
-            <div class="amodal-body">
-              <div class="settings-area">
-                <div class="easy-guide">
-                  <b>전략 설정 미리보기 · 저장 전에는 적용되지 않습니다.</b>
-                  <span>아래 예상 한도는 편집 중인 설정 기준입니다. 화면의 현재 적용 규칙과 금액 상한은 저장된 설정을 표시합니다.</span>
-                </div>
+        <p>금액 상한은 매수 가능 여부를 뜻하지 않습니다. 보유 종목 수·하루 매수 횟수·진입 조건도 통과해야 합니다.</p>
+        <small>계좌 조회: {{ summary.capturedAt ? logTime(summary.capturedAt) : '확인 전' }} · 보유 내역 동기화: {{ buyingPower.holdingsSyncedAt ? logTime(buyingPower.holdingsSyncedAt) : '서버 시작 후 확인 전' }}</small>
+      </section>
+    </details>
 
-                <div
-                  class="won-order-service"
-                  :class="krwOrderStatus.code.toLowerCase()"
-                >
-                  <div>
-                    <small>키움 원화주문 서비스</small>
-                    <strong>{{ krwOrderStatus.label }}</strong>
-                    <span>{{ krwOrderStatus.message }}</span>
-                  </div>
-                  <button
-                    type="button"
-                    :disabled="pending"
-                    @click="refreshCashPolicyStatus"
-                  >
-                    상태 새로고침
-                  </button>
-                </div>
-                <form
-                  id="us-strategy-settings"
-                  class="strategy-settings amodal-form thin-scrollbar"
-                  @submit.prevent="saveSettings"
-                >
-                  <KiwoomUsTermGuide class="settings-term-guide" />
-                  <section class="setting-card ">
-                    <p class="setting-step">
-                      전략 선택 · 저장된 설정 확인
-                    </p>
-                    <p class="setting-description">
-                      현재 저장된 전략: {{ signalModeLabel }}. 아래 값은 편집 초안이며 저장해야 신규 매수에 적용됩니다.
-                    </p>
-                    <p
-                      v-if="appliedSettings.signalMode !== 'TREND'"
-                      class="account-notice"
-                    >
-                      현재 저장값은 기존 매수 방식입니다. 아래 시작값을 불러오고 저장하면 추세 전략으로 전환됩니다. 비교 관찰(OBSERVE)도 기존 조건으로 실제 매수합니다.
-                    </p>
-                    <button
-                      type="button"
-                      :disabled="pending"
-                      @click="loadTrendPreset"
-                    >
-                      추세 전략 시작값 불러오기
-                    </button>
-                    <p class="setting-description">
-                      보고서의 추세·위험 수량·ATR 청산 방향을 구현한 검증 시작값입니다. 아래 진입·수량·청산·공통 제한 전체를 채웁니다. 보고서에서 최적 수치가 확정된 것은 아닙니다.
-                    </p>
-                    <dl class="trend-reference">
-                      <div
-                        v-for="item in trendPresetSummary"
-                        :key="item.label"
-                      >
-                        <dt>{{ item.label }}</dt><dd>{{ item.value }}</dd>
-                      </div>
-                    </dl>
-                    <div class="setting-field">
-                      <label for="us-signal-mode">매매 전략<span>추세 전략은 진입·수량·청산을 함께 적용합니다. 비교 관찰은 기존 조건으로 실제 매수하며 새 진입 신호만 기록합니다.</span></label>
-                      <select
-                        id="us-signal-mode"
-                        v-model="settings.signalMode"
-                      >
-                        <option value="LEGACY">
-                          기존 조건
-                        </option>
-                        <option value="OBSERVE">
-                          기존 조건 + 새 신호 비교 관찰
-                        </option>
-                        <option value="TREND">
-                          추세 진입 + 위험 수량 + ATR 추적 청산
-                        </option>
-                      </select>
-                    </div>
-                  </section>
-                  <section
-                    v-if="settings.signalMode !== 'LEGACY'"
-                    class="setting-card screen-card"
-                  >
-                    <p class="setting-step">
-                      1. 추세·상대강도·돌파 진입
-                    </p>
-                    <p class="setting-description">
-                      {{ settings.signalMode === 'OBSERVE' ? '이 항목은 비교 기록용입니다. 실제 매수는 아래 기존 상승률 조건을 사용합니다.' : '완료 일봉으로 추세를 확인하고 실시간 호가로 돌파를 판단합니다. 주문 직전에도 다시 확인합니다.' }}
-                    </p>
-                    <p class="setting-description">
-                      고정 규칙: SPY·QQQ·종목 모두 종가 &gt; 20일선 &gt; 50일선. 매수 1호가가 최근 20거래일 고가 이상이어야 합니다.
-                    </p>
-                    <div class="setting-field">
-                      <label>최소 지수 대비 상대강도<span>지수보다 더 오른 정도입니다. 최근 20거래일에 종목 +8%, 더 강한 지수 +5%면 +3%p입니다.</span></label>
-                      <div class="number-with-unit">
-                        <input
-                          v-model.number="settings.minRelativeStrengthPercent"
-                          :disabled="settings.signalMode === 'LEGACY'"
-                          type="number"
-                          min="0"
-                          max="30"
-                          step="0.1"
-                        ><em>%p</em>
-                      </div>
-                    </div>
-                    <div class="setting-field">
-                      <label>돌파 후 허용 이격<span>최근 고가보다 더 올라온 거리입니다. 20거래일 고가에서 ATR의 이 배수를 초과한 가격은 추격하지 않습니다.</span></label>
-                      <div class="number-with-unit">
-                        <input
-                          v-model.number="settings.maxEntryExtensionAtr"
-                          :disabled="settings.signalMode === 'LEGACY'"
-                          type="number"
-                          min="0.1"
-                          max="2"
-                          step="0.1"
-                        ><em>배</em>
-                      </div>
-                    </div>
-                  </section>
-                  <section
-                    v-if="settings.signalMode !== 'TREND'"
-                    class="setting-card screen-card"
-                  >
-                    <p class="setting-step">
-                      기존 전략 진입 조건
-                    </p>
-                    <p class="setting-description">
-                      기존·비교 관찰 모드의 실제 매수에만 적용합니다.
-                    </p>
-                    <div class="setting-field">
-                      <label>오늘 최소 상승률<span>기존·관찰 모드 전용입니다. 추세 모드는 당일 등락률 범위를 사용하지 않습니다.</span></label>
-                      <div class="number-with-unit">
-                        <b>+</b><input
-                          v-model.number="settings.minChangePercent"
-                          :disabled="settings.signalMode === 'TREND'"
-                          type="number"
-                          min="0"
-                          max="20"
-                          step="0.1"
-                        ><em>%</em>
-                      </div>
-                    </div>
-                    <div class="setting-field">
-                      <label>오늘 최대 상승률<span>기존·관찰 모드 전용입니다. 추세 모드는 ATR 이격으로 추격을 제한합니다.</span></label>
-                      <div class="number-with-unit">
-                        <b>+</b><input
-                          v-model.number="settings.maxChangePercent"
-                          :disabled="settings.signalMode === 'TREND'"
-                          type="number"
-                          min="0"
-                          max="30"
-                          step="0.1"
-                        ><em>%</em>
-                      </div>
-                    </div>
-                  </section>
-                  <section class="setting-card screen-card">
-                    <p class="setting-step">
-                      공통 후보 필터
-                    </p>
-                    <p class="setting-description">
-                      현재 구현에서 모든 모드에 적용하는 필터입니다. 보고서에서 제안한 후보군·거래량 비교 실험은 별도로 남아 있습니다.
-                    </p>
-                    <div class="setting-field fixed-rule">
-                      <label>S&amp;P 500·NASDAQ-100 종목만<span>당일 거래대금 상위 50개 중 두 지수에 하나라도 편입된 종목만 후보가 됩니다. 목록 확인 실패 시에는 새로 매수하지 않습니다.</span></label>
-                      <div class="fixed-rule-actions">
-                        <div
-                          class="rule-status"
-                          :class="status.indexUniverse?.available ? 'ready' : 'blocked'"
-                        >
-                          {{ status.indexUniverse?.available ? `적용 중 · ${status.indexUniverse.unionCount}종목` : '목록 확인 필요' }}
-                        </div>
-                        <button
-                          type="button"
-                          :disabled="pending"
-                          @click="refreshIndexUniverse"
-                        >
-                          목록 새로고침
-                        </button>
-                      </div>
-                    </div>
-                    <div class="setting-field">
-                      <label>최소 시간보정 거래량<span>전일 거래량 × 오늘 장 경과 비율과 비교합니다. 여러 날의 같은 시각 누적 거래량을 사용하는 방식은 아직 적용되지 않았습니다.</span></label>
-                      <div class="number-with-unit">
-                        <input
-                          v-model.number="settings.minVolumeRatio"
-                          type="number"
-                          min="0.5"
-                          max="5"
-                          step="0.1"
-                        ><em>배</em>
-                      </div>
-                    </div>
-                    <div class="setting-field">
-                      <label>최대 호가 스프레드<span>매도 1호가와 매수 1호가 차이가 이 비율보다 크면 제외합니다.</span></label>
-                      <div class="number-with-unit">
-                        <input
-                          v-model.number="settings.maxSpreadPercent"
-                          type="number"
-                          min="0.05"
-                          max="1"
-                          step="0.01"
-                        ><em>%</em>
-                      </div>
-                    </div>
-                    <details class="settings-details">
-                      <summary>추가 기업 필터 · {{ settings.fundamentalFilterEnabled ? '사용 중' : '미사용' }}</summary>
-                      <p class="setting-description">
-                        PER·ROE는 선택 조건입니다. 보고서는 사용·미사용·참고 점수 방식의 성과 비교를 제안하며, 현재 구현은 사용 여부를 선택합니다.
-                      </p>
-                      <div class="setting-field">
-                        <label>PER·ROE 기업 필터<span>적자·재무 데이터 누락 종목을 제외하고 기업 품질 기준을 적용합니다.</span></label>
-                        <label class="setting-switch"><input
-                          v-model="settings.fundamentalFilterEnabled"
-                          type="checkbox"
-                        ><span>{{ settings.fundamentalFilterEnabled ? '사용' : '미사용' }}</span></label>
-                      </div>
-                      <div class="setting-field">
-                        <label>최대 Forward PER<span>Forward PER가 없으면 Trailing PER를 사용하며, 음수·누락은 제외합니다.</span></label>
-                        <div class="number-with-unit">
-                          <input
-                            v-model.number="settings.maxForwardPe"
-                            type="number"
-                            min="5"
-                            max="100"
-                            step="1"
-                            :disabled="!settings.fundamentalFilterEnabled"
-                          ><em>배</em>
-                        </div>
-                      </div>
-                      <div class="setting-field">
-                        <label>최소 ROE<span>최근 자기자본이익률이 이 값 이상인 기업만 고릅니다.</span></label>
-                        <div class="number-with-unit">
-                          <input
-                            v-model.number="settings.minRoePercent"
-                            type="number"
-                            min="0"
-                            max="50"
-                            step="0.1"
-                            :disabled="!settings.fundamentalFilterEnabled"
-                          ><em>%</em>
-                        </div>
-                      </div>
-                    </details>
-                  </section>
-                  <section class="setting-card buy-card">
-                    <p class="setting-step">
-                      2. 위험 예산과 매수 수량
-                    </p>
-                    <p class="setting-description">
-                      {{ settings.signalMode === 'TREND' ? '수량 = 위험 예산 ÷ 1주당 손절 거리. 금액 상한·예약금 제외 USD·주문가능수량 중 더 작은 한도로 제한합니다.' : '기존 방식은 예약금 제외 USD의 설정 비중으로 수량을 정합니다.' }}
-                    </p>
-                    <template v-if="settings.signalMode === 'TREND'">
-                      <div class="setting-field">
-                        <label>거래당 허용 위험<span>추세 모드에서 주문 비중 산정자산에 적용합니다. 위험 예산 미리보기 {{ accountMoney(summary.automatedCapitalUsd == null ? null : summary.automatedCapitalUsd * settings.riskPerTradePercent / 100) }}. 비교 관찰 모드에서는 수량에 적용하지 않습니다. 갭·슬리피지로 실제 손실은 초과할 수 있습니다.</span></label>
-                        <div class="number-with-unit">
-                          <input
-                            v-model.number="settings.riskPerTradePercent"
-                            :disabled="settings.signalMode !== 'TREND'"
-                            type="number"
-                            min="0.1"
-                            max="1"
-                            step="0.05"
-                          ><em>%</em>
-                        </div>
-                      </div>
-                    </template>
-                    <template v-if="settings.signalMode !== 'LEGACY'">
-                      <div class="setting-field">
-                        <label>ATR 손절 거리<span>하루 평균 가격 변동폭의 배수입니다. ATR $2에 2배면 손절 거리 $4입니다. 손절폭 하한은 진입가의 0.5%이며, 최대 손절률보다 넓으면 매수하지 않습니다.</span></label>
-                        <div class="number-with-unit">
-                          <input
-                            v-model.number="settings.atrStopMultiplier"
-                            :disabled="settings.signalMode === 'LEGACY'"
-                            type="number"
-                            min="1"
-                            max="4"
-                            step="0.1"
-                          ><em>배</em>
-                        </div>
-                      </div>
-                    </template>
-                    <div class="setting-field">
-                      <label>최대 손절률<span>추세 신규 진입 시 ATR 손절폭이 이 값을 넘으면 제외합니다. 체결 이후에는 진입 때 저장한 손절 거리를 사용합니다. 기존 방식 보유에는 고정 손절률로 적용합니다.</span></label>
-                      <div class="number-with-unit negative">
-                        <b>-</b><input
-                          v-model.number="settings.stopLossPercent"
-                          type="number"
-                          min="0.1"
-                          max="30"
-                          step="0.1"
-                        ><em>%</em>
-                      </div>
-                    </div>
-                    <div class="setting-field">
-                      <label>1회 매수 최대 비중<span>{{ settings.signalMode === 'TREND' ? '서버 주문 비중 산정자산(전체 계좌 정책 활성 시 USD 예수금 + 전체 주식 평가액)에 적용합니다. ATR 위험 예산으로 실제 수량을 추가 제한합니다.' : '미체결 자동매수 예약금을 제외한 USD에 적용합니다.' }} 편집값 기준 금액 상한 {{ accountMoney(estimatedOrderUsd) }} · 저장 전 미리보기{{ accountFresh ? '' : ' · 계좌 재확인 필요' }}. 비중은 최대 99%까지만 적용됩니다.</span></label>
-                      <div class="number-with-unit">
-                        <input
-                          v-model.number="settings.maxOrderPercent"
-                          type="number"
-                          min="0.1"
-                          max="100"
-                          step="0.1"
-                        ><em>%</em>
-                      </div>
-                    </div>
-                    <div class="setting-field">
-                      <label>동시에 보유할 종목 한도<span>{{ risk.enabled ? '계좌 전체 보유와 신규 미체결 매수 종목을 함께 셉니다. 기존 보유도 포함합니다.' : '자동관리 보유와 미체결 매수 종목을 함께 셉니다. 전체 계좌 정책 활성 후에는 기존 보유도 포함합니다.' }}</span></label>
-                      <div class="number-with-unit">
-                        <input
-                          v-model.number="settings.maxPositions"
-                          type="number"
-                          min="1"
-                          max="20"
-                          step="1"
-                        ><em>종목</em>
-                      </div>
-                    </div>
-                  </section>
-                  <section
-                    v-if="settings.signalMode === 'TREND'"
-                    class="setting-card sell-card"
-                  >
-                    <p class="setting-step">
-                      3. ATR 추적 청산
-                    </p>
-                    <p class="setting-description">
-                      1R은 진입 당시 1주당 손절 거리입니다. 자동관리 원가에서 저장된 손절 거리를 뺀 가격으로 초기 손절을 시작합니다. 수익이 시작 R에 도달하면 추적 손절로 잔량을 관리합니다.
-                    </p>
-                    <p class="setting-description">
-                      진입 ATR·추적 설정·보유기간은 매수 때 저장합니다. 설정 변경은 이후 새 매수에 적용되며 기존 추세 보유의 계획은 유지됩니다.
-                    </p>
-                    <div class="setting-field">
-                      <label for="us-trail-start">추적 시작 수익<span>자동매매 원가에서 이 R만큼 상승한 관측 최고가가 있어야 추적을 시작합니다.</span></label><div class="number-with-unit">
-                        <input
-                          id="us-trail-start"
-                          v-model.number="settings.trailingActivationR"
-                          type="number"
-                          min="0.5"
-                          max="5"
-                          step="0.1"
-                        ><em>R</em>
-                      </div>
-                    </div>
-                    <div class="setting-field">
-                      <label for="us-trail-atr">추적 손절 거리<span>관측 최고가 − 진입 ATR × 배수. 손절 가격은 올라가기만 합니다. 정규장 감시 주기 사이 급변·야간 갭은 지정 손실을 초과할 수 있습니다.</span></label><div class="number-with-unit">
-                        <input
-                          id="us-trail-atr"
-                          v-model.number="settings.trailingStopAtrMultiplier"
-                          type="number"
-                          min="1"
-                          max="5"
-                          step="0.1"
-                        ><em>배</em>
-                      </div>
-                    </div>
-                    <div class="setting-field">
-                      <label for="us-trend-days">추세 최대 보유기간<span>최초 체결 확인일을 제외하고 미국 거래일만 셉니다. 경과 후 정규장 감시에서 잔량을 정리합니다.</span></label><div class="number-with-unit">
-                        <input
-                          id="us-trend-days"
-                          v-model.number="settings.maxHoldingTradingDays"
-                          type="number"
-                          min="1"
-                          max="30"
-                          step="1"
-                        ><em>거래일</em>
-                      </div>
-                    </div>
-                    <p class="setting-description">
-                      손절 가격 도달 또는 보유기간 만료 시 매도 가능한 자동관리 잔량을 청산합니다. {{ risk.enabled ? '전체 계좌 정책에서는 매수 1호가 지정가를 사용합니다.' : '정규장에서는 시장가, 그 외 지원 세션에서는 매수 1호가 지정가를 사용합니다.' }} 고정 1차·2차 익절은 사용하지 않습니다.
-                    </p>
-                  </section>
-                  <section
-                    v-if="settings.signalMode !== 'TREND'"
-                    class="setting-card sell-card"
-                  >
-                    <p class="setting-step">
-                      3. 기존 방식 청산
-                    </p>
-                    <p class="setting-description">
-                      새 추세 청산 계획이 없는 보유에 적용하는 고정 익절·달력일 기준입니다. 손절률은 위 최대 손절률을 사용합니다.
-                    </p>
-                    <div class="setting-field">
-                      <label>1차 이익 실현<span>자동매매 원가 대비 이만큼 오르면 자동관리 수량의 절반(정수 내림, 최소 1주)을 팝니다. 부분 체결 후에는 목표 잔량만 처리합니다.</span></label>
-                      <div class="number-with-unit">
-                        <b>+</b><input
-                          v-model.number="settings.takeProfitPercent"
-                          :disabled="settings.signalMode === 'TREND'"
-                          type="number"
-                          min="0.1"
-                          max="100"
-                          step="0.1"
-                        ><em>%</em>
-                      </div>
-                    </div>
-                    <div class="setting-field">
-                      <label>2차 이익 실현<span>남은 수량은 이 수익률에 도달하면 모두 팝니다. 1차보다 큰 값이어야 합니다.</span></label>
-                      <div class="number-with-unit">
-                        <b>+</b><input
-                          v-model.number="settings.takeProfitPercent2"
-                          :disabled="settings.signalMode === 'TREND'"
-                          type="number"
-                          min="0.1"
-                          max="100"
-                          step="0.1"
-                        ><em>%</em>
-                      </div>
-                    </div>
-                    <div class="setting-field">
-                      <label>가장 오래 보유할 기간<span>달력일 기준입니다. 기간이 지난 뒤 정규장 매도 감시에서 자동관리 수량을 정리합니다.</span></label>
-                      <div class="number-with-unit">
-                        <input
-                          v-model.number="settings.maxHoldingDays"
-                          :disabled="settings.signalMode === 'TREND'"
-                          type="number"
-                          min="1"
-                          max="30"
-                          step="1"
-                        ><em>일</em>
-                      </div>
-                    </div>
-                  </section>
-                  <details
-                    v-if="settings.signalMode === 'TREND'"
-                    class="setting-card settings-details legacy-reference"
-                  >
-                    <summary>기존 방식 보유에 남아 있는 규칙</summary>
-                    <p class="setting-description">
-                      새 추세 청산 계획 없이 매수한 보유만 해당합니다. 신규 TREND 매수에는 아래 익절·달력일 규칙을 적용하지 않습니다.
-                    </p>
-                    <p class="setting-description">
-                      보존된 값: 1차 익절 +{{ settings.takeProfitPercent }}%, 2차 익절 +{{ settings.takeProfitPercent2 }}%, 보유 {{ settings.maxHoldingDays }}달력일. 기존 보유의 손절률은 위 최대 손절률을 함께 사용합니다.
-                    </p>
-                  </details>
-                  <section class="setting-card safety-card">
-                    <p class="setting-step">
-                      4. 매수 횟수와 손실 제한
-                    </p>
-                    <p class="setting-description">
-                      자동관리 보유의 청산 감시를 유지하면서 신규 매수 횟수와 당일 손실을 제한합니다.
-                    </p>
-                    <div class="setting-field">
-                      <label>하루에 새로 살 수 있는 횟수<span>체결·미완료·결과 미확인 매수 주문을 셉니다. 전량 미체결 취소와 실패는 제외합니다.</span></label>
-                      <div class="number-with-unit">
-                        <input
-                          v-model.number="settings.dailyMaxBuys"
-                          type="number"
-                          min="1"
-                          max="20"
-                          step="1"
-                        ><em>번</em>
-                      </div>
-                    </div>
-                    <div class="setting-field">
-                      <label>같은 종목을 다시 사기까지 기다릴 기간<span>실제로 체결된 매수에 적용합니다. 전량 미체결 취소는 주문 후 2분 대기만 적용합니다.</span></label>
-                      <div class="number-with-unit">
-                        <input
-                          v-model.number="settings.symbolCooldownDays"
-                          type="number"
-                          min="1"
-                          max="30"
-                          step="1"
-                        ><em>일</em>
-                      </div>
-                    </div>
-                    <div class="setting-field">
-                      <label>오늘 손실률이 이 비율이면 새 매수 멈추기<span>그날 처음 확인한 자동매매용 USD와 자동매매 보유종목 평가액을 기준으로 계산합니다. 0%는 사용하지 않음입니다.</span></label>
-                      <div class="number-with-unit negative">
-                        <b>-</b><input
-                          v-model.number="settings.dailyLossLimitPercent"
-                          type="number"
-                          min="0"
-                          max="30"
-                          step="0.1"
-                        ><em>%</em>
-                      </div>
-                    </div>
-                  </section>
-                  <p
-                    v-if="validationError"
-                    class="settings-error"
-                  >
-                    ⚠ {{ validationError }}
-                  </p>
-                  <p
-                    v-if="error"
-                    class="settings-error"
-                  >
-                    ⚠ {{ error }}
-                  </p>
-                </form>
-              </div>
-            </div>
-            <div class="amodal-foot">
-              <span class="settings-unsaved">{{ settingsDirty ? '아직 저장되지 않았습니다' : '' }}</span>
-              <div class="amodal-foot-right">
-                <button
-                  class="amodal-btn amodal-btn-ghost"
-                  :disabled="pending"
-                  @click="closeSettings"
-                >
-                  취소
-                </button>
-                <button
-                  class="amodal-btn amodal-btn-primary"
-                  type="submit"
-                  form="us-strategy-settings"
-                  :disabled="pending || !settingsDirty || !!validationError"
-                >
-                  {{ pending ? '저장 중...' : '저장하기' }}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </teleport>
+
+    <section
+      class="recent-operations"
+      aria-label="최근 주문·운영 이벤트"
+    >
+      <h4>최근 주문·운영 이벤트</h4>
+      <p
+        v-for="item in logs.slice(-3).reverse()"
+        :key="item.id"
+      >
+        <time>{{ logTime(item.createdAt) }}</time> {{ item.message }}
+      </p>
+      <p v-if="!logs.length">
+        확인된 운영 이벤트가 없습니다. 아래 전체 로그에서 조회 상태를 확인하세요.
+      </p>
     </section>
-
     <div class="grids">
       <section class="card table-card candidate-card">
         <header><strong>최근 후보와 매수 근거</strong><span>{{ candidates.length }}개</span></header>
@@ -935,31 +310,699 @@
       </section>
     </div>
 
-    <section class="card logs">
-      <header>
-        <strong>후보 · 매수 · 매도 로그</strong><button @click="logs = []">
-          화면 지우기
-        </button>
-      </header>
-      <div
-        ref="logBox"
-        class="terminal"
+    <details class="advanced-operation">
+      <summary>전략 설정 · 매수 근거와 청산 기준</summary>
+      <section class="rules card">
+        <header>
+          <strong>{{ researchDeployment?.managed ? '기존 매매 설정 · 연구 전략 진입에는 미적용' : '현재 적용 중인 매매 규칙' }}</strong><button
+            ref="settingsTrigger"
+            :disabled="pending || !settingsLoaded"
+            @click="openSettings"
+          >
+            전략 설정
+          </button>
+        </header>
+        <KiwoomUsTermGuide />
+        <div
+          v-if="settingsLoaded"
+          class="mobile-rule-summary"
+        >
+          <p><b>{{ signalModeLabel }}</b> · 종목당 최대 {{ appliedSettings.maxOrderPercent }}% · 최대 {{ appliedSettings.maxPositions }}종목</p>
+          <p v-if="appliedSettings.signalMode === 'TREND'">
+            SPY·QQQ·종목 추세와 20일 돌파를 확인하고, 거래당 {{ appliedSettings.riskPerTradePercent }}% 위험 범위에서 수량을 정합니다.
+          </p>
+          <p v-if="appliedSettings.signalMode === 'TREND'">
+            {{ appliedSettings.atrStopMultiplier }} ATR 초기 손절 · +{{ appliedSettings.trailingActivationR }}R부터 추적 · 최대 {{ appliedSettings.maxHoldingTradingDays }}거래일
+          </p>
+          <p v-else>
+            손절 {{ appliedSettings.stopLossPercent }}% · 분할 익절 {{ appliedSettings.takeProfitPercent }}% / {{ appliedSettings.takeProfitPercent2 }}% · 최대 {{ appliedSettings.maxHoldingDays }}일
+          </p>
+        </div>
+        <p
+          v-if="!settingsLoaded"
+          class="holdings-help"
+        >
+          저장된 전략 설정을 확인하고 있습니다.
+        </p>
+        <ol
+          v-else
+          class="strategy-flow"
+        >
+          <li>
+            <h4>1. 진입 · {{ signalModeLabel }}</h4>
+            <template v-if="appliedSettings.signalMode === 'TREND'">
+              <p>SPY·QQQ·종목 모두 완료 일봉 종가 &gt; 20일선 &gt; 50일선.</p>
+              <p>20거래일 상대강도 {{ appliedSettings.minRelativeStrengthPercent }}%p 이상: SPY·QQQ 중 더 강한 수익률과 비교합니다.</p>
+              <p>매수 1호가가 20거래일 고가를 돌파하고, 매도 1호가 이격은 {{ appliedSettings.maxEntryExtensionAtr }} ATR 이내여야 합니다.</p>
+              <p>후보 순위는 상대강도·돌파 이격·스프레드로 정하고 주문 직전 다시 확인합니다.</p>
+            </template>
+            <template v-else>
+              <p>당일 상승률 {{ appliedSettings.minChangePercent }}~{{ appliedSettings.maxChangePercent }}%와 공통 후보 필터로 매수합니다.</p>
+              <p v-if="appliedSettings.signalMode === 'OBSERVE'">
+                새 신호는 비교 기록만 남깁니다. 기존 조건으로 실제 매수하며 모의매매가 아닙니다.
+              </p>
+            </template>
+          </li>
+          <li>
+            <h4>2. 수량 · 자금과 위험 한도</h4>
+            <template v-if="appliedSettings.signalMode === 'TREND'">
+              <p>기준자산의 {{ appliedSettings.riskPerTradePercent }}%인 위험 예산을 1주당 손절 거리로 나눠 정수 수량을 계산합니다.</p>
+              <p>초기 손절폭은 {{ appliedSettings.atrStopMultiplier }} ATR, 최소 0.5%. {{ appliedSettings.stopLossPercent }}%를 넘으면 진입하지 않습니다.</p>
+            </template>
+            <p v-else>
+              예약금 제외 USD의 {{ appliedSettings.maxOrderPercent }}%로 정수 수량을 계산합니다. ATR 위험 예산은 적용하지 않습니다.
+            </p>
+            <p>금액 비중 {{ appliedSettings.maxOrderPercent }}% · 1회 금액 상한 {{ accountMoney(summary.perOrderLimitUsd) }}. 예약금 제외 현금·주문가능수량으로 추가 제한합니다.</p>
+            <p>{{ risk.enabled ? '전체 계좌 정책 활성 후에는 기존 보유 평가액도 주문 비중 산정자산에 포함합니다.' : '전체 계좌 정책을 활성화하기 전에는 기존 보유 평가액이 주문 비중 산정자산에서 제외됩니다.' }}</p>
+          </li>
+          <li>
+            <h4>3. 청산 · 신규 매수에 적용할 계획</h4>
+            <template v-if="appliedSettings.signalMode === 'TREND'">
+              <p>자동관리 체결 원가에서 진입 때 저장한 손절 거리를 뺀 가격으로 초기 손절을 시작합니다.</p>
+              <p>+{{ appliedSettings.trailingActivationR }}R부터 관측 최고가 − 진입 ATR × {{ appliedSettings.trailingStopAtrMultiplier }}로 추적합니다. 손절가는 낮추지 않습니다.</p>
+              <p>최초 체결 확인일 제외 {{ appliedSettings.maxHoldingTradingDays }}거래일 경과 또는 손절가 도달 시 자동관리 잔량을 청산합니다.</p>
+              <p>{{ risk.enabled ? '전체 계좌 정책에서는 모든 매도에 매수 1호가 지정가를 사용합니다. 미체결될 수 있으므로 주문 동기화 결과를 확인하세요.' : '정규장에서는 시장가, 주간·프리·애프터마켓에서는 매수 1호가 지정가를 사용합니다.' }} 추세 청산에는 고정 분할 익절을 사용하지 않습니다.</p>
+            </template>
+            <p v-else>
+              -{{ appliedSettings.stopLossPercent }}% 손절, +{{ appliedSettings.takeProfitPercent }}%·+{{ appliedSettings.takeProfitPercent2 }}% 분할 익절, 최대 {{ appliedSettings.maxHoldingDays }}일(달력일) 보유입니다.
+            </p>
+            <p>보유별 실제 적용 계획은 아래 보유 표에서 확인하세요. 저장된 추세 청산 계획은 이후 설정 변경으로 바뀌지 않습니다.</p>
+            <p v-if="risk.enabled">
+              수동 보유와 자동매수 보유가 섞인 종목은 증권사 전체 보유 수익률로 일반 손절·익절을 판단합니다. 자동매수분의 ATR 청산 계획을 전체 수량에 적용하지 않습니다.
+            </p>
+          </li>
+          <li>
+            <h4>4. 신규 매수 제한</h4>
+            <p>{{ risk.enabled ? '계좌 전체 보유' : '자동관리 보유' }} + 신규 미체결 매수 합계 최대 {{ appliedSettings.maxPositions }}종목 · 하루 최대 {{ appliedSettings.dailyMaxBuys }}회.</p>
+            <p>실제 체결 매수 후 재매수 대기 {{ appliedSettings.symbolCooldownDays }}달력일. 전량 미체결 취소는 주문 후 2분 대기합니다.</p>
+            <p>{{ appliedSettings.dailyLossLimitPercent > 0 ? `자동매매 자산의 당일 손실 ${appliedSettings.dailyLossLimitPercent}% 도달 시 신규 매수 중지` : '당일 손실에 따른 신규 매수 제한 미사용' }}.</p>
+            <p>진입 시간 {{ status.entrySessionKst || '확인 중' }} (한국시간). 신규 매수 중지 후에도 지원 거래 세션의 보유 청산 감시는 유지합니다.</p>
+          </li>
+        </ol>
+        <div
+          v-if="settingsLoaded"
+          class="common-rules"
+        >
+          <strong>공통 후보 필터 · 현재 저장값</strong>
+          <p>S&amp;P 500·NASDAQ-100 편입 종목 ∩ 당일 거래대금 상위 50개. 정규장 시간보정 RVOL {{ appliedSettings.minVolumeRatio }}배 이상 · 스프레드 {{ appliedSettings.maxSpreadPercent }}% 이하.</p>
+          <p>RVOL은 정규장에서만 전일 거래량 × 오늘 장 경과 비율과 비교합니다. 주간·프리·애프터마켓은 세션 거래량 특성이 달라 거래대금 순위와 스프레드 기준을 사용합니다.</p>
+          <p>{{ appliedSettings.fundamentalFilterEnabled ? `기업 필터 사용: PER ${appliedSettings.maxForwardPe}배 이하 · ROE ${appliedSettings.minRoePercent}% 이상. Forward PER가 없으면 Trailing PER를 사용합니다.` : 'PER·ROE 기업 필터 미사용.' }}</p>
+        </div>
+        <p
+          v-if="settingsLoaded && appliedSettings.signalMode !== 'TREND'"
+          class="account-notice"
+        >
+          현재는 기존 매수 조건을 사용합니다. 보고서 기반 새 진입·수량·청산을 사용하려면 전략 설정에서 추세 전략을 선택하고 저장하세요. 비교 관찰은 모의매매가 아닙니다.
+        </p>
+        <teleport to="body">
+          <div
+            v-if="showSettings"
+            class="amodal-overlay"
+            data-lenis-prevent
+            @click.self="closeSettings"
+          >
+            <div
+              ref="settingsDialog"
+              class="amodal-box us-settings-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="us-settings-title"
+              tabindex="-1"
+              @keydown="onSettingsKeydown"
+            >
+              <div class="amodal-head">
+                <div>
+                  <h2 id="us-settings-title">
+                    미국주식 매매 규칙 설정
+                  </h2>
+                  <span class="amodal-badge amodal-badge-on">D+0 USD만 사용</span>
+                </div>
+                <button
+                  ref="settingsClose"
+                  class="amodal-close"
+                  aria-label="닫기"
+                  :disabled="pending"
+                  @click="closeSettings"
+                >
+                  ×
+                </button>
+              </div>
+              <div class="amodal-body">
+                <div class="settings-area">
+                  <div class="easy-guide">
+                    <b>전략 설정 미리보기 · 저장 전에는 적용되지 않습니다.</b>
+                    <span>아래 예상 한도는 편집 중인 설정 기준입니다. 화면의 현재 적용 규칙과 금액 상한은 저장된 설정을 표시합니다.</span>
+                  </div>
+
+                  <div
+                    class="won-order-service"
+                    :class="krwOrderStatus.code.toLowerCase()"
+                  >
+                    <div>
+                      <small>키움 원화주문 서비스</small>
+                      <strong>{{ krwOrderStatus.label }}</strong>
+                      <span>{{ krwOrderStatus.message }}</span>
+                    </div>
+                    <button
+                      type="button"
+                      :disabled="pending"
+                      @click="refreshCashPolicyStatus"
+                    >
+                      상태 새로고침
+                    </button>
+                  </div>
+                  <form
+                    id="us-strategy-settings"
+                    class="strategy-settings amodal-form thin-scrollbar"
+                    @submit.prevent="saveSettings"
+                  >
+                    <KiwoomUsTermGuide class="settings-term-guide" />
+                    <section class="setting-card ">
+                      <p class="setting-step">
+                        전략 선택 · 저장된 설정 확인
+                      </p>
+                      <p class="setting-description">
+                        현재 저장된 전략: {{ signalModeLabel }}. 아래 값은 편집 초안이며 저장해야 신규 매수에 적용됩니다.
+                      </p>
+                      <p
+                        v-if="appliedSettings.signalMode !== 'TREND'"
+                        class="account-notice"
+                      >
+                        현재 저장값은 기존 매수 방식입니다. 아래 시작값을 불러오고 저장하면 추세 전략으로 전환됩니다. 비교 관찰(OBSERVE)도 기존 조건으로 실제 매수합니다.
+                      </p>
+                      <button
+                        type="button"
+                        :disabled="pending"
+                        @click="loadTrendPreset"
+                      >
+                        추세 전략 시작값 불러오기
+                      </button>
+                      <p class="setting-description">
+                        보고서의 추세·위험 수량·ATR 청산 방향을 구현한 검증 시작값입니다. 아래 진입·수량·청산·공통 제한 전체를 채웁니다. 보고서에서 최적 수치가 확정된 것은 아닙니다.
+                      </p>
+                      <dl class="trend-reference">
+                        <div
+                          v-for="item in trendPresetSummary"
+                          :key="item.label"
+                        >
+                          <dt>{{ item.label }}</dt><dd>{{ item.value }}</dd>
+                        </div>
+                      </dl>
+                      <div class="setting-field">
+                        <label for="us-signal-mode">매매 전략<span>추세 전략은 진입·수량·청산을 함께 적용합니다. 비교 관찰은 기존 조건으로 실제 매수하며 새 진입 신호만 기록합니다.</span></label>
+                        <select
+                          id="us-signal-mode"
+                          v-model="settings.signalMode"
+                        >
+                          <option value="LEGACY">
+                            기존 조건
+                          </option>
+                          <option value="OBSERVE">
+                            기존 조건 + 새 신호 비교 관찰
+                          </option>
+                          <option value="TREND">
+                            추세 진입 + 위험 수량 + ATR 추적 청산
+                          </option>
+                        </select>
+                      </div>
+                    </section>
+                    <section
+                      v-if="settings.signalMode !== 'LEGACY'"
+                      class="setting-card screen-card"
+                    >
+                      <p class="setting-step">
+                        1. 추세·상대강도·돌파 진입
+                      </p>
+                      <p class="setting-description">
+                        {{ settings.signalMode === 'OBSERVE' ? '이 항목은 비교 기록용입니다. 실제 매수는 아래 기존 상승률 조건을 사용합니다.' : '완료 일봉으로 추세를 확인하고 실시간 호가로 돌파를 판단합니다. 주문 직전에도 다시 확인합니다.' }}
+                      </p>
+                      <p class="setting-description">
+                        고정 규칙: SPY·QQQ·종목 모두 종가 &gt; 20일선 &gt; 50일선. 매수 1호가가 최근 20거래일 고가 이상이어야 합니다.
+                      </p>
+                      <div class="setting-field">
+                        <label>최소 지수 대비 상대강도<span>지수보다 더 오른 정도입니다. 최근 20거래일에 종목 +8%, 더 강한 지수 +5%면 +3%p입니다.</span></label>
+                        <div class="number-with-unit">
+                          <input
+                            v-model.number="settings.minRelativeStrengthPercent"
+                            :disabled="settings.signalMode === 'LEGACY'"
+                            type="number"
+                            min="0"
+                            max="30"
+                            step="0.1"
+                          ><em>%p</em>
+                        </div>
+                      </div>
+                      <div class="setting-field">
+                        <label>돌파 후 허용 이격<span>최근 고가보다 더 올라온 거리입니다. 20거래일 고가에서 ATR의 이 배수를 초과한 가격은 추격하지 않습니다.</span></label>
+                        <div class="number-with-unit">
+                          <input
+                            v-model.number="settings.maxEntryExtensionAtr"
+                            :disabled="settings.signalMode === 'LEGACY'"
+                            type="number"
+                            min="0.1"
+                            max="2"
+                            step="0.1"
+                          ><em>배</em>
+                        </div>
+                      </div>
+                    </section>
+                    <section
+                      v-if="settings.signalMode !== 'TREND'"
+                      class="setting-card screen-card"
+                    >
+                      <p class="setting-step">
+                        기존 전략 진입 조건
+                      </p>
+                      <p class="setting-description">
+                        기존·비교 관찰 모드의 실제 매수에만 적용합니다.
+                      </p>
+                      <div class="setting-field">
+                        <label>오늘 최소 상승률<span>기존·관찰 모드 전용입니다. 추세 모드는 당일 등락률 범위를 사용하지 않습니다.</span></label>
+                        <div class="number-with-unit">
+                          <b>+</b><input
+                            v-model.number="settings.minChangePercent"
+                            :disabled="settings.signalMode === 'TREND'"
+                            type="number"
+                            min="0"
+                            max="20"
+                            step="0.1"
+                          ><em>%</em>
+                        </div>
+                      </div>
+                      <div class="setting-field">
+                        <label>오늘 최대 상승률<span>기존·관찰 모드 전용입니다. 추세 모드는 ATR 이격으로 추격을 제한합니다.</span></label>
+                        <div class="number-with-unit">
+                          <b>+</b><input
+                            v-model.number="settings.maxChangePercent"
+                            :disabled="settings.signalMode === 'TREND'"
+                            type="number"
+                            min="0"
+                            max="30"
+                            step="0.1"
+                          ><em>%</em>
+                        </div>
+                      </div>
+                    </section>
+                    <section class="setting-card screen-card">
+                      <p class="setting-step">
+                        공통 후보 필터
+                      </p>
+                      <p class="setting-description">
+                        현재 구현에서 모든 모드에 적용하는 필터입니다. 보고서에서 제안한 후보군·거래량 비교 실험은 별도로 남아 있습니다.
+                      </p>
+                      <div class="setting-field fixed-rule">
+                        <label>S&amp;P 500·NASDAQ-100 종목만<span>당일 거래대금 상위 50개 중 두 지수에 하나라도 편입된 종목만 후보가 됩니다. 목록 확인 실패 시에는 새로 매수하지 않습니다.</span></label>
+                        <div class="fixed-rule-actions">
+                          <div
+                            class="rule-status"
+                            :class="status.indexUniverse?.available ? 'ready' : 'blocked'"
+                          >
+                            {{ status.indexUniverse?.available ? `적용 중 · ${status.indexUniverse.unionCount}종목` : '목록 확인 필요' }}
+                          </div>
+                          <button
+                            type="button"
+                            :disabled="pending"
+                            @click="refreshIndexUniverse"
+                          >
+                            목록 새로고침
+                          </button>
+                        </div>
+                      </div>
+                      <div class="setting-field">
+                        <label>최소 시간보정 거래량<span>전일 거래량 × 오늘 장 경과 비율과 비교합니다. 여러 날의 같은 시각 누적 거래량을 사용하는 방식은 아직 적용되지 않았습니다.</span></label>
+                        <div class="number-with-unit">
+                          <input
+                            v-model.number="settings.minVolumeRatio"
+                            type="number"
+                            min="0.5"
+                            max="5"
+                            step="0.1"
+                          ><em>배</em>
+                        </div>
+                      </div>
+                      <div class="setting-field">
+                        <label>최대 호가 스프레드<span>매도 1호가와 매수 1호가 차이가 이 비율보다 크면 제외합니다.</span></label>
+                        <div class="number-with-unit">
+                          <input
+                            v-model.number="settings.maxSpreadPercent"
+                            type="number"
+                            min="0.05"
+                            max="1"
+                            step="0.01"
+                          ><em>%</em>
+                        </div>
+                      </div>
+                      <details class="settings-details">
+                        <summary>추가 기업 필터 · {{ settings.fundamentalFilterEnabled ? '사용 중' : '미사용' }}</summary>
+                        <p class="setting-description">
+                          PER·ROE는 선택 조건입니다. 보고서는 사용·미사용·참고 점수 방식의 성과 비교를 제안하며, 현재 구현은 사용 여부를 선택합니다.
+                        </p>
+                        <div class="setting-field">
+                          <label>PER·ROE 기업 필터<span>적자·재무 데이터 누락 종목을 제외하고 기업 품질 기준을 적용합니다.</span></label>
+                          <label class="setting-switch"><input
+                            v-model="settings.fundamentalFilterEnabled"
+                            type="checkbox"
+                          ><span>{{ settings.fundamentalFilterEnabled ? '사용' : '미사용' }}</span></label>
+                        </div>
+                        <div class="setting-field">
+                          <label>최대 Forward PER<span>Forward PER가 없으면 Trailing PER를 사용하며, 음수·누락은 제외합니다.</span></label>
+                          <div class="number-with-unit">
+                            <input
+                              v-model.number="settings.maxForwardPe"
+                              type="number"
+                              min="5"
+                              max="100"
+                              step="1"
+                              :disabled="!settings.fundamentalFilterEnabled"
+                            ><em>배</em>
+                          </div>
+                        </div>
+                        <div class="setting-field">
+                          <label>최소 ROE<span>최근 자기자본이익률이 이 값 이상인 기업만 고릅니다.</span></label>
+                          <div class="number-with-unit">
+                            <input
+                              v-model.number="settings.minRoePercent"
+                              type="number"
+                              min="0"
+                              max="50"
+                              step="0.1"
+                              :disabled="!settings.fundamentalFilterEnabled"
+                            ><em>%</em>
+                          </div>
+                        </div>
+                      </details>
+                    </section>
+                    <section class="setting-card buy-card">
+                      <p class="setting-step">
+                        2. 위험 예산과 매수 수량
+                      </p>
+                      <p class="setting-description">
+                        {{ settings.signalMode === 'TREND' ? '수량 = 위험 예산 ÷ 1주당 손절 거리. 금액 상한·예약금 제외 USD·주문가능수량 중 더 작은 한도로 제한합니다.' : '기존 방식은 예약금 제외 USD의 설정 비중으로 수량을 정합니다.' }}
+                      </p>
+                      <template v-if="settings.signalMode === 'TREND'">
+                        <div class="setting-field">
+                          <label>거래당 허용 위험<span>추세 모드에서 주문 비중 산정자산에 적용합니다. 위험 예산 미리보기 {{ accountMoney(summary.automatedCapitalUsd == null ? null : summary.automatedCapitalUsd * settings.riskPerTradePercent / 100) }}. 비교 관찰 모드에서는 수량에 적용하지 않습니다. 갭·슬리피지로 실제 손실은 초과할 수 있습니다.</span></label>
+                          <div class="number-with-unit">
+                            <input
+                              v-model.number="settings.riskPerTradePercent"
+                              :disabled="settings.signalMode !== 'TREND'"
+                              type="number"
+                              min="0.1"
+                              max="1"
+                              step="0.05"
+                            ><em>%</em>
+                          </div>
+                        </div>
+                      </template>
+                      <template v-if="settings.signalMode !== 'LEGACY'">
+                        <div class="setting-field">
+                          <label>ATR 손절 거리<span>하루 평균 가격 변동폭의 배수입니다. ATR $2에 2배면 손절 거리 $4입니다. 손절폭 하한은 진입가의 0.5%이며, 최대 손절률보다 넓으면 매수하지 않습니다.</span></label>
+                          <div class="number-with-unit">
+                            <input
+                              v-model.number="settings.atrStopMultiplier"
+                              :disabled="settings.signalMode === 'LEGACY'"
+                              type="number"
+                              min="1"
+                              max="4"
+                              step="0.1"
+                            ><em>배</em>
+                          </div>
+                        </div>
+                      </template>
+                      <div class="setting-field">
+                        <label>최대 손절률<span>추세 신규 진입 시 ATR 손절폭이 이 값을 넘으면 제외합니다. 체결 이후에는 진입 때 저장한 손절 거리를 사용합니다. 기존 방식 보유에는 고정 손절률로 적용합니다.</span></label>
+                        <div class="number-with-unit negative">
+                          <b>-</b><input
+                            v-model.number="settings.stopLossPercent"
+                            type="number"
+                            min="0.1"
+                            max="30"
+                            step="0.1"
+                          ><em>%</em>
+                        </div>
+                      </div>
+                      <div class="setting-field">
+                        <label>1회 매수 최대 비중<span>{{ settings.signalMode === 'TREND' ? '서버 주문 비중 산정자산(전체 계좌 정책 활성 시 USD 예수금 + 전체 주식 평가액)에 적용합니다. ATR 위험 예산으로 실제 수량을 추가 제한합니다.' : '미체결 자동매수 예약금을 제외한 USD에 적용합니다.' }} 편집값 기준 금액 상한 {{ accountMoney(estimatedOrderUsd) }} · 저장 전 미리보기{{ accountFresh ? '' : ' · 계좌 재확인 필요' }}. 비중은 최대 99%까지만 적용됩니다.</span></label>
+                        <div class="number-with-unit">
+                          <input
+                            v-model.number="settings.maxOrderPercent"
+                            type="number"
+                            min="0.1"
+                            max="100"
+                            step="0.1"
+                          ><em>%</em>
+                        </div>
+                      </div>
+                      <div class="setting-field">
+                        <label>동시에 보유할 종목 한도<span>{{ risk.enabled ? '계좌 전체 보유와 신규 미체결 매수 종목을 함께 셉니다. 기존 보유도 포함합니다.' : '자동관리 보유와 미체결 매수 종목을 함께 셉니다. 전체 계좌 정책 활성 후에는 기존 보유도 포함합니다.' }}</span></label>
+                        <div class="number-with-unit">
+                          <input
+                            v-model.number="settings.maxPositions"
+                            type="number"
+                            min="1"
+                            max="20"
+                            step="1"
+                          ><em>종목</em>
+                        </div>
+                      </div>
+                    </section>
+                    <section
+                      v-if="settings.signalMode === 'TREND'"
+                      class="setting-card sell-card"
+                    >
+                      <p class="setting-step">
+                        3. ATR 추적 청산
+                      </p>
+                      <p class="setting-description">
+                        1R은 진입 당시 1주당 손절 거리입니다. 자동관리 원가에서 저장된 손절 거리를 뺀 가격으로 초기 손절을 시작합니다. 수익이 시작 R에 도달하면 추적 손절로 잔량을 관리합니다.
+                      </p>
+                      <p class="setting-description">
+                        진입 ATR·추적 설정·보유기간은 매수 때 저장합니다. 설정 변경은 이후 새 매수에 적용되며 기존 추세 보유의 계획은 유지됩니다.
+                      </p>
+                      <div class="setting-field">
+                        <label for="us-trail-start">추적 시작 수익<span>자동매매 원가에서 이 R만큼 상승한 관측 최고가가 있어야 추적을 시작합니다.</span></label><div class="number-with-unit">
+                          <input
+                            id="us-trail-start"
+                            v-model.number="settings.trailingActivationR"
+                            type="number"
+                            min="0.5"
+                            max="5"
+                            step="0.1"
+                          ><em>R</em>
+                        </div>
+                      </div>
+                      <div class="setting-field">
+                        <label for="us-trail-atr">추적 손절 거리<span>관측 최고가 − 진입 ATR × 배수. 손절 가격은 올라가기만 합니다. 정규장 감시 주기 사이 급변·야간 갭은 지정 손실을 초과할 수 있습니다.</span></label><div class="number-with-unit">
+                          <input
+                            id="us-trail-atr"
+                            v-model.number="settings.trailingStopAtrMultiplier"
+                            type="number"
+                            min="1"
+                            max="5"
+                            step="0.1"
+                          ><em>배</em>
+                        </div>
+                      </div>
+                      <div class="setting-field">
+                        <label for="us-trend-days">추세 최대 보유기간<span>최초 체결 확인일을 제외하고 미국 거래일만 셉니다. 경과 후 정규장 감시에서 잔량을 정리합니다.</span></label><div class="number-with-unit">
+                          <input
+                            id="us-trend-days"
+                            v-model.number="settings.maxHoldingTradingDays"
+                            type="number"
+                            min="1"
+                            max="30"
+                            step="1"
+                          ><em>거래일</em>
+                        </div>
+                      </div>
+                      <p class="setting-description">
+                        손절 가격 도달 또는 보유기간 만료 시 매도 가능한 자동관리 잔량을 청산합니다. {{ risk.enabled ? '전체 계좌 정책에서는 매수 1호가 지정가를 사용합니다.' : '정규장에서는 시장가, 그 외 지원 세션에서는 매수 1호가 지정가를 사용합니다.' }} 고정 1차·2차 익절은 사용하지 않습니다.
+                      </p>
+                    </section>
+                    <section
+                      v-if="settings.signalMode !== 'TREND'"
+                      class="setting-card sell-card"
+                    >
+                      <p class="setting-step">
+                        3. 기존 방식 청산
+                      </p>
+                      <p class="setting-description">
+                        새 추세 청산 계획이 없는 보유에 적용하는 고정 익절·달력일 기준입니다. 손절률은 위 최대 손절률을 사용합니다.
+                      </p>
+                      <div class="setting-field">
+                        <label>1차 이익 실현<span>자동매매 원가 대비 이만큼 오르면 자동관리 수량의 절반(정수 내림, 최소 1주)을 팝니다. 부분 체결 후에는 목표 잔량만 처리합니다.</span></label>
+                        <div class="number-with-unit">
+                          <b>+</b><input
+                            v-model.number="settings.takeProfitPercent"
+                            :disabled="settings.signalMode === 'TREND'"
+                            type="number"
+                            min="0.1"
+                            max="100"
+                            step="0.1"
+                          ><em>%</em>
+                        </div>
+                      </div>
+                      <div class="setting-field">
+                        <label>2차 이익 실현<span>남은 수량은 이 수익률에 도달하면 모두 팝니다. 1차보다 큰 값이어야 합니다.</span></label>
+                        <div class="number-with-unit">
+                          <b>+</b><input
+                            v-model.number="settings.takeProfitPercent2"
+                            :disabled="settings.signalMode === 'TREND'"
+                            type="number"
+                            min="0.1"
+                            max="100"
+                            step="0.1"
+                          ><em>%</em>
+                        </div>
+                      </div>
+                      <div class="setting-field">
+                        <label>가장 오래 보유할 기간<span>달력일 기준입니다. 기간이 지난 뒤 정규장 매도 감시에서 자동관리 수량을 정리합니다.</span></label>
+                        <div class="number-with-unit">
+                          <input
+                            v-model.number="settings.maxHoldingDays"
+                            :disabled="settings.signalMode === 'TREND'"
+                            type="number"
+                            min="1"
+                            max="30"
+                            step="1"
+                          ><em>일</em>
+                        </div>
+                      </div>
+                    </section>
+                    <details
+                      v-if="settings.signalMode === 'TREND'"
+                      class="setting-card settings-details legacy-reference"
+                    >
+                      <summary>기존 방식 보유에 남아 있는 규칙</summary>
+                      <p class="setting-description">
+                        새 추세 청산 계획 없이 매수한 보유만 해당합니다. 신규 TREND 매수에는 아래 익절·달력일 규칙을 적용하지 않습니다.
+                      </p>
+                      <p class="setting-description">
+                        보존된 값: 1차 익절 +{{ settings.takeProfitPercent }}%, 2차 익절 +{{ settings.takeProfitPercent2 }}%, 보유 {{ settings.maxHoldingDays }}달력일. 기존 보유의 손절률은 위 최대 손절률을 함께 사용합니다.
+                      </p>
+                    </details>
+                    <section class="setting-card safety-card">
+                      <p class="setting-step">
+                        4. 매수 횟수와 손실 제한
+                      </p>
+                      <p class="setting-description">
+                        자동관리 보유의 청산 감시를 유지하면서 신규 매수 횟수와 당일 손실을 제한합니다.
+                      </p>
+                      <div class="setting-field">
+                        <label>하루에 새로 살 수 있는 횟수<span>체결·미완료·결과 미확인 매수 주문을 셉니다. 전량 미체결 취소와 실패는 제외합니다.</span></label>
+                        <div class="number-with-unit">
+                          <input
+                            v-model.number="settings.dailyMaxBuys"
+                            type="number"
+                            min="1"
+                            max="20"
+                            step="1"
+                          ><em>번</em>
+                        </div>
+                      </div>
+                      <div class="setting-field">
+                        <label>같은 종목을 다시 사기까지 기다릴 기간<span>실제로 체결된 매수에 적용합니다. 전량 미체결 취소는 주문 후 2분 대기만 적용합니다.</span></label>
+                        <div class="number-with-unit">
+                          <input
+                            v-model.number="settings.symbolCooldownDays"
+                            type="number"
+                            min="1"
+                            max="30"
+                            step="1"
+                          ><em>일</em>
+                        </div>
+                      </div>
+                      <div class="setting-field">
+                        <label>오늘 손실률이 이 비율이면 새 매수 멈추기<span>그날 처음 확인한 자동매매용 USD와 자동매매 보유종목 평가액을 기준으로 계산합니다. 0%는 사용하지 않음입니다.</span></label>
+                        <div class="number-with-unit negative">
+                          <b>-</b><input
+                            v-model.number="settings.dailyLossLimitPercent"
+                            type="number"
+                            min="0"
+                            max="30"
+                            step="0.1"
+                          ><em>%</em>
+                        </div>
+                      </div>
+                    </section>
+                    <p
+                      v-if="validationError"
+                      class="settings-error"
+                    >
+                      ⚠ {{ validationError }}
+                    </p>
+                    <p
+                      v-if="error"
+                      class="settings-error"
+                    >
+                      ⚠ {{ error }}
+                    </p>
+                  </form>
+                </div>
+              </div>
+              <div class="amodal-foot">
+                <span class="settings-unsaved">{{ settingsDirty ? '아직 저장되지 않았습니다' : '' }}</span>
+                <div class="amodal-foot-right">
+                  <button
+                    class="amodal-btn amodal-btn-ghost"
+                    :disabled="pending"
+                    @click="closeSettings"
+                  >
+                    취소
+                  </button>
+                  <button
+                    class="amodal-btn amodal-btn-primary"
+                    type="submit"
+                    form="us-strategy-settings"
+                    :disabled="pending || !settingsDirty || !!validationError"
+                  >
+                    {{ pending ? '저장 중...' : '저장하기' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </teleport>
+      </section>
+    </details>
+    <details class="advanced-operation">
+      <summary>연구 전략 연결 · 승인 관리</summary>
+      <UsStrategyDeploymentPanel @status="researchDeployment = $event" />
+      <p
+        v-if="researchDeployment?.managed"
+        class="account-notice"
       >
-        <p
-          v-for="item in logs"
-          :key="item.id"
-          :class="tone(item.eventType || item.type)"
+        연구 전략이 이 계좌를 관리합니다. 아래 기존 전략 설정은 연구 전략의 진입 규칙이 아닙니다. 연결 비활성 또는 승인 철회 상태에서도 기존 전략으로 자동 복귀하지 않습니다.
+      </p>
+    </details>
+    <details class="advanced-operation">
+      <summary>전체 후보 · 매수 · 매도 로그</summary>
+      <section class="card logs">
+        <header>
+          <strong>후보 · 매수 · 매도 로그</strong><button @click="logs = []">
+            화면 지우기
+          </button>
+        </header>
+        <div
+          ref="logBox"
+          class="terminal"
         >
-          <time>{{ logTime(item.createdAt) }}</time><b>[{{ label(item.eventType || item.type) }}]</b> {{ item.message }}
-        </p>
-        <p
-          v-if="!logs.length"
-          class="empty"
-        >
-          후보 산출, 주문 접수, 체결 결과가 여기에 기록됩니다.
-        </p>
-      </div>
-    </section>
+          <p
+            v-for="item in logs"
+            :key="item.id"
+            :class="tone(item.eventType || item.type)"
+          >
+            <time>{{ logTime(item.createdAt) }}</time><b>[{{ label(item.eventType || item.type) }}]</b> {{ item.message }}
+          </p>
+          <p
+            v-if="!logs.length"
+            class="empty"
+          >
+            후보 산출, 주문 접수, 체결 결과가 여기에 기록됩니다.
+          </p>
+        </div>
+      </section>
+    </details>
   </section>
 </template>
 
@@ -991,6 +1034,8 @@ const trendPresetSummary = [
   { label: '운영 제한 기준값', value: `하루 ${TREND_PRESET.dailyMaxBuys}회 · 재매수 ${TREND_PRESET.symbolCooldownDays}달력일 · 일일 손실 ${TREND_PRESET.dailyLossLimitPercent}%` },
 ]
 const status = ref({ configured: false, autoTrading: false, orderEnabled: false, marketOpen: false, entryWindow: false, marketSeason: '', regularSessionKst: '', entrySessionKst: '' })
+const statusLoaded = ref(false), statusError = ref('')
+const statusKnown = computed(() => statusLoaded.value && !statusError.value)
 const researchDeployment = ref(null)
 const researchStartBlocked = computed(() => researchDeployment.value?.managed && (!researchDeployment.value.fresh || !researchDeployment.value.bridgeEnabled || !researchDeployment.value.active))
 const summary = ref({ cash: { availableUsd: 0, krwOrderSettingAmount: 0, usdOnlyBuyAllowed: true, blockReason: '' }, stockEvaluationUsd: 0, managedEvaluationUsd: 0, perOrderLimitUsd: 0, positionCount: 0, managedPositionCount: 0, krwOrderServiceStatus: { code: 'UNKNOWN', label: '확인 불가', message: '계좌 상태를 불러오는 중입니다.' } })
@@ -1007,7 +1052,9 @@ const riskCurrent = computed(() => {
 })
 const riskReady = computed(() => riskCurrent.value && risk.value.enabled === true && risk.value.capitalFlowConfirmed === true && !risk.value.triggered && !risk.value.liquidationPending && appliedSettings.value.signalMode === 'TREND')
 const buyingPower = computed(() => summary.value.buyingPower || {})
-const accountMoney = value => accountLoaded.value && value != null ? `$${money(value)}` : '—'
+const knownAccountValue = value => accountLoaded.value && value != null && value !== '' && Number.isFinite(Number(value))
+const accountMoney = value => knownAccountValue(value) ? `$${money(value)}` : '—'
+const accountCount = value => knownAccountValue(value) ? Number(value).toLocaleString('ko-KR') : '—'
 const candidates = ref([]), holdings = ref([]), logs = ref([])
 const pending = ref(false), error = ref(''), showSettings = ref(false), logBox = ref(null)
 const settingsTrigger = ref(null), settingsDialog = ref(null), settingsClose = ref(null)
@@ -1029,7 +1076,7 @@ const estimatedOrderUsd = computed(() => {
   const base = settings.value.signalMode === 'TREND' ? Number(summary.value.automatedCapitalUsd || 0) : cash
   return Math.min(cash * 0.99, base * Math.min(Number(settings.value.maxOrderPercent || 0), 99) / 100)
 })
-const executionLabel = computed(() => !status.value.autoTrading ? '신규 자동매수 중지' : status.value.entryWindow ? '신규 자동매수 활성' : '신규 자동매수 활성 · 진입 시간 대기')
+const executionLabel = computed(() => !statusKnown.value ? '신규 자동매수 상태 확인 필요' : !status.value.autoTrading ? '신규 자동매수 중지' : status.value.entryWindow ? '신규 자동매수 활성' : '신규 자동매수 활성 · 진입 시간 대기')
 const positionCountForLimit = computed(() => risk.value.enabled ? summary.value.positionCount : summary.value.managedPositionCount)
 const readinessHint = computed(() => {
   if (settingsLoaded.value && appliedSettings.value.signalMode !== 'TREND') return '전체 계좌 정책의 신규 매수는 저장된 추세(TREND) 전략에서만 허용됩니다. 비교 관찰은 모의매매가 아닙니다.'
@@ -1101,9 +1148,12 @@ async function loadAll(sync = false, force = false) {
   }
   if (disposed) return
   refreshPromise = (async () => {
-    const { data: currentStatus } = await axios.get(`${BASE}/status`)
-    if (disposed) return
-    status.value = currentStatus
+    let currentStatus
+    try {
+      currentStatus = (await axios.get(`${BASE}/status`)).data
+      if (disposed) return
+      status.value = currentStatus; statusLoaded.value = true; statusError.value = ''
+    } catch (e) { statusError.value = '운영 상태 조회에 실패했습니다.'; throw e }
     let accountError
     try {
       if (currentStatus.configured) {
@@ -1174,7 +1224,8 @@ async function runDecision() {
   const allowOrder = status.value.autoTrading
   await action(async () => { const { data } = await axios.post(`${BASE}/decide`, null, { params: { allowOrder } }); pushLog({ type: 'SYSTEM', message: data.message, createdAt: new Date().toISOString() }); await loadAll(false, true) })
 }
-async function refreshAll() { await action(async () => loadAll(true)) }
+const SYNC_HINT = '계좌·체결 동기화는 잔고 조회뿐 아니라 오래된 미체결 자동주문 취소와 주문 상태 정리를 수행할 수 있습니다.'
+async function refreshAll() { if (!window.confirm(SYNC_HINT + ' 계속할까요?')) return; await action(async () => loadAll(true)) }
 async function refreshCashPolicyStatus() { await action(() => loadAll(false, true)) }
 async function refreshIndexUniverse() { await action(async () => { await axios.post(`${BASE}/index-universe/refresh`); status.value = (await axios.get(`${BASE}/status`)).data }) }
 function loadTrendPreset() {
@@ -1262,4 +1313,18 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select { m
 .operation-overview dd { margin: 8px 0 0; font-weight: 700; color: var(--text-primary); overflow-wrap: anywhere; }
 .operation-heading { margin: 22px 0 12px; color: var(--text-primary); }
 @media(max-width: 600px) { .operation-overview { gap: 6px; } .operation-overview > div { padding: 12px 8px; } .operation-overview dd { font-size: 13px; } .controls .buttons { display: grid; grid-template-columns: 1fr; width: 100%; } .controls .buttons button { min-height: 44px; width: 100%; } }
+</style>
+
+<style scoped>
+.advanced-operation { margin: 16px 0; border: 1px solid var(--card-border); border-radius: var(--radius-card); background: var(--surface); }
+.advanced-operation > summary { min-height: 44px; padding: 14px 16px; color: var(--text-primary); font-weight: 600; cursor: pointer; line-height: 1.6; }
+.advanced-operation > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.advanced-operation > :not(summary) { margin: 12px; }
+.recent-operations { padding: 16px; margin: 16px 0; background: var(--surface); border: 1px solid var(--card-border); border-radius: var(--radius-card); }
+.recent-operations h4 { font-size: 15px; color: var(--text-primary); }
+.recent-operations p, .sync-effects, .operation-freshness { font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; color: var(--text-secondary); }
+.recent-operations time { color: var(--text-muted); margin-right: 8px; }
+.controls { flex-wrap: wrap; }
+.controls .sync-effects { flex-basis: 100%; margin: 8px 0; }
+.us-auto .grids .holdings-card { order: -1; }
 </style>
