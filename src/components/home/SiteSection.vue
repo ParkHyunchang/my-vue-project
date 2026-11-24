@@ -43,7 +43,9 @@
           </ul>
           <div class="site__actions">
             <a href="https://github.com/ParkHyunchang/my-vue-project">소스 코드 <span aria-hidden="true">↗</span></a>
-            <a href="https://hyunchang.synology.me:3100/#/">사이트 보기 <span aria-hidden="true">↗</span></a>
+            <router-link to="/">
+              사이트 보기 <span aria-hidden="true">↗</span>
+            </router-link>
           </div>
         </article>
         <article class="site__item">
@@ -70,7 +72,9 @@
           </ul>
           <div class="site__actions">
             <a href="https://github.com/ParkHyunchang/my-vue-project_backend">소스 코드 <span aria-hidden="true">↗</span></a>
-            <a href="https://hyunchang.synology.me:3100/#/">사이트 보기 <span aria-hidden="true">↗</span></a>
+            <router-link to="/">
+              사이트 보기 <span aria-hidden="true">↗</span>
+            </router-link>
           </div>
         </article>
       </div>

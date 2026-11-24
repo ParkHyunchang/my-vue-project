@@ -134,6 +134,19 @@
   gap: 0.5rem;
 }
 
+/* Footer content comes from slots; reach it across the scoped-style boundary. */
+.modal-wrapper .modal-footer :deep(> *) {
+  min-width: 0;
+  margin: 0;
+}
+
+.modal-wrapper .modal-footer :deep(button) {
+  min-height: var(--control-height, 44px);
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 /* =============================================
    DELETE MODAL (DeleteModal.vue) 푸터 override
    ============================================= */
@@ -214,14 +227,31 @@
   .modal-footer {
     padding: 0.75rem;
     flex-direction: column;
+    align-items: stretch;
+    flex-wrap: nowrap;
     gap: 0.75rem;
     flex-shrink: 0;
   }
 
-  .modal-footer > div {
+  .modal-wrapper .modal-footer :deep(> *) {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .modal-wrapper .modal-footer :deep(div) {
     display: flex;
+    width: 100%;
+    min-width: 0;
+    flex-wrap: wrap;
     gap: 0.5rem;
-    justify-content: center;
+    align-items: stretch;
+  }
+
+  .modal-wrapper .modal-footer :deep(button) {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
   }
 
   .modal-footer-delete {

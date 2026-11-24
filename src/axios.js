@@ -16,6 +16,15 @@ const api = axios.create({
 // 401 응답 시 refresh 후 1회 재시도. 동시 요청은 같은 refresh promise를 공유.
 let refreshPromise = null;
 
+function clearExpiredSession(request) {
+  store.dispatch('auth/logoutLocal');
+  // 초기 세션 복원은 익명 사용자도 수행한다. 초기 경로의 접근 허용 여부는
+  // 인증 복원 이후 설치되는 router guard가 결정한다.
+  if (!request?.suppressAuthRedirect && window.location.hash !== '#/login') {
+    window.location.hash = '/login';
+  }
+}
+
 async function performRefresh() {
   if (!refreshPromise) {
     refreshPromise = axios.post(
@@ -44,16 +53,21 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (status === 401 && !original?._retry) {
+    // 로그인/가입 실패는 토큰 만료가 아니다. 원래 인증 오류를 호출자에 전달한다.
+    if (original?.skipAuthRefresh) return Promise.reject(error);
+
+    if (status === 401 && original?._retry) {
+      clearExpiredSession(original);
+      return Promise.reject(error);
+    }
+
+    if (status === 401 && original) {
       original._retry = true;
       try {
         await performRefresh();
         return api(original);
       } catch (refreshError) {
-        store.dispatch('auth/logoutLocal');
-        if (window.location.hash !== '#/login') {
-          window.location.hash = '/login';
-        }
+        clearExpiredSession(original);
         return Promise.reject(refreshError);
       }
     }

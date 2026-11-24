@@ -47,7 +47,7 @@ const actions = {
   async login({ commit, dispatch, rootGetters }, credentials) {
     try {
       const axios = (await import("@/axios")).default;
-      const response = await axios.post("/api/auth/login", credentials);
+      const response = await axios.post("/api/auth/login", credentials, { skipAuthRefresh: true });
       const { username, email, role, message } = response.data;
 
       commit("SET_USER", { username, email, role });
@@ -64,7 +64,7 @@ const actions = {
   async register({ commit, dispatch, rootGetters }, userData) {
     try {
       const axios = (await import("@/axios")).default;
-      const response = await axios.post("/api/auth/register", userData);
+      const response = await axios.post("/api/auth/register", userData, { skipAuthRefresh: true });
       const { username, email, role, message } = response.data;
 
       commit("SET_USER", { username, email, role });
@@ -142,7 +142,7 @@ const actions = {
   async checkAuth({ commit, dispatch, rootGetters }) {
     try {
       const axios = (await import("@/axios")).default;
-      const response = await axios.get("/api/auth/me");
+      const response = await axios.get("/api/auth/me", { suppressAuthRedirect: true });
 
       const { username, email, role } = response.data;
       commit("SET_USER", { username, email, role });
