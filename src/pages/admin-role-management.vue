@@ -372,10 +372,11 @@
             >
               <label>삭제 보호 (기본 권한으로 지정)</label>
               <div class="toggle-row">
-                <label class="toggle-switch">
+                <label class="toggle-switch-wrap">
                   <input
                     type="checkbox"
                     v-model="editForm.isDefault"
+                    aria-label="삭제 보호"
                   >
                   <span class="toggle-track" />
                 </label>

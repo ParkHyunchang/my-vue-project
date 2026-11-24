@@ -12,18 +12,18 @@
   transition: background 0.5s;
 }
 .intro {
-  background: #f8f9fa;
+  background: var(--primary);
   text-align: center;
 }
 .company {
-  background: #fff;
-  border-bottom: 1px solid #eee;
+  background: var(--surface);
+  border-bottom: 1px solid var(--card-border);
   text-align: left;
 }
 .company h3 {
   font-size: 1.5rem;
   margin-bottom: 1rem;
-  color: #42b983;
+  color: var(--accent);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -31,7 +31,7 @@
 }
 .company h3 span {
   font-size: 1rem;
-  color: #888;
+  color: var(--text-muted);
   font-weight: normal;
 }
 .company ul {
@@ -41,5 +41,10 @@
 .company li {
   font-size: 1.1rem;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: var(--text-secondary);
 }
+
+.section { padding: 48px max(24px, calc((100vw - 1000px) / 2)); }
+.company { align-items: stretch; }
+.company h3 { font-weight: 700; }
+.company ul { list-style: disc; }

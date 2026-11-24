@@ -36,5 +36,5 @@ const terms = [
 </script>
 
 <style scoped>
-.term-guide{margin:14px 16px;padding:12px 14px;border:1px solid var(--card-border);border-radius:10px;background:var(--input-bg,#171b20);color:var(--text-secondary);font-size:.78rem;line-height:1.65}.term-guide p{margin:0 0 8px}.term-guide strong,.term-guide dt{color:var(--text-primary)}.term-guide summary{cursor:pointer;font-weight:700;color:var(--text-primary)}.term-guide dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0 0}.term-guide dt{font-weight:700}.term-guide dd{margin:3px 0 0;overflow-wrap:anywhere}@media(max-width:640px){.term-guide dl{grid-template-columns:minmax(0,1fr)}}
+.term-guide{margin:14px 16px;padding:12px 14px;border:1px solid var(--card-border);border-radius:var(--radius-control);background:var(--input-bg);color:var(--text-secondary);font-size:.78rem;line-height:1.65}.term-guide p{margin:0 0 8px}.term-guide strong,.term-guide dt{color:var(--text-primary)}.term-guide summary{cursor:pointer;font-weight:700;color:var(--text-primary)}.term-guide dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0 0}.term-guide dt{font-weight:700}.term-guide dd{margin:3px 0 0;overflow-wrap:anywhere}@media(max-width:640px){.term-guide dl{grid-template-columns:minmax(0,1fr)}}
 </style>

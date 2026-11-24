@@ -1,0 +1,1549 @@
+{
+  "origin": "http://127.0.0.1:13100",
+  "note": "Synthetic fixtures only. Guest auth uses 403; pre-existing 401 refresh redirect is not tested. External fonts/CDNs/maps are blocked. Screenshots require human review.",
+  "results": [
+    {
+      "name": "home",
+      "role": "guest",
+      "width": 1440,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/career",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/experience",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/portfolio-skills",
+          "status": 200
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "home-1440.png",
+          "hash": "#/",
+          "viewportWidth": 1440,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "overflowElements": []
+        }
+      ],
+      "focus": {
+        "tag": "A",
+        "label": "H.hyunchangPersonal workspace",
+        "outline": "solid"
+      },
+      "status": "captured"
+    },
+    {
+      "name": "home-empty",
+      "role": "guest",
+      "width": 1440,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/career",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/experience",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/portfolio-skills",
+          "status": 200
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "home-empty-1440.png",
+          "hash": "#/",
+          "viewportWidth": 1440,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "overflowElements": []
+        }
+      ],
+      "focus": {
+        "tag": "A",
+        "label": "H.hyunchangPersonal workspace",
+        "outline": "solid"
+      },
+      "status": "captured"
+    },
+    {
+      "name": "home-error",
+      "role": "guest",
+      "width": 1440,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/career",
+          "status": 503
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/experience",
+          "status": 503
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/portfolio-skills",
+          "status": 503
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "home-error-1440.png",
+          "hash": "#/",
+          "viewportWidth": 1440,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "overflowElements": []
+        }
+      ],
+      "focus": {
+        "tag": "A",
+        "label": "H.hyunchangPersonal workspace",
+        "outline": "solid"
+      },
+      "status": "captured"
+    },
+    {
+      "name": "login",
+      "role": "guest",
+      "width": 1440,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/menus",
+          "status": 200
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "login-1440.png",
+          "hash": "#/login",
+          "viewportWidth": 1440,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "overflowElements": []
+        }
+      ],
+      "focus": {
+        "tag": "A",
+        "label": "H.hyunchangPersonal workspace",
+        "outline": "solid"
+      },
+      "status": "captured"
+    },
+    {
+      "name": "diary",
+      "role": "member",
+      "width": 1440,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/my-menu-permissions",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/diary",
+          "status": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/audit/event",
+          "status": 204
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "diary-1440.png",
+          "hash": "#/diary",
+          "viewportWidth": 1440,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "overflowElements": []
+        }
+      ],
+      "focus": {
+        "tag": "A",
+        "label": "H.hyunchangPersonal workspace",
+        "outline": "solid"
+      },
+      "status": "captured"
+    },
+    {
+      "name": "todos",
+      "role": "member",
+      "width": 1440,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/my-menu-permissions",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/todos/categories",
+          "status": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/audit/event",
+          "status": 204
+        },
+        {
+          "method": "GET",
+          "path": "/api/todos",
+          "status": 200
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "todos-1440.png",
+          "hash": "#/todos",
+          "viewportWidth": 1440,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "overflowElements": []
+        },
+        {
+          "filename": "todos-1440-delete-dialog.png",
+          "hash": "#/todos",
+          "viewportWidth": 1440,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "overflowElements": []
+        }
+      ],
+      "deleteDialogClosedByEscape": true,
+      "focus": {
+        "tag": "INPUT",
+        "label": "",
+        "outline": "solid"
+      },
+      "status": "captured"
+    },
+    {
+      "name": "stock",
+      "role": "member",
+      "width": 1440,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/my-menu-permissions",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/portfolio/holdings",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/portfolio/isa/holdings",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/portfolio/general/holdings",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/portfolio/irp/holdings",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/stock/en-names",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/stock/krx-config",
+          "status": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/audit/event",
+          "status": 204
+        },
+        {
+          "method": "POST",
+          "path": "/api/audit/event",
+          "status": 204
+        },
+        {
+          "method": "GET",
+          "path": "/api/stock/quote",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/stock/quote",
+          "status": 200
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "stock-1440.png",
+          "hash": "#/stock",
+          "viewportWidth": 1440,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "overflowElements": []
+        }
+      ],
+      "focus": {
+        "tag": "A",
+        "label": "H.hyunchangPersonal workspace",
+        "outline": "solid"
+      },
+      "status": "captured"
+    },
+    {
+      "name": "travel",
+      "role": "member",
+      "width": 1440,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/my-menu-permissions",
+          "status": 200
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "travel-1440.png",
+          "hash": "#/travel",
+          "viewportWidth": 1440,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "overflowElements": []
+        }
+      ],
+      "focus": {
+        "tag": "A",
+        "label": "H.hyunchangPersonal workspace",
+        "outline": "solid"
+      },
+      "status": "captured"
+    },
+    {
+      "name": "admin",
+      "role": "admin",
+      "width": 1440,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/my-menu-permissions",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/admin/role-infos",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/admin/allowed-admins",
+          "status": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/audit/event",
+          "status": 204
+        },
+        {
+          "method": "GET",
+          "path": "/api/admin/users",
+          "status": 200
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "admin-1440.png",
+          "hash": "#/admin/users",
+          "viewportWidth": 1440,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "overflowElements": []
+        },
+        {
+          "filename": "admin-1440-create-dialog.png",
+          "hash": "#/admin/users",
+          "viewportWidth": 1440,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "overflowElements": []
+        }
+      ],
+      "focus": {
+        "tag": "BUTTON",
+        "label": "전체: 2명",
+        "outline": "solid"
+      },
+      "status": "captured"
+    },
+    {
+      "name": "home",
+      "role": "guest",
+      "width": 390,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/career",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/experience",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/portfolio-skills",
+          "status": 200
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "home-390.png",
+          "hash": "#/",
+          "viewportWidth": 390,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "overflowElements": []
+        },
+        {
+          "filename": "home-390-menu.png",
+          "hash": "#/",
+          "viewportWidth": 390,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "overflowElements": []
+        }
+      ],
+      "menuOpenedWithKeyboard": true,
+      "menuEscapeReturnsFocus": true,
+      "menuEscapeFocus": {
+        "tag": "BUTTON",
+        "text": "",
+        "class": "header__nav__mobile"
+      },
+      "focus": {
+        "tag": "A",
+        "label": "헤더 영역 바로가기",
+        "outline": "solid"
+      },
+      "status": "captured"
+    },
+    {
+      "name": "home-empty",
+      "role": "guest",
+      "width": 390,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/career",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/experience",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/portfolio-skills",
+          "status": 200
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "home-empty-390.png",
+          "hash": "#/",
+          "viewportWidth": 390,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "overflowElements": []
+        }
+      ],
+      "focus": {
+        "tag": "A",
+        "label": "H.hyunchangPersonal workspace",
+        "outline": "solid"
+      },
+      "status": "captured"
+    },
+    {
+      "name": "home-error",
+      "role": "guest",
+      "width": 390,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/career",
+          "status": 503
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/experience",
+          "status": 503
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/portfolio-skills",
+          "status": 503
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "home-error-390.png",
+          "hash": "#/",
+          "viewportWidth": 390,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "overflowElements": []
+        }
+      ],
+      "focus": {
+        "tag": "A",
+        "label": "H.hyunchangPersonal workspace",
+        "outline": "solid"
+      },
+      "status": "captured"
+    },
+    {
+      "name": "login",
+      "role": "guest",
+      "width": 390,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/public/menus",
+          "status": 200
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "login-390.png",
+          "hash": "#/login",
+          "viewportWidth": 390,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "overflowElements": []
+        }
+      ],
+      "focus": {
+        "tag": "A",
+        "label": "H.hyunchangPersonal workspace",
+        "outline": "solid"
+      },
+      "status": "captured"
+    },
+    {
+      "name": "diary",
+      "role": "member",
+      "width": 390,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/my-menu-permissions",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/diary",
+          "status": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/audit/event",
+          "status": 204
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "diary-390.png",
+          "hash": "#/diary",
+          "viewportWidth": 390,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "overflowElements": [
+            {
+              "tag": "DIV",
+              "class": "sidebar-header"
+            },
+            {
+              "tag": "H3",
+              "class": ""
+            },
+            {
+              "tag": "BUTTON",
+              "class": "new-entry-btn"
+            },
+            {
+              "tag": "DIV",
+              "class": "entry-list"
+            },
+            {
+              "tag": "DIV",
+              "class": "entry-item active"
+            },
+            {
+              "tag": "SPAN",
+              "class": "entry-mood"
+            },
+            {
+              "tag": "DIV",
+              "class": "entry-meta"
+            },
+            {
+              "tag": "SPAN",
+              "class": "entry-date"
+            },
+            {
+              "tag": "SPAN",
+              "class": "entry-preview"
+            },
+            {
+              "tag": "DIV",
+              "class": "entry-item"
+            },
+            {
+              "tag": "SPAN",
+              "class": "entry-mood"
+            },
+            {
+              "tag": "DIV",
+              "class": "entry-meta"
+            }
+          ]
+        },
+        {
+          "filename": "diary-390-entries.png",
+          "hash": "#/diary",
+          "viewportWidth": 390,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "overflowElements": [
+            {
+              "tag": "DIV",
+              "class": "sidebar-header"
+            },
+            {
+              "tag": "H3",
+              "class": ""
+            },
+            {
+              "tag": "BUTTON",
+              "class": "new-entry-btn"
+            },
+            {
+              "tag": "DIV",
+              "class": "entry-list"
+            },
+            {
+              "tag": "DIV",
+              "class": "entry-item active"
+            },
+            {
+              "tag": "SPAN",
+              "class": "entry-mood"
+            },
+            {
+              "tag": "DIV",
+              "class": "entry-meta"
+            },
+            {
+              "tag": "SPAN",
+              "class": "entry-date"
+            },
+            {
+              "tag": "SPAN",
+              "class": "entry-preview"
+            },
+            {
+              "tag": "DIV",
+              "class": "entry-item"
+            },
+            {
+              "tag": "SPAN",
+              "class": "entry-mood"
+            },
+            {
+              "tag": "DIV",
+              "class": "entry-meta"
+            }
+          ]
+        }
+      ],
+      "focus": {
+        "tag": "BUTTON",
+        "label": "📊 인사이트",
+        "outline": "solid"
+      },
+      "status": "captured"
+    },
+    {
+      "name": "todos",
+      "role": "member",
+      "width": 390,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/my-menu-permissions",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/todos/categories",
+          "status": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/audit/event",
+          "status": 204
+        },
+        {
+          "method": "GET",
+          "path": "/api/todos",
+          "status": 200
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "todos-390.png",
+          "hash": "#/todos",
+          "viewportWidth": 390,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "overflowElements": []
+        },
+        {
+          "filename": "todos-390-delete-dialog.png",
+          "hash": "#/todos",
+          "viewportWidth": 390,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "overflowElements": []
+        }
+      ],
+      "deleteDialogClosedByEscape": true,
+      "focus": {
+        "tag": "INPUT",
+        "label": "",
+        "outline": "solid"
+      },
+      "status": "captured"
+    },
+    {
+      "name": "stock",
+      "role": "member",
+      "width": 390,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/my-menu-permissions",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/portfolio/holdings",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/portfolio/isa/holdings",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/portfolio/general/holdings",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/portfolio/irp/holdings",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/stock/en-names",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/stock/krx-config",
+          "status": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/audit/event",
+          "status": 204
+        },
+        {
+          "method": "POST",
+          "path": "/api/audit/event",
+          "status": 204
+        },
+        {
+          "method": "GET",
+          "path": "/api/stock/quote",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/stock/quote",
+          "status": 200
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "stock-390.png",
+          "hash": "#/stock",
+          "viewportWidth": 390,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "overflowElements": []
+        }
+      ],
+      "focus": {
+        "tag": "A",
+        "label": "H.hyunchangPersonal workspace",
+        "outline": "solid"
+      },
+      "status": "captured"
+    },
+    {
+      "name": "travel",
+      "role": "member",
+      "width": 390,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/my-menu-permissions",
+          "status": 200
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "travel-390.png",
+          "hash": "#/travel",
+          "viewportWidth": 390,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "overflowElements": []
+        }
+      ],
+      "focus": {
+        "tag": "A",
+        "label": "H.hyunchangPersonal workspace",
+        "outline": "solid"
+      },
+      "status": "captured"
+    },
+    {
+      "name": "admin",
+      "role": "admin",
+      "width": 390,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/my-menu-permissions",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/admin/role-infos",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/admin/allowed-admins",
+          "status": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/audit/event",
+          "status": 204
+        },
+        {
+          "method": "GET",
+          "path": "/api/admin/users",
+          "status": 200
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "admin-390.png",
+          "hash": "#/admin/users",
+          "viewportWidth": 390,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "overflowElements": [
+            {
+              "tag": "DIV",
+              "class": "sidebar-header"
+            },
+            {
+              "tag": "DIV",
+              "class": "sidebar-brand"
+            },
+            {
+              "tag": "SPAN",
+              "class": "brand-icon"
+            },
+            {
+              "tag": "SPAN",
+              "class": "brand-text"
+            },
+            {
+              "tag": "BUTTON",
+              "class": "sidebar-close-btn"
+            },
+            {
+              "tag": "DIV",
+              "class": "sidebar-user-info"
+            },
+            {
+              "tag": "DIV",
+              "class": "user-avatar"
+            },
+            {
+              "tag": "DIV",
+              "class": "user-meta"
+            },
+            {
+              "tag": "SPAN",
+              "class": "user-name"
+            },
+            {
+              "tag": "SPAN",
+              "class": "user-role-badge"
+            },
+            {
+              "tag": "NAV",
+              "class": "sidebar-nav"
+            },
+            {
+              "tag": "P",
+              "class": "nav-section-label"
+            }
+          ]
+        },
+        {
+          "filename": "admin-390-sidebar.png",
+          "hash": "#/admin/users",
+          "viewportWidth": 390,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "overflowElements": []
+        },
+        {
+          "filename": "admin-390-create-dialog.png",
+          "hash": "#/admin/users",
+          "viewportWidth": 390,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "overflowElements": [
+            {
+              "tag": "DIV",
+              "class": "sidebar-header"
+            },
+            {
+              "tag": "DIV",
+              "class": "sidebar-brand"
+            },
+            {
+              "tag": "SPAN",
+              "class": "brand-icon"
+            },
+            {
+              "tag": "SPAN",
+              "class": "brand-text"
+            },
+            {
+              "tag": "BUTTON",
+              "class": "sidebar-close-btn"
+            },
+            {
+              "tag": "DIV",
+              "class": "sidebar-user-info"
+            },
+            {
+              "tag": "DIV",
+              "class": "user-avatar"
+            },
+            {
+              "tag": "DIV",
+              "class": "user-meta"
+            },
+            {
+              "tag": "SPAN",
+              "class": "user-name"
+            },
+            {
+              "tag": "SPAN",
+              "class": "user-role-badge"
+            },
+            {
+              "tag": "NAV",
+              "class": "sidebar-nav"
+            },
+            {
+              "tag": "P",
+              "class": "nav-section-label"
+            }
+          ]
+        }
+      ],
+      "sidebarOpenedWithKeyboard": true,
+      "sidebarTabWrap": true,
+      "sidebarTabFocus": {
+        "tag": "BUTTON",
+        "text": "✕",
+        "class": "sidebar-close-btn"
+      },
+      "sidebarEscapeReturnsFocus": true,
+      "focus": {
+        "tag": "BUTTON",
+        "label": "전체: 2명",
+        "outline": "solid"
+      },
+      "status": "captured"
+    },
+    {
+      "name": "subscription",
+      "role": "member",
+      "width": 1440,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/my-menu-permissions",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/subscriptions",
+          "status": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/audit/event",
+          "status": 204
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "subscription-1440.png",
+          "hash": "#/subscription",
+          "viewportWidth": 1440,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "overflowElements": []
+        }
+      ],
+      "focus": {
+        "tag": "A",
+        "label": "H.hyunchangPersonal workspace",
+        "outline": "solid"
+      },
+      "status": "captured"
+    },
+    {
+      "name": "subscription",
+      "role": "member",
+      "width": 390,
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/menus",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/my-menu-permissions",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/subscriptions",
+          "status": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/audit/event",
+          "status": 204
+        }
+      ],
+      "unexpectedRequests": [],
+      "blockedExternal": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/nanumSquareNeo/nanumSquareNeo.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet 'https://websfont.github.io/gmarket/gmarket.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+      ],
+      "pageErrors": [],
+      "checkpoints": [
+        {
+          "filename": "subscription-390.png",
+          "hash": "#/subscription",
+          "viewportWidth": 390,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "overflowElements": []
+        }
+      ],
+      "focus": {
+        "tag": "A",
+        "label": "H.hyunchangPersonal workspace",
+        "outline": "solid"
+      },
+      "status": "captured"
+    }
+  ]
+}

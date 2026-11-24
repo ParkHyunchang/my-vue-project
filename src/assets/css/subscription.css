@@ -4,7 +4,7 @@
    ========================================================== */
 
 .subscription-container {
-  max-width: 1200px;
+  max-width: var(--page-width);
   margin: 0 auto;
   padding: 24px;
 }
@@ -14,9 +14,10 @@
 .page-header h2 {
   margin: 0;
   color: var(--text-primary);
-  font-family: "Playfair Display", serif;
+  font-family: var(--font-heading);
+  font-weight: 700;
   font-size: 1.6rem;
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
 }
 
 .page-subtitle {
@@ -36,7 +37,7 @@
 .summary-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 10px;
+  border-radius: var(--radius-card);
   padding: 18px 20px;
   display: flex;
   flex-direction: column;
@@ -47,7 +48,7 @@
   font-size: 12px;
   color: var(--text-muted);
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
@@ -130,7 +131,7 @@
   display: flex;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
@@ -201,7 +202,7 @@
   font-weight: 600;
 }
 .status-badge.status-active   { background: rgba(106, 173, 106, 0.18); color: #8fce8f; }
-.status-badge.status-paused   { background: rgba(201, 169, 110, 0.18); color: var(--accent-light); }
+.status-badge.status-paused   { background: rgba(var(--accent-rgb), 0.18); color: var(--accent-light); }
 .status-badge.status-canceled { background: rgba(138, 133, 128, 0.18); color: var(--text-muted); }
 
 .sub-card-amount {
@@ -278,7 +279,7 @@
   color: var(--text-muted);
   font-size: 14px;
   border: 1px dashed var(--card-border);
-  border-radius: 10px;
+  border-radius: var(--radius-card);
 }
 
 .loading { padding: 40px; text-align: center; color: var(--text-muted); }
@@ -287,7 +288,7 @@
   background: var(--danger-bg);
   border: 1px solid var(--danger-color);
   color: var(--danger-color);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
 }
 
 /* ── 폼 모달 ─────────────────────────────────────────────── */
@@ -313,7 +314,7 @@
 .form-control {
   padding: 8px 12px;
   border: 1px solid var(--input-border);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   background: var(--input-bg);
   color: var(--input-text);
   font-size: 14px;
@@ -342,7 +343,7 @@
   padding: 6px 8px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 600;
@@ -366,7 +367,7 @@
   border: 1px solid var(--card-border);
   background: var(--card-bg);
   color: var(--text-secondary);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -391,7 +392,7 @@
   border: 1px solid var(--card-border);
   background: var(--card-bg);
   color: var(--text-secondary);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   font-size: 12px;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -505,7 +506,7 @@
 .insight-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 10px;
+  border-radius: var(--radius-card);
   padding: 18px;
 }
 .insight-card-header {
@@ -606,7 +607,7 @@
 .dup-alert {
   background: rgba(251, 191, 36, 0.08);
   border: 1px solid rgba(251, 191, 36, 0.35);
-  border-radius: 10px;
+  border-radius: var(--radius-card);
   padding: 14px 18px;
 }
 .dup-alert-header {
@@ -620,7 +621,7 @@
   font-size: 16px;
 }
 .dup-alert-title {
-  color: #fbbf24;
+  color: var(--warning-color);
   font-weight: 600;
   font-size: 14px;
 }
@@ -667,7 +668,7 @@
   font-size: 10px;
 }
 .dup-total {
-  color: #fbbf24;
+  color: var(--warning-color);
   font-weight: 600;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
@@ -701,3 +702,28 @@
     width: 100%;
   }
 }
+
+/* Subscription overview follows the shared workspace rhythm. */
+.subscription-container { padding: 32px; }
+.page-header h2 { font-size: clamp(1.5rem, 2.5vw, 1.85rem); letter-spacing: -0.035em; }
+.page-subtitle { font-size: 14px; line-height: 1.7; }
+.summary-card { border-radius: var(--radius-card); padding: 24px; gap: 10px; box-shadow: var(--card-shadow); }
+.summary-value { font-variant-numeric: tabular-nums; letter-spacing: -0.035em; }
+.filter-chip { min-height: 44px; border-radius: var(--radius-control); }
+@media (max-width: 640px) { .subscription-container { padding: 24px 16px; } .summary-card { padding: 20px; } }
+
+/* List, analytics and the create/edit form share one workspace language. */
+.sub-card, .insight-card { border-radius: var(--radius-card); box-shadow: var(--card-shadow); }
+.sub-card-body, .insight-card { padding: 22px; }
+.insight-title { font-size: 1rem; }
+.subscription-form { gap: 20px; }
+.subscription-form .form-control, .quick-add-btns .quick-btn, .segment-btn, .category-option { min-height: var(--control-height); border-radius: var(--radius-control); }
+.subscription-form .form-group label { font-size: 13px; }
+.quick-add-btns, .segment-group { flex-wrap: wrap; }
+.color-dot { width: 44px; height: 44px; }
+.modal-footer-buttons { gap: 12px; flex-wrap: wrap; }
+.status-badge.status-active { background: var(--success-bg); color: var(--success-color); }
+.status-badge.status-paused, .dday-chip.dday-soon { background: var(--warning-bg); color: var(--warning-color); }
+.status-badge.status-canceled, .dday-chip.dday-mute { background: var(--surface-2); color: var(--text-muted); }
+.dday-chip.dday-urgent, .dday-chip.dday-overdue { background: var(--danger-bg); color: var(--danger-color); }
+@media (max-width: 640px) { .sub-card-body, .insight-card { padding: 18px; } .subscription-form .form-row { grid-template-columns: 1fr; } .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

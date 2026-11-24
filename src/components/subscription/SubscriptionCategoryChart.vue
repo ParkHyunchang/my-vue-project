@@ -102,7 +102,7 @@
 import { ref, computed } from 'vue';
 
 const PALETTE = [
-  '#c9a96e', '#7ec4cf', '#a78bfa', '#fbbf24', '#f97316',
+  '#76d9c3', '#7ec4cf', '#a78bfa', '#fbbf24', '#f97316',
   '#34d399', '#f472b6', '#60a5fa', '#facc15', '#e879f9',
 ];
 

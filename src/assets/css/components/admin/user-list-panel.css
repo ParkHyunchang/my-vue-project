@@ -5,7 +5,7 @@
 }
 .btn-refresh {
   padding: 7px 14px;
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   border: 1px solid var(--card-border);
   background: var(--card-bg);
   color: var(--text-muted);
@@ -22,3 +22,5 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.btn-refresh { min-height: var(--control-height); border-radius: var(--radius-control); }

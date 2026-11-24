@@ -1,6 +1,6 @@
 .sj-form {
   border: 1px solid var(--card-border);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   background: var(--card-bg);
   padding: 18px;
   margin-bottom: 16px;
@@ -10,7 +10,7 @@
   display: block; font-size: 13px; font-weight: 600;
   color: var(--text-muted); margin-bottom: 6px;
 }
-.sj-req { color: #ef4444; }
+.sj-req { color: var(--danger-color); }
 .sj-opt { font-weight: 400; font-size: 11px; opacity: 0.7; }
 .sj-row input[type="text"],
 .sj-row input[type="date"],
@@ -20,7 +20,7 @@
   width: 100%; box-sizing: border-box;
   padding: 9px 11px;
   border: 1px solid var(--input-border);
-  border-radius: 7px;
+  border-radius: var(--radius-control);
   background: var(--input-bg);
   color: var(--input-text);
   font-size: 14px;
@@ -35,7 +35,7 @@
 .sj-toggle-btn {
   padding: 5px 10px; border: 1px solid var(--input-border);
   background: var(--input-bg); color: var(--text-muted);
-  border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+  border-radius: var(--radius-control); font-size: 12px; font-weight: 600; cursor: pointer;
 }
 .sj-toggle-btn.active { background: var(--accent); border-color: var(--accent); color: var(--text-on-accent); }
 .sj-toggle-btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -48,31 +48,31 @@
 
 .sj-submit-btn {
   width: 100%; margin-top: 4px;
-  padding: 12px; border: none; border-radius: 8px;
+  padding: 12px; border: none; border-radius: var(--radius-control);
   background: var(--accent); color: var(--text-on-accent); font-size: 15px; font-weight: 700; cursor: pointer;
 }
 .sj-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .sj-error,
 .sj-notfound {
-  padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 13px;
-  background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #f5a3a3;
+  padding: 10px 14px; border-radius: var(--radius-control); margin-bottom: 14px; font-size: 13px;
+  background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--danger-color);
 }
 .sj-hint { padding: 30px; text-align: center; color: var(--text-muted); font-size: 14px; }
 
 .sj-result {
   border: 1px solid var(--card-border);
-  border-radius: 12px; background: var(--card-bg); padding: 18px;
+  border-radius: var(--radius-card); background: var(--card-bg); padding: 18px;
 }
 
 .sj-blocked {
-  padding: 12px 16px; border-radius: 8px; margin-bottom: 14px; font-size: 13px;
-  background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.4); color: #fbbf24;
+  padding: 12px 16px; border-radius: var(--radius-control); margin-bottom: 14px; font-size: 13px;
+  background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.4); color: var(--warning-color);
 }
 
 .sj-solar-conv {
   margin: 0 0 12px; font-size: 12px; color: var(--text-muted);
-  padding: 6px 10px; border-radius: 6px; background: var(--input-bg); display: inline-block;
+  padding: 6px 10px; border-radius: var(--radius-control); background: var(--input-bg); display: inline-block;
 }
 .sj-meta { margin: 14px 0 0; font-size: 11px; color: var(--text-muted); text-align: right; }
 .sj-disclaimer {
@@ -83,3 +83,14 @@
 @media (max-width: 560px) {
   .sj-grid { grid-template-columns: 1fr; }
 }
+
+.sj-form, .sj-result { padding: 24px; border-radius: var(--radius-card); }
+.sj-row { margin-bottom: 20px; }
+.sj-row label { color: var(--text-secondary); }
+.sj-row input:not([type="checkbox"]), .sj-row select { min-height: var(--control-height); }
+.sj-row input[type="checkbox"] { accent-color: var(--accent); }
+.sj-toggle-btn, .sj-submit-btn { min-height: var(--control-height); border-radius: var(--radius-control); }
+.sj-toggle-btn.active { background: var(--accent-dim); border-color: var(--accent-glow); color: var(--accent); }
+.sj-hint { border: 1px dashed var(--card-border-strong); border-radius: var(--radius-card); background: var(--surface); line-height: 1.8; }
+.sj-disclaimer { line-height: 1.8; }
+@media (max-width: 640px) { .sj-form, .sj-result { padding: 18px; } .sj-grid { grid-template-columns: 1fr; } }

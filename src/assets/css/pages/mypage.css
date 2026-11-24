@@ -10,7 +10,7 @@
 .mypage-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border-strong);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
   width: 100%;
   max-width: 460px;
@@ -30,7 +30,7 @@
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), #8a6030);
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   color: var(--text-on-accent);
   font-size: 22px;
   font-weight: 700;
@@ -43,7 +43,8 @@
 
 .mypage-title {
   font-size: 20px;
-  font-family: "Playfair Display", serif;
+  font-family: var(--font-heading);
+  font-weight: 700;
   color: var(--accent);
   margin: 0 0 4px;
 }
@@ -53,7 +54,7 @@
   color: var(--text-muted);
   margin: 0;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0;
 }
 
 .mypage-form .form-group {
@@ -67,7 +68,7 @@
   font-weight: 600;
   font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0;
 }
 
 .mypage-form input {
@@ -76,7 +77,7 @@
   background: var(--input-bg);
   border: 1px solid var(--input-border);
   color: var(--input-text);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   font-size: 14px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   box-sizing: border-box;
@@ -116,7 +117,7 @@
   background: transparent;
   border: 1px solid var(--card-border-strong);
   color: var(--text-muted);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -131,19 +132,19 @@
 .btn-submit {
   flex: 2;
   padding: 11px;
-  background: linear-gradient(135deg, var(--accent) 0%, #b8924a 100%);
+  background: var(--accent);
   color: var(--text-on-accent);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.25s ease;
-  box-shadow: 0 2px 8px rgba(201, 169, 110, 0.2);
+  box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.2);
 }
 
 .btn-submit:hover:not(:disabled) {
-  box-shadow: 0 4px 14px rgba(201, 169, 110, 0.35);
+  box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.35);
 }
 
 .btn-submit:disabled {
@@ -153,4 +154,19 @@
 
 @media (max-width: 480px) {
   .mypage-card { padding: 24px 20px; }
+}
+
+.mypage-card { border-radius: var(--radius-panel); box-shadow: var(--card-shadow); border-color: var(--card-border); }
+.mypage-title { color: var(--text-primary); letter-spacing: -0.03em; }
+
+/* Account forms follow the common control scale. */
+button, input:not([type="checkbox"]):not([type="radio"]), select { min-height: var(--control-height); border-radius: var(--radius-control); }
+button { box-shadow: none; }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.form-actions { flex-wrap: wrap; }
+.link-btn { padding: 10px 4px; }
+.login-btn:hover:not(:disabled), .register-btn:hover:not(:disabled), .btn-submit:hover:not(:disabled) { background: var(--accent-light); box-shadow: none; transform: none; }
+@media (max-width: 480px) {
+  .mypage-wrap, .change-password-wrap { padding: 24px 16px; }
+  .form-actions > button { min-width: 100px; }
 }

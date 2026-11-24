@@ -10,8 +10,8 @@
 
 /* ---- 얇은 커스텀 스크롤바 공통 (페이지/textarea/pre/사이드바 등) ---- */
 :root {
-  --scrollbar-thumb: #3a3a48;
-  --scrollbar-thumb-hover: #4a4a5a;
+  --scrollbar-thumb: #405772;
+  --scrollbar-thumb-hover: #59738e;
   --scrollbar-track: transparent;
 }
 
@@ -36,7 +36,7 @@ html::-webkit-scrollbar-thumb,
 body::-webkit-scrollbar-thumb,
 .thin-scrollbar::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   border: 2px solid transparent;
   background-clip: content-box;
 }
@@ -71,9 +71,9 @@ body::-webkit-scrollbar-track,
 }
 
 .amodal-box {
-  background: #16161f;
-  border: 1px solid #2f2f3d;
-  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-card);
   width: 100%;
   max-width: 720px;
   height: min(82vh, 780px);
@@ -90,14 +90,14 @@ body::-webkit-scrollbar-track,
   align-items: flex-start;
   gap: 1rem;
   padding: 1.1rem 1.25rem;
-  border-bottom: 1px solid #2a2a36;
+  border-bottom: 1px solid var(--card-border);
   flex-shrink: 0;
 }
 
 .amodal-head h2 {
   font-size: 1.12rem;
   font-weight: 600;
-  color: #f0ece4;
+  color: var(--text-primary);
   margin: 0 0.6rem 0 0;
   display: inline;
 }
@@ -105,17 +105,17 @@ body::-webkit-scrollbar-track,
 .amodal-close {
   background: none;
   border: none;
-  color: #888;
+  color: var(--text-muted);
   font-size: 1.15rem;
   cursor: pointer;
   padding: 0.2rem 0.45rem;
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   line-height: 1;
 }
 
 .amodal-close:hover {
-  color: #f0ece4;
-  background: #2a2a36;
+  color: var(--text-primary);
+  background: var(--card-border);
 }
 
 .amodal-badge {
@@ -127,13 +127,13 @@ body::-webkit-scrollbar-track,
 }
 
 .amodal-badge-on {
-  color: #9d92ff;
-  background: rgba(124, 111, 255, 0.16);
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.16);
 }
 
 .amodal-badge-off {
-  color: #999;
-  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-muted);
+  background: rgba(var(--text-rgb), 0.07);
 }
 
 .amodal-body {
@@ -146,7 +146,7 @@ body::-webkit-scrollbar-track,
 }
 
 .amodal-desc {
-  color: #999;
+  color: var(--text-muted);
   font-size: 0.83rem;
   margin: 0 0 0.9rem;
   line-height: 1.5;
@@ -161,12 +161,12 @@ body::-webkit-scrollbar-track,
 
 .amodal-section-label {
   font-size: 0.78rem;
-  color: #aaa;
+  color: var(--text-secondary);
   margin: 0 0 0.5rem;
 }
 
 .amodal-hint {
-  color: #666;
+  color: var(--text-muted);
   font-weight: 400;
 }
 
@@ -179,17 +179,17 @@ body::-webkit-scrollbar-track,
 .amodal-chip {
   font-family: monospace;
   font-size: 0.78rem;
-  color: #9d92ff;
-  background: rgba(124, 111, 255, 0.1);
-  border: 1px solid rgba(124, 111, 255, 0.25);
-  border-radius: 6px;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.1);
+  border: 1px solid rgba(var(--accent-rgb), 0.25);
+  border-radius: var(--radius-control);
   padding: 0.25rem 0.5rem;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .amodal-chip:hover {
-  background: rgba(124, 111, 255, 0.22);
+  background: rgba(var(--accent-rgb), 0.22);
 }
 
 /* ---- 코드/텍스트 편집 영역 (본문을 채우고 자체 스크롤) ---- */
@@ -198,10 +198,10 @@ body::-webkit-scrollbar-track,
   width: 100%;
   min-height: 120px;
   resize: none;
-  background: #0e0e15;
-  border: 1px solid #2f2f3d;
-  border-radius: 10px;
-  color: #ddd;
+  background: var(--input-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-control);
+  color: var(--text-primary);
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   font-size: 0.82rem;
   line-height: 1.6;
@@ -212,14 +212,14 @@ body::-webkit-scrollbar-track,
 
 .amodal-textarea:focus {
   outline: none;
-  border-color: #7c6fff;
+  border-color: var(--accent);
 }
 
 .amodal-error {
-  color: #ffab91;
-  background: rgba(255, 112, 67, 0.1);
-  border: 1px solid rgba(255, 112, 67, 0.3);
-  border-radius: 8px;
+  color: var(--danger-color);
+  background: rgba(255, 147, 157, 0.1);
+  border: 1px solid rgba(255, 147, 157, 0.3);
+  border-radius: var(--radius-control);
   padding: 0.55rem 0.7rem;
   font-size: 0.82rem;
   margin-top: 0.6rem;
@@ -229,12 +229,12 @@ body::-webkit-scrollbar-track,
 
 /* 안내 배너 */
 .amodal-note {
-  background: rgba(124, 111, 255, 0.08);
-  border: 1px solid rgba(124, 111, 255, 0.22);
-  border-radius: 8px;
+  background: rgba(var(--accent-rgb), 0.08);
+  border: 1px solid rgba(var(--accent-rgb), 0.22);
+  border-radius: var(--radius-control);
   padding: 0.6rem 0.75rem;
   font-size: 0.8rem;
-  color: #b9b2e6;
+  color: var(--text-secondary);
   line-height: 1.55;
   margin-bottom: 0.85rem;
   flex-shrink: 0;
@@ -251,14 +251,14 @@ body::-webkit-scrollbar-track,
 
 .amodal-tools-note {
   font-size: 0.76rem;
-  color: #c9a227;
+  color: var(--warning-color);
 }
 
 /* ---- 접이식 미리보기(기본값 등) ---- */
 .amodal-preview {
   margin-top: 0.7rem;
-  border: 1px solid #2a2a36;
-  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-control);
   overflow: hidden;
   flex: 0 1 auto;
   min-height: 0;
@@ -270,9 +270,9 @@ body::-webkit-scrollbar-track,
   margin: 0;
   padding: 0.45rem 0.7rem;
   font-size: 0.76rem;
-  color: #888;
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid #2a2a36;
+  color: var(--text-muted);
+  background: rgba(var(--text-rgb), 0.03);
+  border-bottom: 1px solid var(--card-border);
   flex-shrink: 0;
 }
 
@@ -284,7 +284,7 @@ body::-webkit-scrollbar-track,
   overflow: auto;
   font-size: 0.78rem;
   line-height: 1.55;
-  color: #aaa;
+  color: var(--text-secondary);
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -309,7 +309,7 @@ body::-webkit-scrollbar-track,
 
 .amodal-field > label {
   font-size: 0.84rem;
-  color: #ccc;
+  color: var(--text-secondary);
   line-height: 1.45;
   cursor: pointer;
 }
@@ -317,16 +317,16 @@ body::-webkit-scrollbar-track,
 .amodal-field-hint {
   display: block;
   font-size: 0.74rem;
-  color: #777;
+  color: var(--text-muted);
 }
 
 .amodal-input {
   width: 140px;
   flex-shrink: 0;
-  background: #0e0e15;
-  border: 1px solid #2f2f3d;
-  border-radius: 8px;
-  color: #ddd;
+  background: var(--input-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-control);
+  color: var(--text-primary);
   font-size: 0.85rem;
   padding: 0.45rem 0.6rem;
   box-sizing: border-box;
@@ -335,14 +335,14 @@ body::-webkit-scrollbar-track,
 
 .amodal-input:focus {
   outline: none;
-  border-color: #7c6fff;
+  border-color: var(--accent);
 }
 
 .amodal-check {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
-  accent-color: #7c6fff;
+  accent-color: var(--accent);
   cursor: pointer;
 }
 
@@ -353,7 +353,7 @@ body::-webkit-scrollbar-track,
   align-items: center;
   gap: 1rem;
   padding: 0.9rem 1.25rem;
-  border-top: 1px solid #2a2a36;
+  border-top: 1px solid var(--card-border);
   flex-shrink: 0;
   flex-wrap: wrap;
 }
@@ -366,7 +366,7 @@ body::-webkit-scrollbar-track,
 
 .amodal-btn {
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
@@ -381,31 +381,31 @@ body::-webkit-scrollbar-track,
 
 .amodal-btn-ghost {
   background: transparent;
-  color: #aaa;
-  border: 1px solid #383844;
+  color: var(--text-secondary);
+  border: 1px solid var(--card-border-strong);
 }
 
 .amodal-btn-ghost:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(var(--text-rgb), 0.04);
 }
 
 .amodal-btn-danger {
   background: transparent;
-  color: #e57373;
-  border: 1px solid rgba(229, 115, 115, 0.4);
+  color: var(--danger-color);
+  border: 1px solid rgba(255, 147, 157, 0.4);
 }
 
 .amodal-btn-danger:hover:not(:disabled) {
-  background: rgba(229, 115, 115, 0.1);
+  background: rgba(255, 147, 157, 0.1);
 }
 
 .amodal-btn-primary {
-  background: #7c6fff;
-  color: #fff;
+  background: var(--accent);
+  color: var(--text-on-accent);
 }
 
 .amodal-btn-primary:hover:not(:disabled) {
-  background: #6a5df0;
+  background: var(--accent-light);
 }
 
 @media (max-width: 640px) {
@@ -419,4 +419,34 @@ body::-webkit-scrollbar-track,
     height: calc(100vh - 1.5rem);
     height: calc(100dvh - 1.5rem);
   }
+}
+
+.amodal-box { border-radius: var(--radius-panel); background: var(--surface); }
+.amodal-head { padding: 20px 24px; }
+.amodal-close { min-width: 44px; min-height: 44px; color: var(--text-muted); }
+.amodal-desc, .amodal-hint, .amodal-section-label { color: var(--text-muted); }
+
+/* Mint editor surfaces; readable labels and controls at every screen size. */
+.amodal-overlay { z-index: 10010; }
+.amodal-box { box-shadow: var(--card-shadow); }
+.amodal-body { overflow-y: auto; }
+.amodal-head h2 { font-weight: 700; letter-spacing: -0.025em; }
+.amodal-close, .amodal-btn, .amodal-chip, .amodal-input { min-height: var(--control-height); border-radius: var(--radius-control); }
+.amodal-btn { padding: 10px 16px; }
+.amodal-close { flex-shrink: 0; }
+.amodal-input, .amodal-textarea { border-color: var(--input-border); }
+.amodal-btn-primary { color: var(--text-on-accent); }
+.amodal-badge-on, .amodal-chip { background: var(--accent-dim); color: var(--accent); }
+.amodal-note { background: var(--accent-dim); color: var(--text-secondary); border-color: var(--card-border-strong); }
+.amodal-tools-note { color: var(--warning-color); }
+.amodal-preview-pre { min-height: 80px; }
+.amodal-btn:focus-visible, .amodal-chip:focus-visible, .amodal-close:focus-visible, .amodal-input:focus-visible, .amodal-textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 640px) {
+  .amodal-head, .amodal-body, .amodal-foot { padding: 16px; }
+  .amodal-head { gap: 8px; }
+  .amodal-foot { gap: 12px; }
+  .amodal-foot > .amodal-btn-danger, .amodal-foot-right { width: 100%; }
+  .amodal-foot-right .amodal-btn { flex: 1; }
+  .amodal-field { align-items: stretch; flex-direction: column; gap: 8px; }
+  .amodal-input { width: 100%; text-align: left; }
 }

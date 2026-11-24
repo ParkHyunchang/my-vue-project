@@ -1,0 +1,247 @@
+{
+  "note": "Synthetic fixtures only; external assets blocked; no writes. Inspect screenshots separately.",
+  "results": [
+    {
+      "name": "subscription",
+      "route": "/subscription",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "subscription-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 529
+        },
+        {
+          "file": "subscription-1440-form.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 529
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-role-management",
+      "route": "/admin/role-management",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-role-management-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 458
+        },
+        {
+          "file": "admin-role-management-1440-form.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 523
+        },
+        {
+          "file": "admin-role-management-1440-edit.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 560
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-career",
+      "route": "/admin/career",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-career-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 412
+        },
+        {
+          "file": "admin-career-1440-form.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 412
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-experience",
+      "route": "/admin/experience",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-experience-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 363
+        },
+        {
+          "file": "admin-experience-1440-form.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 363
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-portfolio-skill",
+      "route": "/admin/portfolio-skill",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-portfolio-skill-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 660
+        },
+        {
+          "file": "admin-portfolio-skill-1440-form.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 660
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "subscription",
+      "route": "/subscription",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "subscription-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 529
+        },
+        {
+          "file": "subscription-390-form.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 529
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-role-management",
+      "route": "/admin/role-management",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-role-management-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 458
+        },
+        {
+          "file": "admin-role-management-390-form.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 523
+        },
+        {
+          "file": "admin-role-management-390-edit.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 560
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-career",
+      "route": "/admin/career",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-career-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 412
+        },
+        {
+          "file": "admin-career-390-form.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 412
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-experience",
+      "route": "/admin/experience",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-experience-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 363
+        },
+        {
+          "file": "admin-experience-390-form.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 363
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-portfolio-skill",
+      "route": "/admin/portfolio-skill",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-portfolio-skill-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 660
+        },
+        {
+          "file": "admin-portfolio-skill-390-form.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 660
+        }
+      ],
+      "status": "captured"
+    }
+  ]
+}

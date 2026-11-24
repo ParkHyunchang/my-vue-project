@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="home-page">
     <div id="skip">
       <a
         href="#header"
@@ -41,25 +41,75 @@
         class="hero-section"
       >
         <div class="hero__inner">
-          <span class="hero__eyebrow">AI Web Developer</span>
-          <h1 class="hero__title">
-            Building Ideas<br><span class="highlight">Into Reality.</span>
-          </h1>
-          <p class="hero__subtitle">
-            Full Stack · Spring Boot · Vue.js
-          </p>
-          <div class="hero__buttons">
-            <a
-              href="#skill"
-              class="btn btn-primary"
-              @click.prevent="scrollToSection('skill')"
-            >경력 보기</a>
-            <a
-              href="#contact"
-              class="btn btn-secondary"
-              @click.prevent="scrollToSection('contact')"
-            >연락하기</a>
+          <div class="hero__copy">
+            <span class="hero__eyebrow">HYUNCHANG · DEVELOPER</span>
+            <h1 class="hero__title">
+              아이디어를 만들고,<br><span class="highlight">일상에 연결합니다.</span>
+            </h1>
+            <p class="hero__subtitle">
+              웹 개발부터 일상의 기록까지.<br>
+              직접 만들고, 사용하며, 조금씩 더 나은 경험을 쌓아갑니다.
+            </p>
+            <div class="hero__buttons">
+              <a
+                href="#skill"
+                class="btn btn-primary"
+                @click.prevent="scrollToSection('skill')"
+              >경력 살펴보기 <span aria-hidden="true">↗</span></a>
+              <a
+                href="#contact"
+                class="btn btn-secondary"
+                @click.prevent="scrollToSection('contact')"
+              >연락하기</a>
+            </div>
+            <ul
+              class="hero__stack"
+              aria-label="개발 기술"
+            >
+              <li>Vue.js</li>
+              <li>Spring Boot</li>
+              <li>AI</li>
+            </ul>
           </div>
+          <aside
+            class="hero__workspace"
+            aria-label="이 공간의 구성"
+          >
+            <div class="workspace__heading">
+              <span
+                class="workspace__mark"
+                aria-hidden="true"
+              >H.</span>
+              <div>
+                <p class="workspace__eyebrow">
+                  PERSONAL WORKSPACE
+                </p>
+                <h2>만들고, 기록하고, 연결하기</h2>
+              </div>
+            </div>
+            <div class="workspace__row">
+              <span class="workspace__number">01</span>
+              <div><h3>개발과 프로젝트</h3><p>경력, 경험, 그리고 직접 만든 웹 서비스</p></div>
+            </div>
+            <div class="workspace__row">
+              <span class="workspace__number">02</span>
+              <div><h3>일상의 기록</h3><p>할 일과 일기, 여행을 모아두는 공간</p></div>
+            </div>
+            <div class="workspace__row">
+              <span class="workspace__number">03</span>
+              <div><h3>자산과 생활 관리</h3><p>주식과 부동산, 구독을 한곳에서 관리</p></div>
+            </div>
+            <p class="workspace__note">
+              개인 도구는 로그인 후 권한에 따라 이용할 수 있습니다.
+            </p>
+          </aside>
+        </div>
+        <div class="hero__footer">
+          <span>작은 아이디어에서 시작하는 더 나은 일상</span>
+          <a
+            href="#site"
+            @click.prevent="scrollToSection('site')"
+          >만든 프로젝트 보기 <span aria-hidden="true">↓</span></a>
         </div>
       </section>
 
@@ -69,11 +119,12 @@
         class="about-section"
       >
         <div class="about__inner">
-          <h2 class="about__title">
-            About Me
-          </h2>
-          <div class="section-divider" />
-          <span class="section-sub">Who I Am</span>
+          <div class="home-section-heading">
+            <span class="section-sub">ABOUT ME</span>
+            <h2 class="about__title">
+              꾸준히 만들며<br>배우는 개발자
+            </h2>
+          </div>
           <div class="about__content">
             <div class="about__philosophy">
               <p>아이디어가 코드가 되고, 코드가 쌓여 무언가가 완성될 때 가장 보람을 느낍니다. 그 작은 순간들이 모여 개발을 계속하게 만드는 이유가 됩니다.</p>
@@ -104,8 +155,11 @@
         class="port-section"
       >
         <div class="port__wrap-sticky">
-          <div class="port__title">
-            Portfolio
+          <div class="home-section-heading">
+            <span class="section-sub">TOOLKIT</span>
+            <h2 class="port__title">
+              프로젝트를 만드는 기술
+            </h2>
           </div>
           <div
             v-if="sectionState.portfolio.loading"
@@ -169,7 +223,6 @@
 </template>
 
 <script>
-import { port } from '@/assets/js/port.js';
 import axios from '@/axios';
 import { apiErrorMessage } from '@/utils/apiError';
 import CareerSection from '@/components/home/CareerSection.vue';
@@ -192,7 +245,6 @@ export default {
       careers: [],
       experiences: [],
       portfolioSkills: [],
-      portfolioScrollReady: false,
       sectionState: {
         career: {
           loading: true,
@@ -211,7 +263,6 @@ export default {
   },
   async mounted() {
     await this.loadAll();
-    this.initPortfolioScroll();
   },
   methods: {
     async loadAll() {
@@ -257,14 +308,6 @@ export default {
         data => { this.portfolioSkills = data; },
         '포트폴리오 정보를 불러오지 못했습니다.'
       );
-      this.initPortfolioScroll();
-    },
-    initPortfolioScroll() {
-      if (this.portfolioScrollReady || this.portfolioSkills.length === 0) return;
-      this.portfolioScrollReady = true;
-      this.$nextTick(() => {
-        port();
-      });
     },
     parseJson(json) {
       try { return JSON.parse(json) || []; } catch { return []; }
@@ -272,12 +315,14 @@ export default {
     scrollToSection(id) {
       const el = document.getElementById(id);
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        el.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' });
+        if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
+        el.focus({ preventScroll: true });
       }
     },
   },
 };
 </script>
 
-<style src="@/assets/css/style.css"></style>
 <style src="@/assets/css/home.css"></style>

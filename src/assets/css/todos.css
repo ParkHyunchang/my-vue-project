@@ -41,7 +41,7 @@
   margin-bottom: 16px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 10px;
+  border-radius: var(--radius-card);
 }
 .todos-search {
   width: 100%;
@@ -173,7 +173,7 @@
 .todo-badge {
   font-size: 11px;
   padding: 2px 8px;
-  border-radius: 10px;
+  border-radius: var(--radius-card);
   background: var(--surface);
   color: var(--text-secondary);
   border: 1px solid var(--card-border);
@@ -246,7 +246,7 @@
   background: var(--input-bg);
   color: var(--input-text);
   border: 1px solid var(--input-border);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   padding: 8px 10px;
   width: 100%;
 }
@@ -388,3 +388,24 @@
     padding: 6px 10px;
   }
 }
+
+.todos-header { margin-bottom: 24px; flex-wrap: wrap; }
+.todos-header h2 { font-size: clamp(1.5rem, 2.5vw, 1.85rem); font-weight: 700; letter-spacing: -0.035em; }
+.todos-toolbar { padding: 20px; gap: 16px; border-radius: var(--radius-card); }
+.tfg-btn { min-height: 36px; padding: 6px 12px; border-radius: var(--radius-control); }
+@media (max-width: 640px) { .todos-toolbar { padding: 16px; } .tfg-btn { min-height: 44px; } }
+
+/* List and create/edit pages use the same form rhythm. */
+.tfg-btn, .tfg-select, .todo-del { min-height: var(--control-height); }
+.todo-row { padding: 18px; border: 1px solid var(--card-border); border-radius: var(--radius-card); background: var(--surface); margin-bottom: 10px; }
+.todo-del { padding-inline: 12px; border-radius: var(--radius-control); }
+.todo-title { overflow-wrap: anywhere; line-height: 1.7; }
+.todo-editor-header { margin-bottom: 28px; }
+.todo-editor-header h1 { font-size: clamp(1.5rem, 2.5vw, 1.85rem); font-weight: 700; letter-spacing: -0.035em; color: var(--text-primary); }
+.todo-editor-header p { margin-top: 8px; font-size: 14px; color: var(--text-muted); line-height: 1.7; }
+.todo-form { padding: 28px; border: 1px solid var(--card-border); border-radius: var(--radius-card); background: var(--surface); }
+.todo-form .form-group { margin-bottom: 20px; }
+.todo-form .form-control, .todo-form input[type="text"] { min-height: var(--control-height); border-radius: var(--radius-control); }
+.todo-form .date-input { padding-right: 86px; }
+.date-wrap .date-clear { width: 44px; height: var(--control-height); right: 34px; border-radius: var(--radius-control); }
+@media (max-width: 640px) { .todo-form { padding: 18px; } .todo-row { padding: 14px; } .todos-sort { flex-wrap: wrap; justify-content: flex-start; } }

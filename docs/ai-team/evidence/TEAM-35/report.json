@@ -1,0 +1,1603 @@
+{
+  "note": "Synthetic fixtures only; external assets blocked; no writes. Inspect screenshots separately.",
+  "results": [
+    {
+      "name": "home",
+      "route": "/",
+      "role": "guest",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "home-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 1670
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "login",
+      "route": "/login",
+      "role": "guest",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "login-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 46
+        },
+        {
+          "file": "login-1440-register.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 48
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "portfolio",
+      "route": "/portfolio",
+      "role": "guest",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "portfolio-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 158
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "projects",
+      "route": "/projects",
+      "role": "guest",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "projects-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 422
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "history",
+      "route": "/history",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "history-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 103
+        },
+        {
+          "file": "history-1440-form.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 103
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "dating",
+      "route": "/dating",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "dating-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 96
+        },
+        {
+          "file": "dating-1440-form.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 96
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "todos",
+      "route": "/todos",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "todos-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 194
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "todo-create",
+      "route": "/todos/create",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "todo-create-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 81
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "todo-detail",
+      "route": "/todos/1",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "todo-detail-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 89
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "subscription",
+      "route": "/subscription",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "subscription-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 529
+        },
+        {
+          "file": "subscription-1440-form.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 529
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "diary",
+      "route": "/diary",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "diary-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 215
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "chat",
+      "route": "/chat",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "chat-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 94
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "mypage",
+      "route": "/mypage",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "mypage-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 51
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "change-password",
+      "route": "/change-password",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "change-password-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 67
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-users",
+      "route": "/admin/users",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-users-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 481
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-menu-management",
+      "route": "/admin/menu-management",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-menu-management-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 1213
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-role-management",
+      "route": "/admin/role-management",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-role-management-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 458
+        },
+        {
+          "file": "admin-role-management-1440-form.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 523
+        },
+        {
+          "file": "admin-role-management-1440-edit.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 560
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-menu-definition",
+      "route": "/admin/menu-definition",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-menu-definition-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 1638
+        },
+        {
+          "file": "admin-menu-definition-1440-form.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 2176
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-prompt-management",
+      "route": "/admin/prompt-management",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-prompt-management-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 212
+        },
+        {
+          "file": "admin-prompt-management-1440-editor.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 212
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-chat-history",
+      "route": "/admin/chat-history",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-chat-history-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 211
+        },
+        {
+          "file": "admin-chat-history-1440-messages.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 364
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-career",
+      "route": "/admin/career",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-career-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 412
+        },
+        {
+          "file": "admin-career-1440-form.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 412
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-experience",
+      "route": "/admin/experience",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-experience-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 363
+        },
+        {
+          "file": "admin-experience-1440-form.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 363
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-portfolio-skill",
+      "route": "/admin/portfolio-skill",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-portfolio-skill-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 660
+        },
+        {
+          "file": "admin-portfolio-skill-1440-form.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 660
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "stock-all",
+      "route": "/stock?tab=all",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "stock-all-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 2298
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "stock-stock",
+      "route": "/stock?tab=stock",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "stock-stock-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 2319
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "stock-general",
+      "route": "/stock?tab=general",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "stock-general-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 2265
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "stock-isa",
+      "route": "/stock?tab=isa",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "stock-isa-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 2199
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "stock-irp",
+      "route": "/stock?tab=irp",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "stock-irp-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 2199
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "stock-heatmap",
+      "route": "/stock?tab=heatmap",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "stock-heatmap-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 2223
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "stock-top10",
+      "route": "/stock?tab=top10",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "stock-top10-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 2191
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "stock-news",
+      "route": "/stock?tab=news",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "stock-news-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 2232
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "stock-auto-trade",
+      "route": "/stock?tab=auto-trade",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "stock-auto-trade-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 2771
+        },
+        {
+          "file": "stock-auto-trade-1440-us.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 8392
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "realestate-search",
+      "route": "/realestate?tab=search",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "realestate-search-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 190
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "realestate-holdings",
+      "route": "/realestate?tab=holdings",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "realestate-holdings-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 275
+        },
+        {
+          "file": "realestate-holdings-1440-form.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 275
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "realestate-news",
+      "route": "/realestate?tab=news",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "realestate-news-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 236
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "travel-planner",
+      "route": "/travel?tab=planner",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "travel-planner-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 545
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "travel-itinerary",
+      "route": "/travel?tab=itinerary",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "travel-itinerary-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 554
+        },
+        {
+          "file": "travel-itinerary-1440-form.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 554
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "travel-visited",
+      "route": "/travel?tab=visited",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "travel-visited-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 619
+        },
+        {
+          "file": "travel-visited-1440-form.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 619
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "travel-wishlist",
+      "route": "/travel?tab=wishlist",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "travel-wishlist-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 581
+        },
+        {
+          "file": "travel-wishlist-1440-form.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 581
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "saju-view",
+      "route": "/saju?tab=view",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "saju-view-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 192
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "saju-saved",
+      "route": "/saju?tab=saved",
+      "role": "admin",
+      "width": 1440,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "saju-saved-1440.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "content": 196
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "home",
+      "route": "/",
+      "role": "guest",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "home-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 1670
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "login",
+      "route": "/login",
+      "role": "guest",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "login-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 46
+        },
+        {
+          "file": "login-390-register.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 48
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "portfolio",
+      "route": "/portfolio",
+      "role": "guest",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "portfolio-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 158
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "projects",
+      "route": "/projects",
+      "role": "guest",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "projects-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 422
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "history",
+      "route": "/history",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "history-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 103
+        },
+        {
+          "file": "history-390-form.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 103
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "dating",
+      "route": "/dating",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "dating-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 96
+        },
+        {
+          "file": "dating-390-form.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 96
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "todos",
+      "route": "/todos",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "todos-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 194
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "todo-create",
+      "route": "/todos/create",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "todo-create-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 81
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "todo-detail",
+      "route": "/todos/1",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "todo-detail-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 89
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "subscription",
+      "route": "/subscription",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "subscription-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 529
+        },
+        {
+          "file": "subscription-390-form.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 529
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "diary",
+      "route": "/diary",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "diary-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 215
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "chat",
+      "route": "/chat",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "chat-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 94
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "mypage",
+      "route": "/mypage",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "mypage-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 51
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "change-password",
+      "route": "/change-password",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "change-password-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 67
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-users",
+      "route": "/admin/users",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-users-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 481
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-menu-management",
+      "route": "/admin/menu-management",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-menu-management-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 1213
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-role-management",
+      "route": "/admin/role-management",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-role-management-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 458
+        },
+        {
+          "file": "admin-role-management-390-form.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 523
+        },
+        {
+          "file": "admin-role-management-390-edit.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 560
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-menu-definition",
+      "route": "/admin/menu-definition",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-menu-definition-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 1638
+        },
+        {
+          "file": "admin-menu-definition-390-form.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 2176
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-prompt-management",
+      "route": "/admin/prompt-management",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-prompt-management-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 212
+        },
+        {
+          "file": "admin-prompt-management-390-editor.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 212
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-chat-history",
+      "route": "/admin/chat-history",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-chat-history-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 211
+        },
+        {
+          "file": "admin-chat-history-390-messages.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 364
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-career",
+      "route": "/admin/career",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-career-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 412
+        },
+        {
+          "file": "admin-career-390-form.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 412
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-experience",
+      "route": "/admin/experience",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-experience-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 363
+        },
+        {
+          "file": "admin-experience-390-form.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 363
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "admin-portfolio-skill",
+      "route": "/admin/portfolio-skill",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "admin-portfolio-skill-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 660
+        },
+        {
+          "file": "admin-portfolio-skill-390-form.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 660
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "stock-all",
+      "route": "/stock?tab=all",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "stock-all-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 2298
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "stock-stock",
+      "route": "/stock?tab=stock",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "stock-stock-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 2319
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "stock-general",
+      "route": "/stock?tab=general",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "stock-general-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 2265
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "stock-isa",
+      "route": "/stock?tab=isa",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "stock-isa-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 2199
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "stock-irp",
+      "route": "/stock?tab=irp",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "stock-irp-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 2199
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "stock-heatmap",
+      "route": "/stock?tab=heatmap",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "stock-heatmap-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 2223
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "stock-top10",
+      "route": "/stock?tab=top10",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "stock-top10-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 2191
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "stock-news",
+      "route": "/stock?tab=news",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "stock-news-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 2232
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "stock-auto-trade",
+      "route": "/stock?tab=auto-trade",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "stock-auto-trade-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 2771
+        },
+        {
+          "file": "stock-auto-trade-390-us.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 8392
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "realestate-search",
+      "route": "/realestate?tab=search",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "realestate-search-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 190
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "realestate-holdings",
+      "route": "/realestate?tab=holdings",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "realestate-holdings-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 275
+        },
+        {
+          "file": "realestate-holdings-390-form.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 275
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "realestate-news",
+      "route": "/realestate?tab=news",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "realestate-news-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 236
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "travel-planner",
+      "route": "/travel?tab=planner",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "travel-planner-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 545
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "travel-itinerary",
+      "route": "/travel?tab=itinerary",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "travel-itinerary-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 554
+        },
+        {
+          "file": "travel-itinerary-390-form.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 554
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "travel-visited",
+      "route": "/travel?tab=visited",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "travel-visited-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 619
+        },
+        {
+          "file": "travel-visited-390-form.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 619
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "travel-wishlist",
+      "route": "/travel?tab=wishlist",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "travel-wishlist-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 581
+        },
+        {
+          "file": "travel-wishlist-390-form.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 581
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "saju-view",
+      "route": "/saju?tab=view",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "saju-view-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 192
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "name": "saju-saved",
+      "route": "/saju?tab=saved",
+      "role": "admin",
+      "width": 390,
+      "unknown": [],
+      "errors": [],
+      "captures": [
+        {
+          "file": "saju-saved-390.png",
+          "width": 390,
+          "documentWidth": 390,
+          "content": 196
+        }
+      ],
+      "status": "captured"
+    }
+  ]
+}

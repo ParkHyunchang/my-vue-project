@@ -4,11 +4,12 @@
     class="experience-section"
   >
     <div class="experience__inner">
-      <h2 class="experience__title">
-        Experience
-      </h2>
-      <div class="section-divider" />
-      <span class="section-sub">Learning &amp; Growth</span>
+      <div class="home-section-heading">
+        <span class="section-sub">EXPERIENCE</span>
+        <h2 class="experience__title">
+          배움과 성장의 기록
+        </h2>
+      </div>
       <div
         v-if="loading"
         class="home-section-state"

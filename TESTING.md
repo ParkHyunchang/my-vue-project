@@ -39,3 +39,16 @@ npm run lint -- --no-fix
 ```
 
 빌드/개발 서버는 Vue CLI가 환경 파일을 읽는 별도 작업이다. `test:isolated`는 이들을 호출하지 않는다. UI의 시각·키보드 검증은 격리된 API 대역을 사용하는 별도 브라우저 검증이 필요하다.
+
+
+## 디자인 화면 검증 (TEAM-34)
+
+TEAM-35 전 메뉴 검증은 같은 격리 서버에서 `node scripts/menus-review.cjs`를 실행한다. 41개 경로·탭을 1440/390px에서 확인하고 주요 폼을 열어 캡처한다. `--only=subscription,admin-career`로 좁힐 수 있다. 전체 결과는 `docs/ai-team/evidence/TEAM-35/report.json`, 선택 실행은 `partial-report.json`에 기록된다. 저장/주문은 실행하지 않으며 자동매매 SSE도 합성 대역이다. 폼 추가 캡처는 뷰포트 기준으로 저장된다.
+
+이미 설치된 Playwright와 Chromium/Edge를 이용하는 선택적 화면 검사다. 프로젝트의 일반 단위 테스트 의존성과는 별도이며, 새 환경에는 Playwright 및 지원 브라우저 준비가 필요하다.
+
+1. `npm run serve:isolated`로 실제 Vue 앱을 127.0.0.1:13100에 실행한다.
+2. `node scripts/design-review.cjs --label=review`를 실행한다. 이 스크립트가 실행하는 브라우저는 모든 API를 합성 응답으로 대체하므로 백엔드를 기동할 필요가 없다.
+3. `docs/ai-team/evidence/TEAM-34/review/report.json`과 화면 이미지를 확인한다. 자동 측정 통과만으로 시각 검증 완료라고 하지 않는다.
+
+`--only=home,subscription`으로 대상 화면을 좁힐 수 있다. 외부 CDN/폰트/지도는 차단되고, 미설정 API는 501과 실패 상태로 기록한다. 게스트 화면은 기존 401-refresh 리디렉션 이슈를 분리하려고 403 대역을 사용하므로 실제 인증 흐름 검증은 아니다. 운영 계정/데이터 저장/거래 요청은 실행하지 않는다.

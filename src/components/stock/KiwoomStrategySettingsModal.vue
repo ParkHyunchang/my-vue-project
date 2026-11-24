@@ -740,9 +740,9 @@ onMounted(async () => {
 
 <style scoped>
 .trade-settings-modal { max-width: 640px; }
-.easy-guide { display: grid; gap: 3px; margin: 0 0 14px; padding: 12px; border-radius: 10px; background: #1f2924; color: #dff5e5; font-size: .86rem; }
-.easy-guide span { color: #b6c6ba; font-size: .78rem; }
-.setting-card { margin: 0 0 12px; padding: 14px; border: 1px solid var(--card-border); border-radius: 12px; }
+.easy-guide { display: grid; gap: 3px; margin: 0 0 14px; padding: 12px; border-radius:var(--radius-control); background: var(--surface-2); color: var(--text-primary); font-size: .86rem; }
+.easy-guide span { color: var(--text-secondary); font-size: .78rem; }
+.setting-card { margin: 0 0 12px; padding: 14px; border: 1px solid var(--card-border); border-radius:var(--radius-card); }
 .buy-card { border-left: 3px solid #d98a51; }
 .screen-card { border-left: 3px solid #9e8ee8; }
 .sell-card { border-left: 3px solid #68a6e8; }
@@ -760,4 +760,9 @@ onMounted(async () => {
   .amodal-field { align-items: flex-start; flex-direction: column; gap: 6px; }
   .number-with-unit { align-self: flex-end; }
 }
+
+/* Shared finance control sizing; operational state colors are intentionally retained. */
+button, summary { min-height: var(--control-height); }
+button { border-radius: var(--radius-control); }
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select { min-height: var(--control-height); border-radius: var(--radius-control); }
 </style>

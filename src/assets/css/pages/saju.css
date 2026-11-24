@@ -1,5 +1,5 @@
 .sj-container {
-  max-width: 1000px;
+  max-width: var(--page-width);
   margin: 0 auto;
   padding: 24px;
 }
@@ -19,7 +19,7 @@
   border: 1px solid var(--card-border);
   background: var(--card-bg);
   color: var(--text-muted);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -30,3 +30,12 @@
   color: var(--text-on-accent);
 }
 .sj-tab-icon { font-size: 15px; }
+
+.sj-container { padding: 32px; }
+.page-header { margin-bottom: 24px; }
+.page-header h2 { font-size: clamp(1.5rem, 2.5vw, 1.85rem); font-weight: 700; letter-spacing: -0.035em; }
+.page-subtitle { font-size: 14px; line-height: 1.7; }
+.sj-tabs { padding-bottom: 16px; border-bottom: 1px solid var(--card-border); }
+.sj-tab-btn { min-height: 44px; border-radius: var(--radius-control); background: transparent; border-color: transparent; }
+.sj-tab-btn.active { background: var(--accent-dim); border-color: var(--accent-glow); color: var(--accent); }
+@media (max-width: 640px) { .sj-container { padding: 24px 16px; } }

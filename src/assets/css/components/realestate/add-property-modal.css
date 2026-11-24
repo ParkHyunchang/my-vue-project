@@ -13,7 +13,7 @@
 .rem-box {
   width: 100%;
   max-width: 460px;
-  background: var(--card-bg, #fff);
+  background: var(--surface);
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -43,7 +43,7 @@
   width: 100%; box-sizing: border-box;
   padding: 9px 11px;
   border: 1px solid var(--input-border);
-  border-radius: 7px;
+  border-radius: var(--radius-control);
   background: var(--input-bg);
   color: var(--input-text);
   font-size: 14px;
@@ -51,8 +51,8 @@
 .rem-row input::placeholder,
 .rem-row textarea::placeholder { color: var(--text-muted); opacity: 0.8; }
 .rem-row input:disabled { opacity: 0.5; cursor: not-allowed; }
-.rem-hint { font-size: 12px; color: #6366f1; margin-top: 4px; display: inline-block; }
-.rem-selected { font-size: 11px; color: #059669; margin-top: 4px; display: inline-block; }
+.rem-hint { font-size: 12px; color: var(--accent); margin-top: 4px; display: inline-block; }
+.rem-selected { font-size: 11px; color: var(--success-color); margin-top: 4px; display: inline-block; }
 
 /* 토지 모드 2열 그리드 */
 .rem-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -71,20 +71,20 @@
 /* 공시지가 조회 */
 .rem-official { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .rem-official-btn {
-  padding: 8px 14px; border: 1px solid #6366f1; border-radius: 7px;
-  background: var(--input-bg); color: #6366f1; font-size: 13px; font-weight: 600;
+  padding: 8px 14px; border: 1px solid var(--accent); border-radius: var(--radius-control);
+  background: var(--input-bg); color: var(--accent); font-size: 13px; font-weight: 600;
   cursor: pointer; white-space: nowrap;
 }
 .rem-official-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.rem-official-val { font-size: 14px; font-weight: 700; color: #4f46e5; }
+.rem-official-val { font-size: 14px; font-weight: 700; color: var(--accent); }
 
 .rem-toggle { display: flex; gap: 4px; }
 .rem-toggle-btn {
   flex: 1; padding: 8px; border: 1px solid var(--input-border);
   background: var(--input-bg); color: var(--text-muted);
-  border-radius: 7px; font-size: 14px; font-weight: 600; cursor: pointer;
+  border-radius: var(--radius-control); font-size: 14px; font-weight: 600; cursor: pointer;
 }
-.rem-toggle-btn.active { background: #6366f1; border-color: #6366f1; color: #fff; }
+.rem-toggle-btn.active { background: var(--accent); border-color: var(--accent); color: var(--text-on-accent); }
 
 .rem-region-list {
   position: absolute; z-index: 20; left: 0; right: 0;
@@ -92,7 +92,7 @@
   max-height: 240px; overflow-y: auto;
   overscroll-behavior: contain;        /* 휠 스크롤이 모달로 새지 않게 격리 */
   -webkit-overflow-scrolling: touch;
-  background: var(--card-bg, #fff);
+  background: var(--surface);
   border: 1px solid var(--card-border);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
@@ -106,19 +106,19 @@
   padding: 8px 10px; border-radius: 6px; font-size: 14px;
   cursor: pointer; color: var(--text-primary);
 }
-.rem-region-list li:hover { background: rgba(99, 102, 241, 0.1); }
+.rem-region-list li:hover { background: rgba(var(--accent-rgb), 0.1); }
 
 .rem-error {
-  padding: 8px 12px; border-radius: 7px; margin-bottom: 12px;
+  padding: 8px 12px; border-radius: var(--radius-control); margin-bottom: 12px;
   background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #b91c1c; font-size: 13px;
+  color: var(--danger-color); font-size: 13px;
 }
 .rem-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
 .rem-cancel, .rem-submit {
-  padding: 9px 18px; border-radius: 7px; font-size: 14px; font-weight: 600; cursor: pointer;
+  padding: 9px 18px; border-radius: var(--radius-control); font-size: 14px; font-weight: 600; cursor: pointer;
 }
 .rem-cancel { border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-muted); }
-.rem-submit { border: none; background: #6366f1; color: #fff; }
+.rem-submit { border: none; background: var(--accent); color: var(--text-on-accent); }
 .rem-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
 @media (max-width: 480px) {
@@ -126,3 +126,15 @@
   /* 토지 폼 2열(지목/용도지역) → 1열 스택 (행 간격은 .rem-row margin 사용) */
   .rem-grid2 { grid-template-columns: 1fr; gap: 0; }
 }
+
+.rem-box { box-sizing: border-box; border: 1px solid var(--card-border-strong); border-radius: var(--radius-panel); padding: 24px; }
+.rem-close, .rem-cancel, .rem-submit, .rem-official-btn, .rem-toggle-btn { min-height: var(--control-height); border-radius: var(--radius-control); }
+.rem-close { min-width: var(--control-height); }
+.rem-close:hover { color: var(--text-primary); background: var(--surface-2); }
+.rem-row input:not([type="checkbox"]):not([type="radio"]), .rem-row select { min-height: var(--control-height); }
+.rem-row label { color: var(--text-secondary); }
+.rem-toggle-btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent-glow); }
+.rem-submit:hover:not(:disabled) { background: var(--accent-light); }
+.rem-region-list li { min-height: var(--control-height); display: flex; align-items: center; }
+.rem-error { line-height: 1.6; }
+@media (max-width: 480px) { .rem-box { padding: 20px 16px; } .rem-actions { display: grid; grid-template-columns: 1fr 1fr; } }

@@ -6,9 +6,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(224, 177, 94, 0.14);
-  border: 1px solid rgba(224, 177, 94, 0.28);
-  color: #e0b15e;
+  background: rgba(var(--accent-rgb), 0.14);
+  border: 1px solid rgba(var(--accent-rgb), 0.28);
+  color: var(--accent);
   font-size: 12px;
   font-weight: 800;
 }
@@ -113,8 +113,8 @@
 .ana-hero-card {
   padding: 16px;
   border-radius: 8px;
-  background: linear-gradient(135deg, rgba(124, 111, 255, 0.16), rgba(106, 173, 106, 0.08));
-  border: 1px solid rgba(124, 111, 255, 0.28);
+  background: var(--surface-2);
+  border: 1px solid rgba(var(--accent-rgb), 0.28);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -128,7 +128,7 @@
   width: 68px;
   height: 68px;
   border-radius: 50%;
-  border: 5px solid rgba(224, 177, 94, 0.55);
+  border: 5px solid rgba(var(--accent-rgb), 0.55);
   background: rgba(10, 10, 18, 0.38);
   display: flex;
   flex-direction: column;
@@ -137,7 +137,7 @@
   flex: 0 0 auto;
 }
 .ana-score-ring strong {
-  color: #f0ece4;
+  color: var(--text-primary);
   font-size: 1.35rem;
   line-height: 1;
 }
@@ -247,7 +247,7 @@
 }
 .ana-metric-value {
   margin-top: 8px;
-  color: #e0b15e;
+  color: var(--accent);
   font-size: 15px;
   font-weight: 800;
 }
@@ -273,8 +273,8 @@
 .ana-question {
   padding: 14px 16px;
   border-radius: 8px;
-  background: rgba(224, 177, 94, 0.10);
-  border: 1px solid rgba(224, 177, 94, 0.28);
+  background: rgba(var(--accent-rgb), 0.10);
+  border: 1px solid rgba(var(--accent-rgb), 0.28);
 }
 .ana-question p {
   margin: 4px 0 0;
@@ -339,3 +339,8 @@
   .ana-footer-btns { flex-direction: column-reverse; }
   .ana-footer-btns .btn { width: 100%; }
 }
+
+/* Analysis content uses the same panel rhythm; recommendation colors remain distinct. */
+button { min-height: var(--control-height); border-radius: var(--radius-control); }
+.ana-hero-card, .ana-question { border-radius: var(--radius-card); }
+.ana-question { background: var(--accent-dim); border-color: var(--accent-glow); }

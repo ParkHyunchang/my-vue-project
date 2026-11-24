@@ -73,12 +73,12 @@
 .krx-alert-warning {
   background: rgba(251, 191, 36, 0.12);
   border: 1px solid rgba(251, 191, 36, 0.4);
-  color: #b45309;
+  color: var(--warning-color);
 }
 .krx-alert-expired {
   background: rgba(239, 68, 68, 0.12);
   border: 1px solid rgba(239, 68, 68, 0.4);
-  color: #b91c1c;
+  color: var(--danger-color);
 }
 .krx-alert-icon { font-size: 16px; flex-shrink: 0; }
 .krx-alert-msg  { flex: 1; line-height: 1.4; }
@@ -91,3 +91,14 @@
   opacity: 0.85;
 }
 .krx-alert-link:hover { opacity: 1; }
+
+.krx-api-card, .krx-alert-banner { border-radius: var(--radius-card); }
+.krx-api-card { padding: 16px 20px; }
+.krx-status-badge.api-status-valid { background: var(--success-bg); color: var(--success-color); }
+.krx-status-badge.api-status-warning { background: var(--warning-bg); color: var(--warning-color); }
+.krx-status-badge.api-status-expired { background: var(--danger-bg); color: var(--danger-color); }
+.krx-days.api-status-valid { color: var(--success-color); }
+.krx-days.api-status-warning { color: var(--warning-color); }
+.krx-days.api-status-expired { color: var(--danger-color); }
+.krx-renew-link, .krx-alert-link { display: inline-flex; align-items: center; min-height: var(--control-height); opacity: 1; }
+@media (max-width: 640px) { .krx-api-middle { flex-wrap: wrap; line-height: 1.7; } }

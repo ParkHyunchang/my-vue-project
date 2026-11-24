@@ -1,103 +1,93 @@
 :root {
-    /* ========== 폰트 ========== */
-    --mainEng-font: "DM Sans", "Montserrat";
-    --mainKor-font: "nanumSquareNeo";
-    --mainNum-font: "Playfair Display", "gmarket";
+    /* Ink & mint — shared by portfolio, personal tools and administration. */
+    --mainEng-font: "DM Sans", "Segoe UI", sans-serif;
+    --mainKor-font: "nanumSquareNeo", "Malgun Gothic", sans-serif;
+    --mainNum-font: "DM Sans", "Segoe UI", sans-serif;
+    --font-heading: "DM Sans", "nanumSquareNeo", "Malgun Gothic", sans-serif;
 
-    /* ========== 핵심 팔레트 ========== */
-    --primary:       #0b0b10;
-    --surface:       #13131a;
-    --surface-2:     #1c1c28;
-    --accent:        #c9a96e;
-    --accent-light:  #e8d5b0;
-    --accent-dim:    rgba(201, 169, 110, 0.15);
-    --accent-glow:   rgba(201, 169, 110, 0.25);
+    --primary: #0f1724;
+    --surface: #172334;
+    --surface-2: #1d2d42;
+    --accent: #76d9c3;
+    --accent-light: #a2ead9;
+    --accent-strong: #4bbda5;
+    --accent-rgb: 118, 217, 195;
+    --accent-dim: rgba(var(--accent-rgb), 0.10);
+    --accent-glow: rgba(var(--accent-rgb), 0.22);
 
-    /* ========== 배경 계층 ========== */
-    --mainBg-color:  #0b0b10;
-    --subBg100:      #13131a;
-    --subBg200:      #1c1c28;
-    --subBg300:      #252535;
-    --subBg400:      #2e2e3e;
-    --subBg500:      #3a3a4e;
+    --mainBg-color: var(--primary);
+    --subBg100: var(--surface);
+    --subBg200: var(--surface-2);
+    --subBg300: #23354b;
+    --subBg400: #2b3f57;
+    --subBg500: #354d67;
 
-    /* ========== 텍스트 ========== */
-    --white:    #f0ece4;
-    --black:    #0b0b10;
-    --black100: #f0ece4;   /* 기본 텍스트 (밝은) */
-    --black200: #c8c3bb;   /* 보조 텍스트 */
-    --black300: #8a8580;   /* 희미한 텍스트 */
-    --black400: #1c1c28;
+    --white: #edf3f8;
+    --black: #0f1724;
+    --black100: var(--text-primary);
+    --black200: var(--text-secondary);
+    --black300: var(--text-muted);
+    --black400: var(--surface-2);
+    --text-rgb: 237, 243, 248;
+    --text-primary: #edf3f8;
+    --text-secondary: #b6c5d6;
+    --text-muted: #91a4ba;
+    --text-on-accent: #10251f;
 
-    /* ========== 시맨틱 텍스트 ========== */
-    --text-primary:    #f0ece4;
-    --text-secondary:  #c8c3bb;
-    --text-muted:      #8a8580;
-    --text-on-accent:  #0b0b10;
+    --nav-bg: rgba(15, 23, 36, 0.96);
+    --nav-border: rgba(182, 197, 214, 0.12);
+    --nav-shadow: 0 4px 20px rgba(4, 12, 24, 0.12);
+    --sidebar-bg-start: #142031;
+    --sidebar-bg-end: #142031;
+    --sidebar-border: var(--card-border);
+    --sidebar-link-color: var(--text-secondary);
+    --sidebar-link-hover-bg: rgba(var(--text-rgb), 0.05);
+    --sidebar-active-bg: var(--accent-dim);
+    --sidebar-active-color: var(--accent);
+    --sidebar-section-label: var(--text-muted);
+    --content-bg: var(--primary);
+    --mobile-bar-bg: var(--surface);
+    --mobile-bar-border: var(--card-border);
 
-    /* ========== 레이아웃 – 내비게이션 바 ========== */
-    --nav-bg:          rgba(5, 5, 10, 0.97);
-    --nav-border:      rgba(201, 169, 110, 0.18);
-    --nav-shadow:      0 1px 24px rgba(0, 0, 0, 0.5);
+    --card-bg: var(--surface);
+    --card-bg-2: var(--surface-2);
+    --card-bg-hover: #203249;
+    --card-border: rgba(182, 197, 214, 0.15);
+    --card-border-strong: rgba(182, 197, 214, 0.28);
+    --card-shadow: 0 8px 24px rgba(4, 12, 24, 0.12);
+    --radius-sm: 8px;
+    --radius-control: 10px;
+    --radius-card: 16px;
+    --radius-panel: 20px;
+    --control-height: 44px;
+    --page-width: 1280px;
 
-    /* ========== 레이아웃 – 사이드바 ========== */
-    --sidebar-bg-start:      #13131a;
-    --sidebar-bg-end:        #0b0b10;
-    --sidebar-border:        rgba(201, 169, 110, 0.08);
-    --sidebar-link-color:    rgba(240, 236, 228, 0.55);
-    --sidebar-link-hover-bg: rgba(201, 169, 110, 0.08);
-    --sidebar-active-bg:     rgba(201, 169, 110, 0.18);
-    --sidebar-active-color:  #c9a96e;
-    --sidebar-section-label: rgba(201, 169, 110, 0.4);
+    --input-bg: #111e2e;
+    --input-border: rgba(182, 197, 214, 0.26);
+    --input-text: var(--text-primary);
+    --input-placeholder: var(--text-muted);
+    --input-focus-border: var(--accent);
+    --input-focus-shadow: rgba(var(--accent-rgb), 0.16);
 
-    /* ========== 레이아웃 – 콘텐츠 영역 ========== */
-    --content-bg:      #1c1c28;
-    --mobile-bar-bg:   #13131a;
-    --mobile-bar-border: rgba(201, 169, 110, 0.1);
+    /* Keep operational states distinct from the brand accent. */
+    --danger-color: #ff939d;
+    --danger-bg: rgba(255, 147, 157, 0.10);
+    --danger-hover: #ffb2b9;
+    --success-color: #88d9a4;
+    --success-bg: rgba(136, 217, 164, 0.10);
+    --warning-color: #efc477;
+    --warning-bg: rgba(239, 196, 119, 0.12);
 
-    /* ========== 카드 / 서피스 ========== */
-    --card-bg:         #252535;
-    --card-bg-2:       #2e2e3e;
-    --card-bg-hover:   #2e2e3e;
-    --card-border:     rgba(201, 169, 110, 0.12);
-    --card-border-strong: rgba(201, 169, 110, 0.28);
-    --card-shadow:     0 2px 12px rgba(0, 0, 0, 0.35);
-
-    /* ========== 입력 컨트롤 ========== */
-    --input-bg:          #1c1c28;
-    --input-border:      rgba(201, 169, 110, 0.2);
-    --input-text:        #f0ece4;
-    --input-placeholder: #8a8580;
-    --input-focus-border: #c9a96e;
-    --input-focus-shadow: rgba(201, 169, 110, 0.25);
-
-    /* ========== 상태 색상 ========== */
-    --danger-color:  #c45a5a;
-    --danger-bg:     rgba(196, 90, 90, 0.15);
-    --danger-hover:  #b04848;
-    --success-color: #6aad6a;
-    --success-bg:    rgba(106, 173, 106, 0.15);
-    --warning-color: #c9a96e;
-    --warning-bg:    rgba(201, 169, 110, 0.15);
-
-    /* ========== 기본 폰트 설정 ========== */
-    font-family: var(--mainEng-font), var(--mainKor-font);
+    font-family: "DM Sans", "nanumSquareNeo", "Segoe UI", "Malgun Gothic", sans-serif;
     font-size: 16px;
-    line-height: 1.5;
+    line-height: 1.6;
     font-weight: 400;
-
+    color-scheme: dark;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-text-size-adjust: 100%;
-}
-
-@media (max-width: 800px) {
-    :root {
-        font-size: 14px;
-        line-height: 1.4;
-    }
 }
 
 body {

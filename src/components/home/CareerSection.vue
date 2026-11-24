@@ -4,11 +4,15 @@
     class="career-section"
   >
     <div class="career__inner">
-      <h2 class="career__title">
-        Career
-      </h2>
-      <div class="section-divider" />
-      <span class="section-sub">Work History</span>
+      <div class="home-section-heading">
+        <span class="section-sub">CAREER</span>
+        <h2 class="career__title">
+          경험이 쌓여, 다음을 만듭니다.
+        </h2>
+        <p class="section-description">
+          함께 일하며 해결해 온 문제와 프로젝트를 소개합니다.
+        </p>
+      </div>
       <div
         v-if="loading"
         class="home-section-state"

@@ -4,8 +4,8 @@
 }
 .wl-summary { font-size: 14px; color: var(--text-muted); }
 .wl-add-btn {
-  padding: 9px 16px; border: none; border-radius: 7px;
-  background: #6366f1; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;
+  padding: 9px 16px; border: none; border-radius: var(--radius-control);
+  background: var(--accent); color: var(--text-on-accent); font-size: 14px; font-weight: 600; cursor: pointer;
 }
 .wl-empty { padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px; }
 
@@ -15,14 +15,14 @@
   gap: 14px;
 }
 .wl-card {
-  border: 1px solid var(--card-border); border-radius: 10px;
+  border: 1px solid var(--card-border); border-radius: var(--radius-card);
   background: var(--card-bg); padding: 14px;
 }
 .wl-card-top { display: flex; align-items: center; justify-content: space-between; }
-.wl-badge { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 10px; }
-.wl-p1 { background: #fee2e2; color: #b91c1c; }
-.wl-p2 { background: #e0e7ff; color: #3730a3; }
-.wl-p3 { background: #f1f5f9; color: #475569; }
+.wl-badge { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: var(--radius-card); }
+.wl-p1 { background: var(--danger-bg); color: var(--danger-color); }
+.wl-p2 { background: var(--accent-dim); color: var(--accent); }
+.wl-p3 { background: var(--surface-2); color: var(--text-secondary); }
 .wl-actions { display: flex; gap: 2px; }
 .wl-edit, .wl-del { border: none; background: none; cursor: pointer; font-size: 14px; opacity: 0.6; padding: 2px 4px; }
 .wl-edit:hover, .wl-del:hover { opacity: 1; }
@@ -32,8 +32,8 @@
 
 .wl-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
 .wl-tag {
-  font-size: 11px; padding: 2px 8px; border-radius: 6px;
-  background: rgba(99, 102, 241, 0.08); color: var(--text-muted);
+  font-size: 11px; padding: 2px 8px; border-radius: var(--radius-control);
+  background: rgba(var(--accent-rgb), 0.08); color: var(--text-muted);
   border: 1px solid var(--card-border);
 }
 .wl-memo {
@@ -44,3 +44,11 @@
 @media (max-width: 640px) {
   .wl-grid { grid-template-columns: 1fr; }
 }
+
+.wl-card { padding: 20px; border-radius: var(--radius-card); }
+.wl-add-btn { min-height: var(--control-height); border-radius: var(--radius-control); }
+.wl-edit, .wl-del { width: 44px; min-height: var(--control-height); border-radius: var(--radius-control); color: var(--text-secondary); opacity: 1; }
+.wl-edit:hover { background: var(--accent-dim); color: var(--accent); }
+.wl-del:hover { background: var(--danger-bg); color: var(--danger-color); }
+.wl-title, .wl-memo { overflow-wrap: anywhere; line-height: 1.7; }
+.wl-empty { border: 1px dashed var(--card-border-strong); border-radius: var(--radius-card); background: var(--surface); }

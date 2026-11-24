@@ -38,7 +38,7 @@
   width: 100%;
   height: 200px;
   background: var(--surface-2);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   padding: 8px;
   box-sizing: border-box;
 }
@@ -93,7 +93,7 @@
   align-items: baseline;
   padding: 10px;
   background: var(--surface-2);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   border: 1px solid var(--card-border);
 }
 .kw-cloud-tag {
@@ -117,7 +117,7 @@
   background: var(--input-bg);
   color: var(--input-text);
   border: 1px solid var(--input-border);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   font-size: 0.88rem;
   box-sizing: border-box;
 }
@@ -181,7 +181,7 @@
   padding: 10px 12px;
   background: var(--surface-2);
   border: 1px solid var(--card-border);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   cursor: pointer;
   transition: background 0.15s;
 }
@@ -242,7 +242,7 @@
   color: var(--text-muted);
   font-size: 0.85rem;
   background: var(--surface-2);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
 }
 
 /* 모바일 */
@@ -258,3 +258,9 @@
     max-height: none;
   }
 }
+
+.insight-search-input, .ins-chip { min-height: var(--control-height); border-radius: var(--radius-control); }
+.insight-section { padding: 20px; border: 1px solid var(--card-border); border-radius: var(--radius-card); background: var(--surface); }
+.insight-section-title { font-size: 1rem; margin-bottom: 16px; }
+.ins-result-row { min-height: 64px; padding: 14px; border-radius: var(--radius-control); }
+@media (max-width: 600px) { .insight-section { padding: 16px; } }

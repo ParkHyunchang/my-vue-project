@@ -21,7 +21,7 @@
 .re-input {
   padding: 8px 10px;
   border: 1px solid var(--input-border);
-  border-radius: 7px;
+  border-radius: var(--radius-control);
   background: var(--input-bg);
   color: var(--input-text);
   font-size: 14px;
@@ -36,7 +36,7 @@
 /* 선택 표시(초록 체크)는 흐름에서 빼서 띄움 — 입력칸 높이를 키워 행 정렬이 틀어지는 것 방지 */
 .re-selected {
   position: absolute; top: 100%; left: 2px; margin-top: 3px;
-  font-size: 11px; color: #059669; white-space: nowrap;
+  font-size: 11px; color: var(--success-color); white-space: nowrap;
 }
 .re-region-list {
   position: absolute;
@@ -59,7 +59,7 @@
   cursor: pointer;
   color: var(--text-primary);
 }
-.re-region-list li:hover { background: rgba(99, 102, 241, 0.1); }
+.re-region-list li:hover { background: rgba(var(--accent-rgb), 0.1); }
 
 .re-toggle { display: flex; gap: 4px; }
 .re-toggle-btn {
@@ -67,24 +67,24 @@
   border: 1px solid var(--input-border);
   background: var(--input-bg);
   color: var(--text-muted);
-  border-radius: 7px;
+  border-radius: var(--radius-control);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
 }
 .re-toggle-btn.active {
-  background: #6366f1;
-  border-color: #6366f1;
-  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-on-accent);
 }
 
 .re-search-btn {
   margin-left: auto; /* 검색 버튼은 항상 오른쪽 끝에 고정 */
   padding: 9px 20px;
   border: none;
-  border-radius: 7px;
-  background: #6366f1;
-  color: #fff;
+  border-radius: var(--radius-control);
+  background: var(--accent);
+  color: var(--text-on-accent);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -96,7 +96,7 @@
   border-radius: 8px;
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #b91c1c;
+  color: var(--danger-color);
   font-size: 13px;
 }
 .re-land-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -107,9 +107,9 @@
   flex-wrap: wrap; gap: 8px;
 }
 .re-ai-btn {
-  padding: 7px 14px; border: none; border-radius: 7px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+  padding: 7px 14px; border: none; border-radius: var(--radius-control);
+  background: var(--accent);
+  color: var(--text-on-accent); font-size: 13px; font-weight: 600; cursor: pointer;
 }
 .re-ai-btn:hover { opacity: 0.92; }
 .re-empty {
@@ -137,8 +137,8 @@
   background: var(--card-bg);
 }
 .re-table .re-apt { font-weight: 600; color: var(--text-primary); }
-.re-table .re-money { font-weight: 600; color: #4f46e5; }
-.re-table tbody tr:hover { background: rgba(99, 102, 241, 0.05); }
+.re-table .re-money { font-weight: 600; color: var(--accent); }
+.re-table tbody tr:hover { background: rgba(var(--accent-rgb), 0.05); }
 
 @media (max-width: 640px) {
   .re-controls { flex-direction: column; align-items: stretch; gap: 12px; }
@@ -153,3 +153,14 @@
   .re-dong-filter { max-width: none; }
   .re-table th, .re-table td { padding: 8px 9px; }
 }
+
+/* The search workspace shares the same controls and surface hierarchy as portfolios. */
+.re-controls { padding: 20px 20px 32px; border-radius: var(--radius-card); }
+.re-input, .re-toggle-btn, .re-search-btn, .re-ai-btn { min-height: var(--control-height); border-radius: var(--radius-control); }
+.re-region-list li { min-height: var(--control-height); display: flex; align-items: center; }
+.re-toggle-btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent-glow); }
+.re-search-btn:hover:not(:disabled), .re-ai-btn:hover:not(:disabled) { background: var(--accent-light); }
+.re-table-wrap { border: 1px solid var(--card-border); border-radius: var(--radius-card); background: var(--surface); }
+.re-empty { border: 1px dashed var(--card-border-strong); border-radius: var(--radius-card); padding: 36px 20px; }
+.re-alert { color: var(--danger-color); background: var(--danger-bg); line-height: 1.65; }
+@media (max-width: 640px) { .re-controls { padding: 18px 16px 28px; } .re-selected { max-width: 100%; overflow: hidden; text-overflow: ellipsis; } }

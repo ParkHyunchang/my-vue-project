@@ -4,11 +4,12 @@
     class="contact-section"
   >
     <div class="contact__inner">
-      <h2 class="contact__title">
-        Contact
-      </h2>
-      <div class="section-divider" />
-      <span class="section-sub">함께 일해요</span>
+      <div class="home-section-heading">
+        <span class="section-sub">LET'S CONNECT</span>
+        <h2 class="contact__title">
+          다음 아이디어를 함께.
+        </h2>
+      </div>
       <div class="contact__content">
         <div class="contact__message">
           <h3>함께 일하고 싶으시다면</h3>
@@ -24,6 +25,7 @@
             <a
               href="https://github.com/hyunchang"
               target="_blank"
+              rel="noopener noreferrer"
             >github.com/hyunchang</a>
           </div>
         </div>

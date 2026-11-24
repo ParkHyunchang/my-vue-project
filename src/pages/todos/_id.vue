@@ -1,6 +1,9 @@
 ﻿<template>
-  <div class="page-container">
-    <h1>To-Do Page</h1>
+  <div class="page-container todo-editor-page">
+    <header class="todo-editor-header">
+      <h1>할 일 상세</h1>
+      <p>진행 상태와 내용을 확인하고 수정하세요.</p>
+    </header>
     <TodoForm :editing="true" />
   </div>
 </template>

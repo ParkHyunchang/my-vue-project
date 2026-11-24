@@ -174,7 +174,7 @@ export default {
             roam: false,
             nodeClick: false,
             visibleMin: isMobile ? 800 : 400,
-            breadcrumb: { show: true, itemStyle: { color: "#2a2a3e" } },
+            breadcrumb: { show: true, itemStyle: { color: "#1d2d42" } },
             label: {
               show: true,
               formatter(p) {
@@ -196,7 +196,7 @@ export default {
               fontSize: upperFontSize,
               backgroundColor: "rgba(0,0,0,0.45)",
             },
-            itemStyle: { borderColor: "#1a1a2e", borderWidth: 2, gapWidth: 2 },
+            itemStyle: { borderColor: "#172334", borderWidth: 2, gapWidth: 2 },
             levels: [
               { itemStyle: { borderColor: "#555", borderWidth: 3, gapWidth: 3 } },
               { itemStyle: { borderWidth: 2, gapWidth: 2 } },

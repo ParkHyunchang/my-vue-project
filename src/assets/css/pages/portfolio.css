@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   min-height: 80vh;
-  background: #f8f9fa;
+  background: var(--primary);
 }
 header {
   text-align: center;
@@ -15,11 +15,11 @@ h1 {
   margin-bottom: 0.5rem;
 }
 .subtitle {
-  color: #888;
+  color: var(--text-muted);
   font-size: 1.2rem;
 }
 .intro {
-  background: #fff;
+  background: var(--surface);
   padding: 2rem 3rem;
   border-radius: 1.5rem;
   box-shadow: 0 2px 16px rgba(0,0,0,0.07);
@@ -31,7 +31,7 @@ h1 {
   border-radius: 50%;
   margin-bottom: 1rem;
   object-fit: cover;
-  background: #eee;
+  background: var(--card-border);
 }
 .skills-group {
   display: flex;
@@ -40,7 +40,7 @@ h1 {
   margin: 2rem 0 1.5rem 0;
 }
 .skills-block {
-  background: #f4f6fa;
+  background: var(--surface-2);
   border-radius: 1rem;
   padding: 1.2rem 2rem;
   box-shadow: 0 1px 8px rgba(0,0,0,0.04);
@@ -50,7 +50,7 @@ h1 {
   font-weight: bold;
   font-size: 1.1rem;
   margin-bottom: 0.7rem;
-  color: #42b983;
+  color: var(--accent);
   text-align: center;
 }
 .skills-list {
@@ -61,8 +61,8 @@ h1 {
 }
 .skills-list span {
   display: inline-block;
-  background: #e3e7ed;
-  color: #333;
+  background: var(--subBg300);
+  color: var(--text-secondary);
   border-radius: 1rem;
   padding: 0.4rem 1.1rem;
   font-size: 1rem;
@@ -72,13 +72,21 @@ h1 {
   display: inline-block;
   margin-top: 1rem;
   padding: 0.7rem 2rem;
-  background: #42b983;
-  color: #fff;
+  background: var(--accent);
+  color: var(--text-on-accent);
   border-radius: 2rem;
   text-decoration: none;
   font-weight: bold;
   transition: background 0.2s;
 }
 .btn-main:hover {
-  background: #369870;
+  background: var(--accent-light);
 }
+
+.portfolio-main { padding: 48px 24px; color: var(--text-primary); }
+h1 { font-weight: 700; letter-spacing: -0.04em; font-size: clamp(2rem, 5vw, 2.8rem); }
+.intro { width: min(100%, 1000px); border: 1px solid var(--card-border); }
+.skills-group { flex-wrap: wrap; }
+.skills-block { flex: 1; border: 1px solid var(--card-border); }
+.btn-main { min-height: 44px; border-radius: var(--radius-control); }
+@media (max-width: 640px) { .portfolio-main { padding: 32px 16px; } .intro { padding: 24px 16px; } .skills-group { gap: 16px; } }

@@ -229,3 +229,12 @@
     gap: 0.75rem !important;
   }
 }
+
+.modal-content { width: 100%; min-width: 0; background: var(--surface); border-radius: var(--radius-panel); border-color: var(--card-border); }
+.modal-header { padding: 20px 24px; }
+.close { min-width: 44px; min-height: 44px; border-radius: var(--radius-control); }
+
+@media (max-width: 768px) {
+  .modal-content { border-radius: 0; border: 0; }
+  .modal-header { padding: 16px 20px; }
+}

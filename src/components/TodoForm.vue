@@ -1,6 +1,6 @@
 <template>
   <div v-if="loading">
-    Loading..
+    할 일을 불러오는 중입니다...
   </div>
   <form
     v-else
@@ -14,7 +14,7 @@
       <div class="row">
         <div class="col-12 col-md-6">
           <AppInput
-            label="Title"
+            label="제목"
             v-model:title="todo.title"
             :error="titleError"
           />
@@ -24,7 +24,7 @@
           class="col-12 col-md-6"
         >
           <div class="form-group">
-            <label>Status</label>
+            <label>진행 상태</label>
             <div>
               <button
                 class="btn"
@@ -32,7 +32,7 @@
                 :class="todo.done ? 'btn-success' : 'btn-danger'"
                 @click="toggleTodoStatus"
               >
-                {{ todo.done ? 'Completed' : 'Incomplete' }}
+                {{ todo.done ? '완료' : '진행 중' }}
               </button>
             </div>
           </div>
@@ -109,7 +109,7 @@
 
         <div class="col-12">
           <div class="form-group">
-            <label>Description</label>
+            <label>상세 내용</label>
             <textarea
               v-model="todo.description"
               class="form-control"
@@ -126,14 +126,14 @@
           class="btn btn-primary"
           :disabled="saving"
         >
-          {{ saving ? '저장 중...' : editing ? 'Update' : 'Create' }}
+          {{ saving ? '저장 중...' : editing ? '변경 저장' : '할 일 만들기' }}
         </button>
         <button
           type="button"
           class="btn btn-outline-dark ml-2"
           @click="moveToTodoListPage"
         >
-          Cancel
+          취소
         </button>
       </div>
     </fieldset>

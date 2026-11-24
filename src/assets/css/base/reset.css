@@ -52,32 +52,19 @@ input, button {
     top: 10px;
 }
 
-/* 800px 이상에서 왼쪽 공간 제거 */
-@media (min-width: 800px) {
-    html, body {
-        margin: 0;
-        padding: 0;
-        overflow-x: hidden;
-        width: 100%;
-    }
-    
-    #main {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        overflow-x: hidden;
-    }
-    
-    .hero-section,
-    .about-section,
-    .challenge-section,
-    .projects-section,
-    .experience-section,
-    .site-section,
-    .port-section,
-    .contact-section {
-        margin-left: calc(-50vw + 50%);
-        margin-right: calc(-50vw + 50%);
-        width: 100vw;
+/* Native controls should share the surrounding typography. */
+button, input, select, textarea { font: inherit; }
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+button { color: inherit; }
+button:disabled { cursor: not-allowed; }
+:focus-visible { outline: 2px solid var(--accent) !important; outline-offset: 4px; }
+::selection { color: var(--text-primary); background: #345f65; }
+html { scroll-padding-top: 88px; }
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
     }
 }

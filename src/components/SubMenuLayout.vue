@@ -10,13 +10,21 @@
     </transition>
 
     <!-- 사이드바 -->
-    <aside :class="['subnav-sidebar', { open: sidebarOpen }]">
+    <aside
+      id="subnav-sidebar"
+      ref="sidebarElement"
+      :class="['subnav-sidebar', { open: sidebarOpen }]"
+      :role="sidebarOpen ? 'dialog' : undefined"
+      :aria-modal="sidebarOpen ? 'true' : undefined"
+      aria-label="섹션 메뉴"
+    >
       <div class="sidebar-header">
         <div class="sidebar-brand">
           <span class="brand-icon">{{ section.icon }}</span>
           <span class="brand-text">{{ section.name }}</span>
         </div>
         <button
+          type="button"
           class="sidebar-close-btn"
           @click="closeSidebar"
           aria-label="메뉴 닫기"
@@ -59,7 +67,11 @@
       <!-- 모바일 전용 미니바 -->
       <div class="subnav-mobile-bar">
         <button
+          ref="sidebarTrigger"
+          type="button"
           class="mobile-hamburger"
+          :aria-expanded="sidebarOpen"
+          aria-controls="subnav-sidebar"
           @click="toggleSidebar"
           aria-label="메뉴 열기"
         >
@@ -79,7 +91,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 
 export default {
@@ -94,13 +106,43 @@ export default {
   setup(props) {
     const route = useRoute();
     const sidebarOpen = ref(false);
+    const sidebarElement = ref(null);
+    const sidebarTrigger = ref(null);
 
     const toggleSidebar = () => {
       sidebarOpen.value = !sidebarOpen.value;
+      if (sidebarOpen.value) {
+        nextTick(() => sidebarElement.value?.querySelector('button, a')?.focus());
+      }
     };
 
     const closeSidebar = () => {
+      const wasOpen = sidebarOpen.value;
       sidebarOpen.value = false;
+      if (wasOpen) nextTick(() => sidebarTrigger.value?.focus());
+    };
+
+    const handleKeydown = (event) => {
+      if (!sidebarOpen.value) return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeSidebar();
+      } else if (event.key === 'Tab') {
+        const items = sidebarElement.value?.querySelectorAll('a[href], button:not([disabled])');
+        if (!items?.length) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (!sidebarElement.value.contains(document.activeElement)) {
+          event.preventDefault();
+          first.focus();
+        } else if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
     };
 
     // 현재 페이지 타이틀 (자식 중 현재 경로 매칭 → 부모 이름 폴백)
@@ -115,10 +157,16 @@ export default {
       if (window.innerWidth > 800) sidebarOpen.value = false;
     };
 
-    onMounted(() => window.addEventListener('resize', handleResize));
-    onUnmounted(() => window.removeEventListener('resize', handleResize));
+    onMounted(() => {
+      window.addEventListener('resize', handleResize);
+      document.addEventListener('keydown', handleKeydown);
+    });
+    onUnmounted(() => {
+      window.removeEventListener('resize', handleResize);
+      document.removeEventListener('keydown', handleKeydown);
+    });
 
-    return { sidebarOpen, pageTitle, toggleSidebar, closeSidebar };
+    return { sidebarOpen, sidebarElement, sidebarTrigger, pageTitle, toggleSidebar, closeSidebar };
   },
 };
 </script>

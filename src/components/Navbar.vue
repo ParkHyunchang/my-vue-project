@@ -5,8 +5,15 @@
   >
     <div class="header__inner">
       <div class="header__logo">
-        <router-link to="/">
-          HYUNCHANG'S<br><em>HOME</em>
+        <router-link
+          to="/"
+          aria-label="현창 홈"
+        >
+          <span
+            class="brand-monogram"
+            aria-hidden="true"
+          >H.</span>
+          <span>hyunchang<em>Personal workspace</em></span>
         </router-link>
       </div>
       <div class="header__left">
@@ -26,14 +33,23 @@
         <div
           v-else
           class="mobile-avatar-wrapper"
-          @click.stop="toggleUserDropdown"
         >
-          <div class="mobile-avatar">
+          <button
+            ref="mobileAccountButton"
+            type="button"
+            class="mobile-avatar"
+            aria-label="내 계정 메뉴"
+            :aria-expanded="showUserDropdown"
+            aria-controls="mobile-account-menu"
+            @click.stop="toggleUserDropdown"
+          >
             {{ userInitial }}
-          </div>
+          </button>
           <transition name="dropdown-fade">
             <div
               v-if="showUserDropdown"
+              id="mobile-account-menu"
+              ref="mobileAccountMenu"
               class="mobile-user-dropdown"
               @click.stop
             >
@@ -71,14 +87,21 @@
             </div>
           </transition>
         </div>
-        <div
+        <button
+          ref="menuButton"
+          type="button"
           class="header__nav__mobile"
+          :aria-label="isOpen ? '메인 메뉴 닫기' : '메인 메뉴 열기'"
+          :aria-expanded="isOpen"
+          aria-controls="main-navigation"
           @click="toggleMenu"
         >
-          <span />
-        </div>
+          <span aria-hidden="true" />
+        </button>
       </div>
       <nav
+        id="main-navigation"
+        ref="mainNavigation"
         :class="['header__nav', { show: isOpen }]"
         role="navigation"
         aria-label="메인 메뉴"
@@ -135,15 +158,28 @@
         <div
           v-else
           class="desktop-avatar-wrapper"
-          @click.stop="toggleDesktopDropdown"
         >
-          <div class="desktop-avatar">
-            {{ userInitial }}
-          </div>
-          <span class="desktop-avatar-name">{{ user.username }}</span>
+          <button
+            ref="desktopAccountButton"
+            type="button"
+            class="desktop-account-button"
+            aria-label="내 계정 메뉴"
+            :aria-expanded="showDesktopDropdown"
+            aria-controls="desktop-account-menu"
+            @click.stop="toggleDesktopDropdown"
+          >
+            <span class="desktop-avatar">{{ userInitial }}</span>
+            <span class="desktop-avatar-name">{{ user.username }}</span>
+            <span
+              class="account-chevron"
+              aria-hidden="true"
+            >⌄</span>
+          </button>
           <transition name="dropdown-fade">
             <div
               v-if="showDesktopDropdown"
+              id="desktop-account-menu"
+              ref="desktopAccountMenu"
               class="desktop-user-dropdown"
               @click.stop
             >
@@ -187,7 +223,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 
@@ -199,11 +235,22 @@ export default {
     const isOpen = ref(false);
     const showUserDropdown = ref(false);
     const showDesktopDropdown = ref(false);
+    const menuButton = ref(null);
+    const mainNavigation = ref(null);
+    const mobileAccountButton = ref(null);
+    const mobileAccountMenu = ref(null);
+    const desktopAccountButton = ref(null);
+    const desktopAccountMenu = ref(null);
+
+    const focusFirstLink = (element) => {
+      nextTick(() => element.value?.querySelector('a, button')?.focus());
+    };
 
     const toggleMenu = () => {
       isOpen.value = !isOpen.value;
       showUserDropdown.value = false;
       showDesktopDropdown.value = false;
+      if (isOpen.value) focusFirstLink(mainNavigation);
     };
 
     const closeMenu = () => {
@@ -216,11 +263,13 @@ export default {
       showUserDropdown.value = !showUserDropdown.value;
       showDesktopDropdown.value = false;
       isOpen.value = false;
+      if (showUserDropdown.value) focusFirstLink(mobileAccountMenu);
     };
 
     const toggleDesktopDropdown = () => {
       showDesktopDropdown.value = !showDesktopDropdown.value;
       showUserDropdown.value = false;
+      if (showDesktopDropdown.value) focusFirstLink(desktopAccountMenu);
     };
     
     const handleLogout = async () => {
@@ -260,15 +309,34 @@ export default {
         showDesktopDropdown.value = false;
       }
     };
+
+    const handleEscape = (event) => {
+      if (event.key !== 'Escape') return;
+      const trigger = showUserDropdown.value ? mobileAccountButton.value
+        : showDesktopDropdown.value ? desktopAccountButton.value
+          : isOpen.value ? menuButton.value : null;
+      if (!trigger) return;
+      event.preventDefault();
+      closeMenu();
+      trigger.focus();
+    };
+
+    const handleResize = () => closeMenu();
     
     onMounted(() => {
       document.addEventListener('click', handleDocumentClick);
       document.addEventListener('touchstart', handleDocumentClick);
+      document.addEventListener('focusin', handleDocumentClick);
+      document.addEventListener('keydown', handleEscape);
+      window.addEventListener('resize', handleResize);
     });
     
     onUnmounted(() => {
       document.removeEventListener('click', handleDocumentClick);
       document.removeEventListener('touchstart', handleDocumentClick);
+      document.removeEventListener('focusin', handleDocumentClick);
+      document.removeEventListener('keydown', handleEscape);
+      window.removeEventListener('resize', handleResize);
     });
     
     return {
@@ -285,10 +353,13 @@ export default {
       userInitial,
       navigationMenus,
       isAdmin,
-      hasRole
+      hasRole,
+      menuButton, mainNavigation, mobileAccountButton, mobileAccountMenu,
+      desktopAccountButton, desktopAccountMenu
     };
   }
 }
 </script>
 
 <style src="@/assets/css/layout.css" scoped></style>
+<style src="@/assets/css/section/header.css" scoped></style>

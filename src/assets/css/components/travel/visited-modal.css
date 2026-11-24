@@ -6,7 +6,7 @@
 }
 .tvm-box {
   width: 100%; max-width: 480px;
-  background: var(--card-bg, #fff); border-radius: 12px; padding: 20px;
+  background: var(--card-bg); border-radius: var(--radius-card); padding: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); margin: auto;
 }
 .tvm-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
@@ -15,12 +15,12 @@
 
 .tvm-row { margin-bottom: 14px; }
 .tvm-row label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
-.tvm-req { color: #ef4444; }
+.tvm-req { color: var(--danger-color); }
 .tvm-opt { font-weight: 400; font-size: 11px; opacity: 0.7; }
 .tvm-row input,
 .tvm-row textarea {
   width: 100%; box-sizing: border-box; padding: 9px 11px;
-  border: 1px solid var(--input-border); border-radius: 7px;
+  border: 1px solid var(--input-border); border-radius: var(--radius-control);
   background: var(--input-bg); color: var(--input-text); font-size: 14px;
 }
 .tvm-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -28,30 +28,30 @@
 .tvm-geo { display: flex; gap: 6px; }
 .tvm-geo input { flex: 1; }
 .tvm-geo-btn {
-  padding: 8px 14px; border: 1px solid #6366f1; border-radius: 7px;
-  background: var(--input-bg); color: #6366f1; font-size: 13px; font-weight: 600;
+  padding: 8px 14px; border: 1px solid var(--accent); border-radius: var(--radius-control);
+  background: var(--input-bg); color: var(--accent); font-size: 13px; font-weight: 600;
   cursor: pointer; white-space: nowrap;
 }
 .tvm-geo-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .tvm-geo-list {
   list-style: none; margin: 6px 0 0; padding: 4px;
-  border: 1px solid var(--card-border); border-radius: 8px;
+  border: 1px solid var(--card-border); border-radius: var(--radius-control);
   background: var(--card-bg); max-height: 160px; overflow-y: auto;
 }
 .tvm-geo-list li {
-  padding: 7px 9px; border-radius: 6px; font-size: 12.5px;
+  padding: 7px 9px; border-radius: var(--radius-control); font-size: 12.5px;
   cursor: pointer; color: var(--text-primary);
 }
-.tvm-geo-list li:hover { background: rgba(99, 102, 241, 0.1); }
+.tvm-geo-list li:hover { background: rgba(var(--accent-rgb), 0.1); }
 
 .tvm-map {
   width: 100%; height: 220px; margin-top: 8px;
-  border: 1px solid var(--card-border); border-radius: 8px; z-index: 0;
+  border: 1px solid var(--card-border); border-radius: var(--radius-control); z-index: 0;
 }
 .tvm-coords { margin-top: 6px; font-size: 12px; color: var(--text-muted); }
 .tvm-clear {
   margin-left: 8px; border: none; background: none; cursor: pointer;
-  color: #ef4444; font-size: 12px; text-decoration: underline;
+  color: var(--danger-color); font-size: 12px; text-decoration: underline;
 }
 
 .tvm-rating { display: flex; gap: 2px; }
@@ -62,17 +62,34 @@
 .tvm-star.on { color: #f59e0b; }
 
 .tvm-error {
-  padding: 8px 12px; border-radius: 7px; margin-bottom: 12px;
+  padding: 8px 12px; border-radius: var(--radius-control); margin-bottom: 12px;
   background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #b91c1c; font-size: 13px;
+  color: var(--danger-color); font-size: 13px;
 }
 .tvm-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
-.tvm-cancel, .tvm-submit { padding: 9px 18px; border-radius: 7px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.tvm-cancel, .tvm-submit { padding: 9px 18px; border-radius: var(--radius-control); font-size: 14px; font-weight: 600; cursor: pointer; }
 .tvm-cancel { border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-muted); }
-.tvm-submit { border: none; background: #6366f1; color: #fff; }
+.tvm-submit { border: none; background: var(--accent); color: var(--text-on-accent); }
 .tvm-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
 @media (max-width: 480px) {
   .tvm-box { padding: 16px; }
   .tvm-grid2 { grid-template-columns: 1fr; gap: 0; }
 }
+
+/* Teleported editors use the same panel and control contract as page forms. */
+.tvm-overlay { background: rgba(4, 12, 24, 0.7); padding: 84px 16px 24px; }
+.tvm-box { padding: 24px; border: 1px solid var(--card-border-strong); border-radius: var(--radius-panel); box-shadow: var(--card-shadow); }
+.tvm-hdr { gap: 12px; padding-bottom: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--card-border); }
+.tvm-hdr h3 { font-weight: 700; letter-spacing: -0.025em; }
+.tvm-close { width: 44px; height: var(--control-height); border-radius: var(--radius-control); flex-shrink: 0; }
+.tvm-close:hover { background: var(--surface-2); color: var(--text-primary); }
+.tvm-row { margin-bottom: 20px; }
+.tvm-row label { color: var(--text-secondary); }
+.tvm-row input, .tvm-row textarea { min-width: 0; min-height: var(--control-height); border-radius: var(--radius-control); }
+.tvm-cancel, .tvm-submit, .tvm-toggle-btn, .tvm-geo-btn, .tvm-clear { min-height: var(--control-height); border-radius: var(--radius-control); }
+.tvm-actions { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--card-border); flex-wrap: wrap; }
+.tvm-toggle-btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent-glow); }
+.tvm-star { min-width: 44px; min-height: var(--control-height); }
+.tvm-geo-list li { min-height: var(--control-height); display: flex; align-items: center; }
+@media (max-width: 560px) { .tvm-box { padding: 20px; } .tvm-actions > button { flex: 1; } .tvm-geo { flex-wrap: wrap; } .tvm-geo input { flex-basis: 100%; } }

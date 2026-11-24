@@ -334,6 +334,6 @@ export default {
 
 <style scoped>
 .auto-market-tabs{display:flex;gap:8px;margin:0 0 14px;padding:5px;width:max-content;border:1px solid var(--card-border);border-radius:12px;background:var(--card-bg)}
-.auto-market-tabs button{padding:8px 18px;border:0;border-radius:8px;background:transparent;color:var(--text-muted);font-weight:700;cursor:pointer}
-.auto-market-tabs button.active{background:var(--accent);color:#17130a}
+.auto-market-tabs button{min-height:var(--control-height);padding:8px 18px;border:0;border-radius:8px;background:transparent;color:var(--text-muted);font-weight:700;cursor:pointer}
+.auto-market-tabs button.active{background:var(--accent);color:var(--text-on-accent)}
 </style>

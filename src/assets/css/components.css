@@ -15,8 +15,8 @@
 }
 
 .modal-box {
-  background: #13131f;
-  border: 1px solid #2a2a3a;
+  background: var(--surface);
+  border: 1px solid var(--card-border);
   border-radius: 12px;
   width: 100%;
   max-width: 560px;
@@ -32,22 +32,22 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #2a2a3a;
+  border-bottom: 1px solid var(--card-border);
   flex-shrink: 0;
-  background: #13131f;
+  background: var(--surface);
 }
 
 .modal-header h2 {
   margin: 0;
   font-size: 1.1rem;
-  color: #f0ece4;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .modal-close {
   background: none;
   border: none;
-  color: #888;
+  color: var(--text-muted);
   font-size: 1.2rem;
   cursor: pointer;
   padding: 0.25rem 0.5rem;
@@ -58,8 +58,8 @@
 }
 
 .modal-close:hover {
-  color: #f0ece4;
-  background: #2a2a3a;
+  color: var(--text-primary);
+  background: var(--card-border);
 }
 
 @media (max-width: 768px) {
@@ -90,12 +90,12 @@
     text-align: center;
     text-decoration: none;
     border: 1px solid transparent;
-    border-radius: 6px;
+    border-radius: var(--radius-control);
     cursor: pointer;
     transition: all 0.2s ease;
     box-sizing: border-box;
-    min-height: 40px;
-    letter-spacing: 0.03em;
+    min-height: var(--control-height);
+    letter-spacing: 0;
 }
 
 .btn:focus {
@@ -108,23 +108,23 @@
     cursor: not-allowed;
 }
 
-/* Primary – 골드 */
+/* Primary action */
 .btn-primary {
-    background: linear-gradient(135deg, var(--accent) 0%, #b8924a 100%);
+    background: var(--accent);
     color: var(--text-on-accent);
     border-color: transparent;
-    box-shadow: 0 2px 8px rgba(201, 169, 110, 0.25);
+    box-shadow: none;
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 100%);
-    box-shadow: 0 4px 14px rgba(201, 169, 110, 0.35);
+    background: var(--accent-light);
+    box-shadow: 0 4px 14px rgba(4, 12, 24, 0.18);
     transform: translateY(-1px);
 }
 
 .btn-primary:active:not(:disabled) {
     transform: translateY(0);
-    box-shadow: 0 2px 6px rgba(201, 169, 110, 0.25);
+    box-shadow: 0 2px 6px rgba(var(--accent-rgb), 0.25);
 }
 
 /* Secondary – 어두운 서피스 */
@@ -149,7 +149,7 @@
 
 .btn-danger:hover:not(:disabled) {
     background: var(--danger-color);
-    color: #fff;
+    color: var(--text-on-accent);
     border-color: transparent;
 }
 
@@ -157,7 +157,7 @@
 .btn-sm {
     padding: 6px 14px;
     font-size: 13px;
-    min-height: 32px;
+    min-height: 36px;
 }
 
 /* =============================================
@@ -173,10 +173,10 @@
     -webkit-text-fill-color: var(--input-text);
     background-color: var(--input-bg);
     border: 1px solid var(--input-border);
-    border-radius: 6px;
+    border-radius: var(--radius-control);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
     box-sizing: border-box;
-    min-height: 40px;
+    min-height: var(--control-height);
 }
 
 .form-control:focus {
@@ -205,7 +205,7 @@
 /* 드롭다운 */
 select.form-control {
     appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c9a96e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2376d9c3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat;
     background-position: right 12px center;
     background-size: 14px;
@@ -248,7 +248,7 @@ select.form-control option {
 .card {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
-    border-radius: 8px;
+    border-radius: var(--radius-card);
     box-shadow: var(--card-shadow);
     color: var(--text-primary);
     overflow: hidden;
@@ -277,7 +277,7 @@ select.form-control option {
 
 .btn-success:hover:not(:disabled) {
     background: var(--success-color);
-    color: #fff;
+    color: var(--text-on-accent);
     border-color: transparent;
 }
 
@@ -307,7 +307,7 @@ select.form-control option {
     font-size: 13px;
     font-weight: 600;
     color: var(--text-secondary);
-    letter-spacing: 0.04em;
+    letter-spacing: 0;
     text-transform: uppercase;
 }
 
@@ -354,7 +354,7 @@ hr {
 .page-container h2 {
     color: var(--text-primary);
     margin-bottom: 24px;
-    font-family: "Playfair Display", serif;
+    font-family: var(--font-heading);
 }
 
 .page-container h1 { font-size: 2rem; }
@@ -377,7 +377,7 @@ hr {
 .alert {
   min-width: 200px;
   padding: 15px 20px;
-  border-radius: 8px;
+  border-radius: var(--radius-card);
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
   color: var(--text-primary);
@@ -426,13 +426,13 @@ hr {
     .btn {
         padding: 10px 16px;
         font-size: 14px;
-        min-height: 40px;
+        min-height: var(--control-height);
     }
     
     .btn-sm {
         padding: 7px 12px;
         font-size: 13px;
-        min-height: 32px;
+        min-height: 36px;
     }
     
     .form-control {
@@ -445,4 +445,21 @@ hr {
         padding-right: 35px;
         background-size: 12px;
     }
+}
+
+/* Dialog and notification surfaces share the application rhythm. */
+.modal-box { border-radius: var(--radius-panel); box-shadow: 0 24px 72px rgba(4, 12, 24, 0.45); }
+.modal-close { min-width: 44px; min-height: 44px; }
+.card-body { padding: 24px; }
+.page-container { max-width: 1100px; padding: 36px 28px; }
+.page-container h1, .page-container h2 { font-weight: 700; letter-spacing: -0.035em; }
+.alert { max-width: min(420px, calc(100vw - 32px)); }
+.alert-success { background-color: #19382d; }
+.alert-danger, .alert-error { background-color: #402735; }
+@media (max-width: 768px) {
+    .page-container { padding: 24px 16px; }
+    .btn-sm { min-height: 44px; }
+    .card-body { padding: 18px; }
+    .modal-box { border-radius: 20px 20px 0 0; }
+    .toast-box { right: 16px; }
 }

@@ -11,6 +11,11 @@
 
     <!-- 사이드바 -->
     <aside
+      id="admin-sidebar"
+      ref="sidebarElement"
+      :role="sidebarOpen ? 'dialog' : undefined"
+      :aria-modal="sidebarOpen ? 'true' : undefined"
+      aria-label="관리자 메뉴"
       :class="['admin-sidebar', 'thin-scrollbar', { open: sidebarOpen }]"
       data-lenis-prevent
     >
@@ -20,6 +25,7 @@
           <span class="brand-text">Admin</span>
         </div>
         <button
+          type="button"
           class="sidebar-close-btn"
           @click="closeSidebar"
           aria-label="메뉴 닫기"
@@ -135,7 +141,11 @@
       <!-- 모바일 전용 미니바 (햄버거 + 현재 페이지명) -->
       <div class="admin-mobile-bar">
         <button
+          ref="sidebarTrigger"
+          type="button"
           class="mobile-hamburger"
+          :aria-expanded="sidebarOpen"
+          aria-controls="admin-sidebar"
           @click="toggleSidebar"
           aria-label="메뉴 열기"
         >
@@ -155,7 +165,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 
@@ -165,6 +175,8 @@ export default {
     const store = useStore();
     const route = useRoute();
     const sidebarOpen = ref(false);
+    const sidebarElement = ref(null);
+    const sidebarTrigger = ref(null);
 
     const user = computed(() => store.getters['auth/user']);
     const userInitial = computed(() => user.value?.username?.charAt(0)?.toUpperCase() || 'A');
@@ -185,10 +197,38 @@ export default {
 
     const toggleSidebar = () => {
       sidebarOpen.value = !sidebarOpen.value;
+      if (sidebarOpen.value) {
+        nextTick(() => sidebarElement.value?.querySelector('button, a')?.focus());
+      }
     };
 
     const closeSidebar = () => {
+      const wasOpen = sidebarOpen.value;
       sidebarOpen.value = false;
+      if (wasOpen) nextTick(() => sidebarTrigger.value?.focus());
+    };
+
+    const handleKeydown = (event) => {
+      if (!sidebarOpen.value) return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeSidebar();
+      } else if (event.key === 'Tab') {
+        const items = sidebarElement.value?.querySelectorAll('a[href], button:not([disabled])');
+        if (!items?.length) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (!sidebarElement.value.contains(document.activeElement)) {
+          event.preventDefault();
+          first.focus();
+        } else if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
     };
 
     // 데스크탑 너비로 변경 시 오버레이 자동 닫기
@@ -198,11 +238,17 @@ export default {
       }
     };
 
-    onMounted(() => window.addEventListener('resize', handleResize));
-    onUnmounted(() => window.removeEventListener('resize', handleResize));
+    onMounted(() => {
+      window.addEventListener('resize', handleResize);
+      document.addEventListener('keydown', handleKeydown);
+    });
+    onUnmounted(() => {
+      window.removeEventListener('resize', handleResize);
+      document.removeEventListener('keydown', handleKeydown);
+    });
 
     return {
-      sidebarOpen,
+      sidebarOpen, sidebarElement, sidebarTrigger,
       user,
       userInitial,
       pageTitle,

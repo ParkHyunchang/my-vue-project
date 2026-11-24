@@ -102,44 +102,44 @@ export default {
         grid: { top: 20, right: 16, bottom: 30, left: 56 },
         tooltip: {
           trigger: 'axis',
-          backgroundColor: 'rgba(28, 28, 40, 0.95)',
-          borderColor: 'rgba(201, 169, 110, 0.3)',
+          backgroundColor: 'rgba(23, 35, 52, 0.95)',
+          borderColor: 'rgba(118, 217, 195, 0.3)',
           borderWidth: 1,
-          textStyle: { color: '#f0ece4', fontSize: 12 },
+          textStyle: { color: '#edf3f8', fontSize: 12 },
           formatter: (params) => {
             const p = params[0];
-            return `${p.axisValue}<br/><strong style="color:#c9a96e">₩${props.formatCurrency(p.value)}</strong>`;
+            return `${p.axisValue}<br/><strong style="color:#76d9c3">₩${props.formatCurrency(p.value)}</strong>`;
           },
         },
         xAxis: {
           type: 'category',
           data: data.map(d => d.label),
-          axisLine: { lineStyle: { color: 'rgba(201, 169, 110, 0.2)' } },
-          axisLabel: { color: '#8a8580', fontSize: 11, interval: 0, rotate: 0 },
+          axisLine: { lineStyle: { color: 'rgba(118, 217, 195, 0.2)' } },
+          axisLabel: { color: '#91a4ba', fontSize: 11, interval: 'auto', hideOverlap: true, rotate: 0 },
           axisTick: { show: false },
         },
         yAxis: {
           type: 'value',
           axisLine: { show: false },
           axisLabel: {
-            color: '#8a8580',
+            color: '#91a4ba',
             fontSize: 11,
-            formatter: (v) => v >= 10000 ? `${Math.round(v / 10000)}만` : v,
+            formatter: (v) => v >= 10000 ? `${(v / 10000).toLocaleString('ko-KR')}만` : v,
           },
-          splitLine: { lineStyle: { color: 'rgba(201, 169, 110, 0.08)' } },
+          splitLine: { lineStyle: { color: 'rgba(118, 217, 195, 0.08)' } },
         },
         series: [{
           type: 'line',
           smooth: true,
           data: data.map(d => d.total),
-          lineStyle: { color: '#c9a96e', width: 2.5 },
-          itemStyle: { color: '#c9a96e' },
+          lineStyle: { color: '#76d9c3', width: 2.5 },
+          itemStyle: { color: '#76d9c3' },
           symbol: 'circle',
           symbolSize: 6,
           areaStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: 'rgba(201, 169, 110, 0.32)' },
-              { offset: 1, color: 'rgba(201, 169, 110, 0.02)' },
+              { offset: 0, color: 'rgba(118, 217, 195, 0.32)' },
+              { offset: 1, color: 'rgba(118, 217, 195, 0.02)' },
             ]),
           },
         }],

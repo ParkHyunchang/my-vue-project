@@ -6,7 +6,7 @@
 }
 .rem-box {
   width: 100%; max-width: 460px;
-  background: var(--card-bg, #fff);
+  background: var(--surface);
   border-radius: 12px; padding: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); margin: auto;
 }
@@ -20,7 +20,7 @@
 .rem-fixed {
   padding: 12px 14px; margin-bottom: 16px;
   border: 1px solid var(--card-border); border-radius: 8px;
-  background: rgba(99, 102, 241, 0.05);
+  background: rgba(var(--accent-rgb), 0.05);
 }
 .rem-fixed-row { display: flex; align-items: center; gap: 8px; }
 .rem-fixed-badge {
@@ -39,12 +39,12 @@
 .rem-row input,
 .rem-row textarea {
   width: 100%; box-sizing: border-box; padding: 9px 11px;
-  border: 1px solid var(--input-border); border-radius: 7px;
+  border: 1px solid var(--input-border); border-radius: var(--radius-control);
   background: var(--input-bg); color: var(--input-text); font-size: 14px;
 }
 .rem-row input::placeholder,
 .rem-row textarea::placeholder { color: var(--text-muted); opacity: 0.8; }
-.rem-hint { font-size: 12px; color: #6366f1; margin-top: 4px; display: inline-block; }
+.rem-hint { font-size: 12px; color: var(--accent); margin-top: 4px; display: inline-block; }
 
 .rem-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
@@ -52,23 +52,23 @@
 .rem-official-input { flex: 1 1 120px; min-width: 0; }
 .rem-official-year { flex: 0 0 84px; }
 .rem-official-btn {
-  padding: 9px 12px; border: 1px solid #6366f1; border-radius: 7px;
-  background: var(--input-bg); color: #6366f1; font-size: 13px; font-weight: 600;
+  padding: 9px 12px; border: 1px solid var(--accent); border-radius: var(--radius-control);
+  background: var(--input-bg); color: var(--accent); font-size: 13px; font-weight: 600;
   cursor: pointer; white-space: nowrap;
 }
 .rem-official-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .rem-error {
-  padding: 8px 12px; border-radius: 7px; margin-bottom: 12px;
+  padding: 8px 12px; border-radius: var(--radius-control); margin-bottom: 12px;
   background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #b91c1c; font-size: 13px;
+  color: var(--danger-color); font-size: 13px;
 }
 .rem-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
 .rem-cancel, .rem-submit {
-  padding: 9px 18px; border-radius: 7px; font-size: 14px; font-weight: 600; cursor: pointer;
+  padding: 9px 18px; border-radius: var(--radius-control); font-size: 14px; font-weight: 600; cursor: pointer;
 }
 .rem-cancel { border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-muted); }
-.rem-submit { border: none; background: #6366f1; color: #fff; }
+.rem-submit { border: none; background: var(--accent); color: var(--text-on-accent); }
 .rem-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
 @media (max-width: 480px) {
@@ -76,3 +76,15 @@
   .rem-grid2 { grid-template-columns: 1fr; gap: 0; }
   .rem-official-input, .rem-official-year { flex: 1 1 100%; }
 }
+
+.rem-box { box-sizing: border-box; border: 1px solid var(--card-border-strong); border-radius: var(--radius-panel); padding: 24px; }
+.rem-close, .rem-cancel, .rem-submit, .rem-official-btn, .rem-toggle-btn { min-height: var(--control-height); border-radius: var(--radius-control); }
+.rem-close { min-width: var(--control-height); }
+.rem-close:hover { color: var(--text-primary); background: var(--surface-2); }
+.rem-row input:not([type="checkbox"]):not([type="radio"]), .rem-row select { min-height: var(--control-height); }
+.rem-row label { color: var(--text-secondary); }
+.rem-toggle-btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent-glow); }
+.rem-submit:hover:not(:disabled) { background: var(--accent-light); }
+.rem-region-list li { min-height: var(--control-height); display: flex; align-items: center; }
+.rem-error { line-height: 1.6; }
+@media (max-width: 480px) { .rem-box { padding: 20px 16px; } .rem-actions { display: grid; grid-template-columns: 1fr 1fr; } }

@@ -5,8 +5,7 @@ import { smooth } from "./smooth.js";
 // - smooth(): Lenis 스무스 스크롤 초기화
 // - link(): data-scroll 앵커 초기 바인딩
 //
-// port()/menu()는 컴포넌트 단위로 호출하므로 여기서 제거
-// (port는 pages/index.vue 마운트 시 호출, menu는 Navbar 컴포넌트가 자체 처리)
+// 메뉴는 Navbar 컴포넌트가 처리하며 홈은 기본 문서 스크롤을 사용한다.
 window.addEventListener("load", function () {
     smooth();
     link();
