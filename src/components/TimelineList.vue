@@ -5,7 +5,7 @@
       class="timeline-empty"
     >
       <i class="fas fa-heart" />
-      <p>아직 추억이 없습니다.</p>
+      <p>{{ emptyMessage }}</p>
     </div>
     <div
       v-for="item in items"
@@ -21,7 +21,15 @@
           <i :class="categoryIconGetter(item.category)" />
         </div>
         <div class="timeline-body">
-          <h3>{{ item.title }}</h3>
+          <h3>
+            <button
+              type="button"
+              class="timeline-open"
+              @click.stop="$emit('select', item)"
+            >
+              {{ item.title }}
+            </button>
+          </h3>
           <p>{{ item.description }}</p>
           <div
             v-if="item.processedMedia && item.processedMedia.length > 0"
@@ -32,7 +40,9 @@
                 v-for="(media, mediaIdx) in item.processedMedia.slice(0, 3)"
                 :key="media.originalIndex"
               >
-                <div
+                <button
+                  type="button"
+                  :aria-label="`${item.title} 사진·동영상 ${mediaIdx + 1} 보기`"
                   class="media-thumbnail"
                   :class="{ 'has-video': media.isVideo }"
                   @click.stop="$emit('media-click', { item, mediaIdx })"
@@ -49,6 +59,7 @@
                     v-else
                     :src="media.url"
                     :alt="item.title"
+                    loading="lazy"
                     class="memory-image"
                     @error="$emit('image-error', $event)"
                     @load="$emit('image-load', $event)"
@@ -59,14 +70,17 @@
                   >
                     <i class="fas fa-play" />
                   </span>
-                </div>
+                </button>
               </template>
-              <div
+              <button
                 v-if="item.totalMediaCount > 3"
+                type="button"
+                :aria-label="`${item.title} 나머지 사진·동영상 보기`"
+                @click.stop="$emit('media-click', { item, mediaIdx: 3 })"
                 class="more-media"
               >
                 +{{ item.totalMediaCount - 3 }}
-              </div>
+              </button>
             </div>
             <div class="media-counts">
               <span
@@ -102,6 +116,7 @@
 export default {
   name: "TimelineList",
   props: {
+    emptyMessage: { type: String, default: "아직 기록이 없습니다." },
     items: {
       type: Array,
       required: true,

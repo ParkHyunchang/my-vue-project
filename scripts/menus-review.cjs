@@ -146,4 +146,5 @@ async function run() {
   } finally { await browser.close(); }
   if (results.some(r => r.status !== 'captured')) process.exitCode = 1;
 }
-run().catch(error => { console.error(error); process.exitCode = 1; });
+module.exports = { fixture };
+if (require.main === module) run().catch(error => { console.error(error); process.exitCode = 1; });

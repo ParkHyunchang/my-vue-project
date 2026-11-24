@@ -315,7 +315,7 @@
               type="button"
               class="btn btn-danger"
               :disabled="modalLock"
-              @click="$emit('request-delete', localMemory)"
+              @click="requestDelete"
             >
               삭제
             </button>
@@ -349,7 +349,7 @@
               type="button"
               class="btn btn-danger"
               :disabled="modalLock"
-              @click="$emit('request-delete', localMemory)"
+              @click="requestDelete"
             >
               삭제
             </button>
@@ -392,6 +392,7 @@
 <script>
 import { ref, computed, watch, nextTick, onBeforeUpdate, onMounted, onUnmounted } from "vue";
 import { useStore } from "vuex";
+import { onBeforeRouteLeave } from "vue-router";
 import axios from "@/axios";
 import Modal from "@/components/Modal.vue";
 import DeleteModal from "@/components/DeleteModal.vue";
@@ -448,6 +449,14 @@ export default {
     const showImageDeleteModal = ref(false);
     const imageToDelete = ref(null);
     const removedMedia = ref([]);
+    const originalDraft = ref("");
+    const hasUnsavedChanges = computed(() => props.show && !props.isViewMode && JSON.stringify(localMemory.value) !== originalDraft.value);
+    const confirmDiscard = () => !hasUnsavedChanges.value || window.confirm("저장하지 않은 변경 사항이 있습니다. 작성한 내용을 버리고 나갈까요?");
+    const beforeUnload = (event) => {
+      if (!props.show || (!hasUnsavedChanges.value && !modalLock.value)) return;
+      event.preventDefault();
+      event.returnValue = "";
+    };
 
     onBeforeUpdate(() => { previewVideos.value = []; });
 
@@ -472,9 +481,11 @@ export default {
     onMounted(() => {
       updateIsMobileLike();
       window.addEventListener?.("resize", updateIsMobileLike);
+      window.addEventListener("beforeunload", beforeUnload);
     });
     onUnmounted(() => {
       window.removeEventListener?.("resize", updateIsMobileLike);
+      window.removeEventListener("beforeunload", beforeUnload);
     });
 
     const stopAllPreviewVideos = () => {
@@ -501,6 +512,7 @@ export default {
           } else {
             localMemory.value = { ...EMPTY_MEMORY, images: [] };
           }
+          originalDraft.value = JSON.stringify(localMemory.value);
         } else {
           stopAllPreviewVideos();
         }
@@ -509,9 +521,14 @@ export default {
     );
 
     const requestClose = () => {
-      if (modalLock.value) return;
+      if (modalLock.value || !confirmDiscard()) return;
       emit("close");
     };
+
+    const requestDelete = () => {
+      if (!modalLock.value && confirmDiscard()) emit("request-delete", localMemory.value);
+    };
+    onBeforeRouteLeave(() => !props.show || (!modalLock.value && confirmDiscard()));
 
     const getCategoryName = (categoryId) => {
       const c = props.categories.find((cat) => cat.id === categoryId);
@@ -738,11 +755,23 @@ export default {
           return response.data;
         });
 
-        const uploaded = await Promise.all(uploadPromises);
+        const outcomes = await Promise.allSettled(uploadPromises);
+        const uploaded = outcomes.filter(result => result.status === "fulfilled").map(result => result.value);
+        const failed = outcomes.flatMap((result, index) => {
+          if (result.status !== "rejected") return [];
+          const error = result.reason;
+          const reason = error?.response?.status === 413
+            ? "서버 업로드 용량 제한을 초과했습니다. 파일 크기를 줄여 주세요."
+            : error?.response || error?.isAxiosError || error?.code
+              ? apiErrorMessage(error, "업로드에 실패했습니다.")
+              : error?.message || "업로드에 실패했습니다.";
+          return [`${files[index].name}: ${reason}`];
+        });
         if (!localMemory.value.images) localMemory.value.images = [];
         localMemory.value.images.push(...uploaded);
 
-        showToast(`${uploaded.length}개의 미디어가 업로드되었습니다.`);
+        if (uploaded.length) showToast(`${uploaded.length}개의 미디어가 업로드되었습니다. 기록을 저장해 주세요.`);
+        if (failed.length) showToast(`업로드 실패: ${failed.join(", ")}. 성공한 사진은 유지됩니다. 실패한 파일만 다시 선택해 주세요.`, "danger");
         postUploadSettling.value = true;
         await waitForModalMediaSettled(1500);
         await new Promise((r) => setTimeout(r, 300));
@@ -816,7 +845,7 @@ export default {
       showImageDeleteModal,
       canCreate, canUpdate, canDelete, hasUploadPermission,
       maxDate, dateRangeInfo, lightboxItemsForView,
-      requestClose,
+      requestClose, requestDelete,
       onSave,
       getCategoryName, getCategoryIcon,
       formatDate, formatMemoryDate,

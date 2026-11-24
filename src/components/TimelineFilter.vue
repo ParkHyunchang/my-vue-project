@@ -6,6 +6,7 @@
         :key="category.id"
         type="button"
         :class="['filter-btn', { active: selectedCategory === category.id }]"
+        :aria-pressed="selectedCategory === category.id"
         @click="$emit('select-category', category.id)"
       >
         <i
@@ -24,6 +25,7 @@
         :key="option.id"
         type="button"
         :class="['filter-btn', 'media-filter-btn', { active: mediaFilter === option.id }]"
+        :aria-pressed="mediaFilter === option.id"
         @click="$emit('select-media', option.id)"
       >
         {{ option.label }}

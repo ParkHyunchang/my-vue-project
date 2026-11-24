@@ -10,12 +10,13 @@
       class="history-page-content"
     >
       <div class="page-header">
-        <h2>My History</h2>
+        <h2>나의 기록</h2>
         <button
+          v-if="canCreate"
           class="btn btn-primary"
           @click="openCreateModal"
         >
-          Add New Event
+          새 기록 추가
         </button>
       </div>
 
@@ -28,7 +29,7 @@
           type="text"
           class="search-input"
           placeholder="제목, 설명, 장소 검색"
-          aria-label="History search"
+          aria-label="기록 검색"
           autocomplete="off"
         >
         <button
@@ -53,7 +54,55 @@
         @select-media="setMediaFilter"
       />
 
+      <div class="record-toolbar">
+        <label>연도
+          <select v-model="selectedYear"><option value="">전체 연도</option><option
+            v-for="year in availableYears"
+            :key="year"
+            :value="year"
+          >{{ year }}년</option></select>
+        </label>
+        <label>정렬
+          <select v-model="sortOrder"><option value="newest">최신 기록부터</option><option value="oldest">오래된 기록부터</option></select>
+        </label>
+      </div>
+      <div
+        class="record-results"
+        aria-live="polite"
+      >
+        <span>총 {{ events.length }}개 중 {{ processedEvents.length }}개</span>
+        <button
+          v-if="hasFilters"
+          type="button"
+          class="btn btn-secondary"
+          @click="resetFilters"
+        >
+          조건 초기화
+        </button>
+      </div>
+      <div
+        v-if="loading"
+        class="record-state"
+        role="status"
+      >
+        기록을 불러오는 중입니다.
+      </div>
+      <div
+        v-else-if="loadError"
+        class="record-state"
+        role="alert"
+      >
+        <p>{{ loadError }}</p><button
+          type="button"
+          class="btn btn-secondary"
+          @click="fetchEvents"
+        >
+          다시 불러오기
+        </button>
+      </div>
       <TimelineList
+        v-else
+        :empty-message="hasFilters ? '조건에 맞는 기록이 없습니다. 검색어나 연도를 바꿔보세요.' : '아직 기록이 없습니다. 첫 기록을 남겨보세요.'"
         :items="processedEvents"
         :date-formatter="formatEventDate"
         :category-icon-getter="getCategoryIcon"
@@ -69,6 +118,10 @@
       :show="showEventModal"
       :event="currentEvent"
       :is-editing="isEditing"
+      :is-view-mode="isViewMode"
+      :categories="categories"
+      @enter-edit="isViewMode = false"
+      @open-lightbox="onOpenLightbox"
       :saving="saving"
       :category-options="categoryOptions"
       @close="closeEventModal"
@@ -80,6 +133,7 @@
       <DeleteModal
         v-if="showDeleteModal"
         title="이벤트 삭제"
+        :busy="deleting"
         message="이 이벤트를 정말 삭제하시겠습니까?"
         @close="closeDeleteModal"
         @delete="deleteEvent"
@@ -96,7 +150,9 @@
 
 <script>
 import { ref, computed, watch } from "vue";
+import { useStore } from "vuex";
 import axios from "@/axios";
+import { useTimelineBrowse } from "@/composables/useTimelineBrowse";
 import { useTimelineSave } from "@/composables/useTimelineSave";
 import DeleteModal from "@/components/DeleteModal.vue";
 import TimelineFilter from "@/components/TimelineFilter.vue";
@@ -126,6 +182,8 @@ export default {
   name: "HistoryPage",
   components: { DeleteModal, TimelineFilter, TimelineList, Lightbox, EventFormModal },
   setup() {
+    const store = useStore();
+    const canCreate = computed(() => store.getters["auth/canCreate"]("/history"));
     const { showToast } = useToast();
     const { saving, save: persistRecord } = useTimelineSave("history");
     const { isVideoMedia, getImageUrl: getMediaUrl, parseImagesArray } = useMediaUtils();
@@ -135,9 +193,14 @@ export default {
     const searchInput = ref("");
     const selectedCategory = ref("all");
     const mediaFilter = ref("all");
+    const loading = ref(false);
+    const loadError = ref("");
+    const deleting = ref(false);
+    const { selectedYear, sortOrder, availableYears, hasFilters, resetFilters, arrange } = useTimelineBrowse(events, searchInput, selectedCategory, mediaFilter, CATEGORIES);
 
     const showEventModal = ref(false);
     const isEditing = ref(false);
+    const isViewMode = ref(false);
     const currentEvent = ref(null);
 
     const showDeleteModal = ref(false);
@@ -196,12 +259,14 @@ export default {
         };
       });
 
-      if (mediaFilter.value === "image") return processed.filter((e) => e.imageCount > 0);
-      if (mediaFilter.value === "video") return processed.filter((e) => e.videoCount > 0);
-      return processed;
+      if (mediaFilter.value === "image") return arrange(processed.filter((e) => e.imageCount > 0));
+      if (mediaFilter.value === "video") return arrange(processed.filter((e) => e.videoCount > 0));
+      return arrange(processed);
     });
 
     const fetchEvents = async () => {
+      loading.value = true;
+      loadError.value = "";
       try {
         const response = await axios.get("/api/histories");
         events.value = response.data.map((event) => ({
@@ -209,18 +274,22 @@ export default {
           images: parseImagesArray(event),
         }));
       } catch (err) {
-        showToast(apiErrorMessage(err, "Failed to load events"), "danger");
+        loadError.value = apiErrorMessage(err, "기록을 불러오지 못했습니다.");
+      } finally {
+        loading.value = false;
       }
     };
 
     const openCreateModal = () => {
       isEditing.value = false;
+      isViewMode.value = false;
       currentEvent.value = null;
       showEventModal.value = true;
     };
 
     const openEventDetail = (event) => {
       isEditing.value = true;
+      isViewMode.value = true;
       currentEvent.value = event;
       showEventModal.value = true;
     };
@@ -263,6 +332,8 @@ export default {
     };
 
     const deleteEvent = async () => {
+      if (deleting.value) return;
+      deleting.value = true;
       try {
         await axios.delete(`/api/histories/${eventToDelete.value.id}`);
         closeDeleteModal();
@@ -270,17 +341,19 @@ export default {
         showToast("이벤트가 삭제되었습니다.");
       } catch (err) {
         showToast(apiErrorMessage(err, "이벤트 삭제에 실패했습니다."), "danger");
+      } finally {
+        deleting.value = false;
       }
     };
 
     const filterByCategory = (categoryId) => {
       selectedCategory.value =
-        selectedCategory.value === categoryId ? null : categoryId;
+        categoryId;
     };
     const setMediaFilter = (type) => { mediaFilter.value = type; };
 
     const formatDate = (date) => {
-      return new Date(date).toLocaleDateString("ko-KR", {
+      return new Date(String(date).length === 10 ? `${date}T00:00:00` : date).toLocaleDateString("ko-KR", {
         year: "numeric", month: "long", day: "numeric",
       });
     };
@@ -298,11 +371,14 @@ export default {
     };
 
     const applySearch = () => { searchQuery.value = searchInput.value.trim(); };
-    watch(searchInput, (val) => { searchQuery.value = val.trim(); });
+    watch(searchInput, (val) => { searchQuery.value = val.trim(); }, { immediate: true });
 
     const handleImageError = (event) => { event.target.style.display = "none"; };
     const handleImageLoad = (event) => { event.target.style.display = "block"; };
 
+    const onOpenLightbox = ({ items, index }) => {
+      lightboxItems.value = items; lightboxIndex.value = index; lightboxOpen.value = true;
+    };
     const handleMediaClick = ({ item, mediaIdx }) => {
       lightboxItems.value = item.processedMedia;
       lightboxIndex.value = mediaIdx;
@@ -312,13 +388,14 @@ export default {
     fetchEvents();
 
     return {
-      saving,
+      saving, loading, loadError, deleting, fetchEvents, canCreate,
+      selectedYear, sortOrder, availableYears, hasFilters, resetFilters,
       events,
       searchInput,
       categories, mediaFilterOptions, categoryOptions,
       selectedCategory, mediaFilter,
       processedEvents,
-      showEventModal, isEditing, currentEvent,
+      showEventModal, isEditing, isViewMode, currentEvent, onOpenLightbox,
       showDeleteModal,
       lightboxOpen, lightboxItems, lightboxIndex,
       openCreateModal, openEventDetail, closeEventModal, saveEvent,

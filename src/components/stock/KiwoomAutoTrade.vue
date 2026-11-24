@@ -1,7 +1,7 @@
 <template>
   <section class="auto-trade-panel">
     <header class="panel-header">
-      <div><p>KIWOOM OPEN API</p><h3>🤖 AI 자동매매</h3><small>실계좌 주문 제어 및 실시간 체결 모니터</small></div><b class="live">실전 투자</b>
+      <div><p>KIWOOM OPEN API</p><h3>국내주식 자동매매</h3><small>실계좌 주문 제어 및 실시간 체결 모니터</small></div><b class="live">실전 투자</b>
     </header>
     <p
       v-if="errorMessage"
@@ -15,6 +15,17 @@
     >
       서버 환경 변수에 <code>KIWOOM_APP_KEY</code>, <code>KIWOOM_SECRET_KEY</code>를 설정하면 연결할 수 있습니다.
     </p>
+    <dl
+      class="operation-overview"
+      aria-label="자동매매 운영 상태"
+    >
+      <div><dt>자동주문</dt><dd>{{ !status.configured ? '연결 확인 필요' : status.autoTrading ? '운용 중' : '중지 상태' }}</dd></div>
+      <div><dt>주문 전송</dt><dd>{{ !status.configured ? '확인 필요' : status.orderEnabled ? '허용' : '잠금' }}</dd></div>
+      <div><dt>거래 시간</dt><dd>{{ !status.configured ? '확인 필요' : status.marketOpen ? '정규장' : '정규장 외' }}</dd></div>
+    </dl>
+    <h4 class="operation-heading">
+      운영 제어
+    </h4>
     <div class="control-card">
       <div class="connection">
         <i :class="status.connected ? 'online' : ''" /><span><strong>{{ status.connected ? '키움 API 연결됨' : '키움 API 연결 대기' }}</strong><small>{{ status.tokenValid ? 'Access Token 정상' : 'Access Token 미발급 또는 만료' }}</small></span>
@@ -34,7 +45,7 @@
           title="키움 Access Token을 새로 발급받습니다."
           @click="refreshToken"
         >
-          API Key 갱신
+          접속 토큰 갱신
         </button>
       </div>
     </div>
@@ -93,29 +104,32 @@
       :price-ticks="priceTicks"
       :refresh-version="refreshVersion"
     />
-    <section class="log-card">
-      <header>
-        <span>●</span> 실시간 시세 · 주문 체결 로그 <button @click="logs = []">
-          지우기
-        </button>
-      </header><div
-        ref="logElement"
-        class="terminal"
-      >
-        <p
-          v-if="!logs.length"
-          class="empty"
+    <details class="operation-details">
+      <summary>실시간 시세 · 체결 로그 펼치기</summary>
+      <section class="log-card">
+        <header>
+          <span>●</span> 실시간 시세 · 주문 체결 로그 <button @click="logs = []">
+            지우기
+          </button>
+        </header><div
+          ref="logElement"
+          class="terminal"
         >
-          연결 이벤트 및 자동 주문 체결 내역이 여기에 표시됩니다.
-        </p><p
-          v-for="log in logs"
-          :key="log.id"
-          :class="log.type"
-        >
-          <time>{{ log.time }}</time>{{ log.message }}
-        </p>
-      </div>
-    </section>
+          <p
+            v-if="!logs.length"
+            class="empty"
+          >
+            연결 이벤트 및 자동 주문 체결 내역이 여기에 표시됩니다.
+          </p><p
+            v-for="log in logs"
+            :key="log.id"
+            :class="log.type"
+          >
+            <time>{{ log.time }}</time>{{ log.message }}
+          </p>
+        </div>
+      </section>
+    </details>
   </section>
 </template>
 
@@ -204,4 +218,16 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select { m
 .panel-header, .control-card { gap: 16px; }
 .panel-header h3 { font-weight: 700; letter-spacing: -.025em; }
 .terminal { border-radius: 0 0 var(--radius-card) var(--radius-card); }
+</style>
+
+<style scoped>
+.operation-overview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 18px 0; }
+.operation-overview > div { padding: 16px; border: 1px solid var(--card-border); background: var(--card-bg); border-radius: 12px; }
+.operation-overview dt { color: var(--text-muted); font-size: 12px; }
+.operation-overview dd { margin: 8px 0 0; color: var(--text-primary); font-weight: 700; }
+.operation-heading { margin: 20px 0 12px; color: var(--text-primary); }
+.operation-details { margin-top: 20px; }
+.operation-details > summary { padding: 14px 0; min-height: 44px; color: var(--text-secondary); cursor: pointer; }
+.operation-details > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media(max-width: 600px) { .operation-overview { gap: 6px; } .operation-overview > div { padding: 12px 8px; } .operation-overview dd { font-size: 13px; } .actions { width: 100%; flex-wrap: wrap; } .actions button { min-height: 44px; } }
 </style>

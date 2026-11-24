@@ -102,3 +102,16 @@
 .krx-days.api-status-expired { color: var(--danger-color); }
 .krx-renew-link, .krx-alert-link { display: inline-flex; align-items: center; min-height: var(--control-height); opacity: 1; }
 @media (max-width: 640px) { .krx-api-middle { flex-wrap: wrap; line-height: 1.7; } }
+
+/* Task navigation stays separate from the account's holdings tabs. */
+.stock-navigation { margin: 22px 0; }
+.stock-groups { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+.stock-groups button { min-height: 48px; padding: 10px 12px; border: 1px solid var(--card-border); border-radius: 12px; background: var(--card-bg); color: var(--text-secondary); font-weight: 700; cursor: pointer; }
+.stock-groups button.active { background: var(--accent); border-color: var(--accent); color: var(--text-on-accent); }
+.stock-navigation .stock-tabs { margin-bottom: 10px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; padding-bottom: 8px; }
+.stock-navigation .tab-btn { min-height: 44px; flex-shrink: 0; }
+.stock-context, .stock-loading { margin: 8px 0; color: var(--text-secondary); font-size: 13px; line-height: 1.7; }
+.stock-loading { color: var(--accent); }
+.krx-api-section > summary { min-height: 44px; padding: 10px 0; color: var(--text-muted); font-size: 13px; cursor: pointer; }
+.stock-navigation button:focus-visible, .krx-api-section > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 640px) { .stock-groups { grid-template-columns: repeat(2, minmax(0, 1fr)); } .stock-navigation { margin: 16px 0; } }

@@ -5,6 +5,7 @@ const { parse, compileScript, compileTemplate } = require('@vue/compiler-sfc');
 const { transformSync } = require('@babel/core');
 const { createApp, nextTick } = require('vue');
 const http = require('@/axios').default;
+const mockShowToast = jest.fn();
 
 jest.mock('@/axios', () => ({ __esModule: true, default: {
   defaults: { baseURL: '' }, post: jest.fn(), delete: jest.fn(),
@@ -12,8 +13,9 @@ jest.mock('@/axios', () => ({ __esModule: true, default: {
 jest.mock('vuex', () => ({ useStore: () => ({ getters: {
   'auth/canCreate': () => true, 'auth/canUpdate': () => true, 'auth/canDelete': () => true,
 } }) }));
-jest.mock('@/composables/toast', () => ({ useToast: () => ({ showToast: jest.fn() }) }));
+jest.mock('@/composables/toast', () => ({ useToast: () => ({ showToast: mockShowToast }) }));
 jest.mock('@/composables/useMidnightTicker', () => ({ useMidnightTicker: () => ({ nowTick: { value: Date.now() } }) }));
+jest.mock('vue-router', () => ({ onBeforeRouteLeave: jest.fn() }));
 
 function component(relative, template = true) {
   const filename = path.resolve(__dirname, '../../src', relative);
@@ -62,6 +64,7 @@ test('travel saves and displays the generation snapshot despite edits before and
 });
 
 test('removing media only stages deletion; cancel and reopen restore originals', async () => {
+  jest.spyOn(window, 'confirm').mockReturnValue(true);
   const original = { id: 1, title: '기록', date: '2020-01-01', category: 'travel',
     images: ['/old.jpg'], dateType: 'single' };
   const onSave = jest.fn(), onClose = jest.fn();
@@ -78,4 +81,55 @@ test('removing media only stages deletion; cancel and reopen restore originals',
   app.unmount();
   const reopened = mount(type, { show: true, memory: original, menuPath: '/history', apiPath: '/api/histories' });
   expect(reopened.localMemory.images).toEqual(['/old.jpg']);
+});
+
+test('cancelled discard keeps draft and prevents closing or deletion', () => {
+  jest.spyOn(window, 'confirm').mockReturnValue(false);
+  const onClose = jest.fn(), onRequestDelete = jest.fn();
+  const vm = mount(component('components/timeline/TimelineFormModal.vue', false), {
+    show: true, menuPath: '/history', apiPath: '/api/histories', onClose, onRequestDelete,
+  });
+  vm.localMemory.title = '작성 중인 기록';
+  vm.requestClose(); vm.requestDelete();
+  expect(onClose).not.toHaveBeenCalled();
+  expect(onRequestDelete).not.toHaveBeenCalled();
+  expect(vm.localMemory.title).toBe('작성 중인 기록');
+});
+
+test('partial upload keeps successes and stays locked until every request settles', async () => {
+  let finish;
+  http.post.mockRejectedValueOnce(new Error('connection lost'));
+  http.post.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+  const vm = mount(component('components/timeline/TimelineFormModal.vue', false), {
+    show: true, menuPath: '/history', apiPath: '/api/histories',
+  });
+  const pending = vm.handleFileUpload({ target: { files: [
+    new File(['a'], 'failed.jpg', { type: 'image/jpeg' }),
+    new File(['b'], 'kept.jpg', { type: 'image/jpeg' }),
+  ] } });
+  await flush();
+  expect(vm.uploading).toBe(true);
+  finish({ data: '/uploads/kept.jpg' });
+  await pending;
+  expect(vm.localMemory.images).toEqual(['/uploads/kept.jpg']);
+  expect(vm.uploading).toBe(false);
+  expect(http.delete).not.toHaveBeenCalled();
+});
+
+test('upload failures explain file validation and proxy size limits without showing HTML', async () => {
+  http.post.mockRejectedValueOnce({ response: { status: 413, data: '<html>private proxy details</html>' } });
+  const vm = mount(component('components/timeline/TimelineFormModal.vue', false), {
+    show: true, menuPath: '/history', apiPath: '/api/histories',
+  });
+  await vm.handleFileUpload({ target: { files: [
+    new File(['text'], 'notes.txt', { type: 'text/plain' }),
+    new File(['image'], 'large.jpg', { type: 'image/jpeg' }),
+  ] } });
+  const message = mockShowToast.mock.calls.find(call => call[1] === 'danger')[0];
+  expect(message).toContain('notes.txt');
+  expect(message).toContain('이미지 또는 동영상');
+  expect(message).toContain('large.jpg');
+  expect(message).toContain('용량 제한');
+  expect(message).not.toContain('<html>');
+  expect(message).not.toContain('private proxy');
 });

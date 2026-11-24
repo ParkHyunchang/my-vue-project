@@ -29,7 +29,7 @@
           type="text"
           class="search-input"
           placeholder="제목, 설명, 장소 검색"
-          aria-label="Dating search"
+          aria-label="추억 검색"
           autocomplete="off"
         >
         <button
@@ -54,7 +54,10 @@
         </button>
       </form>
 
-      <DdayDisplay :memories="memories" />
+      <DdayDisplay
+        :memories="memories"
+        @select="openMemoryDetail"
+      />
 
       <TimelineFilter
         :categories="categories"
@@ -65,7 +68,55 @@
         @select-media="setMediaFilter"
       />
 
+      <div class="record-toolbar">
+        <label>연도
+          <select v-model="selectedYear"><option value="">전체 연도</option><option
+            v-for="year in availableYears"
+            :key="year"
+            :value="year"
+          >{{ year }}년</option></select>
+        </label>
+        <label>정렬
+          <select v-model="sortOrder"><option value="newest">최신 기록부터</option><option value="oldest">오래된 기록부터</option></select>
+        </label>
+      </div>
+      <div
+        class="record-results"
+        aria-live="polite"
+      >
+        <span>총 {{ memories.length }}개 중 {{ processedMemories.length }}개</span>
+        <button
+          v-if="hasFilters"
+          type="button"
+          class="btn btn-secondary"
+          @click="resetFilters"
+        >
+          조건 초기화
+        </button>
+      </div>
+      <div
+        v-if="loading"
+        class="record-state"
+        role="status"
+      >
+        기록을 불러오는 중입니다.
+      </div>
+      <div
+        v-else-if="loadError"
+        class="record-state"
+        role="alert"
+      >
+        <p>{{ loadError }}</p><button
+          type="button"
+          class="btn btn-secondary"
+          @click="fetchMemories"
+        >
+          다시 불러오기
+        </button>
+      </div>
       <TimelineList
+        v-else
+        :empty-message="hasFilters ? '조건에 맞는 기록이 없습니다. 검색어나 연도를 바꿔보세요.' : '아직 기록이 없습니다. 첫 기록을 남겨보세요.'"
         :items="processedMemories"
         :date-formatter="formatMemoryDate"
         :category-icon-getter="getCategoryIcon"
@@ -95,6 +146,7 @@
       <DeleteModal
         v-if="showDeleteModal"
         title="추억 삭제"
+        :busy="deleting"
         message="이 추억을 정말 삭제하시겠습니까?"
         @close="closeDeleteModal"
         @delete="deleteMemory"
@@ -113,6 +165,7 @@
 import { ref, computed, watch } from "vue";
 import { useStore } from "vuex";
 import axios from "@/axios";
+import { useTimelineBrowse } from "@/composables/useTimelineBrowse";
 import { useTimelineSave } from "@/composables/useTimelineSave";
 import DeleteModal from "@/components/DeleteModal.vue";
 import TimelineFilter from "@/components/TimelineFilter.vue";
@@ -158,6 +211,10 @@ export default {
     const searchInput = ref("");
     const selectedCategory = ref("all");
     const mediaFilter = ref("all");
+    const loading = ref(false);
+    const loadError = ref("");
+    const deleting = ref(false);
+    const { selectedYear, sortOrder, availableYears, hasFilters, resetFilters, arrange } = useTimelineBrowse(memories, searchInput, selectedCategory, mediaFilter, CATEGORIES);
 
     const showMemoryModal = ref(false);
     const isEditing = ref(false);
@@ -177,8 +234,8 @@ export default {
     const mediaFilterOptions = MEDIA_FILTER_OPTIONS;
 
     const categoryOptions = computed(() => {
-      const hasFirstMeet = memories.value.some((m) => m.category === "first_meet");
-      const hasSpecial = memories.value.some((m) => m.category === "special");
+      const hasFirstMeet = memories.value.some((m) => m.category === "first_meet" && m.id !== currentMemory.value?.id);
+      const hasSpecial = memories.value.some((m) => m.category === "special" && m.id !== currentMemory.value?.id);
       return categories.filter((cat) => {
         if (cat.id === "all") return false;
         if (cat.id === "first_meet" && hasFirstMeet) return false;
@@ -188,6 +245,8 @@ export default {
     });
 
     const fetchMemories = async () => {
+      loading.value = true;
+      loadError.value = "";
       try {
         const response = await axios.get("/api/dating");
         memories.value = response.data.map((memory) => ({
@@ -195,7 +254,9 @@ export default {
           images: parseImagesArray(memory),
         }));
       } catch (err) {
-        showToast(apiErrorMessage(err, "추억을 불러오지 못했습니다."), "danger");
+        loadError.value = apiErrorMessage(err, "기록을 불러오지 못했습니다.");
+      } finally {
+        loading.value = false;
       }
     };
 
@@ -254,6 +315,8 @@ export default {
     };
 
     const deleteMemory = async () => {
+      if (deleting.value) return;
+      deleting.value = true;
       try {
         await axios.delete(`/api/dating/${memoryToDelete.value.id}`);
         closeDeleteModal();
@@ -261,6 +324,8 @@ export default {
         showToast("추억이 삭제되었습니다.");
       } catch (err) {
         showToast(apiErrorMessage(err, "추억 삭제에 실패했습니다."), "danger");
+      } finally {
+        deleting.value = false;
       }
     };
 
@@ -327,14 +392,14 @@ export default {
         };
       });
 
-      if (mediaFilter.value === "image") return processed.filter((m) => m.imageCount > 0);
-      if (mediaFilter.value === "video") return processed.filter((m) => m.videoCount > 0);
-      return processed;
+      if (mediaFilter.value === "image") return arrange(processed.filter((m) => m.imageCount > 0));
+      if (mediaFilter.value === "video") return arrange(processed.filter((m) => m.videoCount > 0));
+      return arrange(processed);
     });
 
     const applySearch = () => { searchQuery.value = searchInput.value.trim(); };
     const clearSearch = () => { searchInput.value = ""; searchQuery.value = ""; };
-    watch(searchInput, (val) => { searchQuery.value = val.trim(); });
+    watch(searchInput, (val) => { searchQuery.value = val.trim(); }, { immediate: true });
 
     const handleImageError = (event) => { event.target.style.display = "none"; };
     const handleImageLoad = (event) => { event.target.style.display = "block"; };
@@ -354,7 +419,8 @@ export default {
     fetchMemories();
 
     return {
-      saving,
+      saving, loading, loadError, deleting, fetchMemories,
+      selectedYear, sortOrder, availableYears, hasFilters, resetFilters,
       memories,
       searchInput,
       categories, mediaFilterOptions,

@@ -324,7 +324,7 @@ test('KR manual decision honors confirmation and token refresh stays on its endp
   expect(http.post).not.toHaveBeenCalled()
   window.confirm.mockReturnValue(true); await click('지금 재판단')
   expect(http.post).toHaveBeenCalledWith(`${STRATEGY}/decide`)
-  http.post.mockClear(); await click('API Key 갱신')
+  http.post.mockClear(); await click('접속 토큰 갱신')
   expect(http.post).toHaveBeenCalledTimes(1)
   expect(http.post).toHaveBeenCalledWith(`${KR}/token/refresh`)
 })

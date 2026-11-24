@@ -375,3 +375,22 @@
 .timeline-body h3 { font-size: 1.1rem; font-weight: 700; line-height: 1.6; }
 .timeline-body p { line-height: 1.8; overflow-wrap: anywhere; }
 .timeline-empty { padding: 40px 20px; border: 1px dashed var(--card-border-strong); border-radius: var(--radius-card); background: var(--surface); }
+
+.record-toolbar { display: flex; gap: 12px; margin: 16px 0; }
+.timeline-filter { margin-bottom: 16px; }
+.timeline { padding-top: 16px; }
+.record-toolbar label { display: flex; flex: 1; flex-direction: column; gap: 6px; min-width: 0; font-size: 13px; color: var(--text-secondary); }
+.record-toolbar select { width: 100%; min-height: var(--control-height); padding: 10px 12px; background: var(--surface); color: var(--text-primary); border: 1px solid var(--card-border); border-radius: var(--radius-control); }
+.record-results { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; margin-bottom: 20px; color: var(--text-muted); font-size: 14px; }
+.record-state { padding: 32px 20px; border: 1px solid var(--card-border); border-radius: var(--radius-card); background: var(--surface); color: var(--text-secondary); text-align: center; }
+.timeline-open { min-height: 44px; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; overflow-wrap: anywhere; cursor: pointer; }
+.timeline-body > p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.timeline button.media-thumbnail { padding: 0; border: 0; background: var(--surface-2); cursor: pointer; }
+.timeline button.more-media { min-height: 44px; min-width: 44px; border: 1px solid var(--card-border); cursor: pointer; }
+.record-toolbar select:focus-visible, .timeline button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 640px) {
+  .category-filter-row { width: 100%; min-width: 0; max-width: 100%; justify-content: flex-start; flex-wrap: nowrap; overflow-x: auto; padding: 4px 2px 10px; }
+  .category-filter-row .filter-btn { flex: 0 0 auto; width: auto; min-width: max-content; white-space: nowrap; }
+  .record-toolbar { gap: 8px; }
+  .timeline-item, .timeline-item:nth-child(even) { margin-bottom: 24px; }
+}

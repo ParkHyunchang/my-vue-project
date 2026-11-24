@@ -5,6 +5,14 @@
       <b>실전 계좌</b>
     </header>
 
+    <dl
+      class="operation-overview"
+      aria-label="미국 자동매매 운영 상태"
+    >
+      <div><dt>신규 매수</dt><dd>{{ status.configured ? executionLabel : '연결 확인 필요' }}</dd></div>
+      <div><dt>주문 전송</dt><dd>{{ !status.configured ? '확인 필요' : status.orderEnabled ? '허용' : '잠금' }}</dd></div>
+      <div><dt>계좌 확인</dt><dd>{{ accountFresh ? '최신 확인' : '확인 필요' }}</dd></div>
+    </dl>
     <div
       class="usd-notice"
       :class="{ blocked: usdOnlyBlocked, unknown: !accountFresh }"
@@ -48,6 +56,9 @@
       연구 전략이 이 계좌를 관리합니다. 아래 기존 전략 설정은 연구 전략의 진입 규칙이 아닙니다. 연결 비활성 또는 승인 철회 상태에서도 기존 전략으로 자동 복귀하지 않습니다.
     </p>
 
+    <h4 class="operation-heading">
+      운영 제어 · 신규 매수와 계좌 동기화
+    </h4>
     <section class="controls">
       <div>
         <strong>{{ executionLabel }}</strong>
@@ -1242,4 +1253,13 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select { m
 .hero h3 { font-weight: 700; letter-spacing: -.025em; }
 .us-settings-modal { border-radius: var(--radius-panel); }
 .terminal { border-radius: 0 0 var(--radius-card) var(--radius-card); }
+</style>
+
+<style scoped>
+.operation-overview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 18px 0; }
+.operation-overview > div { padding: 16px; border: 1px solid var(--card-border); border-radius: 12px; background: var(--card-bg); }
+.operation-overview dt { font-size: 12px; color: var(--text-muted); }
+.operation-overview dd { margin: 8px 0 0; font-weight: 700; color: var(--text-primary); overflow-wrap: anywhere; }
+.operation-heading { margin: 22px 0 12px; color: var(--text-primary); }
+@media(max-width: 600px) { .operation-overview { gap: 6px; } .operation-overview > div { padding: 12px 8px; } .operation-overview dd { font-size: 13px; } .controls .buttons { display: grid; grid-template-columns: 1fr; width: 100%; } .controls .buttons button { min-height: 44px; width: 100%; } }
 </style>

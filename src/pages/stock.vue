@@ -3,7 +3,7 @@
     <div class="page-header">
       <h2>주식 대시보드</h2>
       <p class="page-subtitle">
-        실시간 시장 데이터 · 포트폴리오 현황
+        보유 자산부터 시장 정보, 연결 계좌와 자동매매까지
       </p>
     </div>
 
@@ -26,7 +26,8 @@
     </div>
 
     <!-- KRX Open API 현황 -->
-    <div class="krx-api-section">
+    <details class="krx-api-section">
+      <summary>시장 데이터 연결 정보 · KRX {{ krxApiStatusText }}</summary>
       <div :class="['krx-api-card', 'api-status-' + krxApiStatus]">
         <div class="krx-api-left">
           <span class="krx-api-name">KRX Open API</span>
@@ -46,20 +47,55 @@
           >인증키 갱신 →</a>
         </div>
       </div>
-    </div>
+    </details>
 
-    <!-- 탭 네비게이션 -->
-    <div class="stock-tabs">
-      <button
-        v-for="tab in tabs"
-        :key="tab.id"
-        :class="['tab-btn', { active: activeTab === tab.id }]"
-        @click="switchTab(tab.id)"
+    <nav
+      class="stock-navigation"
+      aria-label="주식 화면 선택"
+    >
+      <div class="stock-groups">
+        <button
+          v-for="group in groups"
+          :key="group.id"
+          :class="{ active: activeGroup.id === group.id }"
+          :aria-pressed="activeGroup.id === group.id"
+          @click="switchTab(group.tabs[0])"
+        >
+          {{ group.label }}
+        </button>
+      </div>
+      <div
+        ref="tabStrip"
+        class="stock-tabs"
+        aria-label="세부 화면"
       >
-        <span class="tab-icon">{{ tab.icon }}</span>
-        <span>{{ tab.label }}</span>
-      </button>
-    </div>
+        <button
+          v-for="tab in visibleTabs"
+          :key="tab.id"
+          :data-tab="tab.id"
+          :class="['tab-btn', { active: activeTab === tab.id }]"
+          :aria-current="activeTab === tab.id ? 'page' : undefined"
+          @click="switchTab(tab.id)"
+          @keydown="moveTabFocus($event, tab.id)"
+        >
+          <span
+            class="tab-icon"
+            aria-hidden="true"
+          >{{ tab.icon }}</span><span>{{ tab.label }}</span>
+        </button>
+      </div>
+      <p class="stock-context">
+        {{ activeGroup.description }}
+      </p>
+      <p
+        v-if="activeGroup.id === 'portfolio' && accountsLoading"
+        class="stock-loading"
+        role="status"
+      >
+        수기 포트폴리오의 보유 목록을 불러오고 있습니다.
+      </p>
+    </nav>
+    <BrokerAccountsPanel v-if="isAdmin && activeTab === 'broker-accounts'" />
 
     <div
       v-show="activeTab === 'all'"
@@ -153,17 +189,19 @@
     >
       <div
         class="auto-market-tabs"
-        role="tablist"
+        role="group"
         aria-label="자동매매 국가 선택"
       >
         <button
           :class="{ active: autoTradeMarket === 'KR' }"
+          :aria-pressed="autoTradeMarket === 'KR'"
           @click="autoTradeMarket = 'KR'"
         >
           🇰🇷 한국
         </button>
         <button
           :class="{ active: autoTradeMarket === 'US' }"
+          :aria-pressed="autoTradeMarket === 'US'"
           @click="autoTradeMarket = 'US'"
         >
           🇺🇸 미국
@@ -176,10 +214,11 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, nextTick, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import axios from "@/axios";
+import BrokerAccountsPanel from "@/components/stock/BrokerAccountsPanel.vue";
 import PortfolioPanel from "@/components/stock/PortfolioPanel.vue";
 import AllAccountsPanel from "@/components/stock/AllAccountsPanel.vue";
 import HeatmapPanel from "@/components/stock/HeatmapPanel.vue";
@@ -192,7 +231,7 @@ import { ACCOUNT_CONFIGS, ACCOUNT_TAB_ORDER } from "@/config/stockAccounts";
 
 export default {
   name: "StockPage",
-  components: { PortfolioPanel, AllAccountsPanel, HeatmapPanel, Top10Panel, NewsPanel, KiwoomAutoTrade, KiwoomUsAutoTrade, UsPaperTradingPanel },
+  components: { BrokerAccountsPanel, PortfolioPanel, AllAccountsPanel, HeatmapPanel, Top10Panel, NewsPanel, KiwoomAutoTrade, KiwoomUsAutoTrade, UsPaperTradingPanel },
   setup() {
     const route = useRoute();
     const router = useRouter();
@@ -227,18 +266,49 @@ export default {
       label: ACCOUNT_CONFIGS[accountType].tabLabel,
     }));
     const tabs = computed(() => [
-      { id: "all", icon: "🧮", label: "종합" },
+      { id: "all", icon: "🧮", label: "수기 합계" },
       ...accountTabs,
       { id: "heatmap", icon: "🗺️", label: "히트맵" },
       { id: "top10", icon: "🏆", label: "시총 top10" },
       { id: "news", icon: "📰", label: "뉴스" },
       // 자동매매(키움 실계좌)는 백엔드에서도 ADMIN 전용이라 탭 자체를 숨김
       ...(isAdmin.value ? [
+        { id: "broker-accounts", icon: "🏦", label: "연결 계좌 현황" },
         ...(paperTradingEnabled ? [{ id: "paper-trade", icon: "🧪", label: "미국 모의매매" }] : []),
         { id: "auto-trade", icon: "🤖", label: "자동매매" },
       ] : []),
     ]);
     const VALID_TABS = computed(() => tabs.value.map((tab) => tab.id));
+    const tabStrip = ref(null);
+    const groups = computed(() => [
+      { id: 'portfolio', label: '내 포트폴리오', tabs: ['all', ...ACCOUNT_TAB_ORDER], description: '직접 등록한 장기·단기·ISA·IRP 보유 기록입니다. 연결 계좌 잔고는 이 합계에 포함하지 않습니다.' },
+      { id: 'market', label: '시장 정보', tabs: ['heatmap', 'top10', 'news'], description: '시장 흐름과 보유 종목 관련 뉴스를 확인하세요.' },
+      ...(isAdmin.value ? [
+        { id: 'accounts', label: '계좌 조회', tabs: ['broker-accounts'], description: '증권사별 조회 상태와 조회된 보유 내역을 확인합니다. 수기 기록과 별도로 표시합니다.' },
+        { id: 'automation', label: '자동매매', tabs: ['auto-trade', ...(paperTradingEnabled ? ['paper-trade'] : [])], description: '키움 계좌의 운영 상태와 기존 주문 제어를 확인합니다. 국내와 미국의 시작·중지 범위는 각 버튼 안내를 확인하세요.' },
+      ] : []),
+    ]);
+    const activeGroup = computed(() => groups.value.find(group => group.tabs.includes(activeTab.value)) || groups.value[0]);
+    const visibleTabs = computed(() => tabs.value.filter(tab => activeGroup.value.tabs.includes(tab.id)));
+    function revealActiveTab() {
+      nextTick(() => tabStrip.value?.querySelector(`[data-tab="${activeTab.value}"]`)?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }));
+    }
+    function moveTabFocus(event, id) {
+      const keys = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
+      if (!keys.includes(event.key)) return;
+      event.preventDefault();
+      const list = visibleTabs.value;
+      const index = list.findIndex(tab => tab.id === id);
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? list.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + list.length) % list.length;
+      tabStrip.value?.querySelector(`[data-tab="${list[next].id}"]`)?.focus();
+    }
+    watch(() => route.query.tab, id => {
+      const next = normalizeTab(id);
+      if (VALID_TABS.value.includes(next)) activeTab.value = next;
+      else activeTab.value = 'all';
+    });
+    watch(activeTab, revealActiveTab);
+
 
     const allHoldings = computed(() =>
       Object.values(holdingsByAccount.value).flat(),
@@ -250,6 +320,7 @@ export default {
 
     function switchTab(id) {
       const nextTab = normalizeTab(id);
+      if (!VALID_TABS.value.includes(nextTab)) return;
       activeTab.value = nextTab;
       router.replace({ query: { ...route.query, tab: nextTab } });
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -309,7 +380,7 @@ export default {
     });
 
     return {
-      activeTab,
+      activeTab, groups, activeGroup, visibleTabs, tabStrip, moveTabFocus,
       autoTradeMarket,
       allHoldings,
       holdingsByAccount,

@@ -4,8 +4,10 @@
     class="dday-section"
   >
     <div class="dday-container">
-      <div
+      <button
         v-if="firstMeetDate"
+        type="button"
+        @click="$emit('select', memories.find(item => item.category === 'first_meet'))"
         class="dday-item"
       >
         <div class="dday-label">
@@ -22,9 +24,11 @@
           </template>
           <span v-else>{{ formatDate(firstMeetDate) }}</span>
         </div>
-      </div>
-      <div
+      </button>
+      <button
         v-if="specialDate"
+        type="button"
+        @click="$emit('select', memories.find(item => item.category === 'special'))"
         class="dday-item"
       >
         <div class="dday-label">
@@ -41,7 +45,7 @@
           </template>
           <span v-else>{{ formatDate(specialDate) }}</span>
         </div>
-      </div>
+      </button>
     </div>
   </div>
 </template>
@@ -73,6 +77,7 @@ const formatDate = (date) => {
 
 export default {
   name: "DdayDisplay",
+  emits: ["select"],
   props: {
     memories: { type: Array, default: () => [] },
   },
