@@ -3,6 +3,13 @@
     id="header"
     role="banner"
   >
+    <div
+      v-if="isOpen"
+      class="mobile-menu-backdrop"
+      aria-hidden="true"
+      @click="closeMenu"
+      @touchstart.stop.prevent="closeMenu"
+    />
     <div class="header__inner">
       <div class="header__logo">
         <router-link
@@ -102,11 +109,15 @@
       <nav
         id="main-navigation"
         ref="mainNavigation"
-        :class="['header__nav', { show: isOpen }]"
+        :class="['header__nav', { show: isOpen, 'has-more-below': hasMoreBelow }]"
         role="navigation"
         aria-label="메인 메뉴"
       >
-        <ul>
+        <ul
+          ref="menuList"
+          data-lenis-prevent
+          @scroll.passive="updateScrollHint"
+        >
           <li
             v-for="menu in navigationMenus"
             :key="menu.path"
@@ -223,9 +234,10 @@
 </template>
 
 <script>
-import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+import { lenis } from '@/assets/js/smooth';
 
 export default {
   name: 'Navbar',
@@ -237,10 +249,64 @@ export default {
     const showDesktopDropdown = ref(false);
     const menuButton = ref(null);
     const mainNavigation = ref(null);
+    const menuList = ref(null);
+    const hasMoreBelow = ref(false);
     const mobileAccountButton = ref(null);
     const mobileAccountMenu = ref(null);
     const desktopAccountButton = ref(null);
     const desktopAccountMenu = ref(null);
+    let scrollSnapshot = null;
+    let menuResizeObserver;
+
+    const updateScrollHint = () => {
+      const list = menuList.value;
+      hasMoreBelow.value = !!(isOpen.value && list && list.scrollHeight - list.clientHeight - list.scrollTop > 2);
+    };
+
+    // Fixed positioning also prevents background rubber-banding on iOS Safari.
+    const lockBackground = () => {
+      if (scrollSnapshot) return;
+      const body = document.body;
+      scrollSnapshot = {
+        x: window.scrollX, y: window.scrollY,
+        body: Object.fromEntries(['position', 'top', 'left', 'width', 'overflow'].map(key => [key, body.style[key]])),
+        htmlOverflow: document.documentElement.style.overflow,
+        smoothScroll: lenis,
+        resumeSmoothScroll: !!lenis && !lenis.isStopped,
+      };
+      if (scrollSnapshot.resumeSmoothScroll) lenis.stop();
+      Object.assign(body.style, {
+        position: 'fixed', top: `-${scrollSnapshot.y}px`, left: `-${scrollSnapshot.x}px`, width: '100%', overflow: 'hidden',
+      });
+      document.documentElement.style.overflow = 'hidden';
+    };
+
+    const unlockBackground = () => {
+      if (!scrollSnapshot) return;
+      const saved = scrollSnapshot;
+      scrollSnapshot = null;
+      Object.assign(document.body.style, saved.body);
+      const html = document.documentElement;
+      html.style.overflow = saved.htmlOverflow;
+      const scrollBehavior = html.style.scrollBehavior;
+      html.style.scrollBehavior = 'auto';
+      window.scrollTo(saved.x, saved.y);
+      html.style.scrollBehavior = scrollBehavior;
+      if (saved.resumeSmoothScroll) saved.smoothScroll.start();
+    };
+
+    watch(isOpen, (open) => {
+      if (open) {
+        lockBackground();
+        nextTick(() => {
+          if (menuList.value) menuList.value.scrollTop = 0;
+          updateScrollHint();
+        });
+      } else {
+        unlockBackground();
+        hasMoreBelow.value = false;
+      }
+    }, { flush: 'sync' });
 
     const focusFirstLink = (element) => {
       nextTick(() => element.value?.querySelector('a, button')?.focus());
@@ -287,6 +353,10 @@ export default {
     const userInitial = computed(() => user.value?.username?.charAt(0)?.toUpperCase() || '?');
     const navigationMenus = computed(() => store.getters['menu/navigationMenus']);
     const isAdmin = computed(() => store.getters['auth/isAdmin']);
+    watch([navigationMenus, isAdmin, isAuthenticated], () => {
+      nextTick(() => updateScrollHint());
+    });
+    watch(() => router.currentRoute.value.fullPath, () => closeMenu(), { flush: 'sync' });
     
     const hasRole = (role) => {
       return store.getters['auth/hasRole'](role);
@@ -321,7 +391,11 @@ export default {
       trigger.focus();
     };
 
-    const handleResize = () => closeMenu();
+    const handleResize = () => {
+      // Mobile browser chrome changes height while scrolling; keep the menu open.
+      if (window.innerWidth > 800) closeMenu();
+      else nextTick(updateScrollHint);
+    };
     
     onMounted(() => {
       document.addEventListener('click', handleDocumentClick);
@@ -329,6 +403,10 @@ export default {
       document.addEventListener('focusin', handleDocumentClick);
       document.addEventListener('keydown', handleEscape);
       window.addEventListener('resize', handleResize);
+      if (typeof ResizeObserver !== 'undefined') {
+        menuResizeObserver = new ResizeObserver(updateScrollHint);
+        if (menuList.value) menuResizeObserver.observe(menuList.value);
+      }
     });
     
     onUnmounted(() => {
@@ -337,6 +415,8 @@ export default {
       document.removeEventListener('focusin', handleDocumentClick);
       document.removeEventListener('keydown', handleEscape);
       window.removeEventListener('resize', handleResize);
+      menuResizeObserver?.disconnect();
+      unlockBackground();
     });
     
     return {
@@ -355,7 +435,8 @@ export default {
       isAdmin,
       hasRole,
       menuButton, mainNavigation, mobileAccountButton, mobileAccountMenu,
-      desktopAccountButton, desktopAccountMenu
+      desktopAccountButton, desktopAccountMenu,
+      menuList, hasMoreBelow, updateScrollHint
     };
   }
 }
