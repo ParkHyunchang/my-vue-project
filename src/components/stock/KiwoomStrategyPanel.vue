@@ -1,119 +1,8 @@
 <template>
   <section class="strategy-panel">
-    <section class="panel-card">
-      <div class="panel-card-head">
-        <h3>AI 전략 제안</h3>
-        <div class="status-chips">
-          <span :class="['status-chip', { stopped: !autoTrading }]">{{ !statusKnown ? '자동주문 상태 확인 필요' : autoTrading ? '자동주문 실행 중' : '자동주문 완전 중지' }}</span>
-          <span :class="['status-chip', { on: config.orderEnabled }]">{{ !dataLoaded ? '주문 설정 확인 전' : config.orderEnabled ? '주문 전송 허용' : '주문 전송 잠금' }}</span>
-        </div>
-      </div>
-      <p class="notice">
-        {{ !statusKnown ? '현재 자동주문 상태를 확인하지 못했습니다. 상태를 다시 조회하세요.' : !autoTrading ? '자동주문이 완전히 중지되어 있습니다. 저장된 전략 설정은 유지되며, 상단 시작 버튼으로 재개합니다.' : config.autoExecute ? `완전 자동매매 활성: 예약 판단에서 신뢰도 ${config.autoExecuteMinConfidence}% 이상인 제안을 안전 검사 후 자동 전송합니다.` : '전략의 자동 주문 전송이 꺼져 있습니다. 전략 설정에서 자동 전송 여부를 확인하세요.' }}
-      </p>
-      <div class="panel-card-actions">
-        <button
-          class="reassess-now"
-          :disabled="pending"
-          :title="DECIDE_NOW_HINT"
-          @click="decideNow"
-        >
-          지금 재판단
-        </button>
-        <button
-          class="sync-orders"
-          :disabled="pending"
-          :title="SYNC_ORDERS_HINT"
-          @click="syncOrders"
-        >
-          주문 상태 동기화
-        </button>
-        <button
-          :disabled="pending"
-          :title="STRATEGY_SETTINGS_HINT"
-          @click="showSettings = true"
-        >
-          전략 설정
-        </button>
-      </div>
-      <p class="sync-effects">
-        {{ SYNC_ORDERS_HINT }}
-      </p>
-      <p
-        v-if="syncMessage"
-        class="settings-applied"
-        role="status"
-      >
-        {{ syncMessage }}
-      </p>
-      <p
-        v-if="settingsMessage"
-        class="settings-applied"
-      >
-        설정 저장 결과: {{ settingsMessage }}
-      </p>
-      <p class="usage-summary">
-        오늘 AI 호출 {{ todayUsage.calls }}회 · 추정 입력 {{ todayUsage.input.toLocaleString() }} / 출력 {{ todayUsage.output.toLocaleString() }} 토큰
-      </p>
-    </section>
-    <p
-      class="health-freshness"
-      role="status"
-    >
-      위험 상태 마지막 정상 확인: {{ healthCheckedAt ? date(healthCheckedAt) : '확인 전' }}
-      <button
-        type="button"
-        :disabled="healthLoading"
-        @click="loadOperations"
-      >
-        위험 상태 다시 조회
-      </button>
-    </p>
-    <p
-      v-if="healthError"
-      class="error"
-      role="alert"
-    >
-      {{ healthError }} {{ healthCheckedAt ? '이전 위험 상태는 현재 상태가 아닐 수 있습니다.' : '확인된 위험 상태가 없습니다.' }}
-    </p>
-    <section
-      v-if="operations.risk"
-      class="panel-card"
-    >
-      <div class="panel-card-head">
-        <h3>리스크 관리</h3>
-        <span
-          :class="['status-chip', 'risk-loop', { on: !healthError && operations.risk.riskLoopEnabled }]"
-          :title="RISK_LOOP_HINT"
-        >{{ healthError ? '이전 확인값 · ' : '' }}손절·익절 루프 {{ operations.risk.riskLoopEnabled ? 'ON' : 'OFF' }}</span>
-      </div>
-      <div class="risk-strip">
-        <span
-          v-if="operations.risk.triggered"
-          class="risk-triggered"
-        >일일 손실 한도 발동 · 손실 {{ won(operations.risk.drawdown) }} ({{ percent(operations.risk.drawdownPercent) }}) / 한도 {{ percent(operations.risk.dailyLossLimitPercent) }} · 신규 매수 차단</span><span v-else-if="operations.risk.dailyLossLimitPercent > 0">일일 손실 {{ won(operations.risk.drawdown) }} ({{ percent(operations.risk.drawdownPercent) }}) / 한도 {{ percent(operations.risk.dailyLossLimitPercent) }}</span><span v-else-if="operations.risk.dailyLossLimitPercent == null">일일 손실 한도 확인 필요</span><span v-else>일일 손실 한도 미설정</span><button
-          v-if="operations.risk.triggered"
-          class="daily-loss-reset"
-          :disabled="pending"
-          :title="DAILY_LOSS_RESET_HINT"
-          @click="resetDailyLossGuard"
-        >
-          오늘 손실 차단 해제
-        </button><small
-          v-if="operations.risk.snapshotDate"
-          class="risk-assets"
-        >기준 자산 {{ won(operations.risk.baseAsset) }} · 순입출금 {{ signedWon(operations.risk.netCashFlow) }} · 보정 기준 {{ won(operations.risk.adjustedBaseAsset) }} · 현재 자산 {{ won(operations.risk.lastAsset) }}</small><small v-if="operations.risk.lastScanAt">마지막 스캔 {{ date(operations.risk.lastScanAt) }}</small>
-      </div>
-    </section>
-    <p
-      v-if="error || readError"
-      class="error"
-    >
-      {{ error || readError }}
-    </p>
     <section class="broker-holdings">
       <div class="broker-holdings-title">
-        <b>키움 실계좌 보유현황</b><small>자동매매 기준 · {{ !dataLoaded ? '보유 종목 확인 전' : brokerHoldings.length ? `마지막 동기화 ${date(brokerHoldings[0].syncedAt)}` : '조회된 보유종목 없음' }}</small><button
+        <b>키움 실계좌 보유현황</b><small>자동매매 기준 · {{ readError ? '조회 실패 · 이전 보유 내역은 참고용' : !dataLoaded ? '보유 종목 확인 전' : brokerHoldings.length ? `마지막 동기화 ${date(brokerHoldings[0].syncedAt)}` : '조회된 보유종목 없음' }}</small><button
           v-if="brokerHoldings.length"
           class="liquidate-all"
           :disabled="pending"
@@ -252,6 +141,197 @@
         {{ liquidationMessage }}
       </p>
     </section>
+    <!-- Operating orders and daily history are kept ahead of strategy research. -->
+    <section
+      class="panel-card operating-orders"
+      aria-label="미체결 및 체결 확인 주문"
+    >
+      <h3>미체결 · 체결 확인</h3>
+      <p class="record-scope">
+        최근 50개 판단에 포함된 주문 기준입니다. 계좌 전체 주문 목록이 아닙니다. {{ readError ? '조회 실패 · 이전 내역은 참고용입니다.' : !dataLoaded ? '주문 내역 확인 전입니다.' : '' }}
+      </p>
+      <h4>미체결 · 상태 확인 필요 <span>{{ dataLoaded && !readError ? pendingOrders.length : '—' }}</span></h4>
+      <article
+        v-for="order in pendingOrders"
+        :key="order.id"
+        class="operating-order"
+      >
+        <strong>{{ order.stockName || order.stockCode }} · {{ actionLabel(order.action) }}</strong>
+        <span>{{ proposalStatusLabel(order.status) }}</span>
+        <small>체결 {{ order.filledQuantity ?? '—' }}주 · 잔여 {{ order.remainingQuantity ?? '—' }}주</small>
+        <small v-if="statusDetail(order)">{{ statusDetail(order) }}</small>
+      </article>
+      <p
+        v-if="dataLoaded && !readError && !pendingOrders.length"
+        class="record-scope"
+      >
+        조회된 판단 내역에서 미체결 주문이 확인되지 않았습니다.
+      </p>
+      <h4>최근 판단에서 체결 확인된 주문</h4>
+      <p class="record-scope">
+        주문 생성 최신순 · 체결 시각은 제공되지 않아 오늘 체결로 집계하지 않습니다.
+      </p>
+      <article
+        v-for="order in filledOrders.slice(0, 5)"
+        :key="order.id"
+        class="operating-order"
+      >
+        <strong>{{ order.stockName || order.stockCode }} · {{ actionLabel(order.action) }}</strong>
+        <span>{{ proposalStatusLabel(order.status) }} · {{ order.filledQuantity ?? '—' }}주</span>
+        <small>주문 생성 {{ date(order.createdAt) }} · 평균 체결가 {{ won(order.averageFillPrice) }}</small>
+      </article>
+      <p
+        v-if="dataLoaded && !readError && !filledOrders.length"
+        class="record-scope"
+      >
+        조회된 판단 내역에서 체결 확인된 주문이 없습니다.
+      </p>
+    </section>
+    <section
+      class="panel-card today-operations"
+      aria-label="오늘 국내 운영 기록"
+    >
+      <h3>오늘 운영 기록 <small>KST</small></h3>
+      <p class="record-scope">
+        조회된 최근 판단 50개 · 감사 기록 20개 기준입니다. 전체 하루 합계가 아닙니다.
+      </p>
+      <p>판단 기록 {{ dataLoaded && !readError ? todayRuns.length + '건' : '확인 필요' }} · 운영 이벤트 {{ healthCheckedAt && !healthError ? todayAudit.length + '건' : '확인 필요' }}</p>
+      <p class="record-scope">
+        체결 시각 미제공으로 오늘 체결 건수는 확인할 수 없습니다.
+      </p>
+      <article
+        v-for="run in todayRuns.slice(0, 3)"
+        :key="'run-' + run.id"
+        class="operating-order"
+      >
+        {{ runSummaryText(run) }}
+      </article>
+      <article
+        v-for="event in todayAudit.slice(0, 5)"
+        :key="'audit-' + event.id"
+        class="operating-order"
+      >
+        <time>{{ date(event.createdAt) }}</time><span>{{ event.message }}</span>
+      </article>
+      <p
+        v-if="dataLoaded && !readError && healthCheckedAt && !healthError && !todayRuns.length && !todayAudit.length"
+        class="record-scope"
+      >
+        불러온 기록 중 오늘 기록이 없습니다.
+      </p>
+    </section>
+    <p
+      class="health-freshness"
+      role="status"
+    >
+      위험 상태 마지막 정상 확인: {{ healthCheckedAt ? date(healthCheckedAt) : '확인 전' }}
+      <button
+        type="button"
+        :disabled="healthLoading"
+        @click="loadOperations"
+      >
+        위험 상태 다시 조회
+      </button>
+    </p>
+    <p
+      v-if="healthError"
+      class="error"
+      role="alert"
+    >
+      {{ healthError }} {{ healthCheckedAt ? '이전 위험 상태는 현재 상태가 아닐 수 있습니다.' : '확인된 위험 상태가 없습니다.' }}
+    </p>
+    <section
+      v-if="operations.risk"
+      class="panel-card"
+    >
+      <div class="panel-card-head">
+        <h3>리스크 관리</h3>
+        <span
+          :class="['status-chip', 'risk-loop', { on: !healthError && operations.risk.riskLoopEnabled }]"
+          :title="RISK_LOOP_HINT"
+        >{{ healthError ? '이전 확인값 · ' : '' }}손절·익절 루프 {{ operations.risk.riskLoopEnabled ? 'ON' : 'OFF' }}</span>
+      </div>
+      <div class="risk-strip">
+        <span
+          v-if="operations.risk.triggered"
+          class="risk-triggered"
+        >일일 손실 한도 발동 · 손실 {{ won(operations.risk.drawdown) }} ({{ percent(operations.risk.drawdownPercent) }}) / 한도 {{ percent(operations.risk.dailyLossLimitPercent) }} · 신규 매수 차단</span><span v-else-if="!operations.risk.snapshotDate || !operations.risk.lastCheckedAt">일일 손실 측정값 확인 전</span><span v-else-if="operations.risk.dailyLossLimitPercent > 0">일일 손실 {{ won(operations.risk.drawdown) }} ({{ percent(operations.risk.drawdownPercent) }}) / 한도 {{ percent(operations.risk.dailyLossLimitPercent) }}</span><span v-else-if="operations.risk.dailyLossLimitPercent == null">일일 손실 한도 확인 필요</span><span v-else>일일 손실 한도 미설정</span><button
+          v-if="operations.risk.triggered"
+          class="daily-loss-reset"
+          :disabled="pending"
+          :title="DAILY_LOSS_RESET_HINT"
+          @click="resetDailyLossGuard"
+        >
+          오늘 손실 차단 해제
+        </button><small
+          v-if="operations.risk.snapshotDate && operations.risk.lastCheckedAt"
+          class="risk-assets"
+        >기준 자산 {{ won(operations.risk.baseAsset) }} · 순입출금 {{ signedWon(operations.risk.netCashFlow) }} · 보정 기준 {{ won(operations.risk.adjustedBaseAsset) }} · 현재 자산 {{ won(operations.risk.lastAsset) }}</small><small v-if="operations.risk.lastScanAt">마지막 스캔 {{ date(operations.risk.lastScanAt) }}</small>
+      </div>
+    </section>
+    <p
+      v-if="error || readError"
+      class="error"
+    >
+      {{ error || readError }}
+    </p>
+    <details class="panel-card strategy-settings">
+      <summary>전략 설정 · 수동 재판단</summary>
+      <div class="panel-card-head">
+        <h3>AI 전략 제안</h3>
+        <div class="status-chips">
+          <span :class="['status-chip', { stopped: !autoTrading }]">{{ !statusKnown ? '자동주문 상태 확인 필요' : autoTrading ? '자동주문 실행 중' : '자동주문 완전 중지' }}</span>
+          <span :class="['status-chip', { on: config.orderEnabled }]">{{ !dataLoaded ? '주문 설정 확인 전' : config.orderEnabled ? '주문 전송 허용' : '주문 전송 잠금' }}</span>
+        </div>
+      </div>
+      <p class="notice">
+        {{ !statusKnown ? '현재 자동주문 상태를 확인하지 못했습니다. 상태를 다시 조회하세요.' : !autoTrading ? '자동주문이 완전히 중지되어 있습니다. 저장된 전략 설정은 유지되며, 상단 시작 버튼으로 재개합니다.' : config.autoExecute ? `완전 자동매매 활성: 예약 판단에서 신뢰도 ${config.autoExecuteMinConfidence}% 이상인 제안을 안전 검사 후 자동 전송합니다.` : '전략의 자동 주문 전송이 꺼져 있습니다. 전략 설정에서 자동 전송 여부를 확인하세요.' }}
+      </p>
+      <div class="panel-card-actions">
+        <button
+          class="reassess-now"
+          :disabled="pending"
+          :title="DECIDE_NOW_HINT"
+          @click="decideNow"
+        >
+          지금 재판단
+        </button>
+        <button
+          class="sync-orders"
+          :disabled="pending"
+          :title="SYNC_ORDERS_HINT"
+          @click="syncOrders"
+        >
+          주문 상태 동기화
+        </button>
+        <button
+          :disabled="pending"
+          :title="STRATEGY_SETTINGS_HINT"
+          @click="showSettings = true"
+        >
+          전략 설정
+        </button>
+      </div>
+      <p class="sync-effects">
+        {{ SYNC_ORDERS_HINT }}
+      </p>
+      <p
+        v-if="syncMessage"
+        class="settings-applied"
+        role="status"
+      >
+        {{ syncMessage }}
+      </p>
+      <p
+        v-if="settingsMessage"
+        class="settings-applied"
+      >
+        설정 저장 결과: {{ settingsMessage }}
+      </p>
+      <p class="usage-summary">
+        조회된 기록 중 오늘 AI 호출 {{ todayUsage.calls }}회 · 추정 입력 {{ todayUsage.input.toLocaleString() }} / 출력 {{ todayUsage.output.toLocaleString() }} 토큰
+      </p>
+    </details>
     <p
       v-if="runs.length"
       class="recent-decision"
@@ -351,8 +431,8 @@
 </template>
 
 <script setup>
-/* global defineProps */
-import { computed, onMounted, ref, watch } from 'vue'
+/* global defineProps, defineEmits */
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import {
   fetchAccountHoldings,
   fetchStrategyConfig,
@@ -367,6 +447,8 @@ import {
 import KiwoomStrategySettingsModal from '@/components/stock/KiwoomStrategySettingsModal.vue'
 import { apiErrorMessage } from '@/utils/apiError'
 import { useStockFormatters } from '@/composables/useStockFormatters'
+import { tradingTimestamp, kstDayKey, isTradingToday } from '@/utils/tradingTime'
+const emit = defineEmits(['operation-summary'])
 const props = defineProps({
   configured: Boolean,
   statusKnown: Boolean,
@@ -381,6 +463,39 @@ const liquidationMessage = ref(''), liquidationFailed = ref(false)
 const syncMessage = ref('')
 const readError = ref('')
 const dataLoaded = ref(false), healthLoading = ref(false), healthError = ref(''), healthCheckedAt = ref(null)
+const clockNow = ref(Date.now())
+let clockTimer
+const orders = computed(() => {
+  const unique = new Map()
+  for (const run of runs.value) for (const proposal of run.proposals || []) {
+    if (proposal.id != null) unique.set(proposal.id, proposal)
+  }
+  return [...unique.values()].sort((a, b) => (tradingTimestamp(b.createdAt) || 0) - (tradingTimestamp(a.createdAt) || 0))
+})
+const pendingOrders = computed(() => orders.value.filter(order => ['ORDERED', 'PARTIALLY_FILLED', 'CANCEL_REQUESTED', 'ORDER_UNKNOWN'].includes(order.status)))
+const filledOrders = computed(() => orders.value.filter(order => Number(order.filledQuantity) > 0))
+const todayRuns = computed(() => runs.value.filter(run => isTradingToday(run.createdAt, clockNow.value)))
+const todayAudit = computed(() => (operations.value.recentAudit || []).filter(event => isTradingToday(event.createdAt, clockNow.value)))
+const operationSummary = computed(() => {
+  const items = []
+  if (readError.value || healthError.value) items.push({ id: 'kr-strategy-read-failed', severity: 'warning', title: '전략·위험 상태 조회 실패', message: '현재 전략·위험 상태를 확인하지 못했습니다. 이전 내역은 참고용입니다.' })
+  const currentData = dataLoaded.value && !readError.value
+  const currentRisk = !!healthCheckedAt.value && !healthError.value && !!operations.value.risk
+  const unknown = currentData ? pendingOrders.value.filter(order => order.status === 'ORDER_UNKNOWN') : []
+  if (unknown.length) items.push({ id: 'kr-unknown-orders', severity: 'critical', title: '주문 상태 확인 필요', message: `조회된 판단 내역에 결과 미확인 주문 ${unknown.length}건이 있습니다. 중복 주문 전 주문 상태를 확인하세요.` })
+  if (currentRisk && operations.value.risk.triggered) items.push({ id: 'kr-risk-triggered', severity: 'critical', title: '일일 손실 한도 발동', message: '서버 위험 상태에서 신규 매수 차단이 확인되었습니다.' })
+  let blocker = ''
+  if (currentRisk && operations.value.risk.triggered) blocker = '일일 손실 한도가 발동하여 신규 매수가 차단되었습니다.'
+  else if (unknown.length) blocker = '결과가 확인되지 않은 주문이 있습니다. 주문 상태 확인이 필요합니다.'
+  else if (!currentData || !currentRisk) blocker = '전략·위험 상태를 확인하지 못해 신규 매수 가능 여부를 확인할 수 없습니다.'
+  else if (config.value.enabled === false) blocker = '서버 전략 실행이 꺼져 있습니다.'
+  else if (!config.value.autoExecute) blocker = '전략의 자동 주문 전송이 꺼져 있습니다.'
+  else if (!config.value.orderEnabled) blocker = '서버 주문 전송이 잠겨 있습니다.'
+  else if (!operations.value.risk.snapshotDate || !operations.value.risk.lastCheckedAt) blocker = '일일 손실 측정값이 아직 확인되지 않았습니다. 위험 상태를 다시 확인하세요.'
+  else blocker = '자동 판단을 대기합니다. 종목별 안전 검사 통과 여부는 주문 전 서버에서 확인합니다.'
+  return { blocker, items, riskTriggered: currentRisk && operations.value.risk.triggered, unknownOrders: unknown.length }
+})
+watch(operationSummary, value => emit('operation-summary', value), { immediate: true })
 const displayedBrokerHoldings = computed(() => brokerHoldings.value.map((holding) => {
   const livePrice = Number(props.priceTicks[holding.stockCode]?.price)
   const currentPrice = Number.isFinite(livePrice) && livePrice > 0 ? livePrice : Number(holding.currentPrice || 0)
@@ -405,7 +520,7 @@ function autoExpandLatestRun () {
     lastAutoExpandedId = latest.id
   }
 }
-const date = (value) => value ? new Date(value).toLocaleString('ko-KR', { hour12: false }) : ''
+const date = (value) => Number.isFinite(tradingTimestamp(value)) ? new Date(tradingTimestamp(value)).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour12: false }) : '시각 미확인'
 const numeric = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value))
 const won = value => numeric(value) ? `${Number(value).toLocaleString()}원` : '—'
 const signedWon = value => numeric(value) ? `${Number(value) > 0 ? '+' : ''}${won(value)}` : '—'
@@ -413,14 +528,13 @@ const percent = value => numeric(value) ? `${Number(value).toFixed(2)}%` : '—'
 // "지금 판단"을 눌러도 예전 기록과 섞여 전부 방금 일어난 것처럼 보이는 걸 막기 위해 날짜별로 묶어
 // 구분선을 둔다. 서버가 최근 3일치만 남기므로(KiwoomStrategyHistoryCleanupService) 그룹 수는 최대 3~4개.
 const dayMs = 24 * 60 * 60 * 1000
-function dateKey (value) { const d = new Date(value); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}` }
+function dateKey (value) { return kstDayKey(value) }
 function dateLabel (value) {
-  const d = new Date(value)
-  const startOfDay = (x) => { const y = new Date(x); y.setHours(0, 0, 0, 0); return y }
-  const diffDays = Math.round((startOfDay(new Date()) - startOfDay(d)) / dayMs)
+  const d = new Date(tradingTimestamp(value))
+  const diffDays = Math.round((Date.parse(kstDayKey(clockNow.value) + 'T00:00:00+09:00') - Date.parse(kstDayKey(value) + 'T00:00:00+09:00')) / dayMs)
   if (diffDays === 0) return '오늘'
   if (diffDays === 1) return '어제'
-  return d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })
+  return d.toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'long', day: 'numeric', weekday: 'short' })
 }
 // SKIPPED(후보 변경 없어 AI 호출 생략)는 15분마다 쌓여 스크롤만 늘리므로
 // 연속된 구간을 한 줄 요약으로 접는다. 실제로 의미 있는 판단(SUCCESS/FAILED/BLOCKED 등)은 그대로 카드로 보여준다.
@@ -450,8 +564,7 @@ const groupedRuns = computed(() => {
   return groups
 })
 const todayUsage = computed(() => {
-  const today = dateKey(new Date())
-  return runs.value.filter(run => dateKey(run.createdAt) === today && run.aiCalled).reduce(
+  return todayRuns.value.filter(run => run.aiCalled).reduce(
     (total, run) => ({ calls: total.calls + 1, input: total.input + Number(run.inputTokens || 0), output: total.output + Number(run.outputTokens || 0) }),
     { calls: 0, input: 0, output: 0 }
   )
@@ -513,12 +626,12 @@ function runSummaryText (run) {
   return parts.join(' · ')
 }
 let loadRevision = 0, operationsRevision = 0
-async function load () { const revision = ++loadRevision; loading.value = true; try { const [universe, history, strategyConfig, holdings] = await Promise.all([fetchStrategyUniverse(), fetchStrategyRuns(50), fetchStrategyConfig(), fetchAccountHoldings()]); if (revision !== loadRevision) return; candidates.value = universe.data; runs.value = history.data; config.value = strategyConfig.data; brokerHoldings.value = holdings.data; dataLoaded.value = true; readError.value = ''; autoExpandLatestRun() } catch (e) { if (revision === loadRevision) readError.value = apiErrorMessage(e, '전략 데이터를 불러오지 못했습니다.') } finally { if (revision === loadRevision) loading.value = false } }
+async function load () { const revision = ++loadRevision; loading.value = true; try { const [universe, history, strategyConfig, holdings] = await Promise.all([fetchStrategyUniverse(), fetchStrategyRuns(50), fetchStrategyConfig(), fetchAccountHoldings()]); if (revision !== loadRevision) return; clockNow.value = Date.now(); candidates.value = universe.data; runs.value = history.data; config.value = strategyConfig.data; brokerHoldings.value = holdings.data; dataLoaded.value = true; readError.value = ''; autoExpandLatestRun() } catch (e) { if (revision === loadRevision) readError.value = apiErrorMessage(e, '전략 데이터를 불러오지 못했습니다.') } finally { if (revision === loadRevision) loading.value = false } }
 async function loadOperations () {
   const revision = ++operationsRevision; healthLoading.value = true
   try {
     const { data } = await fetchStrategyHealth()
-    if (revision === operationsRevision) { operations.value = data; healthError.value = ''; healthCheckedAt.value = new Date().toISOString() }
+    if (revision === operationsRevision) { clockNow.value = Date.now(); operations.value = data; healthError.value = ''; healthCheckedAt.value = new Date().toISOString() }
   } catch (e) {
     if (revision === operationsRevision) healthError.value = apiErrorMessage(e, '위험 상태 조회에 실패했습니다.')
   } finally { if (revision === operationsRevision) healthLoading.value = false }
@@ -560,7 +673,8 @@ async function onSettingsSaved (result = {}) {
   await load()
   await loadOperations()
 }
-onMounted(async () => { await load(); await loadOperations() })
+onMounted(async () => { clockTimer = setInterval(() => { clockNow.value = Date.now() }, 30000); await load(); await loadOperations() })
+onBeforeUnmount(() => { clearInterval(clockTimer) })
 watch(() => props.refreshVersion, async () => { await load(); await loadOperations() })
 </script>
 
@@ -586,4 +700,15 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select { m
 .strategy-history { padding: 12px 16px; margin: 16px 0; border: 1px solid var(--card-border); border-radius: var(--radius-card); background: var(--surface); }
 .strategy-history > summary { min-height: 44px; padding: 10px 0; cursor: pointer; color: var(--text-primary); font-weight: 600; }
 .strategy-history > summary:focus-visible, .health-freshness button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<style scoped>
+.operating-order { display: flex; flex-wrap: wrap; gap: 6px 12px; padding: 12px 0; border-top: 1px solid var(--card-border); overflow-wrap: anywhere; font-size: 13px; line-height: 1.7; }
+.operating-order strong { color: var(--text-primary); }
+.operating-order small { flex-basis: 100%; color: var(--text-secondary); }
+.record-scope { color: var(--text-muted); font-size: 12px; line-height: 1.7; }
+.operating-orders h3, .today-operations h3 { font-size: 16px; }
+.operating-orders h4 { margin: 16px 0 10px; font-size: 14px; }
+.strategy-settings > summary { min-height: 44px; cursor: pointer; font-weight: 700; color: var(--text-primary); padding: 10px 0; }
+.strategy-settings > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 </style>

@@ -13,8 +13,19 @@
       v-else-if="statusLoaded && !status.configured"
       class="notice"
     >
-      서버 환경 변수에 <code>KIWOOM_APP_KEY</code>, <code>KIWOOM_SECRET_KEY</code>를 설정하면 연결할 수 있습니다.
+      키움 계좌 연결이 설정되지 않았습니다. 연결 설정을 확인해 주세요.
     </p>
+    <section
+      class="operation-summary"
+      aria-label="국내 운영 요약"
+    >
+      <strong>{{ operationLabel }}</strong>
+      <p>{{ buyBlockReason }}</p>
+    </section>
+    <TradingAttention
+      market="KR"
+      :items="attentionItems"
+    />
     <dl
       class="operation-overview"
       aria-label="자동매매 운영 상태"
@@ -28,7 +39,7 @@
     </h4>
     <div class="control-card">
       <div class="connection">
-        <i :class="statusKnown && status.connected ? 'online' : ''" /><span><strong>{{ !statusKnown ? '연결 상태 확인 필요' : status.connected ? '키움 API 연결됨' : '키움 API 연결 대기' }}</strong><small>{{ !statusKnown ? '최근 상태를 다시 조회해 주세요' : status.tokenValid ? 'Access Token 정상' : 'Access Token 미발급 또는 만료' }}</small></span>
+        <i :class="statusKnown && status.connected ? 'online' : ''" /><span><strong>{{ !statusKnown ? '연결 상태 확인 필요' : status.connected ? '키움 실시간 시세 연결됨' : '키움 실시간 시세 연결 대기' }}</strong><small>{{ !statusKnown ? '최근 상태를 다시 조회해 주세요' : status.tokenValid ? 'Access Token 정상' : 'Access Token 미발급 또는 만료' }}</small></span>
       </div><div class="actions">
         <div class="toggle-wrap">
           <button
@@ -49,6 +60,9 @@
         </button>
       </div>
     </div>
+    <p class="stop-scope">
+      국내 완전 중지는 신규 자동주문을 멈추고 시스템의 미체결 매수·매도 주문을 취소 요청합니다. 보유 주식 전량 매도는 별도의 청산 동작입니다.
+    </p>
     <p
       class="operation-freshness"
       role="status"
@@ -81,6 +95,14 @@
     >
       <strong>정규장 외 시세 표시 중</strong>{{ status.marketMessage }}
     </p>
+    <KiwoomStrategyPanel
+      :configured="status.configured"
+      :status-known="statusKnown"
+      :auto-trading="status.autoTrading"
+      :price-ticks="priceTicks"
+      :refresh-version="refreshVersion"
+      @operation-summary="strategySummary = $event"
+    />
     <p
       class="operation-freshness"
       role="status"
@@ -133,13 +155,6 @@
         확인된 운영 이벤트가 없습니다. 마지막 상태 확인 시각을 함께 확인하세요.
       </p>
     </section>
-    <KiwoomStrategyPanel
-      :configured="status.configured"
-      :status-known="statusKnown"
-      :auto-trading="status.autoTrading"
-      :price-ticks="priceTicks"
-      :refresh-version="refreshVersion"
-    />
     <details class="operation-details">
       <summary>실시간 시세 · 체결 로그 펼치기</summary>
       <section class="log-card">
@@ -174,6 +189,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import axios from '@/axios'
 import { apiErrorMessage } from '@/utils/apiError'
 import KiwoomStrategyPanel from '@/components/stock/KiwoomStrategyPanel.vue'
+import TradingAttention from '@/components/stock/TradingAttention.vue'
 
 // 토큰·계좌번호는 프론트에 저장하지 않습니다. 서버가 httpOnly 인증과 키움 토큰을 모두 관리합니다.
 const status = ref({ configured: false, connected: false, tokenValid: false, autoTrading: false, orderEnabled: false, marketOpen: false, marketMessage: '', consecutiveApiFailures: 0 })
@@ -185,6 +201,25 @@ const statusLoaded = ref(false), statusError = ref(''), statusCheckedAt = ref(nu
 const accountLoaded = ref(false), accountError = ref(''), accountCheckedAt = ref(null), streamConnected = ref(false)
 const statusKnown = computed(() => statusLoaded.value && !statusError.value)
 const refreshError = computed(() => [statusError.value, accountError.value].filter(Boolean).join(' · '))
+const strategySummary = ref({ blocker: '전략·위험 상태 확인 중입니다.', items: [], riskTriggered: false, unknownOrders: 0 })
+const operationLabel = computed(() => !statusKnown.value ? statusError.value ? '운영 상태 조회 실패' : '운영 상태 확인 중' : strategySummary.value.riskTriggered ? '신규 매수 차단' : strategySummary.value.unknownOrders ? '주문 상태 확인 필요' : !status.value.autoTrading ? '자동주문 중지' : !status.value.configured || !status.value.tokenValid ? '연결 확인 필요' : '자동주문 실행 중')
+const buyBlockReason = computed(() => {
+  if (!statusKnown.value) return '현재 운영 상태를 확인하지 못해 신규 매수 가능 여부를 판단할 수 없습니다.'
+  if (strategySummary.value.riskTriggered || strategySummary.value.unknownOrders) return strategySummary.value.blocker
+  if (!status.value.autoTrading) return '자동주문이 중지되어 신규 매수를 실행하지 않습니다.'
+  if (!status.value.configured || !status.value.tokenValid) return '키움 연결 설정 또는 접속 토큰을 확인해야 합니다.'
+  if (!status.value.orderEnabled) return '서버 주문 전송이 잠겨 있습니다.'
+  if (!status.value.marketOpen) return '현재 정규장 밖입니다. 매수 진입 시간과 개별 안전 검사는 서버 기준을 따릅니다.'
+  return strategySummary.value.blocker
+})
+const attentionItems = computed(() => {
+  const items = [...strategySummary.value.items]
+  if (statusError.value) items.push({ id: 'kr-status-read-failed', severity: 'critical', title: '운영 상태 조회 실패', message: '마지막 확인 시각과 연결 상태를 확인하고 다시 조회해 주세요.' })
+  else if (statusKnown.value && status.value.configured && !status.value.tokenValid) items.push({ id: 'kr-connection-unavailable', severity: 'warning', title: '키움 연결 확인 필요', message: '현재 조회된 접속 토큰이 정상으로 확인되지 않았습니다.' })
+  if (statusKnown.value && status.value.autoTrading && status.value.connected === false) items.push({ id: 'kr-realtime-disconnected', severity: 'warning', title: '실시간 시세 연결 확인 필요', message: '키움 실시간 시세 연결이 끊겨 있습니다. 이 상태만으로 REST 주문 차단 여부를 판단할 수는 없습니다.' })
+  return items
+})
+
 const timeLabel = value => value ? new Date(value).toLocaleTimeString('ko-KR', { hour12: false }) : '확인 전'
 const knownNumber = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value))
 let eventSource, refreshTimer, eventTimer, refreshing, disposed = false
@@ -195,7 +230,7 @@ const formatPercent = value => knownNumber(value) ? `${Number(value) >= 0 ? '+' 
 const changeTone = (value) => Number(value) > 0 ? 'profit' : Number(value) < 0 ? 'loss' : ''
 // 시작/중지 확인 문구와 버튼 아래 설명을 하나로 유지해 문구가 서로 어긋나지 않도록 한다.
 const TOGGLE_ON_HINT = '자동주문을 시작할까요? 전략 설정의 자동 전송과 손절·익절 루프도 함께 켜고, 현재 보유종목의 청산 기준을 다시 계산합니다.'
-const TOGGLE_OFF_HINT = '자동주문을 완전히 중지할까요? 신규 주문을 멈추고 시스템이 전송한 미체결 매수·매도 주문도 취소합니다.'
+const TOGGLE_OFF_HINT = '자동주문을 완전히 중지할까요? 신규 주문을 멈추고 시스템이 전송한 미체결 매수·매도 주문도 취소 요청합니다. 보유 주식을 자동으로 전량 매도하는 동작은 아닙니다.'
 const toggleHint = computed(() => status.value.autoTrading ? TOGGLE_OFF_HINT : TOGGLE_ON_HINT)
 function pushLog(type, message) { logs.value.push({ id: `${Date.now()}-${Math.random()}`, type, message, time: new Date().toLocaleTimeString('ko-KR', { hour12: false }) }); if (logs.value.length > 300) logs.value.shift(); nextTick(() => { if (logElement.value) logElement.value.scrollTop = logElement.value.scrollHeight }) }
 async function refreshView(force = false) {
@@ -285,4 +320,11 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select { m
 .recent-operations { padding: 16px; margin: 16px 0; border: 1px solid var(--card-border); border-radius: var(--radius-card); background: var(--surface); }
 .recent-operations h4 { color: var(--text-primary); font-size: 15px; }
 .recent-operations time { color: var(--text-muted); margin-right: 8px; }
+</style>
+
+<style scoped>
+.operation-summary { margin: 16px 0; padding: 18px; background: var(--surface-2); border: 1px solid var(--card-border); border-radius: var(--radius-card); }
+.operation-summary strong { font-size: 18px; color: var(--text-primary); }
+.operation-summary p, .stop-scope { margin: 10px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.stop-scope { margin-bottom: 14px; }
 </style>

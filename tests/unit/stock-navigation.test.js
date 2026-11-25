@@ -3,14 +3,13 @@ const fs = require('fs');
 const path = require('path');
 const { parse, compileScript, compileTemplate } = require('@vue/compiler-sfc');
 const { transformSync } = require('@babel/core');
-const { createApp, nextTick, reactive } = require('vue');
+const { createApp, nextTick, reactive, h } = require('vue');
+const { createRouter, createMemoryHistory } = require('vue-router');
 const http = require('@/axios').default;
-const mockReplace = jest.fn();
-let mockRoute;
-let mockAdmin;
-jest.mock('@/axios', () => ({ __esModule: true, default: { get: jest.fn() } }));
-jest.mock('vue-router', () => ({ useRoute: () => mockRoute, useRouter: () => ({ replace: mockReplace }) }));
-jest.mock('vuex', () => ({ useStore: () => ({ getters: { 'auth/isAdmin': mockAdmin } }) }));
+let mockStore;
+jest.mock('@/axios', () => ({ __esModule: true, default: { get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn() } }));
+jest.mock('vuex', () => ({ useStore: () => mockStore }));
+
 function component() {
   const filename = path.resolve(__dirname, '../../src/pages/stock.vue');
   const { descriptor } = parse(fs.readFileSync(filename, 'utf8'), { filename });
@@ -19,61 +18,103 @@ function component() {
   const evaluate = source => {
     const { code } = transformSync(source, { configFile: false, babelrc: false, plugins: ['@babel/plugin-transform-modules-commonjs'] });
     const result = { exports: {} };
-    new Function('require', 'module', 'exports', code)(request => request.endsWith('.vue') ? { __esModule: true, default: { render: () => null } } : require(request), result, result.exports);
+    new Function('require', 'module', 'exports', code)(request => request.endsWith('.vue')
+      ? { __esModule: true, default: { render: () => h('div', { 'data-panel': path.basename(request, '.vue') }) } }
+      : require(request), result, result.exports);
     return result.exports;
   };
   return { ...evaluate(script.content).default, render: evaluate(template.code).render };
 }
-let app;
-async function flush() { for (let i = 0; i < 8; i++) { await Promise.resolve(); await nextTick(); } }
-async function mount() { const host = document.createElement('div'); document.body.append(host); app = createApp(component()); app.mount(host); await flush(); return host; }
-beforeEach(() => { jest.clearAllMocks(); mockAdmin = true; mockRoute = reactive({ query: {} }); http.get.mockImplementation(async url => ({ data: url === '/api/portfolio/accounts' ? ['stock', 'general', 'isa', 'irp'].map(type => ({ id: 'legacy-' + type, legacyType: type, name: type, broker: 'UNASSIGNED', purpose: 'OTHER', holdingsPath: '/api/portfolio/' + type + '/holdings' })) : {} })); window.scrollTo = jest.fn(); });
+let app, router;
+async function flush() { for (let i = 0; i < 12; i++) { await Promise.resolve(); await nextTick(); } }
+async function mount(url = '/stock') {
+  router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/stock', component: { render: () => null } }] });
+  await router.push(url); await router.isReady();
+  const host = document.createElement('div'); document.body.append(host);
+  app = createApp(component()); app.use(router); app.mount(host); await flush(); return host;
+}
+function marketButton(host, market) { return [...host.querySelectorAll('button')].find(button => button.textContent.includes(market === 'US' ? '미국' : '국내')); }
+function expectMarket(host, market) {
+  expect(host.querySelector(`[data-panel="${market === 'US' ? 'KiwoomUsAutoTrade' : 'KiwoomAutoTrade'}"]`)).not.toBeNull();
+  expect(host.querySelector(`[data-panel="${market === 'US' ? 'KiwoomAutoTrade' : 'KiwoomUsAutoTrade'}"]`)).toBeNull();
+}
+beforeEach(() => { jest.clearAllMocks(); mockStore = reactive({ getters: { 'auth/isAdmin': true } }); window.scrollTo = jest.fn(); });
 afterEach(() => { app?.unmount(); document.body.innerHTML = ''; });
 
-test('legacy direct account URL selects its group and keyboard focus follows visible subtabs', async () => {
-  mockRoute.query = { tab: 'balance' };
-  const host = await mount();
-  expect(host.querySelector('[aria-current="page"]').dataset.tab).toBe('stock');
-  expect(host.querySelector('.stock-groups [aria-pressed="true"]').textContent).toContain('내 포트폴리오');
-  const first = host.querySelector('[data-tab="all"]'); first.focus();
-  first.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
-  expect(document.activeElement.dataset.tab).toBe('stock');
-  document.activeElement.click(); await flush();
-  expect(mockReplace).toHaveBeenCalledWith({ query: { tab: 'stock' } });
+test.each([['/stock', 'KR'], ['/stock?market=KR', 'KR'], ['/stock?market=US', 'US'], ['/stock?market=invalid', 'KR'], ['/stock?tab=balance', 'KR'], ['/stock?tab=paper-trade', 'KR']])('URL %s mounts only its authorized market panel', async (url, expected) => {
+  const host = await mount(url); expectMarket(host, expected);
+  expect(host.querySelector('[data-panel="PortfolioPanel"]')).toBeNull();
+  expect(host.querySelector('[data-panel="UsPaperTradingPanel"]')).toBeNull();
+  expect(http.get).not.toHaveBeenCalled();
+  expect(http.post).not.toHaveBeenCalled();
 });
 
-test('route changes select market group while non-admin broker URLs fall back without exposing account or trade tabs', async () => {
-  mockAdmin = false; mockRoute.query = { tab: 'broker-accounts' };
-  const host = await mount();
-  expect(host.querySelectorAll('.stock-groups button')).toHaveLength(2);
-  expect(host.querySelector('[aria-current="page"]').dataset.tab).toBe('all');
-  mockRoute.query = { tab: 'news' }; await flush();
-  expect(host.querySelector('.stock-groups [aria-pressed="true"]').textContent).toContain('시장 정보');
-  expect(host.querySelector('[aria-current="page"]').dataset.tab).toBe('news');
-  expect(host.querySelector('[data-tab="broker-accounts"]')).toBeNull();
+test('market buttons update URL and browser back restores the previous panel', async () => {
+  const host = await mount('/stock?market=KR&note=keep');
+  const switched = new Promise(resolve => { const remove = router.afterEach(() => { remove(); resolve(); }); });
+  marketButton(host, 'US').click(); await switched; await flush();
+  expect(router.currentRoute.value.query.market).toBe('US');
+  expect(router.currentRoute.value.query.note).toBe('keep');
+  expectMarket(host, 'US');
+  const navigation = new Promise(resolve => { const remove = router.afterEach(() => { remove(); resolve(); }); });
+  router.back(); await navigation; await flush();
+  expectMarket(host, 'KR');
+  expect(router.currentRoute.value.query.market).toBe('KR');
+  expect(http.post).not.toHaveBeenCalled();
 });
 
-
-test('account catalog failure prevents a misleading legacy-only complete portfolio and keeps KRX unknown', async () => {
-  http.get.mockRejectedValue(new Error('offline'));
-  const host = await mount();
-  expect(host.textContent).toContain('수기 계좌 목록을 확인하지 못했습니다');
-  expect(host.textContent).toContain('KRX 연결 정보를 확인하지 못했습니다');
-  expect(host.textContent).not.toContain('KRX 정상');
+test('route-driven market changes are reflected without remounting the page', async () => {
+  const host = await mount('/stock?market=KR');
+  await router.push('/stock?market=US'); await flush(); expectMarket(host, 'US');
+  await router.push('/stock?market=bad'); await flush(); expectMarket(host, 'KR');
 });
 
-test('custom manual account becomes its own tab and keeps legacy direct links', async () => {
-  http.get.mockResolvedValue({ data: [{ id: 'custom-one', name: '삼성 일반', broker: 'SAMSUNG', purpose: 'LONG_TERM', legacyType: null, holdingsPath: '/api/portfolio/accounts/custom-one/holdings' }] });
-  mockRoute.query = { tab: 'custom-one' };
-  const host = await mount();
-  expect(host.querySelector('[aria-current="page"]').dataset.tab).toBe('custom-one');
-  expect(host.textContent).toContain('삼성 · 삼성 일반');
+test('non-admin direct URL exposes no trading controls and invokes no manual or broker API', async () => {
+  mockStore.getters['auth/isAdmin'] = false;
+  const host = await mount('/stock?market=US');
+  expect(host.textContent).toMatch(/관리자|권한/);
+  expect(host.querySelectorAll('[data-panel]')).toHaveLength(0);
+  expect(marketButton(host, 'US')).toBeUndefined();
+  expect(http.get).not.toHaveBeenCalled(); expect(http.post).not.toHaveBeenCalled();
 });
 
+test('losing admin permission unmounts the existing trading panel', async () => {
+  const host = await mount('/stock?market=US'); expectMarket(host, 'US');
+  mockStore.getters['auth/isAdmin'] = false; await flush();
+  expect(host.querySelectorAll('[data-panel]')).toHaveLength(0);
+  expect(http.post).not.toHaveBeenCalled();
+});
 
-test('new account retry increments a previously unseen account version', async () => {
-  const host = document.createElement('div'); document.body.append(host);
-  app = createApp(component()); const vm = app.mount(host); await flush();
-  vm.retryAccount('new-account'); expect(vm.reloadVersions['new-account']).toBe(1);
-  vm.retryAccount('new-account'); expect(vm.reloadVersions['new-account']).toBe(2);
+test('manual records are left untouched when entering and switching the dedicated trading page', async () => {
+  const original = JSON.stringify([{ symbol: 'SYNTHETIC', quantity: 0.25 }]);
+  localStorage.setItem('stock_portfolio', original);
+  const host = await mount(); marketButton(host, 'US').click(); await flush();
+  expect(localStorage.getItem('stock_portfolio')).toBe(original);
+  for (const method of ['get', 'post', 'put', 'delete']) expect(http[method]).not.toHaveBeenCalled();
+});
+
+test('arrow and boundary keys move market-button focus without submitting orders', async () => {
+  const host = await mount();
+  const kr = marketButton(host, 'KR'), us = marketButton(host, 'US');
+  kr.focus(); kr.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  expect(document.activeElement).toBe(us);
+  us.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+  expect(document.activeElement).toBe(kr);
+  kr.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+  expect(document.activeElement).toBe(us);
+  expect(http.post).not.toHaveBeenCalled();
+});
+
+test.each([undefined, 'false', 'true'])('paper feature flag %s cannot expose simulation in the real-account page', async flag => {
+  const original = process.env.VUE_APP_US_PAPER_ENABLED;
+  try {
+    if (flag === undefined) delete process.env.VUE_APP_US_PAPER_ENABLED;
+    else process.env.VUE_APP_US_PAPER_ENABLED = flag;
+    const host = await mount('/stock?tab=paper-trade');
+    expectMarket(host, 'KR');
+    expect(host.querySelector('[data-panel="UsPaperTradingPanel"]')).toBeNull();
+  } finally {
+    if (original === undefined) delete process.env.VUE_APP_US_PAPER_ENABLED;
+    else process.env.VUE_APP_US_PAPER_ENABLED = original;
+  }
 });

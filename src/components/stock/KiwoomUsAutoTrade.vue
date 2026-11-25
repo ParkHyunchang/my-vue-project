@@ -5,6 +5,16 @@
       <b>실전 계좌</b>
     </header>
 
+    <p
+      class="operation-reason"
+      role="status"
+    >
+      <strong>지금 신규 매수</strong>{{ primaryReason }}
+    </p>
+    <TradingAttention
+      market="US"
+      :items="attentionItems"
+    />
     <dl
       class="operation-overview"
       aria-label="미국 자동매매 운영 상태"
@@ -75,6 +85,192 @@
           계좌·체결 동기화
         </button>
       </div>
+    </section>
+    <div class="grids">
+      <section class="card table-card holdings-card">
+        <header><strong>계좌 보유와 자동관리 수량</strong><span>{{ holdings.length }}종목</span></header>
+        <p class="holdings-help">
+          전체 계좌 위험 정책이 활성화되면 기존 미국주식도 손절·익절·계좌 손실 한도에 따른 매도 대상에 포함됩니다. 신규 매수를 중지해도 이 매도 감시는 계속됩니다. 자동관리 수량과 기존 보유 수량은 동기화된 계좌 내역으로 확인하세요. 추세 청산은 각 매수 때 저장된 계획을 표시합니다.
+        </p>
+        <div class="table-wrap">
+          <table class="holdings-table">
+            <thead><tr><th>종목</th><th>자동관리 / 수동</th><th>전체 수량</th><th>자동관리 원가</th><th>현재가</th><th>적용 중인 청산 계획</th><th>계좌 수익률</th></tr></thead><tbody>
+              <tr
+                v-for="item in holdings"
+                :key="`${item.exchange}-${item.symbol}`"
+              >
+                <td><b>{{ item.symbol }}</b><small>{{ item.stockName }}</small></td><td data-label="보유 구분">
+                  자동 {{ item.managedQuantity || 0 }}주<small>수동 {{ Math.max(0, item.quantity - (item.managedQuantity || 0)) }}주</small>
+                </td><td>{{ item.quantity }}</td>
+                <td>{{ item.managedQuantity > 0 ? displayPrice(item.managedAveragePrice) : '—' }}</td>
+                <td data-label="현재가">
+                  {{ displayPrice(item.currentPrice) }}
+                </td>
+                <td class="signal-cell">
+                  <template v-if="risk.enabled && item.managedQuantity > 0 && item.quantity > item.managedQuantity">
+                    <strong>혼합 보유 · 전체 수익률 기준</strong>
+                    <small v-if="settingsLoaded">일반 손절 {{ appliedSettings.stopLossPercent }}% · 1차 +{{ appliedSettings.takeProfitPercent }}% · 2차 +{{ appliedSettings.takeProfitPercent2 }}%</small>
+                    <small v-if="settingsLoaded">최초 보유 동기화 기준 {{ appliedSettings.maxHoldingDays }}달력일 보유 제한</small>
+                    <small>증권사 전체 보유 수익률 기준 · 자동매수 ATR 계획 미적용</small>
+                  </template>
+                  <template v-else-if="item.managedQuantity > 0 && item.trendExitPlan">
+                    <strong>ATR 추적 청산</strong>
+                    <small>손절 감시 {{ item.trendStopPrice == null ? '첫 감시 대기' : displayPrice(item.trendStopPrice) }} · 관측 최고가 {{ displayPrice(item.trendHighWaterPrice) }}</small>
+                    <small>진입 ATR {{ displayPrice(item.trendExitPlan.trendEntryAtr) }} · 1R {{ displayPrice(item.trendExitPlan.trendRiskPerShare) }}</small>
+                    <small>+{{ displayNumber(item.trendExitPlan.trendTrailActivationR, 1) }}R부터 {{ displayNumber(item.trendExitPlan.trendTrailAtrMultiplier, 1) }} ATR 추적</small>
+                    <small>최초 체결 확인 {{ item.trendStartedOn || '확인 필요' }} · 해당일 제외 {{ item.trendExitPlan.trendMaxHoldingTradingDays ?? '—' }}거래일 보유</small>
+                  </template>
+                  <template v-else-if="item.managedQuantity > 0">
+                    <strong>기존 분할 익절</strong>
+                    <small v-if="settingsLoaded">손절 {{ displayNumber(item.plannedStopLossPercent == null ? appliedSettings.stopLossPercent : Math.min(appliedSettings.stopLossPercent, item.plannedStopLossPercent)) }}%</small>
+                    <small v-if="settingsLoaded">1차 +{{ appliedSettings.takeProfitPercent }}% · 2차 +{{ appliedSettings.takeProfitPercent2 }}% · {{ appliedSettings.maxHoldingDays }}달력일 보유</small>
+                    <small>새 추세 청산 계획이 없는 기존 보유입니다.</small>
+                  </template>
+                  <span v-else>{{ risk.enabled ? '기존 보유 · 손절·익절·계좌 위험 청산에 포함' : '기존 보유 · 전체 계좌 정책 미활성' }}</span>
+                </td>
+                <td
+                  data-label="계좌 수익률"
+                  :class="Number(item.profitLossPercent) >= 0 ? 'up' : 'down'"
+                >
+                  {{ item.profitLossPercent == null ? '—' : `${signed(item.profitLossPercent)}%` }}
+                </td>
+              </tr>
+              <tr v-if="!holdings.length">
+                <td
+                  colspan="7"
+                  class="empty"
+                >
+                  {{ buyingPower.holdingsSyncedAt ? '동기화된 보유 종목이 없습니다.' : '보유 내역 확인 전입니다. 계좌·체결 동기화를 실행하세요.' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section
+        class="card operation-orders"
+        aria-label="최근 자동매매 주문 상태"
+      >
+        <header><strong>미체결·최근 체결 확인</strong><span>자동매매 주문 최근 50건 범위</span></header>
+        <p class="holdings-help">
+          증권사 전체 미체결 목록이 아닙니다. 결과 미확인·취소 요청 중인 주문은 확정 전까지 계속 확인하세요.
+        </p>
+        <p
+          v-if="ordersError"
+          class="error"
+        >
+          {{ ordersError }}
+        </p>
+        <p
+          v-else-if="!ordersLoaded"
+          class="holdings-help"
+        >
+          주문 기록 확인 중입니다.
+        </p>
+        <template v-else>
+          <p class="holdings-help">
+            조회 범위 내 진행·미확인 {{ pendingOrders.length }}건 · 체결 이력 {{ filledOrders.length }}건
+          </p>
+          <ul class="operation-order-list">
+            <li
+              v-for="item in visibleOrders"
+              :key="item.id"
+            >
+              <div><strong>{{ item.symbol }} · {{ item.action === 'BUY' ? '매수' : item.action === 'SELL' ? '매도' : '구분 확인 필요' }}</strong><span>{{ usOrderLabel(item.status) }}</span></div>
+              <p>체결 {{ item.filledQuantity ?? '—' }} / 주문 {{ item.quantity ?? '—' }}주 · 잔량 {{ item.remainingQuantity ?? '—' }}주</p>
+              <small>주문 {{ item.orderedAt ? logTime(item.orderedAt) : '시각 미확인' }} · 평균 체결가 {{ displayPrice(item.averageFillPrice) }}</small>
+            </li>
+          </ul>
+          <p
+            v-if="!visibleOrders.length"
+            class="holdings-help"
+          >
+            조회된 최근 주문에서 진행 중 주문과 체결 이력이 없습니다.
+          </p>
+          <p
+            v-if="pendingOrders.length + filledOrders.length > visibleOrders.length"
+            class="holdings-help"
+          >
+            진행·미확인 주문을 먼저 표시하고 최근 체결은 최대 5건 표시합니다.
+          </p>
+        </template>
+      </section>
+      <details class="advanced-operation">
+        <summary>최근 후보와 매수 근거 · {{ candidates.length }}개</summary>
+        <section class="card table-card candidate-card">
+          <header><strong>최근 후보와 매수 근거</strong><span>{{ candidates.length }}개</span></header>
+          <p class="holdings-help">
+            최근 후보 산출 때 기록한 값입니다. 설정 변경 후에는 후보를 다시 확인해야 하며 실제 주문 직전 조건·호가·수량을 재검증합니다. 추세 모드에서는 등락률·PER·ROE를 순위 점수로 사용하지 않습니다.
+          </p>
+          <div class="table-wrap">
+            <table class="candidate-table">
+              <thead><tr><th>종목</th><th>매도 1호가</th><th>추세 진입 근거</th><th>등락</th><th>RVOL</th><th>PER</th><th>ROE</th><th>스프레드</th><th>선정 점수</th></tr></thead><tbody>
+                <tr
+                  v-for="item in candidates"
+                  :key="item.symbol"
+                >
+                  <td><b>{{ item.symbol }}</b><small>{{ item.name }} · {{ item.indexMembership }}</small></td><td data-label="매도 1호가">
+                    {{ displayPrice(item.price) }}
+                  </td>
+                  <td class="signal-cell">
+                    <template v-if="item.technicalSignal">
+                      <strong>{{ item.technicalSignal.accepted ? '추세 조건 통과' : item.technicalSignal.available ? '추세 조건 미충족' : '추세 자료 확인 필요' }}</strong>
+                      <small>{{ item.technicalSignal.reason }}</small>
+                      <small>상대강도 {{ displayNumber(item.technicalSignal.relativeStrengthPercent) }}%p · ATR {{ displayPrice(item.technicalSignal.atr) }}</small>
+                      <small>돌파 기준 {{ displayPrice(item.technicalSignal.breakoutPrice) }} · 계획 손절폭 {{ displayNumber(item.technicalSignal.stopPercent) }}%</small>
+                      <small>완료 일봉 기준일 {{ item.technicalSignal.dataDate || '확인 전' }}</small>
+                    </template>
+                    <span v-else>새 신호 기록 없음</span>
+                  </td>
+                  <td :class="Number(item.changePercent) >= 0 ? 'up' : 'down'">
+                    {{ item.changePercent == null ? '—' : `${signed(item.changePercent)}%` }}
+                  </td><td>{{ Number(item.volumeRatio).toFixed(2) }}배</td><td>{{ item.forwardPe == null ? '-' : Number(item.forwardPe).toFixed(1) }}</td><td>{{ item.roePercent == null ? '-' : `${Number(item.roePercent).toFixed(1)}%` }}</td><td>{{ Number(item.spreadPercent).toFixed(2) }}%</td><td>{{ Number(item.score).toFixed(1) }}</td>
+                </tr>
+                <tr v-if="!candidates.length">
+                  <td
+                    colspan="9"
+                    class="empty"
+                  >
+                    아직 조건을 모두 통과한 후보가 없습니다.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </details>
+    </div>
+    <section
+      class="card today-operations"
+      aria-label="오늘 미국 자동매매 운영 기록"
+    >
+      <header><strong>오늘 운영 기록 · 한국시간</strong><span>조회된 최근 로그 기준</span></header>
+      <p class="holdings-help">
+        최근 최대 300개 로그 중 오늘 기록입니다. 전체 일일 실적·체결 수량이 아닌 이벤트 건수이며 차단에는 후보 탈락·주문 미확인·위험 재확인 기록을 포함합니다.
+      </p>
+      <dl class="today-counts">
+        <div><dt>판단</dt><dd>{{ lastRefreshAt ? todayOperations.decisions : '—' }}</dd></div><div><dt>주문</dt><dd>{{ lastRefreshAt ? todayOperations.orders : '—' }}</dd></div><div><dt>체결</dt><dd>{{ lastRefreshAt ? todayOperations.fills : '—' }}</dd></div><div><dt>차단·확인 필요</dt><dd>{{ lastRefreshAt ? todayOperations.blocks : '—' }}</dd></div>
+      </dl>
+      <p
+        v-if="refreshError"
+        class="error"
+      >
+        기록 갱신 실패 · 아래는 마지막으로 조회된 로그입니다.
+      </p>
+      <ol class="operation-timeline">
+        <li
+          v-for="item in todayOperations.items.slice(0, 12)"
+          :key="item.id"
+        >
+          <time>{{ logTime(item.createdAt) }}</time><strong>{{ label(item.eventType || item.type) }}</strong><span>{{ item.message }}</span>
+        </li>
+      </ol>
+      <p
+        v-if="!todayOperations.items.length"
+        class="holdings-help"
+      >
+        조회된 로그에 오늘 기록이 없습니다. 기록 누락이나 조회 실패가 없다는 뜻은 아닙니다.
+      </p>
     </section>
     <div
       class="usd-notice"
@@ -191,124 +387,6 @@
     </details>
 
 
-    <section
-      class="recent-operations"
-      aria-label="최근 주문·운영 이벤트"
-    >
-      <h4>최근 주문·운영 이벤트</h4>
-      <p
-        v-for="item in logs.slice(-3).reverse()"
-        :key="item.id"
-      >
-        <time>{{ logTime(item.createdAt) }}</time> {{ item.message }}
-      </p>
-      <p v-if="!logs.length">
-        확인된 운영 이벤트가 없습니다. 아래 전체 로그에서 조회 상태를 확인하세요.
-      </p>
-    </section>
-    <div class="grids">
-      <section class="card table-card candidate-card">
-        <header><strong>최근 후보와 매수 근거</strong><span>{{ candidates.length }}개</span></header>
-        <p class="holdings-help">
-          최근 후보 산출 때 기록한 값입니다. 설정 변경 후에는 후보를 다시 확인해야 하며 실제 주문 직전 조건·호가·수량을 재검증합니다. 추세 모드에서는 등락률·PER·ROE를 순위 점수로 사용하지 않습니다.
-        </p>
-        <div class="table-wrap">
-          <table class="candidate-table">
-            <thead><tr><th>종목</th><th>매도 1호가</th><th>추세 진입 근거</th><th>등락</th><th>RVOL</th><th>PER</th><th>ROE</th><th>스프레드</th><th>선정 점수</th></tr></thead><tbody>
-              <tr
-                v-for="item in candidates"
-                :key="item.symbol"
-              >
-                <td><b>{{ item.symbol }}</b><small>{{ item.name }} · {{ item.indexMembership }}</small></td><td data-label="매도 1호가">
-                  {{ displayPrice(item.price) }}
-                </td>
-                <td class="signal-cell">
-                  <template v-if="item.technicalSignal">
-                    <strong>{{ item.technicalSignal.accepted ? '추세 조건 통과' : item.technicalSignal.available ? '추세 조건 미충족' : '추세 자료 확인 필요' }}</strong>
-                    <small>{{ item.technicalSignal.reason }}</small>
-                    <small>상대강도 {{ displayNumber(item.technicalSignal.relativeStrengthPercent) }}%p · ATR {{ displayPrice(item.technicalSignal.atr) }}</small>
-                    <small>돌파 기준 {{ displayPrice(item.technicalSignal.breakoutPrice) }} · 계획 손절폭 {{ displayNumber(item.technicalSignal.stopPercent) }}%</small>
-                    <small>완료 일봉 기준일 {{ item.technicalSignal.dataDate || '확인 전' }}</small>
-                  </template>
-                  <span v-else>새 신호 기록 없음</span>
-                </td>
-                <td :class="Number(item.changePercent) >= 0 ? 'up' : 'down'">
-                  {{ item.changePercent == null ? '—' : `${signed(item.changePercent)}%` }}
-                </td><td>{{ Number(item.volumeRatio).toFixed(2) }}배</td><td>{{ item.forwardPe == null ? '-' : Number(item.forwardPe).toFixed(1) }}</td><td>{{ item.roePercent == null ? '-' : `${Number(item.roePercent).toFixed(1)}%` }}</td><td>{{ Number(item.spreadPercent).toFixed(2) }}%</td><td>{{ Number(item.score).toFixed(1) }}</td>
-              </tr>
-              <tr v-if="!candidates.length">
-                <td
-                  colspan="9"
-                  class="empty"
-                >
-                  아직 조건을 모두 통과한 후보가 없습니다.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <section class="card table-card holdings-card">
-        <header><strong>계좌 보유와 자동관리 수량</strong><span>{{ holdings.length }}종목</span></header>
-        <p class="holdings-help">
-          전체 계좌 위험 정책이 활성화되면 기존 미국주식도 손절·익절·계좌 손실 한도에 따른 매도 대상에 포함됩니다. 신규 매수를 중지해도 이 매도 감시는 계속됩니다. 자동관리 수량과 기존 보유 수량은 동기화된 계좌 내역으로 확인하세요. 추세 청산은 각 매수 때 저장된 계획을 표시합니다.
-        </p>
-        <div class="table-wrap">
-          <table class="holdings-table">
-            <thead><tr><th>종목</th><th>자동관리 / 수동</th><th>전체 수량</th><th>자동관리 원가</th><th>현재가</th><th>적용 중인 청산 계획</th><th>계좌 수익률</th></tr></thead><tbody>
-              <tr
-                v-for="item in holdings"
-                :key="`${item.exchange}-${item.symbol}`"
-              >
-                <td><b>{{ item.symbol }}</b><small>{{ item.stockName }}</small></td><td data-label="보유 구분">
-                  자동 {{ item.managedQuantity || 0 }}주<small>수동 {{ Math.max(0, item.quantity - (item.managedQuantity || 0)) }}주</small>
-                </td><td>{{ item.quantity }}</td>
-                <td>{{ item.managedQuantity > 0 ? displayPrice(item.managedAveragePrice) : '—' }}</td>
-                <td data-label="현재가">
-                  {{ displayPrice(item.currentPrice) }}
-                </td>
-                <td class="signal-cell">
-                  <template v-if="risk.enabled && item.managedQuantity > 0 && item.quantity > item.managedQuantity">
-                    <strong>혼합 보유 · 전체 수익률 기준</strong>
-                    <small v-if="settingsLoaded">일반 손절 {{ appliedSettings.stopLossPercent }}% · 1차 +{{ appliedSettings.takeProfitPercent }}% · 2차 +{{ appliedSettings.takeProfitPercent2 }}%</small>
-                    <small v-if="settingsLoaded">최초 보유 동기화 기준 {{ appliedSettings.maxHoldingDays }}달력일 보유 제한</small>
-                    <small>증권사 전체 보유 수익률 기준 · 자동매수 ATR 계획 미적용</small>
-                  </template>
-                  <template v-else-if="item.managedQuantity > 0 && item.trendExitPlan">
-                    <strong>ATR 추적 청산</strong>
-                    <small>손절 감시 {{ item.trendStopPrice == null ? '첫 감시 대기' : displayPrice(item.trendStopPrice) }} · 관측 최고가 {{ displayPrice(item.trendHighWaterPrice) }}</small>
-                    <small>진입 ATR {{ displayPrice(item.trendExitPlan.trendEntryAtr) }} · 1R {{ displayPrice(item.trendExitPlan.trendRiskPerShare) }}</small>
-                    <small>+{{ displayNumber(item.trendExitPlan.trendTrailActivationR, 1) }}R부터 {{ displayNumber(item.trendExitPlan.trendTrailAtrMultiplier, 1) }} ATR 추적</small>
-                    <small>최초 체결 확인 {{ item.trendStartedOn || '확인 필요' }} · 해당일 제외 {{ item.trendExitPlan.trendMaxHoldingTradingDays ?? '—' }}거래일 보유</small>
-                  </template>
-                  <template v-else-if="item.managedQuantity > 0">
-                    <strong>기존 분할 익절</strong>
-                    <small v-if="settingsLoaded">손절 {{ displayNumber(item.plannedStopLossPercent == null ? appliedSettings.stopLossPercent : Math.min(appliedSettings.stopLossPercent, item.plannedStopLossPercent)) }}%</small>
-                    <small v-if="settingsLoaded">1차 +{{ appliedSettings.takeProfitPercent }}% · 2차 +{{ appliedSettings.takeProfitPercent2 }}% · {{ appliedSettings.maxHoldingDays }}달력일 보유</small>
-                    <small>새 추세 청산 계획이 없는 기존 보유입니다.</small>
-                  </template>
-                  <span v-else>{{ risk.enabled ? '기존 보유 · 손절·익절·계좌 위험 청산에 포함' : '기존 보유 · 전체 계좌 정책 미활성' }}</span>
-                </td>
-                <td
-                  data-label="계좌 수익률"
-                  :class="Number(item.profitLossPercent) >= 0 ? 'up' : 'down'"
-                >
-                  {{ item.profitLossPercent == null ? '—' : `${signed(item.profitLossPercent)}%` }}
-                </td>
-              </tr>
-              <tr v-if="!holdings.length">
-                <td
-                  colspan="7"
-                  class="empty"
-                >
-                  {{ buyingPower.holdingsSyncedAt ? '동기화된 보유 종목이 없습니다.' : '보유 내역 확인 전입니다. 계좌·체결 동기화를 실행하세요.' }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </div>
 
     <details class="advanced-operation">
       <summary>전략 설정 · 매수 근거와 청산 기준</summary>
@@ -1009,6 +1087,10 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import axios from '@/axios'
+import TradingAttention from './TradingAttention.vue'
+import { tradingTimestamp } from '@/utils/tradingTime'
+import { getUsOperationOrders } from '@/api/kiwoomUsOperationsApi'
+import { usTodayOperations, usPendingOrder, usOrderLabel } from '@/utils/kiwoomUsOperations'
 import KiwoomUsTermGuide from './KiwoomUsTermGuide.vue'
 import KiwoomUsRiskPanel from './KiwoomUsRiskPanel.vue'
 import UsStrategyDeploymentPanel from './UsStrategyDeploymentPanel.vue'
@@ -1056,6 +1138,11 @@ const knownAccountValue = value => accountLoaded.value && value != null && value
 const accountMoney = value => knownAccountValue(value) ? `$${money(value)}` : '—'
 const accountCount = value => knownAccountValue(value) ? Number(value).toLocaleString('ko-KR') : '—'
 const candidates = ref([]), holdings = ref([]), logs = ref([])
+const operationOrders = ref([]), ordersLoaded = ref(false), ordersError = ref('')
+const pendingOrders = computed(() => operationOrders.value.filter(usPendingOrder))
+const filledOrders = computed(() => operationOrders.value.filter(item => !usPendingOrder(item) && Number(item.filledQuantity) > 0))
+const visibleOrders = computed(() => [...pendingOrders.value, ...filledOrders.value.slice(0, 5)])
+const todayOperations = computed(() => usTodayOperations(logs.value, riskClock.value))
 const pending = ref(false), error = ref(''), showSettings = ref(false), logBox = ref(null)
 const settingsTrigger = ref(null), settingsDialog = ref(null), settingsClose = ref(null)
 const settingsLoaded = ref(false), actionNotice = ref('')
@@ -1089,6 +1176,39 @@ const readinessHint = computed(() => {
   if (Number(positionCountForLimit.value) + Number(buyingPower.value.pendingPositionCount || 0) >= Number(appliedSettings.value.maxPositions)) return `${risk.value.enabled ? '계좌 전체 보유' : '자동관리 보유'}·신규 미체결 매수가 최대 종목 수에 도달했습니다.`
   return status.value.entryWindow ? '현재 지원 거래 세션에서 진입 조건과 하루 매수 한도를 통과한 종목만 주문합니다.' : `신규 매수 평가 시간: ${status.value.entrySessionKst || '상태 확인 중'} (한국시간).`
 })
+const primaryReason = computed(() => {
+  if (!statusKnown.value) return '운영 상태를 확인하지 못해 매수 가능 여부를 판단할 수 없습니다.'
+  if (Number(status.value.unresolvedUnknownOrders) > 0) return '결과 미확인 주문이 있어 신규 매수가 차단됩니다. 계좌·체결 동기화로 확인하세요.'
+  if (status.value.emergencyStopped) return `API 오류 안전정지 상태입니다. ${status.value.lastApiFailureMessage || '연결 상태를 확인하세요.'}`
+  if (status.value.dailyLossTriggered || risk.value.triggered || risk.value.liquidationPending) return '손실 한도 또는 청산 대기 상태로 신규 매수가 차단됩니다.'
+  if (!status.value.configured) return '미국주식 API 연결 설정을 확인해야 합니다.'
+  if (!status.value.orderEnabled) return '주문 전송이 잠겨 있어 실제 주문을 보낼 수 없습니다.'
+  if (!status.value.strategyEnabled) return '서버에서 미국주식 전략이 비활성화되어 있습니다.'
+  if (researchStartBlocked.value) return '연구 전략의 승인·배포 상태 확인이 필요해 신규 매수를 시작할 수 없습니다.'
+  if (!accountFresh.value) return '최신 계좌 확인이 필요합니다. 계좌·체결 동기화 후 다시 확인하세요.'
+  if (!riskReady.value || usdOnlyBlocked.value || krwOrderStatus.value.code !== 'CANCELED') return readinessHint.value
+  if (!status.value.autoTrading) return '신규 자동매수가 중지되어 있습니다. 보유 청산 감시와 주문 동기화는 별도로 계속됩니다.'
+  return readinessHint.value
+})
+const attentionItems = computed(() => {
+  const items = []
+  if (statusError.value || refreshError.value || ordersError.value) items.push({ id: 'connection', severity: 'warning', title: '조회 연결 확인 필요', message: statusError.value || refreshError.value || ordersError.value })
+  if (Number(status.value.unresolvedUnknownOrders) > 0) items.push({ id: 'unknown-orders', severity: 'critical', title: '주문 결과 미확인', message: `${status.value.unresolvedUnknownOrders}건의 결과가 확정되지 않았습니다. 신규 매수 전 계좌·체결 동기화로 확인하세요.` })
+  if (status.value.dailyLossTriggered || risk.value.triggered || risk.value.liquidationPending) items.push({ id: 'risk-limit', severity: 'critical', title: '손실 한도·청산 상태 확인', message: '신규 매수가 차단되었습니다. 보유 청산과 미체결 주문 상태를 확인하세요.' })
+  if (status.value.emergencyStopped) items.push({ id: 'emergency', severity: 'critical', title: 'API 오류 안전정지', message: status.value.lastApiFailureMessage || 'API 연결 상태 확인이 필요합니다.' })
+  if (riskError.value || (riskLoaded.value && risk.value.enabled && !riskCurrent.value)) items.push({ id: 'risk-stale', severity: 'warning', title: '위험 평가 확인 필요', message: riskError.value || '위험 평가가 오래되었습니다. 계좌·체결 동기화로 다시 확인하세요.' })
+  return items
+})
+async function loadOperationOrders() {
+  try {
+    const { data } = await getUsOperationOrders()
+    if (disposed) return
+    if (!Array.isArray(data)) throw new Error('invalid order list')
+    operationOrders.value = data; ordersLoaded.value = true; ordersError.value = ''
+  } catch (e) {
+    if (!disposed) ordersError.value = '자동매매 주문 기록 조회에 실패했습니다. 다음 화면 갱신에서 다시 확인합니다.'
+  }
+}
 const decisionButtonLabel = computed(() => status.value.autoTrading ? '후보 확인·매수 판단' : '후보만 확인')
 const decisionButtonHint = computed(() => status.value.autoTrading
   ? '자동매매 실행 중이므로 조건을 통과하면 실계좌 매수 주문이 전송될 수 있습니다.'
@@ -1122,12 +1242,13 @@ const validationError = computed(() => {
   return ''
 })
 const signed = value => `${Number(value || 0) >= 0 ? '+' : ''}${Number(value || 0).toFixed(2)}`
-const logTime = value => value ? new Date(value).toLocaleString('ko-KR', { hour12: false }) : new Date().toLocaleTimeString('ko-KR', { hour12: false })
+const logTime = value => value ? new Date(tradingTimestamp(value)).toLocaleString('ko-KR', { hour12: false, timeZone: 'Asia/Seoul' }) : '시각 미확인'
 const operationTime = value => value ? logTime(value) : '서버 시작 후 확인 전'
 const label = type => ({ CANDIDATE: '후보', CANDIDATE_REJECTED: '후보탈락', DATA_MISSING: '데이터누락', SETTINGS_CHANGED: '설정변경', SCREENING: '조건집계', DECISION_RESULT: '판단결과', BUY_ORDER: '매수주문', BUY_FILLED: '매수체결', SELL_ORDER: '매도주문', SELL_FILLED: '매도체결', BUY_CANCEL: '매수취소요청', SELL_CANCEL: '매도취소요청', ORDER_CANCELED: '취소완료', ORDER_UNKNOWN: '주문확인필요', ORDER_RECOVERED: '주문번호복구', USD_CASH_BLOCK: 'USD매수차단', ERROR: '오류', START: '시작', STOP: '중지' }[type] || type || '시스템')
 const tone = type => type?.includes('BUY') ? 'buy' : type?.includes('SELL') ? 'sell' : type === 'CANDIDATE' ? 'candidate' : ['ERROR', 'USD_CASH_BLOCK', 'DATA_MISSING'].includes(type) ? 'error-line' : 'system'
-function pushLog(item) { logs.value.push({ id: `${Date.now()}-${Math.random()}`, ...item }); if (logs.value.length > 300) logs.value.shift(); nextTick(() => { if (logBox.value) logBox.value.scrollTop = logBox.value.scrollHeight }) }
+function pushLog(item) { riskClock.value = Date.now(); logs.value.push({ id: `${Date.now()}-${Math.random()}`, ...item }); if (logs.value.length > 300) logs.value.shift(); nextTick(() => { if (logBox.value) logBox.value.scrollTop = logBox.value.scrollHeight }) }
 function mergeAuditLogs(items) {
+  riskClock.value = Date.now()
   const auditIds = new Set(logs.value.filter(item => item.auditId != null).map(item => item.auditId))
   for (const item of [...items].reverse()) {
     if (auditIds.has(item.id)) continue
@@ -1171,7 +1292,7 @@ async function loadAll(sync = false, force = false) {
     // Read holdings after manual synchronization; preserve an open settings draft.
     const [settingsRes, auditRes, candidateRes, holdingRes] = await Promise.all([
       axios.get(`${BASE}/settings`), axios.get(`${BASE}/audit`), axios.get(`${BASE}/candidates`), axios.get(`${BASE}/holdings`),
-      refreshRisk(),
+      refreshRisk(), loadOperationOrders(),
     ])
     if (disposed) return
     if (!showSettings.value) settings.value = settingsRes.data
@@ -1327,4 +1448,9 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select { m
 .controls { flex-wrap: wrap; }
 .controls .sync-effects { flex-basis: 100%; margin: 8px 0; }
 .us-auto .grids .holdings-card { order: -1; }
+</style>
+
+<style scoped>
+.operation-reason{display:grid;gap:8px;padding:18px 20px;border:1px solid var(--accent);border-radius:var(--radius-card);background:var(--surface-2);line-height:1.65;overflow-wrap:anywhere}.operation-reason strong{color:var(--accent);font-size:.8rem}.operation-order-list,.operation-timeline{list-style:none;margin:0;padding:0 16px 16px;display:grid;gap:10px}.operation-order-list li,.operation-timeline li{padding:12px;border:1px solid var(--card-border);border-radius:var(--radius-control);background:var(--input-bg);min-width:0;overflow-wrap:anywhere}.operation-order-list li>div{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.operation-order-list p{margin:8px 0;font-size:.82rem}.operation-order-list small,.operation-order-list span{color:var(--text-secondary);font-size:.78rem}.operation-timeline li{display:grid;grid-template-columns:145px 100px minmax(0,1fr);gap:8px;font-size:.8rem;line-height:1.6}.operation-timeline time{color:var(--text-muted)}.today-counts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:0 16px}.today-counts>div{padding:12px;background:var(--input-bg);border-radius:var(--radius-control)}.today-counts dt{font-size:.78rem;color:var(--text-secondary)}.today-counts dd{margin:8px 0 0;font-size:1.25rem;font-weight:700}.operation-orders header,.today-operations header{gap:10px;flex-wrap:wrap}.operation-orders header span,.today-operations header span{font-size:.75rem;color:var(--text-muted)}.grids>.advanced-operation{margin-bottom:0}
+@media(max-width:600px){.operation-timeline li{grid-template-columns:minmax(0,1fr)}.today-counts{grid-template-columns:repeat(2,minmax(0,1fr))}.operation-reason{padding:14px}.operation-order-list li>div{flex-direction:column;gap:5px}}
 </style>

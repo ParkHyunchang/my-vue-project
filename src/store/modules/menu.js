@@ -11,7 +11,13 @@ const mutations = {
         state.userMenus = menus;
     },
     SET_ALL_MENUS(state, menus) {
-        state.allMenus = menus;
+        // Normalize the retired stock label returned by older menu catalogs.
+        // Preserve intentionally customized labels and all permission metadata.
+        state.allMenus = menus.map(menu => menu.path === '/stock' ? {
+            ...menu,
+            name: ['주식 대시보드', '주식'].includes(menu.name) ? '자동매매' : menu.name,
+            navLabel: ['주식 대시보드', '주식'].includes(menu.navLabel) ? '자동매매' : menu.navLabel,
+        } : menu);
     }
 };
 

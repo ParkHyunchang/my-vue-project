@@ -343,7 +343,7 @@ test('US synchronization reads holdings afterwards and shows partial failure', a
   syncResponse = { success: false, warnings: ['주문 대사 실패: 잔고만 갱신했습니다.'] }
   await click('계좌·체결 동기화')
   expect(calls.indexOf(`${US}/holdings`)).toBeGreaterThan(calls.indexOf(`${US}/sync`))
-  expect(document.querySelector('[role=status]').textContent).toContain('주문 대사 실패')
+  expect([...document.querySelectorAll('[role=status]')].some(item => item.textContent.includes('주문 대사 실패'))).toBe(true)
 })
 
 test('US account outage still loads saved settings and polling recovers', async () => {
@@ -528,4 +528,92 @@ test('US observation remains clearly non-paper and cannot start under whole-acco
   expect(document.querySelector('.validation-note').textContent).toContain('검증 전')
   await click('후보만 확인')
   expect(http.post).toHaveBeenCalledWith(`${US}/decide`, null, { params: { allowOrder: false } })
+})
+
+test('US unresolved order takes priority over stopped strategy and repeated polling keeps one attention incident', async () => {
+  status.unresolvedUnknownOrders = 2
+  await mount('KiwoomUsAutoTrade.vue')
+  expect(document.querySelector('.operation-reason').textContent).toContain('결과 미확인 주문')
+  const unknownAlerts = () => [...document.querySelectorAll('.trading-attention li')].filter(item => item.textContent.includes('미확인'))
+  expect(unknownAlerts()).toHaveLength(1)
+  jest.advanceTimersByTime(30000); await flush()
+  expect(unknownAlerts()).toHaveLength(1)
+  expect(http.post).not.toHaveBeenCalled()
+})
+
+test('US failed order list is visibly unavailable rather than reported as zero pending orders', async () => {
+  const previous = http.get.getMockImplementation()
+  http.get.mockImplementation(url => url === `${US}/proposals` ? Promise.reject(new Error('orders unavailable')) : previous(url))
+  await mount('KiwoomUsAutoTrade.vue')
+  expect(document.querySelector('.operation-orders').textContent).toContain('자동매매 주문 기록 조회에 실패했습니다')
+  expect(http.post).not.toHaveBeenCalled()
+})
+
+test('KR missing loss observation is not treated as a measured zero drawdown', async () => {
+  status = { ...status, autoTrading: true, connected: true, tokenValid: true, marketOpen: true }
+  await mount('KiwoomAutoTrade.vue')
+  expect(document.querySelector('.operation-summary').textContent).toMatch(/측정|관측|기준/)
+  expect(http.post).not.toHaveBeenCalled()
+})
+
+test('KR daily records use the KST boundary and state their limited loaded-history scope', async () => {
+  jest.setSystemTime(new Date('2026-11-24T15:30:00Z'))
+  const previous = http.get.getMockImplementation()
+  http.get.mockImplementation(url => {
+    if (url === `${STRATEGY}/runs`) return Promise.resolve({ data: [
+      { id: 1, status: 'SUCCESS', createdAt: '2026-11-25T00:01:00', proposals: [] },
+      { id: 2, status: 'SUCCESS', createdAt: '2026-11-24T23:59:59', proposals: [] },
+      { id: 3, status: 'SUCCESS', createdAt: '2026-11-25T01:00:00', proposals: [] },
+    ] })
+    if (url === `${STRATEGY}/health`) return Promise.resolve({ data: { risk: {}, recentAudit: [
+      { id: 1, eventType: 'ORDER_STATUS_SYNC', message: 'today-event', createdAt: '2026-11-25T00:02:00' },
+      { id: 2, eventType: 'ORDER_STATUS_SYNC', message: 'old-event', createdAt: '2026-11-24T23:59:59' },
+    ] } })
+    return previous(url)
+  })
+  await mount('KiwoomAutoTrade.vue')
+  const text = document.querySelector('.today-operations').textContent
+  expect(text).toContain('판단 기록 1건'); expect(text).toContain('운영 이벤트 1건')
+  expect(text).toContain('전체 하루 합계가 아닙니다'); expect(text).toContain('체결 시각 미제공')
+  expect(text).toContain('today-event'); expect(text).not.toContain('old-event')
+})
+
+test('KR counts records arriving after mount immediately without waiting for its clock interval', async () => {
+  jest.setSystemTime(new Date('2026-11-24T15:30:00Z'))
+  const previous = http.get.getMockImplementation()
+  let resolveRuns, resolveHealth
+  http.get.mockImplementation(url => {
+    if (url === `${STRATEGY}/runs`) return new Promise(resolve => { resolveRuns = resolve })
+    if (url === `${STRATEGY}/health`) return new Promise(resolve => { resolveHealth = resolve })
+    return previous(url)
+  })
+  await mount('KiwoomAutoTrade.vue')
+  expect(resolveRuns).toEqual(expect.any(Function))
+  jest.setSystemTime(new Date('2026-11-24T15:30:05Z'))
+  resolveRuns({ data: [{ id: 31, status: 'SUCCESS', createdAt: '2026-11-25T00:30:03', proposals: [] }] })
+  await flush()
+  expect(document.querySelector('.today-operations').textContent).toContain('판단 기록 1건')
+  expect(resolveHealth).toEqual(expect.any(Function))
+  jest.setSystemTime(new Date('2026-11-24T15:30:10Z'))
+  resolveHealth({ data: { risk: {}, recentAudit: [{ id: 32, eventType: 'ORDER_STATUS_SYNC', message: 'response-time-event', createdAt: '2026-11-25T00:30:08' }] } })
+  await flush()
+  expect(document.querySelector('.today-operations').textContent).toContain('운영 이벤트 1건')
+  expect(document.querySelector('.today-operations').textContent).toContain('response-time-event')
+  expect(http.post).not.toHaveBeenCalled()
+})
+
+test('US counts delayed audit response immediately without waiting for its clock interval', async () => {
+  jest.setSystemTime(new Date('2026-11-24T15:30:00Z'))
+  const previous = http.get.getMockImplementation()
+  let resolveAudit
+  http.get.mockImplementation(url => url === `${US}/audit`
+    ? new Promise(resolve => { resolveAudit = resolve }) : previous(url))
+  await mount('KiwoomUsAutoTrade.vue')
+  expect(resolveAudit).toEqual(expect.any(Function))
+  jest.setSystemTime(new Date('2026-11-24T15:30:05Z'))
+  resolveAudit({ data: [{ id: 41, eventType: 'DECISION_RESULT', message: 'delayed-audit-event', createdAt: '2026-11-25T00:30:03' }] })
+  await flush()
+  expect([...document.querySelectorAll('.today-counts dd')].map(item => item.textContent)).toEqual(['1', '0', '0', '0'])
+  expect(document.querySelector('.operation-timeline').textContent).toContain('delayed-audit-event')
+  expect(http.post).not.toHaveBeenCalled()
 })

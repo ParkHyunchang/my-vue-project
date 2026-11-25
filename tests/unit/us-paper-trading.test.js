@@ -132,40 +132,9 @@ test('disabled backend is clearly reported and cannot create or start', async ()
   expect(http.post).not.toHaveBeenCalled()
 })
 
-test('paper tab mounts only when selected and does not mount real-order panels', () => {
+// Dedicated stock-page navigation is exercised with a real memory router in stock-navigation.test.js.
+// The simulation component and its API tests above remain independent of that page.
+test('dedicated real-account page does not import the simulation panel', () => {
   const source = fs.readFileSync(path.resolve(__dirname, '../../src/pages/stock.vue'), 'utf8')
-  expect(source).toMatch(/v-if="isAdmin && paperTradingEnabled && activeTab === 'paper-trade'"/)
-  expect(source).toMatch(/v-if="isAdmin && activeTab === 'auto-trade'"/)
-  expect(source).toContain('미국 모의매매')
-})
-
-test.each([
-  [undefined, true, false],
-  ['false', true, false],
-  ['true', false, false],
-  ['true', true, true],
-])('paper deep link is available only with an explicit build flag and admin (%s, %s)', async (flag, admin, available) => {
-  const filename = path.resolve(__dirname, '../../src/pages/stock.vue')
-  const { descriptor } = parse(fs.readFileSync(filename, 'utf8'), { filename })
-  const code = transformSync(compileScript(descriptor, { id: 'stock-paper-gate' }).content, {
-    configFile: false, babelrc: false, plugins: ['@babel/plugin-transform-modules-commonjs'],
-  }).code
-  const result = { exports: {} }
-  const localRequire = name => {
-    if (name.endsWith('.vue')) return { render: () => null }
-    if (name === 'vue-router') return { useRoute: () => ({ query: { tab: 'paper-trade' } }), useRouter: () => ({ replace: jest.fn() }) }
-    if (name === 'vuex') return { useStore: () => ({ getters: { 'auth/isAdmin': admin } }) }
-    return require(name)
-  }
-  new Function('require', 'module', 'exports', 'process', code)(localRequire, result, result.exports, { env: { VUE_APP_US_PAPER_ENABLED: flag } })
-  const component = result.exports.default
-  component.render = () => null
-  http.get.mockResolvedValue({ data: {} })
-  const host = document.createElement('div'); document.body.appendChild(host)
-  app = createApp(component)
-  const vm = app.mount(host)
-  await flush()
-  expect(vm.tabs.some(tab => tab.id === 'paper-trade')).toBe(available)
-  expect(vm.activeTab).toBe(available ? 'paper-trade' : 'all')
-  expect(http.get.mock.calls.every(([url]) => ['/api/stock/krx-config', '/api/portfolio/accounts'].includes(url))).toBe(true)
+  expect(source).not.toMatch(/import\s+UsPaperTradingPanel/)
 })
